@@ -341,8 +341,8 @@
         debugLog('[version-aligner] Checking screen width...');
         if (window.innerWidth < 1024) {
             debugLog('[version-aligner] Screen width < 1024px');
-            // On mobile: don't align; keep version visible in navbar
-            showAllVersionButtons();
+            // On mobile: don't align; just toggle version visibility by route
+            if (isVersionRoute()) showAllVersionButtons(); else hideAllVersionButtons();
             restoreOriginalLayout();
             setAlignedFlag(false);
             return;
@@ -353,38 +353,14 @@
             debugLog('[version-aligner] Nav not ready; skipping alignment');
             return;
         }
-        // Gate: only align version on allowed routes; never hide navbar version
+        // Gate: only show/align version on allowed routes
         if (!isVersionRoute()) {
+            hideAllVersionButtons();
             restoreOriginalLayout();
+            setAlignedFlag(false);
+            return;
+        } else {
             showAllVersionButtons();
-            setAlignedFlag(false);
-            return;
-        }
-        // Allowed routes: ensure visible before alignment
-        showAllVersionButtons();
-
-        // Check existing alignment before any cleanup to avoid flicker
-        debugLog('[version-aligner] Checking forward button and existing alignment...');
-        const fwBtn = findForwardButton();
-        try {
-            const already = fwBtn && fwBtn.parentNode && fwBtn.parentNode.querySelector('[data-version-aligner-button]');
-            if (already) {
-                // Ensure the forward/technology button has no bottom margin when aligned in-row
-                try { if (fwBtn) fwBtn.style.marginBottom = '0px'; } catch(_) {}
-                // Hide duplicate navbar versions on desktop
-                markDuplicateVersionButtons();
-                debugLog('[version-aligner] Version already aligned next to technology; skipping move');
-                setAlignedFlag(true);
-                return;
-            }
-        } catch(_) {}
-
-        // If forward button isn't present yet, keep navbar version visible and skip
-        if (!fwBtn) {
-            debugLog('[version-aligner] Forward/technology dropdown not found; keeping navbar version');
-            restoreOriginalLayout();
-            setAlignedFlag(false);
-            return;
         }
 
         // Ensure version button is restored before re-aligning and remove any duplicates
@@ -399,17 +375,31 @@
             }
         } catch (_) {}
 
-        // Find the version selector in navbar
-        debugLog('[version-aligner] Finding version selector in navbar...');
-        const verBtn = findVersionSelector();
+        // Page versioning was already checked during cleanup - we only reach here if page is versioned
 
-        // Only align if version is present. Otherwise, skip without altering sidebar.
-        if (!verBtn) {
-            debugLog('[version-aligner] Version dropdown not found in navbar; skipping alignment');
+        debugLog('[version-aligner] Finding version selector and forward button...');
+        const verBtn = findVersionSelector();
+        const fwBtn = findForwardButton();
+
+        // Only align if both buttons are present. Otherwise, skip without altering sidebar.
+        if (!verBtn || !fwBtn) {
+            debugLog('[version-aligner] Missing one or both dropdowns; skipping alignment');
             setAlignedFlag(false);
             return;
         }
-        debugLog('[version-aligner] Forward button validated; proceeding with alignment');
+        debugLog('[version-aligner] Forward button found successfully');
+
+        // If already aligned (a moved version exists adjacent to tech), skip reinsertion
+        try {
+            const already = fwBtn && fwBtn.parentNode && fwBtn.parentNode.querySelector('[data-version-aligner-button]');
+            if (already) {
+                // Ensure the forward/technology button has no bottom margin when aligned in-row
+                try { if (fwBtn) fwBtn.style.marginBottom = '0px'; } catch(_) {}
+                debugLog('[version-aligner] Version already aligned next to technology; skipping move');
+                setAlignedFlag(true);
+                return;
+            }
+        } catch(_) {}
 
         debugLog('[version-aligner] Creating placeholder for version button...');
         const placeholder = document.createElement('div');
