@@ -5,21 +5,6 @@ sidebarTitle: "Integration"
 
 The **Android Calls SDK** enables real‑time voice & video (1:1 & group) with a minimal API. This version of the guide assumes you're using **only the Calls SDK (no Chat SDK)** and implementing your own user management, signaling, and invitation logic.
 
-<Callout type="info" title="Sample Project File Mapping">
-The user‑facing sample mentioned maps each step to these local files:
-
-| Guide Step | Purpose | Sample File(s) |
-|------------|---------|----------------|
-| Step 4 (Init) | Calls SDK initialization | `CometChatLoginActivity.kt` (early) or `MainActivity.kt` | 
-| Step 5 (Auth Token Fetch) | Secure fetch from backend | `CometChatLoginActivity.kt` / `LoginActivity.java` |
-| Step 6 (Generate Token) | Create session token | `MainActivity.kt` / `MainsActivity.java` |
-| Step 7 (Start Session) | Build `CallSettings` & start | `MainActivity.kt` / `MainsActivity.java` |
-| Step 8 (Controls) | Media/device operations | `MainActivity.kt` (utility methods) |
-| Advanced / Extra Methods | (e.g. recording, PIP, upgrade) | `MainsActivity.java`, `LoginActivity.java` (Java reference variants) |
-
-> The Java files (`MainsActivity.java`, `LoginActivity.java`) contain extended/alternate implementations you can cross‑reference for parity between Java & Kotlin.
-</Callout>
-
 <Info>
 You need: (1) App ID (2) Region (3) A server‑issued User Auth Token (never expose Auth Key in client). Manage credentials in the <a href="https://app.cometchat.com" target="_blank">CometChat Dashboard</a>.
 </Info>
@@ -154,9 +139,6 @@ CometChatCalls.init(this, callAppSettings, object: CometChatCalls.CallbackListen
 </Tab>
 </Tabs>
 
-<Note>
-In the sample project this initialization can run at the start of `CometChatLoginActivity.kt` (e.g. in `onCreate`) before navigating to `MainActivity.kt`, or centrally in a custom `Application` class if you add one.
-</Note>
 
 ---
 
@@ -174,9 +156,6 @@ You must create (on your server) a **CometChat User** (via REST or Dashboard) an
 
 Store the returned token in memory (not persistent long‑term). Do not hardcode dashboard Auth Key in client code.
 
-<Note>
-In the sample project place the secure network call / Retrofit service invocation inside `CometChatLoginActivity.kt` (or Java variant `LoginActivity.java`) before launching `MainActivity.kt`.
-</Note>
 
 ---
 
@@ -220,9 +199,6 @@ CometChatCalls.generateToken(sessionId, userAuthToken,
 Invitation (ring/accept/reject) flows rely on Chat SDK events. Without Chat SDK you must build signaling yourself (e.g. via your own WebSocket) and share `sessionId` out‑of‑band.
 </Note>
 
-<Note>
-In the sample this logic resides in `MainActivity.kt` (or `MainsActivity.java`) right before building call settings.
-</Note>
 
 ---
 
@@ -290,9 +266,6 @@ CometChatCalls.startSession(callToken, callSettings, object: CometChatCalls.Call
 </Tab>
 </Tabs>
 
-<Note>
-`MainActivity.kt` (or `MainsActivity.java`) hosts the `RelativeLayout` container and wires the `CometChatCallsEventsListener` exactly as shown.
-</Note>
 
 ---
 
@@ -318,9 +291,6 @@ CometChatCalls.setAudioMode(CometChatCallsConstants.AUDIO_MODE_SPEAKER)
 </Tab>
 </Tabs>
 
-<Note>
-You can wrap these controls into helper methods (e.g. `mute()`, `toggleCamera()`) inside `MainActivity.kt` for cleaner button click handlers; the Java reference `MainsActivity.java` demonstrates a similar pattern.
-</Note>
 
 ---
 
