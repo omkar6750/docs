@@ -1,0 +1,266 @@
+---
+title: "Calls SDK Methods (Android)"
+sidebarTitle: "Methods"
+---
+
+Comprehensive reference for the primary **CometChat Calls SDK (Android)** APIs. This page consolidates scattered examples (direct calling, presenter mode, recording) into a single quick‑scan guide.
+
+<Info>
+All methods below assume: (1) Core Chat SDK initialized & user logged in, (2) Calls SDK initialized via `CometChatCalls.init(...)`.
+</Info>
+
+---
+
+## Core Lifecycle
+
+### `CometChatCalls.init(context, callAppSettings, CallbackListener<String>)`
+Initialises the Calls layer with app credentials (App ID, Region). Must be called once (typically Application / Splash).
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `context` | Context | Application / Activity context. |
+| `callAppSettings` | `CallAppSettings` | Built via `CallAppSettingBuilder()` (appId, region, optional host override). |
+| `callback` | `CallbackListener<String>` | Success = ready; error = initialization failure. |
+
+---
+
+### `CometChatCalls.generateToken(sessionId, userAuthToken, CallbackListener<GenerateToken>)`
+Generates a short‑lived call token used to start (or join) a session.
+
+| Param | Description |
+|-------|-------------|
+| `sessionId` | Unique identifier for the call (UUID for Direct Calling, provided in `Call` object for Default Calling). |
+| `userAuthToken` | Auth token from `CometChat.getUserAuthToken()`. |
+
+<Note>
+You must call this for every new call session (Direct Calling). Do NOT cache indefinitely; regenerate as needed.
+</Note>
+
+#### Java
+```java
+CometChatCalls.generateToken(sessionId, CometChat.getUserAuthToken(),
+  new CometChatCalls.CallbackListener<GenerateToken>() {
+    @Override public void onSuccess(GenerateToken t) { startCall(t.getToken()); }
+    @Override public void onError(CometChatException e) { /* handle */ }
+});
+```
+
+#### Kotlin
+```kotlin
+CometChatCalls.generateToken(sessionId, CometChat.getUserAuthToken(),
+  object: CometChatCalls.CallbackListener<GenerateToken>() {
+    override fun onSuccess(t: GenerateToken) { startCall(t.token) }
+    override fun onError(e: CometChatException) {}
+  }
+)
+```
+
+Common Errors:
+| Code | Cause |
+|------|-------|
+| `INVALID_ARGUMENT_EXCEPTION` | Empty / null sessionId or auth token. |
+| `AUTH_ERR_TOKEN_INVALID_SIGNATURE` | Invalid / expired user auth token. |
+
+---
+
+### `CometChatCalls.startSession(callToken, callSettings, CallbackListener<String>)`
+Begins the media session and mounts the internal video layout (if using default layout) into your provided container.
+
+| Param | Description |
+|-------|-------------|
+| `callToken` | Token from `generateToken`. |
+| `callSettings` | Built via `CallSettingsBuilder` (container, flags, listener). |
+
+Typical flow: generate token → build settings → start session.
+
+#### Java
+```java
+CallSettings callSettings = new CometChatCalls.CallSettingsBuilder(this, videoContainer)
+  .setIsAudioOnly(false)
+  .setDefaultLayoutEnable(true)
+  .setEventListener(new CometChatCallsEventsListener() {
+     @Override public void onUserJoined(RTCUser user) {}
+     @Override public void onUserLeft(RTCUser user) {}
+     @Override public void onCallEnded() { CometChatCalls.endSession(); }
+     @Override public void onCallEndButtonPressed() {}
+     @Override public void onRecordingToggled(RTCRecordingInfo info) {}
+     @Override public void onAudioModeChanged(ArrayList<AudioMode> devices) {}
+     @Override public void onError(CometChatException e) {}
+  })
+  .build();
+
+CometChatCalls.startSession(callToken, callSettings,
+  new CometChatCalls.CallbackListener<String>() {
+    @Override public void onSuccess(String s) { /* session active */ }
+    @Override public void onError(CometChatException e) { }
+});
+```
+
+#### Kotlin
+```kotlin
+val settings = CometChatCalls.CallSettingsBuilder(this, videoContainer)
+  .setIsAudioOnly(false)
+  .setDefaultLayoutEnable(true)
+  .setEventListener(object: CometChatCallsEventsListener {
+    override fun onUserJoined(user: RTCUser) {}
+    override fun onUserLeft(user: RTCUser) {}
+    override fun onCallEnded() { CometChatCalls.endSession() }
+    override fun onCallEndButtonPressed() {}
+    override fun onRecordingToggled(recordingInfo: RTCRecordingInfo) {}
+    override fun onAudioModeChanged(devices: ArrayList<AudioMode?>) {}
+    override fun onError(e: CometChatException) {}
+  })
+  .build()
+
+CometChatCalls.startSession(callToken, settings, object: CometChatCalls.CallbackListener<String>() {
+  override fun onSuccess(s: String) {}
+  override fun onError(e: CometChatException) {}
+})
+```
+
+Error Codes:
+| Code | Meaning |
+|------|---------|
+| `INVALID_PROP_EXCEPTION` | Invalid / missing property in `CallSettings`. |
+| `API_ERROR` | Server-side permission / auth failure. |
+| `UNKNOWN_API_ERROR` | Network connectivity or unexpected internal error. |
+
+---
+
+### `CometChatCalls.endSession()`
+Gracefully ends the active call and releases media resources. Always pair user hang‑up with this method.
+
+Related (Default Calling flow): `CometChat.clearActiveCall()` from the Core Chat SDK to clear call context.
+
+---
+
+## Media & Device Controls
+
+| Method | Purpose | Notes |
+|--------|---------|-------|
+| `switchCamera()` | Toggle between front / rear camera | Ignored on audio‑only calls |
+| `muteAudio(boolean mute)` | Mute/unmute local audio track | `true` = mute local mic |
+| `pauseVideo(boolean pause)` | Pause/resume outbound video | `true` = stop sending frames |
+| `setAudioMode(String mode)` | Change output route (SPEAKER / EARPIECE / BLUETOOTH / HEADPHONES) | Availability depends on connected devices |
+| `enterPIPMode()` | Enter Picture‑in‑Picture | Ensure device & manifest support |
+| `exitPIPMode()` | Leave PiP mode | Use when restoring full UI |
+| `switchToVideoCall()` | Upgrade audio call to video | Triggers event for participants |
+| `startRecording()` | Start server‑side recording (if enabled) | Requires recording feature activation |
+| `stopRecording()` | Stop active recording | Emits `onRecordingToggled` listener update |
+
+#### Java (batch example)
+```java
+CometChatCalls.muteAudio(true);
+CometChatCalls.pauseVideo(true);
+CometChatCalls.switchCamera();
+CometChatCalls.setAudioMode(CometChatCallsConstants.AUDIO_MODE_SPEAKER);
+```
+
+#### Kotlin
+```kotlin
+CometChatCalls.muteAudio(true)
+CometChatCalls.pauseVideo(true)
+CometChatCalls.switchCamera()
+CometChatCalls.setAudioMode(CometChatCallsConstants.AUDIO_MODE_SPEAKER)
+```
+
+---
+
+## Builders
+
+### `CallSettingsBuilder(context, videoContainer)`
+Mandatory ctor params: Activity context + `RelativeLayout` container.
+
+| Setter | Description |
+|--------|-------------|
+| `setIsAudioOnly(Boolean)` | `true` = audio‑only; default = video enabled. |
+| `setDefaultLayoutEnable(Boolean)` | Use built‑in layout (fast start). Disable for custom rendering. |
+| `setEventListener(CometChatCallsEventsListener)` | Attach real‑time event callbacks. |
+| `setDefaultAudioMode(String)` | (If available) Start with specific audio route. |
+
+### `PresentationSettingsBuilder(context)` (Presenter Mode)
+Used for screen/presenter features (see Presenter Mode guide).
+
+| Setter | Description |
+|--------|-------------|
+| `setDefaultAudioMode(String)` | Initial output route. |
+| `setEventListener(CometChatCallsEventsListener)` | Presenter stream events. |
+
+---
+
+## Event Listener: `CometChatCallsEventsListener`
+
+| Callback | When it Fires |
+|----------|---------------|
+| `onCallEnded()` | Session ended (local or remote). |
+| `onCallEndButtonPressed()` | Local end button tapped. |
+| `onUserJoined(RTCUser user)` | Remote participant joined. |
+| `onUserLeft(RTCUser user)` | Remote participant left or dropped. |
+| `onUserListChanged(ArrayList<RTCUser>)` | Full participant list changed. |
+| `onAudioModeChanged(ArrayList<AudioMode>)` | Audio output devices changed / route updated. |
+| `onCallSwitchedToVideo(CallSwitchRequestInfo)` | Audio → video upgrade performed. |
+| `onUserMuted(RTCMutedUser)` | A participant was muted by another (moderation). |
+| `onRecordingToggled(RTCRecordingInfo)` | Recording started/stopped. |
+| `onError(CometChatException)` | Recoverable / fatal error encountered. |
+
+<Note>
+Always guard UI updates with lifecycle checks (activity not finishing) to avoid illegal state exceptions.
+</Note>
+
+---
+
+## Minimal End‑to‑End (Direct Calling) – Kotlin
+```kotlin
+val sessionId = UUID.randomUUID().toString()
+CometChatCalls.generateToken(sessionId, CometChat.getUserAuthToken(), object: CometChatCalls.CallbackListener<GenerateToken>() {
+  override fun onSuccess(gt: GenerateToken) {
+    val settings = CometChatCalls.CallSettingsBuilder(this@CallActivity, videoContainer)
+      .setDefaultLayoutEnable(true)
+      .setIsAudioOnly(false)
+      .setEventListener(object: CometChatCallsEventsListener {
+        override fun onCallEnded() { CometChatCalls.endSession() }
+        override fun onError(e: CometChatException) {}
+        override fun onUserJoined(user: RTCUser) {}
+        override fun onUserLeft(user: RTCUser) {}
+        override fun onCallEndButtonPressed() {}
+        override fun onRecordingToggled(recordingInfo: RTCRecordingInfo) {}
+        override fun onAudioModeChanged(devices: ArrayList<AudioMode?>) {}
+        override fun onCallSwitchedToVideo(callSwitchRequestInfo: CallSwitchRequestInfo) {}
+        override fun onUserMuted(muteObj: RTCMutedUser) {}
+        override fun onUserListChanged(users: ArrayList<RTCUser?>) {}
+      })
+      .build()
+
+    CometChatCalls.startSession(gt.token, settings, object: CometChatCalls.CallbackListener<String>() {
+      override fun onSuccess(s: String) { }
+      override fun onError(e: CometChatException) { }
+    })
+  }
+  override fun onError(e: CometChatException) {}
+})
+```
+
+---
+
+## Troubleshooting Snapshot
+
+| Symptom | Resolution |
+|---------|------------|
+| `INVALID_ARGUMENT_EXCEPTION` on `generateToken` | Ensure both `sessionId` & `userAuthToken` are non‑empty. |
+| Blank local preview | Check camera permission & `setIsAudioOnly(false)`. |
+| No remote video | Remote user paused video or network degraded; show placeholder. |
+| Audio route not switching | Invoke `setAudioMode()` after session established. |
+| Memory leak warnings | Always call `endSession()` in `onDestroy()` if active. |
+
+---
+
+## See Also
+
+* [Overview](/calls-sdk/android/overview)
+* [Integration Guide](/calls-sdk/android/integration)
+* [Direct Calling (Detailed)](/sdk/android/3.0/direct-calling-v3)
+* [Presenter Mode](/sdk/android/3.0/presenter-mode)
+
+---
+
+Need an API not listed? Open a ticket or request an enhancement in the community forum.
