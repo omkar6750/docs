@@ -8,10 +8,11 @@
         window.__ccVersionAlignerInitialized__ = true;
     } catch (_) {}
     // Debug mode - can be controlled from console via: window.VERSION_ALIGNER_DEBUG = true
-    let DEBUG_MODE = true;
-    
-    // Expose debug control globally
-    window.VERSION_ALIGNER_DEBUG = DEBUG_MODE;
+    const initialDebug =
+        typeof window.VERSION_ALIGNER_DEBUG === 'boolean'
+            ? window.VERSION_ALIGNER_DEBUG
+            : false;
+    window.VERSION_ALIGNER_DEBUG = initialDebug;
 
     // Pre-mark any version buttons so CSS can hide them before alignment completes
     try { getAllVersionButtons(); } catch (_) {}
@@ -218,36 +219,6 @@
         p = p.replace(/\/+$/, '') || '/';
         return p;
     }
-    function hasNativeTechDropdown() {
-        try {
-            const sidebar = document.getElementById('sidebar-content');
-            const nav = sidebar && (sidebar.querySelector('#navigation-items') || sidebar);
-            if (!nav) return false;
-            const candidates = Array.from(nav.querySelectorAll('button[aria-haspopup="menu"]'))
-                .filter(b => b.id !== 'cc-product-dropdown-button')
-                .filter(b => !b.hasAttribute('data-cc-home-product-button'))
-                .filter(b => {
-                    const txt = (b.textContent || '').trim().replace(/[\u200E\u200F\u2060\u00A0\s]/g, '');
-                    return !/^v\d+([\.-]\w+)*$/i.test(txt);
-                })
-                .filter(b => {
-                    const r = b.getBoundingClientRect();
-                    return r.width > 0 && r.height > 0;
-                });
-            return candidates.length > 0;
-        } catch (_) { return false; }
-    }
-
-    function isVersionedPage() {
-        let currentPath = window.location.pathname;
-        currentPath = stripBase(currentPath);
-        const dropdownPaths = ['/chat-builder', '/ui-kit', '/sdk', '/widget', '/ai-agents'];
-        const inSection = dropdownPaths.some(prefix => currentPath === prefix || currentPath.startsWith(prefix + '/'));
-        const native = hasNativeTechDropdown();
-        debugLog('[version-aligner] routeHasTech:', inSection, 'hasNativeTech:', native);
-        return inSection || native;
-    }
-    
     function restoreOriginalLayout() {
         debugLog('[version-aligner] Restoring original layout (version only)');
         const placeholder = document.getElementById(PLACEHOLDER_ID);
@@ -419,18 +390,25 @@
         } catch(_) {}
 
         debugLog('[version-aligner] Creating placeholder for version button...');
-        // const placeholder = document.createElement('div');
-        // placeholder.id = PLACEHOLDER_ID;
-        // placeholder.setAttribute('aria-hidden', 'true');
-        // placeholder.setAttribute('role', 'presentation');
-        // placeholder.style.display = 'none';
-        // placeholder.style.width = '0px';
-        // placeholder.style.height = '0px';
-        // placeholder.style.margin = '0px';
-        // placeholder.style.flex = '0 0 auto';
-        // placeholder.style.visibility = 'hidden';
-        // placeholder.style.pointerEvents = 'none';
-        // try { verBtn.parentNode.insertBefore(placeholder, verBtn); } catch(_) {}
+        let placeholder = document.getElementById(PLACEHOLDER_ID);
+        if (!placeholder) {
+            placeholder = document.createElement('div');
+            placeholder.id = PLACEHOLDER_ID;
+            placeholder.setAttribute('aria-hidden', 'true');
+            placeholder.setAttribute('role', 'presentation');
+            placeholder.style.display = 'none';
+            placeholder.style.width = '0px';
+            placeholder.style.height = '0px';
+            placeholder.style.margin = '0px';
+            placeholder.style.flex = '0 0 auto';
+            placeholder.style.visibility = 'hidden';
+            placeholder.style.pointerEvents = 'none';
+        }
+        try {
+            if (verBtn.parentNode) {
+                verBtn.parentNode.insertBefore(placeholder, verBtn);
+            }
+        } catch (_) {}
 
         debugLog('[version-aligner] Setting up version button...');
         verBtn.dataset.versionAlignerButton = 'true';
@@ -494,6 +472,30 @@
         }
     }
 
+    function attachObserverTargets(options = {}) {
+        const { log = true } = options;
+        if (!observer) return;
+        try {
+            const navbar = document.getElementById('navbar');
+            if (navbar) {
+                observer.observe(navbar, { childList: true, subtree: true });
+                if (log) debugLog('[version-aligner] Observing navbar for changes');
+            }
+            const sidebar = document.getElementById('sidebar-content');
+            if (sidebar) {
+                observer.observe(sidebar, { childList: true, subtree: true });
+                if (log) debugLog('[version-aligner] Observing sidebar for changes');
+            }
+            if (document.body) {
+                observer.observe(document.body, { childList: true, subtree: false });
+                if (log) debugLog('[version-aligner] Observing body for structural changes');
+            }
+            if (log) {
+                debugLog('[version-aligner] Observer reconnected');
+            }
+        } catch (_) {}
+    }
+
     function realign() {
         debugLog('[version-aligner] ===== REALIGN TRIGGERED =====');
         debugLog('[version-aligner] Current URL:', window.location.href);
@@ -503,10 +505,7 @@
         try {
             _realign();
         } finally {
-            if (observer) {
-                observer.observe(document.body, { childList: true, subtree: true });
-                debugLog('[version-aligner] Observer reconnected');
-            }
+            attachObserverTargets();
         }
         debugLog('[version-aligner] ===== REALIGN COMPLETE =====');
     }
@@ -550,26 +549,7 @@
             }
         });
 
-        // Observe more selectively - target specific areas instead of entire body
-        const navbar = document.getElementById('navbar');
-        const sidebar = document.getElementById('sidebar-content');
-        
-        if (navbar) {
-            observer.observe(navbar, { childList: true, subtree: true });
-            debugLog('[version-aligner] Observing navbar for changes');
-        }
-        
-        if (sidebar) {
-            observer.observe(sidebar, { childList: true, subtree: true });
-            debugLog('[version-aligner] Observing sidebar for changes');
-        }
-        
-        // Also observe body for high-level navigation changes, but with less sensitivity
-        observer.observe(document.body, { 
-            childList: true, 
-            subtree: false  // Only direct children, not deep subtree
-        });
-        
+        attachObserverTargets();
         debugLog('[version-aligner] MutationObserver started with selective targeting');
     }
 
