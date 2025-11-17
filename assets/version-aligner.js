@@ -8,7 +8,7 @@
         window.__ccVersionAlignerInitialized__ = true;
     } catch (_) {}
     // Debug mode - can be controlled from console via: window.VERSION_ALIGNER_DEBUG = true
-    let DEBUG_MODE = false;
+    let DEBUG_MODE = true;
     
     // Expose debug control globally
     window.VERSION_ALIGNER_DEBUG = DEBUG_MODE;
@@ -19,8 +19,6 @@
             console.log(...args);
         }
     }
-    
-
     
     let observer;
     const ALIGNER_ROW_CLASS = 'version-aligner-row';
@@ -38,6 +36,28 @@
         window.addEventListener('cc:route-change', function(){ NAV_READY = false; }, true);
         window.addEventListener('cc:nav-revealed', function(){ NAV_READY = true; }, true);
     } catch(_) {}
+
+    function ensureNavReady() {
+        if (NAV_READY) return true;
+        try {
+            const html = document.documentElement;
+            if (html && html.classList.contains('cc-nav-ready')) {
+                NAV_READY = true;
+                return true;
+            }
+            const sidebar = document.getElementById('sidebar-content');
+            if (!sidebar) return false;
+
+            // Mintlify recently reordered the sidebar; check for any visible dropdown trigger.
+            const navRoot = sidebar.querySelector('#navigation-items') || sidebar;
+            const hasDropdown = navRoot && navRoot.querySelector('button[aria-haspopup="menu"]');
+            if (hasDropdown) {
+                NAV_READY = true;
+                return true;
+            }
+        } catch (_) {}
+        return false;
+    }
 
     function findVersionSelector() {
         debugLog('[version-aligner] Finding version selector...');
@@ -149,7 +169,7 @@
         // Look for any visible non-version dropdown in the sidebar
         try {
             const sidebar = document.getElementById('sidebar-content');
-            const nav = sidebar && sidebar.querySelector('#navigation-items');
+            const nav = sidebar && (sidebar.querySelector('#navigation-items') || sidebar);
             if (nav) {
                 const candidates = Array.from(nav.querySelectorAll('button[aria-haspopup="menu"]'))
                     .filter(b => b.id !== 'cc-product-dropdown-button')
@@ -191,7 +211,7 @@
     function hasNativeTechDropdown() {
         try {
             const sidebar = document.getElementById('sidebar-content');
-            const nav = sidebar && sidebar.querySelector('#navigation-items');
+            const nav = sidebar && (sidebar.querySelector('#navigation-items') || sidebar);
             if (!nav) return false;
             const candidates = Array.from(nav.querySelectorAll('button[aria-haspopup="menu"]'))
                 .filter(b => b.id !== 'cc-product-dropdown-button')
@@ -222,6 +242,10 @@
         debugLog('[version-aligner] Restoring original layout (version only)');
         const placeholder = document.getElementById(PLACEHOLDER_ID);
         const moved = document.querySelectorAll('#sidebar-content [data-version-aligner-button]');
+        try {
+            document.querySelectorAll('#sidebar-content .cc-version-aligned-row')
+                .forEach(function(row){ row.classList.remove('cc-version-aligned-row'); });
+        } catch(_) {}
         if (!placeholder) {
             // Fallback: if placeholder is missing (nav re-render), remove any moved instances to avoid duplicates
             if (moved && moved.length) {
@@ -242,27 +266,10 @@
         }
         try {
             document.documentElement.classList.remove('cc-version-aligned');
-            document.querySelectorAll('#navbar .cc-dup-version').forEach(el => el.classList.remove('cc-dup-version'));
         } catch(_) {}
 
         // Remove any inline margin adjustments applied to the technology trigger
         try { const fw = findForwardButton(); if (fw) fw.style.removeProperty('margin-bottom'); } catch(_) {}
-    }
-
-    function markDuplicateVersionButtons() {
-        try {
-            const navbar = document.getElementById('navbar');
-            if (!navbar) return;
-            const buttons = [...navbar.querySelectorAll('button[aria-haspopup="menu"]')]
-                .filter(el => el.id !== 'cc-product-dropdown-button')
-                .filter(el => !el.hasAttribute('data-cc-home-product-button'));
-            buttons.forEach(btn => {
-                const clean = (btn.textContent || '').trim().replace(/[\u200E\u200F\u2060\u00A0\s]/g, '');
-                if (/^v\d+([\.-]\w+)*$/i.test(clean)) {
-                    btn.classList.add('cc-dup-version');
-                }
-            });
-        } catch(_) {}
     }
 
     function setAlignedFlag(on) {
@@ -349,7 +356,7 @@
         }
         debugLog('[version-aligner] Screen width >= 1024px, proceeding with alignment');
         // Wait for nav reveal to avoid racing hydration
-        if (!NAV_READY) {
+        if (!ensureNavReady()) {
             debugLog('[version-aligner] Nav not ready; skipping alignment');
             return;
         }
@@ -454,6 +461,11 @@
         debugLog('[version-aligner] Inserting version button after technology dropdown...');
         try {
             fwBtn.parentNode.insertBefore(verBtn, fwBtn.nextSibling);
+            try {
+                if (fwBtn && fwBtn.parentNode && fwBtn.parentNode.classList) {
+                    fwBtn.parentNode.classList.add('cc-version-aligned-row');
+                }
+            } catch(_) {}
             // Normalize vertical alignment: remove bottom margin from the technology trigger
             try { if (fwBtn) fwBtn.style.marginBottom = '0px'; } catch(_) {}
             setAlignedFlag(true);

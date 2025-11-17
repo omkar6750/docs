@@ -1,24 +1,34 @@
-/* IMPORTANT: Scope rules to version aligner only; do not affect product dropdown */
+/* Version aligner styles – scoped to sidebar + navbar elements */
 
-/* Hide chevron on the moved version trigger only */
+/* Hide chevron icon on the moved version trigger */
 #sidebar-content [data-version-aligner-button] svg {
   display: none !important;
 }
 
-/* Constrain technology dropdown width when version is aligned */
-html.cc-version-aligned #sidebar-content .nav-dropdown-trigger {
+/* Keep technology + version triggers on a single row */
+#sidebar-content .cc-version-aligned-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Constrain technology dropdown width when aligned */
+html.cc-version-aligned #sidebar-content .cc-version-aligned-row .nav-dropdown-trigger {
+  flex: 0 0 auto;
   max-width: 230px !important;
-  /* Remove bottom spacing when version sits on the same row */
   margin-bottom: 0 !important;
 }
 
-/* Ensure moved version button displays consistently */
-html.cc-version-aligned #sidebar-content [data-version-aligner-button] {
+/* Ensure the moved version trigger renders inline with the technology trigger */
+html.cc-version-aligned #sidebar-content .cc-version-aligned-row [data-version-aligner-button] {
   display: flex !important;
   align-items: center;
+  flex: 0 0 auto;
 }
 
-/* On large screens, hide any duplicate version buttons tagged in the navbar */
+/* Hide the navbar version dropdown once the sidebar is aligned (desktop only) */
 @media (min-width: 1024px) {
-  #navbar .cc-dup-version { display: none !important; }
+  html.cc-version-aligned #navbar .hidden.lg\:flex.items-center.gap-x-2 > button[aria-haspopup="menu"] {
+    display: none !important;
+  }
 }
