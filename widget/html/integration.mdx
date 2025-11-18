@@ -1,18 +1,20 @@
 ---
-title: "Add CometChat Widget to a Static HTML Website"
+title: "CometChat Widget – HTML Setup Examples"
 sidebarTitle: "Integration"
 description: "Learn how to embed the CometChat UI Kit Builder widget into a basic HTML website using script and DOM integration."
 ---
 
-import AdvancedJSAPIs from "/snippets/widget/advanced-js-apis.mdx";
+You can embed the CometChat Widget into any page with a small HTML snippet.
 
-You can embed the CometChat Widget on any HTML page using a small snippet. Each option below shows:
+Each option below shows:
 
 1. **When to use it**  
 2. **Code to add inside your `<head>`**  
-3. **Code to add inside your `<body>`** where the widget mounts
+3. **Code to add inside your `<body>`** where you want the chat widget to appear  
 
-In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
+In every snippet, edit only the text inside quotes such as "YOUR_APP_ID".
+
+> **Hosted helper script:** Host `cometchat-auth.js` yourself and reference it over HTTPS. The snippets below use the placeholder `https://cdn.example.com/cometchat/cometchat-auth.js`.
 
 ---
 
@@ -20,21 +22,24 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
 
 **Use this when:**
 
-- Any visitor should start chatting immediately  
-- You do not maintain user accounts or login
+- Any visitor should be able to start chatting instantly  
+- You do not have (or do not want to wire up) your own login/registration yet  
 
 ### 1.1 Code for `<head>`
 
 ```html
 <!-- CometChat Widget script (required for all modes) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"
+></script>
 ```
 
 ### 1.2 Code for `<body>`
 
 ```html
 <!-- Where the chat widget should appear -->
-<div id="cometChatMount" style="height:600px;"></div>
+<div id="cometChatMount" style="height: 600px;"></div>
 
 <script type="module">
   import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
@@ -57,7 +62,7 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
     mount: "#cometChatMount",
     width: "100%",
     height: "100%",
-    isDocked: true
+    isDocked: true               // true = docked widget (recommended)
   };
 
   CometChatAuth.start(COMETCHAT_WIDGET_CONFIG);
@@ -70,21 +75,24 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
 
 **Use this when:**
 
-- You already have unique user IDs  
-- Each visitor should appear consistently in chat
+- Your application already has unique user IDs  
+- You want every user to appear with a stable identity in chat  
 
 ### 2.1 Code for `<head>`
 
 ```html
 <!-- CometChat Widget script (required for all modes) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"
+></script>
 ```
 
 ### 2.2 Code for `<body>`
 
 ```html
 <!-- Where the chat widget should appear -->
-<div id="cometChatMount" style="height:600px;"></div>
+<div id="cometChatMount" style="height: 600px;"></div>
 
 <script type="module">
   import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
@@ -96,14 +104,14 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
     mode: "uid",                    // keep this as "uid"
     authKey: "YOUR_AUTH_KEY",
 
-    // IMPORTANT: must be unique per user
-    uid: "UNIQUE_USER_ID",          // e.g. "user_123"
+    // IMPORTANT: this must be unique per user
+    uid: "UNIQUE_USER_ID",          // e.g. "user_123", "customer_42"
 
-    // Optional: user profile details
+    // Optional: user profile shown in chat
     user: {
-      name: "User Name",
-      avatar: "https://example.com/user.png",
-      link: "https://example.com/profile"
+      name: "User Name",            // e.g. "Alex Johnson"
+      avatar: "https://example.com/uid.png",
+      link: "https://example.com/profile/uid"
     },
 
     // Widget placement + size
@@ -123,21 +131,24 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
 
 **Use this when:**
 
-- Your app already authenticates users on a backend  
-- Your server issues CometChat auth tokens
+- Your users already sign in through your backend  
+- Your backend generates CometChat auth tokens for logged-in users  
 
 ### 3.1 Code for `<head>`
 
 ```html
 <!-- CometChat Widget script (required for all modes) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"
+></script>
 ```
 
 ### 3.2 Code for `<body>`
 
 ```html
 <!-- Where the chat widget should appear -->
-<div id="cometChatMount" style="height:600px;"></div>
+<div id="cometChatMount" style="height: 600px;"></div>
 
 <script type="module">
   import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
@@ -148,7 +159,7 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
     region: "YOUR_APP_REGION",       // e.g. "us", "eu", "in"
     mode: "authToken",               // keep this as "authToken"
 
-    // Generated BY YOUR BACKEND
+    // Generated BY YOUR BACKEND after user login
     authToken: "USER_AUTH_TOKEN",
 
     // Widget placement + size
@@ -164,4 +175,35 @@ In every snippet, edit only the text inside quotes such as `"YOUR_APP_ID"`.
 
 ---
 
-<AdvancedJSAPIs />
+## How `cometchat-auth.js` Works
+
+All three snippets above import a single helper file.
+
+At a high level it:
+
+1. Reads your `COMETCHAT_WIDGET_CONFIG` object  
+2. Validates required fields based on the selected `mode`  
+3. Initializes the CometChat Embed SDK with `appID` + `region`  
+4. Logs the user in:
+   - **guest:** creates a guest user (can be stored via cookie/localStorage)  
+   - **uid:** creates or updates the user for the provided `uid`, then logs in using `authKey`  
+   - **authToken:** logs in directly with the backend-generated auth token  
+5. Launches the widget inside the element selected via `mount` (`#cometChatMount` in these examples)
+
+---
+
+## Reusable Pattern (Mental Model)
+
+Across all modes, the pattern stays the same:
+
+1. Load the `@cometchat/chat-embed` script in the `<head>`  
+2. Add a `<div>` where the widget should mount  
+3. Define one `COMETCHAT_WIDGET_CONFIG` object  
+4. Call `CometChatAuth.start(COMETCHAT_WIDGET_CONFIG);`
+
+Switching from guest → UID → auth token only requires changing:
+
+- `mode`  
+- The auth field (`authKey`, `uid`, or `authToken`)  
+
+The rest of the page stays exactly the same.
