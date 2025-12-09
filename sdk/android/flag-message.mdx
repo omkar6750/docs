@@ -1,0 +1,108 @@
+---
+title: "Flag A Message"
+---
+
+Flagging messages allows users to report inappropriate content to moderators or administrators. CometChat provides methods to flag messages with specific reasons and retrieve available flag reasons configured in your dashboard.
+
+## Flag a Message
+
+*In other words, as a user, how do I report a message?*
+
+To flag a message, you can use the `flagMessage()` method. This method takes the message ID and a payload containing an optional reason ID and remark.
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+        val id = 0L; // Id of the message to be flagged
+        val flagDetail = FlagDetail()
+        flagDetail.reasonId = "spam" // Required: Reason ID for flagging the message
+        flagDetail.remark = "This message contains promotional content" // Optional: Additional remarks
+        CometChat.flagMessage(id, flagDetail, object : CometChat.CallbackListener<String?>() {
+            override fun onSuccess(s: String?) {
+                Log.i(TAG, "onSuccess: Message flagged successfully: $s")
+            }
+
+            override fun onError(e: CometChatException?) {
+                Log.i(TAG, "onError: Message flagging failed with error: ${e?.message}")
+            }
+        })
+```
+</Tab>
+
+<Tab title="Java">
+```java
+        long id = 0; // Id of the message to be flagged
+        FlagDetail flagDetail = new FlagDetail(); // Details of the flagging action
+        flagDetail.setReasonId("spam"); // Required: Reason ID for flagging the message
+        flagDetail.setRemark("This message contains promotional content"); // Optional: Additional remarks
+        CometChat.flagMessage(id, flagDetail, new CometChat.CallbackListener<String>() {
+            @Override
+            public void onSuccess(String s) {
+                Log.i(TAG, "onSuccess: Message flagged successfully: " + s);
+            }
+
+            @Override
+            public void onError(CometChatException e) {
+                Log.i(TAG, "onError: Message flagging failed with error: " + e.getMessage());
+            }
+        });
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter               | Type       | Required | Description                                 |
+|-------------------------|------------|----------|---------------------------------------------|
+| id                      | long       | Yes      | The ID of the message to be flagged         |
+| flagDetail              | FlagDetail | Yes      | Contains flagging details                   |
+| flagDetail.setReasonId  | String     | Yes      | ID of the flag reason (from getFlagReasons) |
+| flagDetail.setRemark    | String     | No       | Additional context or explanation           |
+
+### Response
+
+On successful flagging, you'll receive a response object:
+
+```String
+{
+  "message": "Message {id} has been flagged successfully."
+}
+```
+
+## Get Flag Reasons
+
+*In other words, what are the available reasons for flagging a message?*
+
+Before flagging a message, you can retrieve the list of available flag reasons using the `getFlagReasons()` method. These reasons are configured in the CometChat Dashboard.
+
+<Tabs>
+<Tab title="Java">
+```java
+        CometChat.getFlagReasons(new CometChat.CallbackListener<List<FlagReason>>() {
+            @Override
+            public void onSuccess(List<FlagReason> reasons) {
+                Log.e(TAG, "Flag Reasons fetched: " + reasons);
+            }
+
+            @Override
+            public void onError(CometChatException e) {
+                Log.e(TAG, "Error fetching Flag Reasons: " + e.getMessage());
+            }
+        });
+```
+</Tab>
+
+<Tab title="Kotlin">
+```kotlin
+        CometChat.getFlagReasons(object : CometChat.CallbackListener<MutableList<FlagReason?>?>() {
+            override fun onSuccess(reasons: MutableList<FlagReason?>?) {
+                Log.e(TAG, "Flag Reasons fetched: $reasons")
+            }
+
+            override fun onError(e: CometChatException) {
+                Log.e(TAG, "Error fetching Flag Reasons: " + e.message)
+            }
+        })
+```
+</Tab>
+</Tabs>
