@@ -273,8 +273,114 @@ Example embed (HTML):
 
 > Replace the placeholder values (`<YOUR_APP_ID>`, etc.) with the credentials, user UID, default chat ID, and variant ID from your deployment.
 
+### Choose an Authentication Flow
+
+Use the same embed script plus the lightweight `CometChatAuth` helper to create/login users before the widget launches. Pick the mode that matches how people sign in to your product.
+
+<Callout>
+Replace <code>https://cdn.example.com/cometchat/cometchat-auth.js</code> with the `cometchat-auth.js` URL shared by your CometChat account team.
+</Callout>
+
+<Tabs>
+  <Tab title="Anonymous (Guest Mode)">
+Let anyone chat with the agent without creating an account—great for demos or marketing sites.
+
+```html
+<script type="module">
+  import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
+
+  const COMETCHAT_WIDGET_CONFIG = {
+    appID: "YOUR_APP_ID",
+    region: "YOUR_APP_REGION",
+    mode: "guest",
+    authKey: "YOUR_AUTH_KEY",
+    user: {
+      name: "Guest User",
+      avatar: "",
+      link: ""
+    },
+    mount: "#cometChatMount",
+    width: "700px",
+    height: "500px",
+    isDocked: true,
+    variantID: "<YOUR_VARIANT_ID>",
+    chatType: "user",
+    defaultChatID: "<DEFAULT_AGENT_OR_USER_ID>"
+  };
+
+  CometChatAuth.start(COMETCHAT_WIDGET_CONFIG);
+</script>
+```
+
+- `authKey` enables guest logins; never expose your REST API key.
+- Set `defaultChatID` to the AI agent's UID so the conversation opens immediately.
+  </Tab>
+  <Tab title="Create + Log In User (UID Mode)">
+Reuse the IDs your product already issues (email, handle, etc.). CometChat creates the user on first visit and reuses it afterward.
+
+```html
+<script type="module">
+  import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
+
+  const COMETCHAT_WIDGET_CONFIG = {
+    appID: "YOUR_APP_ID",
+    region: "YOUR_APP_REGION",
+    mode: "uid",
+    authKey: "YOUR_AUTH_KEY",
+    uid: "UNIQUE_USER_ID",
+    user: {
+      name: "User Name",
+      avatar: "https://example.com/profile.png",
+      link: "https://example.com/profile/uid"
+    },
+    mount: "#cometChatMount",
+    width: "700px",
+    height: "500px",
+    isDocked: true,
+    variantID: "<YOUR_VARIANT_ID>",
+    chatType: "user",
+    defaultChatID: "<DEFAULT_AGENT_OR_USER_ID>"
+  };
+
+  CometChatAuth.start(COMETCHAT_WIDGET_CONFIG);
+</script>
+```
+
+- Pass the same `uid` you use in your app so messages map back to the correct person.
+- The optional `user` object lets you sync profile metadata shown next to the agent thread.
+  </Tab>
+  <Tab title="Backend Auth Token (Secure Mode)">
+If you already authenticate users on your server, create a CometChat auth token after they log in and hand it to the page.
+
+```html
+<script type="module">
+  import { CometChatAuth } from "https://cdn.example.com/cometchat/cometchat-auth.js";
+
+  const COMETCHAT_WIDGET_CONFIG = {
+    appID: "YOUR_APP_ID",
+    region: "YOUR_APP_REGION",
+    mode: "authToken",
+    authToken: "USER_AUTH_TOKEN",
+    mount: "#cometChatMount",
+    width: "700px",
+    height: "500px",
+    isDocked: true,
+    variantID: "<YOUR_VARIANT_ID>",
+    chatType: "user",
+    defaultChatID: "<DEFAULT_AGENT_OR_USER_ID>"
+  };
+
+  CometChatAuth.start(COMETCHAT_WIDGET_CONFIG);
+</script>
+```
+
+- Generate the auth token on your backend via the [Auth Token API](/rest-api/auth-tokens/create) and send it to the browser over HTTPS.
+- This mode keeps API keys server-side while still opening the agent chat automatically.
+  </Tab>
+</Tabs>
+
 ---
- 
+
 ## Step 8 - Verify
 
 | Check | How |
