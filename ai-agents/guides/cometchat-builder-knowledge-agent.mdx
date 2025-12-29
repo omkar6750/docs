@@ -1,0 +1,104 @@
+---
+title: "Build a Knowledge Agent with CometChat Agent Builder"
+sidebarTitle: "Knowledge Agent (Builder)"
+description: "Create a retrieval-focused agent inside CometChat, load your docs, enforce cited answers, then deploy and embed."
+---
+
+Use this when you want the agent logic to live inside CometChat. If you already host a knowledge agent elsewhere (e.g., Mastra, Agno), use the BYOA guide instead.
+
+---
+
+## What you’ll build
+
+- A **CometChat Agent Builder** agent that answers only from your uploaded docs.
+- Retrieval behavior that keeps answers concise and **cited**.
+- A deployed chat experience you can embed with your brand styling.
+
+---
+
+## Prerequisites
+
+- A CometChat app with access to **AI Agent Builder**.
+- Source material you’re allowed to upload (PDFs, markdown, URLs, or pasted text).
+- 5–6 sample questions and expected answers for quick testing.
+
+---
+
+## Step 1 — Create the agent shell
+
+<Steps>
+  <Step title="Start a new agent">
+    Go to <b>AI Agents → Agent Builder</b> and create an agent. Name it something like “Docs Guide” and add an icon so teammates can spot it.
+  </Step>
+  <Step title="Add a greeting & intro">
+    Keep these short (“Ask me anything about our docs. I’ll cite where I found it.”). This helps when you smoke-test in the simulator.
+  </Step>
+</Steps>
+
+---
+
+## Step 2 — Author instructions for retrieval-only behavior
+
+Use the **Instructions** tab to lock the agent to your knowledge base and require citations. Keep it brief and test after edits. Example to adapt:
+
+```text
+You are a documentation guide for <product>.
+Answer ONLY from the provided knowledge. If nothing relevant is found, say you don’t know and ask for a clearer question.
+Format answers in short paragraphs or bullets, then add a “Sources:” list with the document titles you used.
+Never invent sources. Never guess.
+```
+
+Tips:
+- If you want mention-only behavior, add a line like “Respond only when the user mentions @guide or explicitly asks for documentation help.”
+- Avoid long prompt essays—shorter instructions make failures easier to debug.
+
+---
+
+## Step 3 — Load knowledge
+
+<Steps>
+  <Step title="Add sources">
+    In <b>Knowledge Base</b>, upload the docs you want the agent to cite. Prefer smaller, scoped files over one giant dump; this keeps retrieval precise.
+  </Step>
+  <Step title="Label clearly">
+    Name uploads so citations make sense (e.g., “Pricing-FAQ.pdf” instead of “doc1.pdf”). The label becomes the source name the agent can surface.
+  </Step>
+  <Step title="Iterate in small batches">
+    Add a few documents, test, then add more. This makes it obvious when a new source degrades answer quality.
+  </Step>
+</Steps>
+
+---
+
+## Step 4 — Validate retrieval and citations
+
+Use the right-side simulator:
+
+- Ask your prepared questions; confirm answers stay within the docs and end with “Sources:” plus meaningful titles.
+- Deliberately ask an out-of-scope question; the agent should say it doesn’t know instead of guessing.
+- If you see hallucinations, tighten the instruction block and remove overly broad sources.
+
+---
+
+## Step 5 — Deploy, customize, and embed
+
+<Steps>
+  <Step title="Deploy the agent">
+    Click <b>Deploy</b> once answers and citations look correct.
+  </Step>
+  <Step title="Customize the experience">
+    Choose your <b>Layout</b> (launcher, pane, or page), apply brand <b>Style</b>, and refine <b>Content</b> (greeting, intro, suggested prompts) to match the knowledge use case.
+  </Step>
+  <Step title="Embed">
+    Export the React UI Kit code or Chat Widget snippet, add your App ID/Region/Auth Key, and drop it into staging. Re-run your test questions to confirm responses and citations still look right end-to-end.
+  </Step>
+</Steps>
+
+---
+
+## Fast troubleshooting
+
+- **Hallucinations or missing citations**: Shorten instructions and remove generic sources. Ensure filenames are descriptive so citations are meaningful.
+- **Answers feel off-topic**: Split large documents into smaller uploads; broad context often dilutes retrieval.
+- **Embed differs from simulator**: Check that you deployed the latest agent version and that your staging environment points to the same app/region.
+- **Too verbose**: Add a line in instructions like “Keep answers under 120 words unless explicitly asked for detail.”

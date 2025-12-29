@@ -1,0 +1,52 @@
+---
+title: "Bring Your Own AI Agent to CometChat"
+sidebarTitle: "BYOA Guide"
+description: "Connect an existing agent (Mastra, Agno, Vercel, AG2, AG UI) to CometChat, then deploy, customize, and embed the chat experience."
+---
+
+Use this guide when your agent already runs on another platform and you only need CometChat for chat, routing, and UI. If you want to build and host the agent logic inside CometChat, switch to the [Agent Builder guide](./building-ai-agent-cometchat-builder).
+
+---
+
+## Connect your agent
+
+<Steps>
+  <Step title="Add a provider-backed agent">
+    Go to <b>AI Agents → Add Agent</b> and pick your provider (Mastra, Agno, Vercel, AG2, AG UI). Name it clearly and set a brief greeting so you can spot it in testing.
+  </Step>
+  <Step title="Connect safely">
+    Provide only what CometChat needs: typically an <b>Agent ID</b> plus a public <b>Deployment URL</b> or API key. Avoid broad admin tokens and restrict the endpoint scope to chat use cases. Save and toggle the agent on.
+  </Step>
+  <Step title="Test the handshake">
+    In the built-in chat, run a few prompts to confirm your hosted agent:
+    <ul>
+      <li>Receives user/session context correctly.</li>
+      <li>Returns tool call payloads your client can execute.</li>
+      <li>Handles longer calls without timing out.</li>
+    </ul>
+  </Step>
+  <Step title="Deploy, customize, and embed">
+    Click <b>Deploy</b>, then set your <b>Layout</b>, <b>Style</b>, and <b>Content</b> exactly as you want them to appear in-app. Export the React UI Kit code or Chat Widget snippet, wire your App ID/Region/Auth Key, and verify in staging before production.
+  </Step>
+</Steps>
+
+---
+
+## Provider-specific deep dives
+
+Use these for exact field names and payload shapes (no need to duplicate them here):
+
+- **Mastra**: https://www.cometchat.com/docs/ai-agents/mastra
+- **Agno**: https://www.cometchat.com/docs/ai-agents/agno
+- **Vercel**: https://www.cometchat.com/docs/ai-agents/vercel
+- **AG2**: https://www.cometchat.com/docs/ai-agents/ag2
+- **AG UI**: https://www.cometchat.com/docs/ai-agents/ag-ui
+
+---
+
+## Quick troubleshooting checklist
+
+- Handshake fails? Confirm the Deployment URL is reachable by CometChat and that tokens/headers are scoped to chat-only actions.
+- If tool calls are missing fields, align your provider’s schema with what your client expects and re-test in the built-in chat.
+- Long responses timing out? Reduce payload size (avoid large attachments) or enable streaming on the provider side if available.
+- Unexpected behavior differences between staging and production? Log request/response metadata (status, latency, tool payload names) in both environments to spot drift early.

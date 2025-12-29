@@ -1,0 +1,354 @@
+---
+title: "Build a React AI Agent Chat"
+sidebarTitle: "React + AI Assistant"
+description: "Spin up a Vite + React app and embed the CometChat AI Assistant Chat component with proper initialization, login, and styling."
+---
+
+Recreate the CometChat AI assistant setup inside a clean Vite + React app (no extra dashboard UI). You’ll use the `CometChatAIAssistantChat` component from `@cometchat/chat-uikit-react` and the same auth helpers the sample uses. For the component API, see the [AI Assistant Chat docs](https://www.cometchat.com/docs/ui-kit/react/ai-assistant-chat).
+
+---
+
+<Steps>
+  <Step title="Scaffold Vite + React">
+    Create a new Vite React + TypeScript app and install the CometChat UI Kit and JS SDK.
+  </Step>
+  <Step title="Add CometChat credentials">
+    Drop your App ID, Region, Auth Key, logged-in user UID, and assistant UID into a `.env.local`.
+  </Step>
+  <Step title="Bring in UI Kit styles">
+    Copy the UI Kit CSS, fonts, and assets so the assistant chat renders correctly, then import them.
+  </Step>
+  <Step title="Initialize and log in">
+    Add the same initialization/login helper used in the sample app to bootstrap the SDK and create the user if needed.
+  </Step>
+  <Step title="Render the AI assistant">
+    Fetch the assistant profile and mount `<CometChatAIAssistantChat />` with basic loading/error states.
+  </Step>
+</Steps>
+
+---
+
+## Prerequisites
+
+- Node 18+ and npm.
+- A CometChat app with an AI assistant created (or connected) and two UIDs: one for the logged-in user, one for the assistant. Make sure they are different.
+- App ID, Region, and Auth Key from the CometChat dashboard.
+
+## 1) Create the Vite app and install dependencies
+
+```bash
+npm create vite@latest ai-assistant-react -- --template react-ts
+cd ai-assistant-react
+npm install @cometchat/chat-sdk-javascript @cometchat/chat-uikit-react
+```
+
+## 2) Add CometChat environment variables
+
+Create `.env.local` in the project root:
+
+```bash
+VITE_COMETCHAT_APP_ID=your_app_id
+VITE_COMETCHAT_REGION=us
+VITE_COMETCHAT_AUTH_KEY=your_auth_key
+VITE_COMETCHAT_USER_UID=your_user_uid
+VITE_COMETCHAT_USER_NAME=Demo User
+VITE_COMETCHAT_ASSISTANT_UID=your_assistant_uid
+```
+
+> Keep the logged-in user UID and assistant UID distinct. The hook below will error if they match.
+
+## 3) Bring in the UI Kit styles and assets
+
+The UI Kit exports `css-variables.css`, but the component styles and fonts are not exported at the package root. Copy them once so Vite can bundle everything:
+
+```bash
+mkdir -p src/cometchat/{styles,fonts,assets}
+cp -R node_modules/@cometchat/chat-uikit-react/dist/styles/* src/cometchat/styles/
+cp -R node_modules/@cometchat/chat-uikit-react/dist/fonts/* src/cometchat/fonts/
+cp -R node_modules/@cometchat/chat-uikit-react/dist/assets/* src/cometchat/assets/
+```
+
+## 4) Initialize CometChat and log a user in
+
+Add `src/utils/cometchat.ts`:
+
+```tsx
+import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChatUIKit, UIKitSettingsBuilder } from '@cometchat/chat-uikit-react';
+
+type CometChatConfig = {
+  appId: string;
+  region: string;
+  authKey: string;
+  uid: string;
+  displayName: string;
+  assistantUid: string;
+};
+
+const config: CometChatConfig = {
+  appId: (import.meta.env.VITE_COMETCHAT_APP_ID ?? '').trim(),
+  region: (import.meta.env.VITE_COMETCHAT_REGION ?? '').trim(),
+  authKey: (import.meta.env.VITE_COMETCHAT_AUTH_KEY ?? '').trim(),
+  uid: (import.meta.env.VITE_COMETCHAT_USER_UID ?? '').trim(),
+  displayName: (import.meta.env.VITE_COMETCHAT_USER_NAME ?? '').trim(),
+  assistantUid: (import.meta.env.VITE_COMETCHAT_ASSISTANT_UID ?? '').trim(),
+};
+
+let initPromise: Promise<void> | null = null;
+let loginPromise: Promise<CometChat.User> | null = null;
+
+const ensureInitialized = async (): Promise<void> => {
+  if (!config.appId || !config.region || !config.authKey) {
+    throw new Error('Missing CometChat configuration.');
+  }
+
+  if (!initPromise) {
+    const settings = new UIKitSettingsBuilder()
+      .setAppId(config.appId)
+      .setRegion(config.region)
+      .setAuthKey(config.authKey)
+      .subscribePresenceForAllUsers()
+      .build();
+
+    const initResult = CometChatUIKit.init(settings);
+    initPromise =
+      initResult?.then(() => undefined).catch((error) => {
+        initPromise = null;
+        throw error;
+      }) ?? Promise.resolve();
+  }
+
+  await initPromise;
+};
+
+const loginUser = async (): Promise<CometChat.User> => {
+  try {
+    return await CometChatUIKit.login(config.uid);
+  } catch (error: any) {
+    if (error?.code === 'ERR_UID_NOT_FOUND') {
+      if (!config.uid) {
+        throw new Error('CometChat UID missing. Update the .env file.');
+      }
+      const user = new CometChat.User(config.uid);
+      user.setName(config.displayName || config.uid);
+      await CometChatUIKit.createUser(user);
+      return CometChatUIKit.login(config.uid);
+    }
+    throw error;
+  }
+};
+
+export const ensureLoggedIn = async (): Promise<CometChat.User> => {
+  await ensureInitialized();
+  const loggedIn = await CometChatUIKit.getLoggedinUser();
+  if (loggedIn && loggedIn.getUid() === config.uid) {
+    return loggedIn;
+  }
+
+  if (!config.uid) {
+    throw new Error('CometChat UID missing. Update the .env file.');
+  }
+
+  if (!loginPromise) {
+    loginPromise = loginUser().catch((error) => {
+      loginPromise = null;
+      throw error;
+    });
+  }
+
+  return loginPromise;
+};
+
+export const getCometChatConfig = (): CometChatConfig => ({ ...config });
+```
+
+## 5) Fetch the assistant profile and render chat
+
+Add `src/hooks/useAssistantChat.ts`:
+
+```tsx
+import { useEffect, useMemo, useState } from 'react';
+import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChatAIAssistantTools } from '@cometchat/chat-uikit-react';
+import { ensureLoggedIn, getCometChatConfig } from '../utils/cometchat';
+
+type ToolHandlers = Record<string, (args: unknown) => void>;
+
+type UseAssistantChatOptions = {
+  hasChatConfig: boolean;
+  assistantUid?: string;
+  toolHandlers?: ToolHandlers | null;
+};
+
+export function useAssistantChat({ hasChatConfig, assistantUid, toolHandlers }: UseAssistantChatOptions) {
+  const [assistantUser, setAssistantUser] = useState<CometChat.User | null>(null);
+  const [chatReady, setChatReady] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!hasChatConfig) {
+      setChatError('Missing CometChat credentials. Populate .env.local.');
+      return () => {
+        mounted = false;
+      };
+    }
+    if (!assistantUid) {
+      setChatError('Assistant UID missing. Populate VITE_COMETCHAT_ASSISTANT_UID.');
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const initialise = async () => {
+      setChatLoading(true);
+      setChatError(null);
+      setChatReady(false);
+
+      try {
+        await ensureLoggedIn();
+        if (!mounted) return;
+
+        const assistant = await CometChat.getUser(assistantUid);
+        if (!mounted) return;
+
+        const config = getCometChatConfig();
+        if (assistantUid === config.uid) {
+          throw new Error('Assistant UID matches the logged-in user. Use two different UIDs.');
+        }
+
+        setAssistantUser(assistant);
+        setChatReady(true);
+      } catch (error: any) {
+        if (!mounted) return;
+        const code = error?.code ?? error?.details?.code;
+        let message = error?.message ?? 'Unable to connect to chat.';
+        if (code === 'ERR_UID_NOT_FOUND') {
+          message = 'Assistant UID not found. Double-check VITE_COMETCHAT_ASSISTANT_UID.';
+        }
+        setChatError(message);
+        setAssistantUser(null);
+        setChatReady(false);
+      } finally {
+        if (mounted) {
+          setChatLoading(false);
+        }
+      }
+    };
+
+    void initialise();
+    return () => {
+      mounted = false;
+    };
+  }, [assistantUid, hasChatConfig]);
+
+  const assistantTools = useMemo(() => {
+    if (!toolHandlers) return null;
+    return new CometChatAIAssistantTools(toolHandlers);
+  }, [toolHandlers]);
+
+  return { assistantUser, assistantTools, chatReady, chatLoading, chatError };
+}
+```
+
+Replace `src/App.tsx` with the minimal chat experience:
+
+```tsx
+import { useMemo } from 'react';
+import { CometChatAIAssistantChat } from '@cometchat/chat-uikit-react';
+import '@cometchat/chat-uikit-react/css-variables.css';
+import './cometchat/styles/index.css';
+import './App.css';
+import { useAssistantChat } from './hooks/useAssistantChat';
+import { getCometChatConfig } from './utils/cometchat';
+
+const config = getCometChatConfig();
+
+const requiredEnv: Record<string, string> = {
+  VITE_COMETCHAT_APP_ID: config.appId,
+  VITE_COMETCHAT_REGION: config.region,
+  VITE_COMETCHAT_AUTH_KEY: config.authKey,
+  VITE_COMETCHAT_USER_UID: config.uid,
+  VITE_COMETCHAT_ASSISTANT_UID: config.assistantUid,
+};
+
+function App() {
+  const missingEnv = useMemo(
+    () =>
+      Object.entries(requiredEnv)
+        .filter(([, value]) => !value)
+        .map(([key]) => key),
+    [],
+  );
+  const hasChatConfig = missingEnv.length === 0;
+
+  const { assistantUser, chatReady, chatLoading, chatError } = useAssistantChat({
+    hasChatConfig,
+    assistantUid: config.assistantUid || undefined,
+  });
+
+  const showLoading = !chatError && (!chatReady || !assistantUser || chatLoading);
+  const missingEnvMessage =
+    missingEnv.length > 0 ? `Missing environment variables: ${missingEnv.join(', ')}.` : null;
+
+  return (
+    <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
+      <h1>AI Assistant</h1>
+      <p style={{ color: '#555' }}>Powered by CometChat AI Assistant Chat.</p>
+
+      {chatError ? (
+        <div className="chat-status is-error">
+          <strong>Unable to start the chat</strong>
+          <span>{chatError}</span>
+          {missingEnvMessage ? <span className="details">{missingEnvMessage}</span> : null}
+        </div>
+      ) : showLoading ? (
+        <div className="chat-status">
+          <strong>Preparing your assistant…</strong>
+          <span>Connecting to CometChat and fetching the assistant profile.</span>
+        </div>
+      ) : assistantUser ? (
+        <CometChatAIAssistantChat user={assistantUser} />
+      ) : (
+        <div className="chat-status">
+          <strong>Assistant profile unavailable</strong>
+          <span>Please verify the assistant configuration.</span>
+        </div>
+      )}
+    </main>
+  );
+}
+
+export default App;
+```
+
+Finally, ensure `src/main.tsx` renders the app:
+
+```tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+```
+
+## 6) Run and verify
+
+```bash
+npm run dev
+```
+
+Load the printed URL. You should see the AI assistant chat with the greeting you configured in CometChat. If the loading/error states appear, check the console and the `.env.local` values first.
+
+### Troubleshooting
+
+- `ERR_UID_NOT_FOUND` for the assistant: confirm `VITE_COMETCHAT_ASSISTANT_UID` is deployed and not the same as the logged-in user UID.
+- Blank styles: double-check that `css-variables.css` and `src/cometchat/styles/index.css` are imported and that the fonts/assets folders exist under `src/cometchat/`.
+- Login loops: verify App ID, Region, and Auth Key belong to the same CometChat app.
+- For deeper customization (themes, slots, or tool call rendering), use the official [AI Assistant Chat guide](https://www.cometchat.com/docs/ui-kit/react/ai-assistant-chat).

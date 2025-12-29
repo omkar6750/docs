@@ -1,0 +1,71 @@
+---
+title: "Build with CometChat AI Agent Builder"
+sidebarTitle: "Agent Builder Guide"
+description: "Create an AI agent entirely inside CometChat—instructions, knowledge, tools, MCP—then deploy, customize, and embed."
+---
+
+Use this guide when you want to build and host the agent logic inside CometChat. If you already operate an agent elsewhere, switch to the [BYOA guide](./bring-your-own-agent).
+
+---
+
+## Build the agent in CometChat
+
+<Steps>
+  <Step title="Create the agent shell">
+    In **AI Agents → Agent Builder**, create a new agent. Give it a clear <b>Name</b> and <b>Icon</b> so teammates can spot it later. Set a concise <b>Greeting</b> so you can quickly test behavior in the conversation simulator.
+  </Step>
+  <Step title="Author instructions that set guardrails">
+    In the **Instructions** tab, outline:
+    <ul>
+      <li><b>Role & scope</b> (what it should and should not do).</li>
+      <li><b>Voice & format</b> (tone, bullets vs. paragraphs, code fences where needed).</li>
+      <li><b>Fallback rules</b> (when to say “I don’t know” vs. when to query tools).</li>
+      <li><b>Sensitive data guardrails</b> (e.g., for OTP flows, never reveal the actual code in chat—only tell the user to check their email/SMS and then validate the code they enter).</li>
+      <li><b>Data minimization</b> (ask only for required info; avoid optional personal fields like title, middle name, suffix, race/ethnicity, enrollment codes, password notes unless there is a clear, compliant need).</li>
+    </ul>
+    Keep this short; test after each change in the right-side console to validate behavior.
+  </Step>
+  <Step title="Handle OTP flows safely">
+    Phrase OTP prompts like “I’ve sent a code to your email/phone. Enter it here to continue.” Do not display or echo the actual code in chat; just validate what the user types. If the backend returns the code, strip it from responses and respond only with the prompt to check email/SMS. Never restate, paraphrase, or confirm the numeric/alphanumeric value.
+  </Step>
+  <Step title="Add knowledge with tight boundaries">
+    In **Knowledge Base**, bring in only the sources you want the agent to cite. Prefer smaller, purpose-built documents over large dumps. After each upload or connector sync, run a quick conversation to confirm the agent quotes relevant snippets instead of hallucinating.
+  </Step>
+  <Step title="Wire tools for actions">
+    In **Tools**, add the smallest set of actions the agent truly needs. Provide descriptive <b>names</b>, clear <b>descriptions</b>, and JSON schemas that match your app’s expectations. Test each tool call from the simulator and make sure your client handles the returned payloads.
+  </Step>
+  <Step title="Add MCP if you need real-time data">
+    If you need external systems (databases, product catalogs, calendars), configure an MCP server in **MCP**. Keep schemas minimal so the agent cannot over-call or misuse endpoints. Re-test instructions after connecting MCP to ensure it cites live data safely.
+  </Step>
+  <Step title="Deploy and verify">
+    Click <b>Deploy</b>. Use the built-in test chat to confirm:
+    <ul>
+      <li>The greeting and intro feel right.</li>
+      <li>Knowledge answers cite the right facts.</li>
+      <li>Tool calls execute in the order you expect.</li>
+      <li>MCP-backed answers stay within the allowed surface area.</li>
+    </ul>
+    Do not proceed to embed until these checks pass.
+  </Step>
+</Steps>
+
+### Customize layout, style, content, and embed
+
+After deployment, follow the UI shown in the screenshots to ship the experience:
+
+- **Layout**: Choose floating launcher, docked pane, or full-page layouts depending on your app. Keep spacing generous so tool outputs (e.g., tables or rich text) stay readable.
+- **Style**: Apply your brand colors, fonts, and button shapes. Set a dark/light behavior early so exported code matches your product theme.
+- **Content**: Tune greetings, intro copy, and suggested prompts. Use screenshots as a reference to ensure labels and helper text are concise.
+- **Embed**: Export the React UI Kit code or Chat Widget snippet. Wire authentication (App ID/Region/Auth Key) once, then drop the snippet into staging to validate tool calls and MCP responses before going to production.
+
+> Tip: Keep a short smoke-test script (e.g., “ask pricing”, “trigger booking tool”, “ask KB-only fact”) and run it after every instruction, KB, or tool change.
+
+---
+
+## Quick troubleshooting checklist
+
+- If the chat hangs, inspect the Builder logs first—network errors often surface there before CometChat returns an error state.
+- When knowledge answers look generic, shorten the instruction block and narrow the KB scope; broad prompts often hide missing documents.
+- Tool calls failing? Ensure parameter schemas match what your UI actually consumes, and re-run the simulator with the latest schema.
+- For MCP-backed setups, rate-limit high-frequency calls and log which resource was fetched; this makes it obvious when the agent queries stale data.
+- Assistant echoes OTP values? Tighten instructions to forbid showing codes and sanitize any tool response that contains codes before replying.
