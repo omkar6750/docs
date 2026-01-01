@@ -1,0 +1,158 @@
+---
+title: "Build Your Knowledge Agent with CrewAI"
+sidebarTitle: "Knowledge Agent"
+description: "Create a CrewAI knowledge agent that answers from your docs, streams NDJSON to CometChat, and cites sources."
+---
+
+import { Steps, Step } from 'mintlify';
+
+Imagine an agent that only answers when asked, pulls context from your docs, and responds with concise, cited answers right inside chat.
+
+***
+
+## What you’ll build
+
+- A **CrewAI** agent scoped to documentation questions.
+- A lightweight **ingest + retrieve** flow that reads files from `knowledge/<namespace>`.
+- A **FastAPI `/kickoff`** endpoint that streams NDJSON events CometChat consumes.
+- A **CometChat AI Agent** entry pointing at your deployment.
+
+***
+
+## Prerequisites
+
+- CrewAI project (see [Create an AI Agent with CrewAI](/ai-agents/crew-ai))
+- Python 3.13.2+, `uv` or `pip`
+- `OPENAI_API_KEY` in `.env`
+- A CometChat app
+
+***
+
+## How it works
+
+- **Ingest**: drop markdown/text/PDF summaries into `knowledge/<namespace>/`.
+- **Retrieve**: a CrewAI tool scans that folder, scores snippets, and returns top matches with filenames for citations.
+- **Answer**: the agent replies only when explicitly mentioned (`@agent`) and always cites sources.
+- **Stream**: `/kickoff` emits NDJSON events (`text_*`, `tool_*`, `done`) that CometChat renders in real time.
+
+***
+
+## Steps
+
+<Steps>
+  <Step title="Prepare knowledge folders">
+    Create <code>knowledge/default</code> (or any namespace) and add markdown/text files. You can sync files from your CMS or build a simple CLI to keep this folder updated.
+  </Step>
+  <Step title="Add a docs retriever tool">
+    Implement a CrewAI tool that loads files from the namespace, extracts top snippets, and returns JSON with <code>content</code>, <code>source</code>, and optional <code>score</code>.
+  </Step>
+  <Step title="Define the agent">
+    Configure the agent to respond only when mentioned and to always cite sources. Keep the backstory strict about using the retriever tool first.
+  </Step>
+  <Step title="Expose /kickoff">
+    Reuse the FastAPI NDJSON stream from <a href="/ai-agents/crew-ai">crew-ai.mdx</a>. Pass <code>namespace</code> via tool params if you support multiple doc sets.
+  </Step>
+  <Step title="Connect in CometChat">
+    Dashboard → AI Agents → Provider = CrewAI, Agent ID = <code>knowledge</code>, Deployment URL = your public <code>/kickoff</code>.
+  </Step>
+</Steps>
+
+***
+
+## Sample retriever tool
+
+`src/crew_demo/tools/docs_retriever.py`
+
+```python
+import json
+from pathlib import Path
+from typing import List, Dict
+from crewai.tools import tool
+
+
+def _load_documents(namespace: str) -> List[Dict[str, str]]:
+    base = Path(__file__).parent.parent.parent / "knowledge" / namespace
+    docs = []
+    for path in base.rglob("*.md"):
+        try:
+            docs.append({"source": path.name, "content": path.read_text(encoding="utf-8")})
+        except Exception:
+            continue
+    return docs
+
+
+@tool("search_docs")
+def search_docs(query: str, namespace: str = "default", limit: int = 3) -> str:
+    """Return top matching snippets from knowledge/<namespace>."""
+    docs = _load_documents(namespace)
+    scored = []
+    for doc in docs:
+        if query.lower() in doc["content"].lower():
+            scored.append({"source": doc["source"], "excerpt": doc["content"][:800]})
+    top = scored[:limit] if scored else []
+    return json.dumps({"matches": top, "namespace": namespace})
+```
+
+***
+
+## Agent configuration
+
+`src/crew_demo/config/agents.yaml`
+
+```yaml
+knowledge:
+  role: Knowledge Retrieval Specialist
+  goal: Answer questions using retrieved docs only
+  backstory: >
+    Respond only when mentioned (e.g., @agent).
+    Always call the search_docs tool first, then compose a concise answer with a Sources list.
+    Never reveal internal reasoning or tool output verbatim.
+```
+
+`src/crew_demo/config/tasks.yaml`
+
+```yaml
+knowledge_task:
+  description: >
+    Use search_docs to find relevant context for: {user_message}
+    Namespace: {namespace}
+  expected_output: >
+    A short answer plus a "Sources:" list.
+  agent: knowledge
+```
+
+Register the tool in `crew.py`:
+
+```python
+from crew_demo.tools.docs_retriever import search_docs
+
+@agent
+def knowledge(self) -> Agent:
+    return Agent(
+        config=self.agents_config["knowledge"],  # type: ignore[index]
+        tools=[search_docs],
+        verbose=False,
+        memory=False,
+    )
+```
+
+***
+
+## CometChat setup
+
+<Steps>
+  <Step title="Dashboard">Open <a href="https://app.cometchat.com" target="_blank" rel="noreferrer">CometChat Dashboard</a> → AI Agents.</Step>
+  <Step title="Provider">Provider = <b>CrewAI</b>, Agent ID = <code>knowledge</code>, Deployment URL = your <code>/kickoff</code>.</Step>
+  <Step title="(Optional)">Add greeting/intro and suggested prompts like “@agent What’s our refund policy?”</Step>
+  <Step title="Enable">Save and toggle the agent ON.</Step>
+</Steps>
+
+***
+
+## Tips
+
+- Add basic file filters (size/type) before ingesting to keep retrieval fast.
+- If you need embeddings/vector search, swap the retriever implementation; CometChat only expects the NDJSON stream, not the retrieval method.
+- Use `output_json: true` on the task if you want fully structured answers.
+
+---

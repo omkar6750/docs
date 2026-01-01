@@ -1,0 +1,106 @@
+---
+title: "Human Handoff Agent with CrewAI"
+sidebarTitle: "Handoff Agent"
+description: "Build a CrewAI agent that knows its limits and escalates to humans with a clear reason and target."
+---
+
+import { Steps, Step } from 'mintlify';
+
+Teach the agent to say “I need a human” and emit a structured handoff payload CometChat can route to your team.
+
+***
+
+## What you’ll build
+
+- A CrewAI tool that emits a `handoff` payload (reason + target + context).
+- Agent instructions that decide when to escalate.
+- NDJSON streaming so CometChat can display escalation status in real time.
+
+***
+
+## Prerequisites
+
+- CrewAI project + `/kickoff` streaming endpoint ([crew-ai.mdx](/ai-agents/crew-ai))
+- A human support flow in your product (ticketing, live agent queue, etc.)
+
+***
+
+## Steps
+
+<Steps>
+  <Step title="Define handoff targets">
+    Decide where to route: <code>support</code>, <code>sales</code>, <code>billing</code>, or a specific user ID.
+  </Step>
+  <Step title="Create a handoff tool">
+    Return a JSON payload with <code>target</code>, <code>reason</code>, and optional <code>priority</code>. Raise exceptions if required fields are missing.
+  </Step>
+  <Step title="Write agent rules">
+    In the backstory, describe clear thresholds for escalation (e.g., compliance, billing disputes, missing permissions).
+  </Step>
+  <Step title="Handle on the client">
+    When CometChat receives a `tool_result` for `handoff`, trigger your own UI/notification flow.
+  </Step>
+</Steps>
+
+***
+
+## Sample handoff tool
+
+`src/crew_demo/tools/handoff.py`
+
+```python
+import json
+from crewai.tools import tool
+
+
+@tool("handoff")
+def handoff(target: str, reason: str, priority: str = "normal") -> str:
+    """Escalate to a human with routing details."""
+    if not target or not reason:
+        raise Exception("target and reason are required for handoff")
+    return json.dumps({
+        "action": "handoff",
+        "target": target,
+        "reason": reason,
+        "priority": priority
+    })
+```
+
+Add to your agent’s tool list in `crew.py`.
+
+***
+
+## Agent configuration
+
+`src/crew_demo/config/agents.yaml`
+
+```yaml
+handoff:
+  role: Escalation Specialist
+  goal: Detect when a human is needed and route correctly
+  backstory: >
+    If the request involves account cancellation, payments, or legal topics, call the handoff tool.
+    Explain briefly why escalation is required. Keep user-facing text short and polite.
+```
+
+`src/crew_demo/config/tasks.yaml`
+
+```yaml
+handoff_task:
+  description: >
+    Decide whether to answer or escalate: {user_message}
+  expected_output: >
+    If escalation is required, trigger the handoff tool with target + reason.
+  agent: handoff
+```
+
+***
+
+## CometChat integration
+
+- Provider: **CrewAI**
+- Agent ID: `handoff`
+- Deployment URL: your `/kickoff`
+- Client: map the `handoff` tool payload to your routing layer (open a ticket, page on-call, or DM a user).
+
+---

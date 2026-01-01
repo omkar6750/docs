@@ -1,0 +1,121 @@
+---
+title: "Coordinator / Relay Agent with CrewAI"
+sidebarTitle: "Coordinator Agent"
+description: "Create a CrewAI coordinator that fans out to specialized agents and merges their answers before streaming to CometChat."
+---
+
+import { Steps, Step } from 'mintlify';
+
+Handle complex questions by routing to the right specialist (billing, support, research) and returning a single, well-structured answer.
+
+***
+
+## What you’ll build
+
+- Multiple CrewAI agents (specialists) plus a **coordinator** agent.
+- A workflow that sequences or hierarchically calls those agents.
+- NDJSON streaming so CometChat shows progress as the coordinator works.
+
+***
+
+## Prerequisites
+
+- CrewAI project ([crew-ai.mdx](/ai-agents/crew-ai))
+- Agent configs for each specialist (billing/support/research/etc.)
+
+***
+
+## Steps
+
+<Steps>
+  <Step title="Define specialists">
+    Add agents like <code>billing</code>, <code>support</code>, and <code>research</code> with narrow goals and tools.
+  </Step>
+  <Step title="Create a coordinator task">
+    The coordinator inspects the user question, decides which specialists to call, and merges their outputs.
+  </Step>
+  <Step title="Choose a process">
+    Use <code>Process.sequential</code> for simple fan-out or <code>Process.hierarchical</code> if you want dynamic branching.
+  </Step>
+  <Step title="Stream results">
+    Keep the existing `/kickoff` NDJSON stream; tool calls from sub-agents will appear in CometChat.
+  </Step>
+</Steps>
+
+***
+
+## Example configuration
+
+`src/crew_demo/config/agents.yaml`
+
+```yaml
+billing:
+  role: Billing Specialist
+  goal: Handle invoices and refunds
+  backstory: >
+    Use billing tools only. Escalate if payment methods need human approval.
+
+support:
+  role: Support Specialist
+  goal: Troubleshoot product issues
+  backstory: >
+    Ask clarifying questions and suggest next steps using available tools.
+
+coordinator:
+  role: Relay Coordinator
+  goal: Route the request to the right specialist and return a concise summary
+  backstory: >
+    Decide which specialist to invoke. Combine their findings into one clear response.
+```
+
+`src/crew_demo/crew.py` (excerpt)
+
+```python
+from crew_demo.tools.get_deals import get_recent_deals
+
+@agent
+def billing(self) -> Agent:
+    return Agent(config=self.agents_config["billing"], tools=[get_recent_deals], verbose=False)
+
+@agent
+def support(self) -> Agent:
+    return Agent(config=self.agents_config["support"], tools=[], verbose=False)
+
+@agent
+def coordinator(self) -> Agent:
+    return Agent(config=self.agents_config["coordinator"], tools=[], verbose=False)
+
+@crew
+def crew(self) -> Crew:
+    return Crew(
+        agents=[self.coordinator(), self.billing(), self.support()],
+        tasks=self.tasks,
+        process=Process.sequential,  # swap to Process.hierarchical for dynamic routing
+        verbose=False,
+        stream=True,
+    )
+```
+
+`src/crew_demo/config/tasks.yaml`
+
+```yaml
+coordination_task:
+  description: >
+    Decide which specialist should handle: {user_message}
+    Share a merged answer back to the user.
+  expected_output: >
+    A concise response summarizing each specialist's findings.
+  agent: coordinator
+```
+
+***
+
+## CometChat setup
+
+- Provider: **CrewAI**
+- Agent ID: `coordinator`
+- Deployment URL: `/kickoff`
+
+Use suggested prompts like “Ask billing if invoice #123 is paid and summarize it” to exercise multi-agent flows.
+
+---
