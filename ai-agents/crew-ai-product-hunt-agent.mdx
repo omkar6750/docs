@@ -1,0 +1,118 @@
+---
+title: "Build a Product Hunt Agent with CrewAI"
+sidebarTitle: "Product Hunt Agent"
+description: "Create a CrewAI agent that fetches Product Hunt posts, answers launch questions, and can trigger frontend actions like confetti."
+---
+
+import { Steps, Step } from 'mintlify';
+
+Give your chats Product Hunt superpowers: search launches, surface top posts, and celebrate wins with a UI action.
+
+---
+
+## What you’ll build
+
+- A CrewAI agent with tools to **get top posts**, **search**, and **trigger a frontend action** (confetti).
+- A FastAPI `/kickoff` endpoint streaming NDJSON for CometChat.
+- Optional static page or widget that maps the confetti tool to a UI handler.
+
+---
+
+## Prerequisites
+
+- Node or Python hosting for your CrewAI service
+- `OPENAI_API_KEY` for chat
+- `PRODUCTHUNT_API_TOKEN` (GraphQL) for live data
+- CometChat app + AI Agent entry
+
+---
+
+## Steps
+
+<Steps>
+  <Step title="Add Product Hunt tools">
+    Create tools for <code>get_top_products</code>, <code>search_products</code>, and <code>get_top_by_timeframe</code>. Require <code>PRODUCTHUNT_API_TOKEN</code> and validate inputs.
+  </Step>
+  <Step title="Add a confetti action">
+    Include a simple action tool (see <a href="/ai-agents/crew-ai-frontend-actions-agent">frontend actions guide</a>) to trigger celebration in the UI.
+  </Step>
+  <Step title="Instruct the agent">
+    Explain when to use each tool, how to summarize results in tables, and when to celebrate.
+  </Step>
+  <Step title="Expose /kickoff">
+    Reuse the NDJSON streaming pattern from <a href="/ai-agents/crew-ai">crew-ai.mdx</a>.
+  </Step>
+  <Step title="Connect to CometChat">
+    Provider = CrewAI, Agent ID = <code>product_hunt</code>, Deployment URL = your public endpoint.
+  </Step>
+</Steps>
+
+---
+
+## Sample tool (top products)
+
+`src/crew_demo/tools/product_hunt.py`
+
+```python
+import os, json, httpx
+from crewai.tools import tool
+
+
+PRODUCT_HUNT_API = "https://api.producthunt.com/v2/api/graphql"
+HEADERS = lambda: {"Authorization": f"Bearer {os.getenv('PRODUCTHUNT_API_TOKEN')}"}
+
+
+@tool("get_top_products")
+def get_top_products(limit: int = 3) -> str:
+    """Fetch top Product Hunt posts by votes."""
+    if not os.getenv("PRODUCTHUNT_API_TOKEN"):
+        raise Exception("PRODUCTHUNT_API_TOKEN not set")
+
+    query = """
+    query TopProducts($limit: Int!) {
+      posts(order: VOTES, first: $limit) {
+        edges { node { name tagline votesCount url } }
+      }
+    }
+    """
+    resp = httpx.post(PRODUCT_HUNT_API, headers=HEADERS(), json={"query": query, "variables": {"limit": limit}}, timeout=10.0)
+    resp.raise_for_status()
+    data = resp.json()["data"]["posts"]["edges"]
+    posts = [{"name": edge["node"]["name"], "tagline": edge["node"]["tagline"], "votes": edge["node"]["votesCount"], "url": edge["node"]["url"]} for edge in data]
+    return json.dumps({"posts": posts})
+```
+
+Register the tool and combine it with a confetti action in `crew.py`.
+
+---
+
+## Agent configuration
+
+`src/crew_demo/config/agents.yaml`
+
+```yaml
+product_hunt:
+  role: Product Hunt Launch Assistant
+  goal: Fetch Product Hunt data and celebrate launches
+  backstory: >
+    Use get_top_products for rankings and a search tool for queries.
+    Present answers as bullet points or compact tables. Fire confetti on wins when asked.
+```
+
+---
+
+## Frontend handling
+
+- Map `tool_result` for the confetti action to your UI handler (Widget/React UI Kit).
+- Clamp limits (e.g., max 10 posts) in the tool to avoid huge responses.
+- Never expose API tokens to the client—keep calls server-side.
+
+---
+
+## Troubleshooting
+
+- Empty posts: confirm `PRODUCTHUNT_API_TOKEN` and check rate limits.
+- Confetti not firing: ensure the tool name matches your client handler mapping.
+- Slow responses: cache popular queries or reduce `limit`.
+
+---

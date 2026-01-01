@@ -1,0 +1,365 @@
+---
+title: "Create an AI Agent with CrewAI"
+sidebarTitle: "Create AI Agent"
+description: "Wire a CrewAI agent to CometChat, stream messages over NDJSON, and ship it through UI Kit Builder or the Chat Widget."
+---
+
+import { Steps, Step, CardGroup, Card } from 'mintlify';
+
+## What you’ll build
+
+- A **CrewAI** project (Python + FastAPI) that streams NDJSON events CometChat can consume.
+- A simple **weather tool** plus room to add your own tools.
+- A **CometChat AI Agent** entry pointing to your CrewAI `/kickoff` endpoint.
+- Optional **UI exports** via **UI Kit Builder** or the **Chat Widget**.
+
+---
+
+## Prerequisites
+
+- Python **3.13.2+** with `uv` or `pip`
+- CrewAI **v1.7.2**
+- OpenAI API key (or Anthropic via environment)
+- A CometChat app: **[Create App](https://app.cometchat.com/apps)**
+
+---
+
+## Step 1 - Create your CometChat app
+
+<Steps>
+  <Step title="Create or open an app">
+    Sign in at <b><a href="https://app.cometchat.com/apps">app.cometchat.com</a></b>. Create a new app or open an existing one.
+  </Step>
+  <Step title="Copy credentials">
+    Note your <b>App ID</b>, <b>Region</b>, and <b>Auth Key</b> (needed if you export the Chat Widget later).
+  </Step>
+</Steps>
+
+---
+
+## Step 2 - Scaffold a CrewAI project
+
+Use `uv` (fast Python package manager). Install it if needed:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# or
+pip install uv
+```
+
+Create a CrewAI project:
+
+```bash
+uv tool run crewai create crew crew_demo
+cd crew_demo
+```
+
+Update `pyproject.toml` with required dependencies:
+
+```toml
+[project]
+name = "crew-demo"
+version = "0.1.0"
+description = "CrewAI agent integrated with CometChat"
+requires-python = ">=3.13"
+dependencies = [
+  "crewai[tools]==1.7.2",
+  "fastapi>=0.115.6",
+  "uvicorn>=0.34.0",
+  "httpx>=0.28.1",
+  "python-dotenv>=1.0.1",
+  "openai>=1.13.3"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+```
+
+Install everything:
+
+```bash
+uv sync
+```
+
+---
+
+## Step 3 - Configure environment
+
+Create a `.env` in your project root:
+
+```bash
+MODEL=gpt-4o-mini
+OPENAI_API_KEY=your_openai_api_key_here
+SERPER_API_KEY=your_serper_api_key_here      # optional search
+OPENWEATHER_API_KEY=your_openweather_api_key_here
+PORT=8000
+HOST=0.0.0.0
+CREWAI_TRACING_ENABLED=false                 # disable for production
+```
+
+---
+
+## Step 4 - Add a tool (weather)
+
+`src/crew_demo/tools/weather_tool.py`
+
+```python
+import os, json
+from datetime import datetime, timezone
+import httpx
+from crewai.tools import tool
+
+
+@tool("get_weather")
+def get_weather(location: str, unit: str = "fahrenheit") -> str:
+    """Return the current weather for a location as JSON."""
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+    if not api_key:
+        raise Exception("OPENWEATHER_API_KEY not set")
+
+    params = {"q": location, "appid": api_key, "units": "imperial" if unit.lower() == "fahrenheit" else "metric"}
+    response = httpx.get("http://api.openweathermap.org/data/2.5/weather", params=params, timeout=10.0)
+    response.raise_for_status()
+    data = response.json()
+
+    return json.dumps({
+        "location": data["name"],
+        "country": data["sys"]["country"],
+        "temperature": round(data["main"]["temp"], 1),
+        "conditions": data["weather"][0]["description"],
+        "humidity": data["main"]["humidity"],
+        "wind_speed": data["wind"]["speed"],
+        "unit": unit,
+        "timestamp": datetime.now(tz=timezone.utc).isoformat()
+    })
+```
+
+---
+
+## Step 5 - Define the agent + task
+
+`src/crew_demo/config/agents.yaml`
+
+```yaml
+assistant:
+  role: Friendly Conversational Assistant
+  goal: Help users with greetings and weather questions
+  backstory: >
+    Keep responses concise, use the get_weather tool for weather queries,
+    and only show the final answer (no thoughts or reasoning traces).
+```
+
+`src/crew_demo/config/tasks.yaml`
+
+```yaml
+conversation_task:
+  description: >
+    Respond to the user's message: {user_message}
+    Previous conversation context: {conversation_history}
+    Use the weather tool when relevant; otherwise answer directly.
+  expected_output: >
+    A helpful, natural response to the user's query
+  agent: assistant
+```
+
+---
+
+## Step 6 - Wire up CrewAI
+
+`src/crew_demo/crew.py`
+
+```python
+from typing import List
+from crewai import Agent, Crew, Process, Task
+from crewai.crew import EventListener
+from crewai.agents.agent_builder.base_agent import BaseAgent
+from crewai.project import CrewBase, agent, crew, task
+from crewai_tools import SerperDevTool
+
+from crew_demo.tools.weather_tool import get_weather
+
+listener = EventListener()
+
+
+@CrewBase
+class CrewDemo():
+    agents: List[BaseAgent]
+    tasks: List[Task]
+
+    search_tool = SerperDevTool()
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
+
+    @agent
+    def assistant(self) -> Agent:
+        return Agent(
+            config=self.agents_config["assistant"],  # type: ignore[index]
+            tools=[self.search_tool, get_weather],
+            verbose=False,
+            memory=False,
+        )
+
+    @task
+    def conversation_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["conversation_task"],  # type: ignore[index]
+            markdown=True,
+            verbose=False,
+        )
+
+    @crew
+    def crew(self) -> Crew:
+        return Crew(
+            agents=self.agents,
+            tasks=self.tasks,
+            process=Process.sequential,
+            verbose=False,
+            stream=True,
+        )
+```
+
+---
+
+## Step 7 - Expose a FastAPI endpoint with NDJSON streaming
+
+`src/crew_demo/main.py` (excerpt)
+
+```python
+import json, os, warnings
+from datetime import datetime
+from uuid import uuid4
+from typing import List, Optional
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from crewai.types.streaming import StreamChunk, StreamChunkType, CrewStreamingOutput
+
+from crew_demo.crew import CrewDemo
+
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
+app = FastAPI()
+
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+
+class KickoffRequest(BaseModel):
+    messages: List[Message]
+    threadId: Optional[str] = None
+    runId: Optional[str] = None
+
+
+def stream_crew(inputs: dict):
+    message_id = str(uuid4())
+    yield json.dumps({"type": "text_start", "message_id": message_id}) + "\n"
+
+    streaming: CrewStreamingOutput = CrewDemo().crew().kickoff(inputs=inputs)
+    buffer, final_started = "", False
+
+    for chunk in streaming:
+        if not isinstance(chunk, StreamChunk):
+            continue
+
+        if chunk.chunk_type == StreamChunkType.TOOL_CALL and chunk.tool_call:
+            tool_call_id = str(uuid4())
+            yield json.dumps({"type": "tool_call_start", "tool_call_id": tool_call_id, "name": chunk.tool_call.tool_name, "parent_message_id": message_id}) + "\n"
+            yield json.dumps({"type": "tool_call_args", "tool_call_id": tool_call_id, "args": json.loads(chunk.tool_call.arguments) if isinstance(chunk.tool_call.arguments, str) else chunk.tool_call.arguments}) + "\n"
+            yield json.dumps({"type": "tool_call_end", "tool_call_id": tool_call_id, "name": chunk.tool_call.tool_name}) + "\n"
+            if getattr(chunk.tool_call, "result", None):
+                yield json.dumps({"type": "tool_result", "tool_call_id": tool_call_id, "result": chunk.tool_call.result}) + "\n"
+            continue
+
+        if chunk.chunk_type == StreamChunkType.TEXT:
+            buffer += chunk.content
+            if not final_started and "Final Answer:" in buffer:
+                final_started = True
+                final_chunk = buffer.split("Final Answer:")[-1].strip()
+                if final_chunk:
+                    yield json.dumps({"type": "text_delta", "message_id": message_id, "content": final_chunk}) + "\n"
+                buffer = ""
+            elif final_started:
+                yield json.dumps({"type": "text_delta", "message_id": message_id, "content": chunk.content}) + "\n"
+
+    if not final_started and buffer.strip():
+        yield json.dumps({"type": "text_delta", "message_id": message_id, "content": buffer.strip()}) + "\n"
+
+    yield json.dumps({"type": "text_end", "message_id": message_id}) + "\n"
+    yield json.dumps({"type": "done"}) + "\n"
+
+
+@app.post("/kickoff")
+async def kickoff(request: KickoffRequest):
+    inputs = {
+        "user_message": request.messages[-1].content,
+        "conversation_history": "\n".join([f"{m.role}: {m.content}" for m in request.messages[:-1]]),
+        "current_year": str(datetime.now().year),
+    }
+    return StreamingResponse(stream_crew(inputs), media_type="application/x-ndjson")
+
+
+def run():
+    uvicorn.run(app, host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", "8000")))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+Events emitted follow CometChat’s NDJSON shape:
+
+- Text: `text_start`, `text_delta`, `text_end`
+- Tools: `tool_call_start`, `tool_call_args`, `tool_call_end`, `tool_result`
+- Control: `done`, `error`
+
+---
+
+## Step 8 - Run & test locally
+
+```bash
+uv run crewai run          # or: uv run uvicorn crew_demo.main:app --reload
+curl -N -X POST http://localhost:8000/kickoff \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+You should see NDJSON events streaming in the terminal.
+
+---
+
+## Step 9 - Connect in CometChat
+
+In the CometChat Dashboard → **AI Agents → Add Agent**:
+
+- **Provider**: CrewAI
+- **Name**: e.g., `CrewAI Weather Assistant`
+- **Deployment URL**: `https://your-domain.com/kickoff`
+- (Optional) **Headers**: flat JSON for auth (e.g., `{ "Authorization": "Bearer <token>" }`)
+- (Optional) Greeting, intro message, suggested prompts
+
+Save and toggle the agent **ON**. CometChat will stream user messages to `/kickoff` and relay NDJSON responses back to the client.
+
+---
+
+## Step 10 - Extend your Crew
+
+- **Add tools**: decorate new Python functions with `@tool("name")` and register them in `crew.py`.
+- **Switch LLMs**: set `ANTHROPIC_API_KEY` + `LLM_MODEL=claude-3-5-sonnet-20241022` (CrewAI auto-detects providers).
+- **Multi-agent**: define multiple agents in `agents.yaml`, map tasks, and set `process=Process.sequential` or `Process.hierarchical`.
+- **Structured output**: add `output_json: true` to a task to enforce JSON replies.
+- **Production**: run `uvicorn crew_demo.main:app --host 0.0.0.0 --port 8000 --workers 4`, enable HTTPS, auth headers, CORS, and rate limits.
+
+---
+
+## Step 11 - Deploy & ship UI
+
+<CardGroup>
+  <Card title="Widget Builder" icon={<img src="/docs/images/icons/ai-agents.svg" alt="Widget" />} description="Embed / script" href="/ai-agents/chat-widget" horizontal />
+  <Card title="React UI Kit" icon={<img src="/docs/images/icons/react.svg" alt="React" />} href="https://www.cometchat.com/docs/ui-kit/react/ai-assistant-chat" horizontal>Pre Built UI Components</Card>
+</CardGroup>
+
+> The CrewAI agent you configured is included automatically in exported variants—no extra client code needed for basic chat.
