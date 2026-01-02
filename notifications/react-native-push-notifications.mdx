@@ -48,27 +48,52 @@ Copy the same structure into your project and only change identifiers (bundle ID
 - Use **Payload trimming** if you risk exceeding ~4 KB (strip metadata or trim text).
 - Toggle **Notification triggers** (messages, calls, groups) to match your app.
 
-## 2. Project setup (sample parity)
+## 2. Prepare credentials before coding
 
-### 2.1 Credentials
+### 2.1 Firebase Console
+
+1. Register your Android package name (the same as `applicationId` in `android/app/build.gradle`) and download `google-services.json` into `android/app`.
+2. Enable Cloud Messaging and copy the Server key if you want to send test messages manually.
+
+<Frame>
+  <img src="/images/firebase-push-notifications.png" alt="Firebase - Push Notifications" />
+</Frame>
+
+### 2.2 CometChat dashboard
+
+1. Turn on the **Push Notifications** extension (V2).
+
+<Frame>
+  <img src="/images/push-notifications-guide-1.png" alt="CometChat Dashboard - Push Notifications" />
+</Frame>
+
+2. Create an FCM provider for React Native Android and copy the generated provider ID.
+
+<Frame>
+  <img src="/images/push-notifications-guide-2.png" alt="CometChat Dashboard - Push Notifications" />
+</Frame>
+
+## 3. Project setup (sample parity)
+
+### 3.1 Credentials
 
 - Update `src/utils/AppConstants.tsx` with `appId`, `authKey`, `region`, `fcmProviderId`, and `apnProviderId`.
 - Keep `app.json` name consistent with your bundle ID / applicationId.
 
-### 2.2 Gradle + Firebase (Android)
+### 3.2 Gradle + Firebase (Android)
 
 1. Place `google-services.json` in `android/app`.
 2. Apply `com.google.gms.google-services` in `android/app/build.gradle` (the sample already does).
 3. Ensure `minSdk`/`targetSdk` match your project (sample uses RN 0.81 defaults).
 4. Grant notification + call permissions in the manifest (POST_NOTIFICATIONS, RECORD_AUDIO, CAMERA, READ_PHONE_STATE, FOREGROUND_SERVICE, ANSWER_PHONE_CALLS, USE_FULL_SCREEN_INTENT, WAKE_LOCK, VIBRATE).
 
-### 2.3 iOS capabilities
+### 3.3 iOS capabilities
 
 1. Enable Push Notifications + Background Modes (Remote notifications, VoIP).
 2. Add CallKit usage descriptions to `Info.plist` (microphone/camera) and configure `react-native-callkeep` per sample `ios/` folder.
 3. Add your APNs auth key/cert in the CometChat dashboard provider.
 
-### 2.4 Dependencies snapshot (from sample)
+### 3.4 Dependencies snapshot (from sample)
 
 ```json
 {
@@ -86,9 +111,9 @@ Copy the same structure into your project and only change identifiers (bundle ID
 
 Match these or newer compatible versions in your app.
 
-## 3. Wire up push tokens
+## 4. Wire up push tokens
 
-### 3.1 Register tokens with CometChat
+### 4.1 Register tokens with CometChat
 
 [`registerPushToken`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/src/utils/PushNotification.tsx) maps platform + provider ID to `CometChatNotifications.registerPushToken`:
 
@@ -101,13 +126,13 @@ await registerPushToken(deviceToken, false, false);
 await registerPushToken(voipToken, false, true);
 ```
 
-### 3.2 Android (FCM)
+### 4.2 Android (FCM)
 
 - `getAndRegisterFCMToken` (helper.ts) runs after login and registers the token; `messaging().onTokenRefresh` re-registers on rotation.
 - Foreground messages: `messaging().onMessage` in `App.tsx` shows a Notifee notification via `displayLocalNotification` unless that chat is open.
 - Background/terminated: `messaging().setBackgroundMessageHandler` in `index.js` shows Notifee notifications for chats or triggers VoIP call UI when `data.type === 'call'`.
 
-### 3.3 iOS (APNs + VoIP)
+### 4.3 iOS (APNs + VoIP)
 
 - `PushNotificationIOS.requestPermissions` requests alert/badge/sound.
 - APNs device token: `PushNotificationIOS` `'register'` event calls `handleIosApnsToken` to register with CometChat.
@@ -119,11 +144,11 @@ await registerPushToken(voipToken, false, true);
   - In `pushRegistry(_:didReceiveIncomingPushWith:)`, map `callAction` values to `RNCallKeep.reportNewIncomingCall` / `endCall` so VoIP pushes show native CallKit UI when the app is backgrounded/killed.
   - Keep `RNVoipPushNotificationManager.voipRegistration()` in `didFinishLaunching` and set `UNUserNotificationCenter.current().delegate = self`.
 
-### 3.4 Logout / cleanup
+### 4.4 Logout / cleanup
 
 Call `CometChat.logout()` and `unregisterPushToken()` when signing out; delete FCM token if you want to force a fresh registration on next login.
 
-## 4. Message notifications
+## 5. Message notifications
 
 - Notifee foreground notifications (`displayLocalNotification`) skip the current open chat and include avatars, BigText, and conversation metadata for navigation.
 - Notifee background presses are handled in `index.js` and `App.tsx` (foreground) to navigate via `navigateToConversation`.
@@ -136,13 +161,13 @@ const baseMessage = CometChat.CometChatHelper.processMessage(
 );
 ```
 
-## 5. Call notifications (VoIP-like)
+## 6. Call notifications (VoIP-like)
 
 - FCM `data.type === "call"` is handled in `index.js` background handler: call actions (`initiated`, `cancelled`, `rejected`, `busy`, `ended`, `unanswered`, `ongoing`) drive `VoipNotificationHandler`.
 - `VoipNotificationHandler` uses CallKeep to show native incoming call UI and manage telecom permissions; `PendingCallManager` resumes accepted calls if the app was cold-started.
 - Android foreground calls still arrive via FCM; ensure phone account permissions are granted or CallKeep cannot render the incoming screen.
 
-## 6. Customizing the push body
+## 7. Customizing the push body
 
 Set `metadata.pushNotification` before sending to override the body:
 
@@ -158,7 +183,7 @@ message.setMetadata(metadata);
 CometChat.sendCustomMessage(message);
 ```
 
-## 7. Testing checklist
+## 8. Testing checklist
 
 1. Android: install on device, grant POST_NOTIFICATIONS; log in and verify FCM token registration success.
 2. Send a chat push from CometChat Dashboard:
@@ -168,7 +193,7 @@ CometChat.sendCustomMessage(message);
 4. Trigger incoming call push: native CallKeep UI should show caller info; Accept/Decline routes to the app and clears CallKeep state on cancel/end.
 5. Rotate tokens (reinstall or revoke) and confirm `onTokenRefresh` re-registers.
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |
