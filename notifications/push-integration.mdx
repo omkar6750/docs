@@ -74,7 +74,268 @@ For webhook-based providers and payload samples, see [/notifications/custom-prov
 
 ## Tokens management
 
-Push tokens should be registered after a user logs in and unregistered before logout. For full register/unregister examples (SDK + callExtension API) see [/notifications/token-management](/notifications/token-management).
+### Register push token after login
+
+Push tokens, obtained from the APIs or SDKs provided by the platforms or frameworks in use, must be registered on behalf of the logged in user with the CometChat backend. For this purpose, CometChat SDKs v4+ offer the following functions:
+
+Push token registration should be completed in two scenarios:
+
+1. Following the success of `CometChat.login()` & receiving user's permission to receiver Push notifications.
+2. When a refresh token becomes available.
+
+To register a token, use the `CometChatNotifications.registerPushToken()` method from the SDK. This method accepts the following parameters.
+
+| Parameter    | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pushToken`  | String | The `pushToken` can contain:<br/><br/>• Firebase (FCM) token<br/>• Device token (iOS only)<br/>• VoIP token (iOS only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `platform`   | String | The `platform` can take the following values:<br/><br/>• PushPlatforms.FCM\_ANDROID<br/>• PushPlatforms.FCM\_FLUTTER\_ANDROID<br/>• PushPlatforms.FCM\_FLUTTER\_iOS<br/>• PushPlatforms.APNS\_FLUTTER\_DEVICE<br/>• PushPlatforms.APNS\_FLUTTER\_VOIP<br/>• PushPlatforms.FCM\_iOS<br/>• PushPlatforms.APNS\_iOS\_DEVICE<br/>• PushPlatforms.APNS\_iOS\_VOIP<br/>• PushPlatforms.FCM\_WEB<br/>• PushPlatforms.FCM\_REACT\_NATIVE\_ANDROID<br/>• PushPlatforms.FCM\_REACT\_NATIVE\_iOS<br/>• PushPlatforms.APNS\_REACT\_NATIVE\_DEVICE<br/>• PushPlatforms.APNS\_REACT\_NATIVE\_VOIP<br/>• PushPlatforms.FCM\_IONIC\_CORDOVA\_ANDROID<br/>• PushPlatforms.FCM\_IONIC\_CORDOVA\_iOS<br/>• PushPlatforms.APNS\_IONIC\_CORDOVA\_DEVICE<br/>• PushPlatforms.APNS\_IONIC\_CORDOVA\_VOIP |
+| `providerId` | String | The `providerId` should match with:<br/><br/>• Any one of the FCM provider identifiers in case of an FCM token.<br/>• Any one of the APNS provider identifiers in case of Device or VoIP tokens.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+<Tabs>
+<Tab title="JavaScript">
+```js
+// This is applicable for web, React native, Ionic cordova
+
+// CometChat.init() success.
+// CometChat.login() success.
+// User has granted permission to display push notifications.
+
+// For web
+CometChatNotifications.registerPushToken(
+  pushToken,
+  CometChatNotifications.PushPlatforms.FCM_WEB,
+  "fcm-provider-2"
+)
+  .then((payload) => {
+    console.log("Token registration successful");
+  })
+  .catch((err) => {
+    console.log("Token registration failed:", err);
+  });
+
+// For React Native Android
+CometChatNotifications.registerPushToken(
+  pushToken,
+  CometChatNotifications.PushPlatforms.FCM_REACT_NATIVE_ANDROID,
+  "fcm-provider-2"
+)
+  .then((payload) => {
+    console.log("Token registration successful");
+  })
+  .catch((err) => {
+    console.log("Token registration failed:", err);
+  });
+
+// For React Native iOS
+CometChatNotifications.registerPushToken(
+  pushToken,
+  CometChatNotifications.PushPlatforms.FCM_REACT_NATIVE_iOS,
+  "fcm-provider-2"
+)
+  .then((payload) => {
+    console.log("Token registration successful");
+  })
+  .catch((err) => {
+    console.log("Token registration failed:", err);
+  });
+
+// For Ionic cordova Android
+CometChatNotifications.registerPushToken(
+  pushToken,
+  CometChatNotifications.PushPlatforms.FCM_IONIC_CORDOVA_ANDROID,
+  "fcm-provider-2"
+)
+  .then((payload) => {
+    console.log("Token registration successful");
+  })
+  .catch((err) => {
+    console.log("Token registration failed:", err);
+  });
+
+// For Ionic cordova iOS
+CometChatNotifications.registerPushToken(
+  pushToken,
+  CometChatNotifications.PushPlatforms.FCM_IONIC_CORDOVA_iOS,
+  "fcm-provider-2"
+)
+  .then((payload) => {
+    console.log("Token registration successful");
+  })
+  .catch((err) => {
+    console.log("Token registration failed:", err);
+  });
+
+// Similary, use this method to register refresh token.
+```
+
+</Tab>
+
+<Tab title="Android">
+```kotlin
+// CometChat.init() success.
+// CometChat.login() success.
+// User has granted permission to display push notifications.
+CometChatNotifications.registerPushToken(pushToken, PushPlatforms.FCM_ANDROID, "fcm-provider-2", new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String s) {
+        Log.e(TAG, "onSuccess:  CometChat Notification Registered : "+s );
+        listener.onSuccess(s);
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e(TAG, "onError: Notification Registration Failed : "+e.getMessage());
+        listener.onError(e);
+    }
+});
+
+// Similary, use this method to register refresh token.
+```
+
+</Tab>
+
+<Tab title="iOS">
+```swift
+// CometChat.init() success.
+// CometChat.login() success.
+// User has granted permission to display push notifications.
+CometChatNotifications.registerPushToken(pushToken: pushToken, platform: CometChatNotifications.PushPlatforms.FCM_iOS, providerId: "apns-provider-2", onSuccess: { (success) in
+  print("registerPushToken: \(success)")
+}) { (error) in
+  print("registerPushToken: \(error.errorCode) \(error.errorDescription)")
+}
+
+// Similary, use this method to register refresh token.
+```
+
+</Tab>
+
+<Tab title="Flutter">
+```dart
+// CometChat.init() success.
+// CometChat.login() success.
+// User has granted permission to display push notifications.
+
+// For Android (FCM)
+CometChatNotifications.registerPushToken(
+  PushPlatforms.FCM_FLUTTER_ANDROID,
+  providerId: "fcm-provider-1",
+  fcmToken: token,
+  onSuccess: (response) {
+    debugPrint("registerPushToken:success ${response.toString()}");
+  },
+  onError: (e) {
+    debugPrint("registerPushToken:error ${e.toString()}");
+  },
+);
+
+// For iOS (FCM)
+CometChatNotifications.registerPushToken(
+  PushPlatforms.FCM_FLUTTER_iOS,
+  providerId: "fcm-provider-1",
+  fcmToken: token,
+  onSuccess: (response) {
+    debugPrint("registerPushToken:success ${response.toString()}");
+  },
+  onError: (e) {
+    debugPrint("registerPushToken:error ${e.toString()}");
+  },
+);
+
+// For ios (APNS Device token)
+CometChatNotifications.registerPushToken(
+  PushPlatforms.APNS_FLUTTER_DEVICE,
+  providerId: "apns-provider-1",
+  deviceToken: token,
+  onSuccess: (response) {
+    debugPrint("registerPushToken:success ${response.toString()}");
+  },
+  onError: (e) {
+    debugPrint("registerPushToken:error ${e.toString()}");
+  },
+);
+
+// For ios (APNS VoIP token)
+CometChatNotifications.registerPushToken(
+  PushPlatforms.APNS_FLUTTER_VOIP,
+  providerId: "apns-provider-1",
+  voipToken: token,
+  onSuccess: (response) {
+    debugPrint("registerPushToken:success ${response.toString()}");
+  },
+  onError: (e) {
+    debugPrint("registerPushToken:error ${e.toString()}");
+  },
+);
+
+// Similary, use this method to register refresh token.
+```
+
+</Tab>
+
+</Tabs>
+
+### Unregister push token before logout
+
+Typically, push token unregistration should occur prior to user logout, using the `CometChat.logout()` method.
+
+For token unregistration, use the `CometChatNotifications.unregisterPushToken()` method provided by the SDKs.
+
+<Tabs>
+<Tab title="JavaScript">
+```js
+// This is applicable for web, React native, Ionic cordova
+await CometChatNotifications.unregisterPushToken();
+
+// Followed by CometChat.logout();
+```
+
+</Tab>
+
+<Tab title="Android">
+```kotlin
+CometChatNotifications.unregisterPushToken(new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String s) {
+        // Success callback
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        // Error callback
+    }
+});
+
+// Followed by CometChat.logout();
+```
+
+</Tab>
+
+<Tab title="iOS">
+```swift
+CometChatNotifications.unregisterPushToken { success in
+    print("unregisterPushToken: \(success)")
+} onError: { error in
+    print("unregisterPushToken: \(error.errorCode) \(error.errorDescription)")
+}
+
+// Followed by CometChat.logout();
+```
+
+</Tab>
+
+<Tab title="Flutter">
+```dart
+CometChatNotifications.unregisterPushToken(onSuccess: (response) {
+  debugPrint("unregisterPushToken:success ${response.toString()}");
+}, onError: (e) {
+  debugPrint("unregisterPushToken:error ${e.toString()}");
+});
+```
+
+</Tab>
+
+</Tabs>
 
 ## Handle incoming Push notifications
 
