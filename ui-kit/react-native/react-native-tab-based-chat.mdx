@@ -9,8 +9,12 @@ This guide builds a **tabbed messaging UI** with separate tabs for **Chats, Call
 
 ## **User Interface Overview**
 
+<Frame>
+  <img src="/images/d14c1876-cometchat_ui_cometchat_screens-9adaaecb86825323a344913ff62919bc.png" />
+</Frame>
+
 * **Tabs** – switch between Chats, Calls, Users, and Groups.
-* **Sidebar per tab** – conversation list, call logs, users, or groups.
+* **Contextual list** – conversation list, call logs, users, or groups per tab.
 * **Message View** – header + messages for the selected user/group.
 * **Composer** – send messages with attachments and reactions.
 
@@ -22,17 +26,45 @@ Initialize and log in with the [Integration](./react-native-integration) steps f
 
 ***
 
-## **Install navigation dependencies**
+## **Step-by-Step Guide**
+
+### **Step 1: Install navigation**
 
 ```bash
 npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs react-native-safe-area-context react-native-screens
 ```
 
-***
+### **Step 2: Create the messages screen**
 
-## **Implementation**
+Header + message list + composer with a back button that returns to tabs.
 
-The example below wires a bottom tab navigator to a stack. Selecting a conversation pushes the **Messages** screen.
+```tsx
+const MessagesRoot = ({ route, navigation }: any) => {
+  const { user, group } = route.params || {};
+  return (
+    <View style={styles.flexOne}>
+      <CometChatMessageHeader
+        user={user}
+        group={group}
+        onBack={() => navigation.popToTop()}
+        showBackButton
+      />
+      <View style={styles.flexOne}>
+        <CometChatMessageList user={user} group={group} />
+      </View>
+      <CometChatMessageComposer
+        user={user}
+        group={group}
+        keyboardAvoidingViewProps={Platform.OS === "ios" ? { behavior: "padding" } : {}}
+      />
+    </View>
+  );
+};
+```
+
+### **Step 3: Wire tabs to the stack**
+
+Use a bottom tab navigator for **Chats, Calls, Users, Groups**. Selecting a conversation pushes the **Messages** screen.
 
 ```tsx
 // src/examples/TabScreen.tsx
@@ -66,30 +98,6 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Messages screen (header + list + composer)
-const MessagesRoot = ({ route, navigation }: any) => {
-  const { user, group } = route.params || {};
-  return (
-    <View style={styles.flexOne}>
-      <CometChatMessageHeader
-        user={user}
-        group={group}
-        onBack={() => navigation.popToTop()}
-        showBackButton
-      />
-      <View style={styles.flexOne}>
-        <CometChatMessageList user={user} group={group} />
-      </View>
-      <CometChatMessageComposer
-        user={user}
-        group={group}
-        keyboardAvoidingViewProps={Platform.OS === "ios" ? { behavior: "padding" } : {}}
-      />
-    </View>
-  );
-};
-
-// Tab screens
 const Conversations: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   return (
@@ -136,7 +144,6 @@ const Users: React.FC = () => {
   );
 };
 
-// Bottom tabs
 const BottomTabNavigator = () => (
   <Tab.Navigator screenOptions={{ headerShown: false }}>
     <Tab.Screen name="Chats" component={Conversations} />
@@ -146,7 +153,6 @@ const BottomTabNavigator = () => (
   </Tab.Navigator>
 );
 
-// Root stack
 const TabScreen = () => {
   const theme = useTheme();
   const NavigationTheme = {
@@ -189,4 +195,3 @@ npm run ios
 * The **Chats** tab passes either `{ user }` or `{ group }` into the **Messages** stack screen.
 * Use `CometChatMessageHeader`'s back button to return to tabs; add `BackHandler` if you want to handle Android hardware back.
 * Customize icons, colors, and typography via the **ThemeProvider** and `useTheme`.
-

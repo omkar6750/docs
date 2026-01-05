@@ -3,41 +3,85 @@ title: "Building A Conversation List + Message View"
 sidebarTitle: "Conversation List + Message View"
 ---
 
-The **Conversation List + Message View** layout pairs a **sidebar of recent conversations** with a **chat screen**. On mobile, tapping a conversation hides the list and shows the chat; the back button brings the list back into view.
+The **Conversation List + Message View** layout delivers a two-panel chat experience: pick a conversation in the list, then chat in a dedicated screen. On mobile, the list hides while a chat is open and returns with the back button.
 
 ***
 
 ## **User Interface Overview**
 
-1. **Sidebar (Conversation List)** – users and groups with last message/typing indicators.
-2. **Message View** – message header + live message stream.
-3. **Message Composer** – send text, media, and reactions.
+<Frame>
+  <img src="/images/e6411d13-chat_experience_sidebar_message-35c431d8bf694e5690e4e0f3a74165af.png" />
+</Frame>
+
+1. **Conversation List** – shows users/groups with last message, presence, and typing indicators.
+2. **Message View** – header + real-time message list.
+3. **Composer** – send text, media, reactions, and replies.
 
 <Info>
 
-Make sure you've **initialized the UI Kit and logged in a user** first. See [Integration](./react-native-integration).
+Initialize and log in first via [React Native Integration](./react-native-integration).
 
 </Info>
 
 ***
 
-## **Implementation**
+## **Step-by-Step Guide**
 
-Create a component that toggles between the conversation list and the active chat. The chat view renders a **header**, **message list**, and **composer**.
+### **Step 1: Render the conversation list**
+
+Handle selection to capture whether the item is a **user** or **group**.
+
+```tsx
+<CometChatConversations
+  onItemPress={(conversation: CometChat.Conversation) => {
+    const isUser =
+      conversation.getConversationType() ===
+      CometChatUiKitConstants.ConversationTypeConstants.user;
+    if (isUser) {
+      setMessageUser(conversation.getConversationWith() as CometChat.User);
+    } else {
+      setMessageGroup(conversation.getConversationWith() as CometChat.Group);
+    }
+  }}
+/>
+```
+
+### **Step 2: Build the message view**
+
+Compose **Header + Message List + Composer** and wire the back button to clear selection.
+
+```tsx
+const Messages = ({
+  user,
+  group,
+  onBack,
+}: {
+  user?: CometChat.User;
+  group?: CometChat.Group;
+  onBack: () => void;
+}) => (
+  <View style={styles.root}>
+    <CometChatMessageHeader user={user} group={group} onBack={onBack} showBackButton />
+    <CometChatMessageList user={user} group={group} />
+    <CometChatMessageComposer user={user} group={group} />
+  </View>
+);
+```
+
+### **Step 3: Toggle list vs. chat**
+
+Hide the list when a chat is open; show it again when the header back button is tapped.
 
 ```tsx
 // src/ConversationMessage.tsx
-import React, { useRef, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, type ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, type ViewStyle } from "react-native";
 import {
   CometChatConversations,
   CometChatMessageHeader,
   CometChatMessageList,
   CometChatMessageComposer,
   CometChatUiKitConstants,
-  Icon,
-  useTheme,
-  CometChatUIKit,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
@@ -45,59 +89,17 @@ const ConversationMessage: React.FC = () => {
   const [messageUser, setMessageUser] = useState<CometChat.User | undefined>();
   const [messageGroup, setMessageGroup] = useState<CometChat.Group | undefined>();
 
-  const Messages = ({
-    user,
-    group,
-    onBack,
-  }: {
-    user?: CometChat.User;
-    group?: CometChat.Group;
-    onBack: () => void;
-  }) => {
-    const theme = useTheme();
-    const loggedInUser = useRef(CometChatUIKit.loggedInUser!).current;
-
-    const TrailingView = ({ user, group }: { user?: CometChat.User; group?: CometChat.Group }) => {
-      if (group) {
-        return (
-          <View style={styles.appBarContainer}>
-            <TouchableOpacity onPress={() => console.log("Group info pressed")}>
-              <Icon name="info" />
-            </TouchableOpacity>
-          </View>
-        );
-      }
-
-      if (user && !user.getBlockedByMe()) {
-        return (
-          <View style={styles.appBarContainer}>
-            <TouchableOpacity onPress={() => console.log("User info pressed")}>
-              <Icon name="info" />
-            </TouchableOpacity>
-          </View>
-        );
-      }
-
-      return <></>;
-    };
-
-    return (
-      <View style={styles.root}>
-        <CometChatMessageHeader user={user} group={group} onBack={onBack} TrailingView={TrailingView} showBackButton />
-        <CometChatMessageList user={user} group={group} />
-        <CometChatMessageComposer user={user} group={group} />
-      </View>
-    );
+  const onBack = () => {
+    setMessageUser(undefined);
+    setMessageGroup(undefined);
   };
+
+  const showList = !messageUser && !messageGroup;
 
   return (
     <>
       <CometChatConversations
-        style={{
-          containerStyle: {
-            display: messageUser || messageGroup ? "none" : "flex",
-          } as ViewStyle,
-        }}
+        style={{ containerStyle: { display: showList ? "flex" : "none" } as ViewStyle }}
         onItemPress={(conversation: CometChat.Conversation) => {
           const isUser =
             conversation.getConversationType() === CometChatUiKitConstants.ConversationTypeConstants.user;
@@ -110,14 +112,11 @@ const ConversationMessage: React.FC = () => {
       />
 
       {(messageUser || messageGroup) && (
-        <Messages
-          user={messageUser}
-          group={messageGroup}
-          onBack={() => {
-            setMessageUser(undefined);
-            setMessageGroup(undefined);
-          }}
-        />
+        <View style={styles.root}>
+          <CometChatMessageHeader user={messageUser} group={messageGroup} onBack={onBack} showBackButton />
+          <CometChatMessageList user={messageUser} group={messageGroup} />
+          <CometChatMessageComposer user={messageUser} group={messageGroup} />
+        </View>
       )}
     </>
   );
@@ -125,13 +124,12 @@ const ConversationMessage: React.FC = () => {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  appBarContainer: { flexDirection: "row", marginLeft: 16 },
 });
 
 export default ConversationMessage;
 ```
 
-Place `ConversationMessage` anywhere after login, for example inside your root screen or navigator.
+Mount `ConversationMessage` after login inside your navigator or root screen.
 
 ***
 
@@ -146,7 +144,6 @@ npm run ios
 
 ## **Tips**
 
-* Tapping a conversation sets `messageUser` or `messageGroup`, which hides the list and shows the chat.
-* `CometChatMessageHeader` renders a **Back** button; the handler clears the selection to return to the list.
-* Use `TrailingView` to add quick actions (e.g., **info**, **block**, **call**) on the header.
-
+* Use `showBackButton` to return to the list on mobile.
+* Swap the `TrailingView` prop on `CometChatMessageHeader` to add actions (info, block, call).
+* Customize the list and message styling with the **Theme** APIs.
