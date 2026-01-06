@@ -30,14 +30,119 @@ Add the CometChat Widget with a small snippet. It drops in like any other embed�
 
 ### Wix placement (applies to all login options)
 
-- In the Wix Editor, add **Embed → Embed a Widget** to your page and switch it to **Code** mode.  
-- Add the chat-embed script once in **Settings → Custom Code → Head** or place it at the top of the embed code:
+- In the Wix Editor, open the page where chat should appear.  
+- Click **+ Add Elements → Embed Code → Embed HTML** and drag it where you want (bottom-right/docked area is typical).  
+- Click **Enter Code / Edit Code** on that element and paste this entire block:
 
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/cometchat-visual-builder-no-code@1.0.10-test63/dist/main.js"></script>
+</head>
+<body style="margin:0;padding:0;">
+  <div id="cometChatMount"></div>
+  <script>
+    const COMETCHAT_APP_ID = "2654831920de76f3";
+    const COMETCHAT_REGION = "IN";
+    const COMETCHAT_AUTH_KEY = "e04d4afcf03810a296ada524ee848f9146d7c2fe";
+
+    async function initCometChat(uid, name) {
+      try {
+        if (!window.__cometchat_initialized) {
+          await CometChatApp.init({
+            appID: COMETCHAT_APP_ID,
+            appRegion: COMETCHAT_REGION,
+            authKey: COMETCHAT_AUTH_KEY,
+          });
+          window.__cometchat_initialized = true;
+        }
+
+        const user = new CometChatApp.CometChat.User(uid);
+        user.setName(name);
+        try { await CometChatApp.createOrUpdateUser(user); } catch (e) {}
+
+        const current = await CometChatApp.CometChat.getLoggedinUser();
+        if (!current || current.uid !== uid) {
+          await CometChatApp.login({ uid });
+        }
+
+        await CometChatApp.launch({
+          targetElementID: "cometChatMount",
+          isDocked: true,
+          width: "400px",
+          height: "450px",
+        });
+      } catch (error) {}
+    }
+
+    // Listen for Wix Page Code messages
+    window.addEventListener("message", async (event) => {
+      if (!event.data) return;
+      if (event.data.action === "login") {
+        await initCometChat(event.data.uid, event.data.name || "Guest");
+      }
+      if (event.data.action === "logout") {
+        try {
+          await CometChatApp.logout();
+          document.getElementById("cometChatMount").innerHTML = "";
+        } catch (e) {}
+      }
+    });
+  </script>
+</body>
+</html>
 ```
 
-- Then, inside the same embed, paste the snippet for your chosen sign-in option below. Use the resize handles on the embed element for width/height.
+- Click **Apply/Update** in the code editor.
+
+**Add Page Code (bridge script)**
+
+In the same page, open **Page Code** (bottom panel) and paste:
+
+```js
+import wixUsers from 'wix-users';
+
+$w.onReady(async function () {
+  const htmlComp = $w('#WixChat1'); // ID of your HTML Embed element
+  let lastUserId = null;
+
+  async function sendUserToCometChat() {
+    const user = wixUsers.currentUser;
+    if (user.loggedIn) {
+      const userId = user.id;
+      const email = await user.getEmail();
+      const userName = email ? email.split('@')[0] : 'WixUser';
+      htmlComp.postMessage({ action: "login", uid: userId, name: userName });
+      lastUserId = userId;
+    } else {
+      htmlComp.postMessage({ action: "logout" });
+      lastUserId = null;
+    }
+  }
+
+  await sendUserToCometChat(); // initial check
+
+  wixUsers.onLogin(() => {
+    sendUserToCometChat();
+  });
+
+  // Poll for logout (Wix lacks onLogout)
+  setInterval(async () => {
+    const user = wixUsers.currentUser;
+    const isLoggedIn = user.loggedIn;
+    if (!isLoggedIn && lastUserId !== null) {
+      htmlComp.postMessage({ action: "logout" });
+      lastUserId = null;
+    }
+  }, 3000);
+});
+```
+
+- Update `#WixChat1` to the ID of your HTML Embed element.  
+- Swap `COMETCHAT_APP_ID`, `COMETCHAT_REGION`, `COMETCHAT_AUTH_KEY` with your app credentials and keep them consistent with your chosen sign-in flow below.
 
 ---
 
