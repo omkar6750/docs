@@ -2,7 +2,7 @@
 title: "Email Templates"
 ---
 
-Use these payload fields when rendering your own email bodies. No sounds apply to email.
+Use these payload fields when rendering your own email bodies. No sounds apply to email. Providers like SendGrid can consume these fields—map them into Dynamic Template variables or assemble the subject/body in your service before sending.
 
 ## Payload shapes
 
@@ -56,3 +56,40 @@ Field meanings:
 | --- | --- | --- | --- |
 | One-on-one notification | New messages from `{{senderDetails.name}}` | New messages from `{{senderDetails.name}}` | New messages from Susan Marie |
 | Group notification | New messages in `{{groupDetails.name}}` | New messages in `{{groupDetails.name}}` | New messages in Hiking Group |
+
+## Example: using with SendGrid API
+
+Pass payload fields into a SendGrid Dynamic Template. The template can reference variables like `{{subject}}`, `{{recipientName}}`, `{{previewMessage}}`, and loop over `messages`.
+
+```js
+import sgMail from '@sendgrid/mail';
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// payload from CometChat
+const payload = {
+  to: { email: 'andrew@example.com', name: 'Andrew Joseph' },
+  senderDetails: { name: 'Susan Marie' },
+  messages: [
+    { message: 'Are we meeting this weekend?' },
+    { message: '📷 Has shared an image' }
+  ],
+  subject: 'New messages from Susan Marie'
+};
+
+// Map payload into template data
+const msg = {
+  to: payload.to.email,
+  from: 'no-reply@yourdomain.com',
+  templateId: 'YOUR_DYNAMIC_TEMPLATE_ID',
+  dynamic_template_data: {
+    subject: payload.subject,
+    recipientName: payload.to.name,
+    senderName: payload.senderDetails.name,
+    unreadCount: payload.messages.length,
+    previewMessage: payload.messages[0]?.message || '',
+    messages: payload.messages
+  }
+};
+
+await sgMail.send(msg);
+```
