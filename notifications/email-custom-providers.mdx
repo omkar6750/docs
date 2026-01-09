@@ -2,25 +2,7 @@
 title: "Custom Providers"
 ---
 
-Custom provider allows you to make use of providers apart from SendGrid for triggering Email notifications. This is implemented using webhook URL which gets all the required details that can be used to trigger Email notifications.
-
-## SendGrid setup
-
-If you prefer to use SendGrid instead of a custom webhook, configure it in the CometChat dashboard:
-
-1. Create a SendGrid API Key (Settings → API Keys → Full Access) and note it.
-<Frame>
-  <img src="/images/send-grid-api-key.png" alt="SendGrid - API Key" />
-</Frame>
-2. Create a Dynamic Template (Email API → Dynamic Templates → Create). Add a Version, set subject to `{{subject}}`, paste your HTML in the Code Editor, and save.
-<Frame>
-  <img src="/images/send-grid-email-dynamic-template.png" alt="SendGrid - Dynamic Template" />
-</Frame>
-3. In CometChat Dashboard → Notifications → Email → Providers, click **Add Credentials**, choose SendGrid, paste the API Key and Template ID, then save.
-<Frame>
-  <img src="/images/cometchat-email-template.png" alt="SendGrid - CometChat Email Template" />
-</Frame>
-4. To support replies, enable **email replies** in the provider settings and follow SendGrid Inbound Parse steps using the CometChat Replies webhook URL.
+Custom provider lets you send email notifications through any provider via webhook. SendGrid is supported as a built-in provider separately; use a custom provider only when you need to route email through another service or your own SMTP bridge.
 
 #### Pre-requisite
 
@@ -188,6 +170,7 @@ const triggerEmailNotification = async (to, data) => {
 
 app.post('/webhook', basicAuth, (req, res) => {
   const { trigger, data, appId, region, webhook } = req.body;
+  const { to } = data || {};
 
   if (
     trigger !== 'email-notification-payload-generated' ||
