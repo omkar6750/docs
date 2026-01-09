@@ -205,52 +205,13 @@ CometChat.removeCallListener(listenerId)
 
 ### Events
 
-<AccordionGroup>
-  <Accordion title="onIncomingCallReceived(call: Call)">
-    Invoked when an incoming call is received from another user or group.
-    
-    **Parameters:**
-    - `call`: `Call` object containing caller details, session ID, and call type
-    
-    **Use case:** Display incoming call UI with caller information, play ringtone, show accept/reject buttons.
-  </Accordion>
-  
-  <Accordion title="onOutgoingCallAccepted(call: Call)">
-    Invoked on the caller's device when the receiver accepts the call.
-    
-    **Parameters:**
-    - `call`: `Call` object with updated call status
-    
-    **Use case:** Dismiss outgoing call UI, generate call token, and start the call session using `startSession()`.
-  </Accordion>
-  
-  <Accordion title="onOutgoingCallRejected(call: Call)">
-    Invoked on the caller's device when the receiver rejects the call.
-    
-    **Parameters:**
-    - `call`: `Call` object with rejection status
-    
-    **Use case:** Dismiss outgoing call UI, show "call rejected" message, update call history.
-  </Accordion>
-  
-  <Accordion title="onIncomingCallCancelled(call: Call)">
-    Invoked on the receiver's device when the caller cancels the call before it's answered.
-    
-    **Parameters:**
-    - `call`: `Call` object with cancellation status
-    
-    **Use case:** Dismiss incoming call UI, stop ringtone, log missed call.
-  </Accordion>
-  
-  <Accordion title="onCallEndedMessageReceived(call: Call)">
-    Invoked when a call ends and a call-ended message is received. This is useful for updating UI or call history when the call terminates.
-    
-    **Parameters:**
-    - `call`: `Call` object with final call status and duration
-    
-    **Use case:** Update call history, show call duration, clean up resources.
-  </Accordion>
-</AccordionGroup>
+| Event | Description |
+| ----- | ----------- |
+| `onIncomingCallReceived(call: Call)` | Invoked when an incoming call is received. The `call` contains caller details, session ID, and call type. Display incoming call UI here. |
+| `onOutgoingCallAccepted(call: Call)` | Invoked on the caller's device when the receiver accepts. Generate call token and start the session here. |
+| `onOutgoingCallRejected(call: Call)` | Invoked on the caller's device when the receiver rejects the call. Dismiss outgoing call UI here. |
+| `onIncomingCallCancelled(call: Call)` | Invoked on the receiver's device when the caller cancels before answering. Dismiss incoming call UI here. |
+| `onCallEndedMessageReceived(call: Call)` | Invoked when a call ends. The `call` contains final status and duration. Update call history here. |
 
 ## Accept Call
 
@@ -478,41 +439,48 @@ For more details on call settings and customization, see the [Call Session](/sdk
 
 To end an active call in the ringing flow, the process differs based on who ends the call.
 
-**User who ends the call** (receives `onCallEndButtonPressed()` callback):
+**User who ends the call:**
+
+When the user presses the end call button, the `onCallEndButtonPressed()` callback is triggered. Inside this callback, call `CometChat.endCall()` to notify other participants. On success, call `CometChat.clearActiveCall()` and `CometChatCalls.endSession()` to release resources.
 
 <Tabs>
 <Tab title="Java">
 ```java
-String sessionId = call.getSessionId();
+@Override
+public void onCallEndButtonPressed() {
+    CometChat.endCall(sessionId, new CometChat.CallbackListener<Call>() {
+        @Override
+        public void onSuccess(Call call) {
+            CometChat.clearActiveCall();
+            CometChatCalls.endSession();
+            // Close the calling screen
+        }
 
-CometChat.endCall(sessionId, new CometChat.CallbackListener<Call>() {
-    @Override
-    public void onSuccess(Call call) {
-        // Call ended, close the calling screen
-    }
-
-    @Override
-    public void onError(CometChatException e) {
-        Log.e(TAG, "End call failed: " + e.getMessage());
-    }
-});
+        @Override
+        public void onError(CometChatException e) {
+            Log.e(TAG, "End call failed: " + e.getMessage());
+        }
+    });
+}
 ```
 
 </Tab>
 
 <Tab title="Kotlin">
 ```kotlin
-val sessionId = call.sessionId
+override fun onCallEndButtonPressed() {
+    CometChat.endCall(sessionId, object : CometChat.CallbackListener<Call>() {
+        override fun onSuccess(call: Call) {
+            CometChat.clearActiveCall()
+            CometChatCalls.endSession()
+            // Close the calling screen
+        }
 
-CometChat.endCall(sessionId, object : CometChat.CallbackListener<Call>() {
-    override fun onSuccess(call: Call) {
-        // Call ended, close the calling screen
-    }
-
-    override fun onError(e: CometChatException) {
-        Log.e(TAG, "End call failed: ${e.message}")
-    }
-})
+        override fun onError(e: CometChatException) {
+            Log.e(TAG, "End call failed: ${e.message}")
+        }
+    })
+}
 ```
 
 </Tab>
@@ -524,20 +492,23 @@ CometChat.endCall(sessionId, object : CometChat.CallbackListener<Call>() {
 <Tabs>
 <Tab title="Java">
 ```java
-// In onCallEnded() callback
-CometChat.clearActiveCall();
-CometChatCalls.endSession();
-// Close the calling screen
+@Override
+public void onCallEnded() {
+    CometChat.clearActiveCall();
+    CometChatCalls.endSession();
+    // Close the calling screen
+}
 ```
 
 </Tab>
 
 <Tab title="Kotlin">
 ```kotlin
-// In onCallEnded() callback
-CometChat.clearActiveCall()
-CometChatCalls.endSession()
-// Close the calling screen
+override fun onCallEnded() {
+    CometChat.clearActiveCall()
+    CometChatCalls.endSession()
+    // Close the calling screen
+}
 ```
 
 </Tab>
