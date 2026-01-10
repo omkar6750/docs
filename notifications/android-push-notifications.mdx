@@ -197,6 +197,11 @@ Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/comet
 - Manifest: point `android:name` on `<application>` to your `MyApplication` class, and ensure service/receiver class names match your package.
 - Replace app name/icons in `AndroidManifest.xml` / `res` to fit your project branding.
 - In [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt), keep channel IDs, group keys, notification IDs, and intent extra keys. If you change package names or notification channel names, update them consistently in your copied code, manifest, and notification builders.
+- In `MyApplication`, keep the parts that make push/call flows work:
+  - `onCreate`: initialize UIKit if needed (e.g., via `SplashViewModel.initUIKit(this)`), call `FirebaseApp.initializeApp(this)`, add the call listener, and register lifecycle callbacks.
+  - Lifecycle callbacks: maintain `currentActivity`, `isAppInForeground`, and `currentOpenChatId` (used to suppress in-app notifications when a chat is open); connect/disconnect sockets when app foregrounds/backgrounds.
+  - Companion object/static fields: `currentOpenChatId`, `currentActivity`, `isAppInForeground`, `soundManager`, `tempCall` if you keep the incoming-call banner.
+  - Call helpers: keep `addCallListener`, `launchIncomingCallPopup`, and `rejectCallWithBusyStatus` if you want the in-app incoming call UI; update imports and package names.
 - Update `FCMMessageBroadcastReceiver` to launch your Splash/entry activity that can initialize UIKit and route deep links. In the sample this is `SplashActivity`; change the intent target to your entry activity. You need only the parts that clear notifications and forward payload extras:
 
 ```kotlin
@@ -269,6 +274,84 @@ class SplashViewModel : ViewModel() {
     }
 
     fun getLoginStatus(): LiveData<Boolean> = loginStatus
+}
+```
+
+Minimal pieces from `MyApplication` needed for push/call notifications (adapt package/imports to your namespace):
+
+```kotlin
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        // Init UIKit once (headless) so push handling works even before UI opens
+        if (!CometChatUIKit.isSDKInitialized()) {
+            SplashViewModel().initUIKit(this)
+        }
+
+        FirebaseApp.initializeApp(this)
+        addCallListener()
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                currentActivity = activity
+            }
+            override fun onActivityStarted(activity: Activity) {
+                if (activity !is SplashActivity &&
+                    CometChatUIKit.isSDKInitialized() &&
+                    isConnectedToWebSockets.compareAndSet(false, true)
+                ) {
+                    CometChat.connect(object : CometChat.CallbackListener<String?>() {
+                        override fun onSuccess(s: String?) { isConnectedToWebSockets.set(true) }
+                        override fun onError(e: CometChatException) { isConnectedToWebSockets.set(false) }
+                    })
+                }
+                currentActivity = activity
+                if (++activityReferences == 1 && !isActivityChangingConfigurations) {
+                    isAppInForeground = true
+                }
+            }
+            override fun onActivityResumed(activity: Activity) { currentActivity = activity }
+            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {
+                if (activity !is SplashActivity) {
+                    isActivityChangingConfigurations = activity.isChangingConfigurations
+                    if (--activityReferences == 0 && !isActivityChangingConfigurations) {
+                        isAppInForeground = false
+                        if (CometChatUIKit.isSDKInitialized()) {
+                            CometChat.disconnect(object : CometChat.CallbackListener<String?>() {
+                                override fun onSuccess(s: String?) { isConnectedToWebSockets.set(false) }
+                                override fun onError(e: CometChatException) {}
+                            })
+                        }
+                    }
+                }
+            }
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {
+                if (currentActivity === activity) currentActivity = null
+            }
+        })
+    }
+
+    private fun addCallListener() {
+        CometChat.addCallListener(LISTENER_ID, object : CometChat.CallListener() {
+            override fun onIncomingCallReceived(call: Call) { /* handle call UI or banner */ }
+            override fun onOutgoingCallAccepted(call: Call) {}
+            override fun onOutgoingCallRejected(call: Call) {}
+            override fun onIncomingCallCancelled(call: Call) {}
+            override fun onCallEndedMessageReceived(call: Call) {}
+        })
+    }
+
+    companion object {
+        var currentOpenChatId: String? = null
+        var currentActivity: Activity? = null
+        private var isAppInForeground = false
+        private val isConnectedToWebSockets = AtomicBoolean(false)
+        private var activityReferences = 0
+        private var isActivityChangingConfigurations = false
+        private var LISTENER_ID: String = System.currentTimeMillis().toString()
+    }
 }
 ```
 
