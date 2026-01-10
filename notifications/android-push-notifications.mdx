@@ -186,7 +186,7 @@ Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/comet
 - Set `android:name` on `<application>` to your `MyApplication` subclass.
 - Keep runtime permission prompts for notifications, mic, camera, and media access (see `AppUtils.kt` / `HomeActivity.kt` in the sample).
 
-## 4. Copy the sample code and align identifiers
+## 4. Application wiring, sample code, and callbacks
 
 - Clone/open the [reference repo](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification).
 - Copy these into your app module (keep structure):
@@ -197,21 +197,15 @@ Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/comet
 - Update credentials/constants:
   - `AppCredentials.kt`: set your App ID, Auth Key, Region.
   - `AppConstants.FCMConstants.PROVIDER_ID`: set your dashboard Provider ID.
-- Manifest: point `android:name` on `<application>` to your `MyApplication` class, and ensure service/receiver class names match your package.
-- Replace app name/icons in `AndroidManifest.xml` / `res` to fit your project branding.
-- In [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt), keep channel IDs, group keys, notification IDs, and intent extra keys. If you change package names or notification channel names, update them consistently in your copied code, manifest, and notification builders.
-- In `MyApplication`, keep the parts that make push/call flows work:
-  - `onCreate`: initialize UIKit if needed (e.g., via `SplashViewModel.initUIKit(this)`), call `FirebaseApp.initializeApp(this)`, add the call listener, and register lifecycle callbacks.
-  - Lifecycle callbacks: maintain `currentActivity`, `isAppInForeground`, and `currentOpenChatId` (used to suppress in-app notifications when a chat is open); connect/disconnect sockets when app foregrounds/backgrounds.
-  - Companion object/static fields: `currentOpenChatId`, `currentActivity`, `isAppInForeground`, `soundManager`, `tempCall` if you keep the incoming-call banner.
-  - Call helpers: keep `addCallListener`, `launchIncomingCallPopup`, and `rejectCallWithBusyStatus` if you want the in-app incoming call UI; update imports and package names.
-- Update `FCMMessageBroadcastReceiver` to launch your Splash/entry activity that can initialize UIKit and route deep links. In the sample this is `SplashActivity`; change the intent target to your entry activity. You need only the parts that clear notifications and forward payload extras:
+- Manifest: point `android:name` on `<application>` to your `MyApplication` class; ensure service/receiver class names match your package; replace app name/icons in `AndroidManifest.xml` / `res`.
+- In [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt), keep channel IDs, group keys, notification IDs, and intent extra keys. If you change package names or channel names, update them across manifest and notification builders.
+
+**Splash/entry deep link handler** (update target activity as needed):
 
 ```kotlin
 // In your Splash/entry activity (e.g., SplashActivity)
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    // ensure credentials/login then handle deep link
     handleDeepLinking()
 }
 
@@ -232,8 +226,7 @@ private fun handleDeepLinking() {
 }
 ```
 
-- In [`SplashViewModel`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/viewmodels/SplashViewModel.kt), keep the pieces that initialize UIKit headlessly and check login state for deep links. If you rename activities or move login logic, update the view model to call your app’s init and login checks, but preserve the flow that ensures SDK init/login before navigating from notification taps.
-Minimal pieces from `SplashViewModel` that are required for push deep links (adapt class/package names as needed):
+**SplashViewModel (headless init + login check)**
 
 ```kotlin
 class SplashViewModel : ViewModel() {
@@ -280,98 +273,37 @@ class SplashViewModel : ViewModel() {
 }
 ```
 
-Minimal pieces from `Repository` that are relevant to push tokens (adapt package/imports to your namespace):
+**Repository (push token + call helpers)**
 
 ```kotlin
 object Repository {
-    fun registerFCMToken(listener: CometChat.CallbackListener<String>) {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val pushToken = task.result
-                CometChatNotifications.registerPushToken(
-                    pushToken,
-                    PushPlatforms.FCM_ANDROID,
-                    AppConstants.FCMConstants.PROVIDER_ID,
-                    object : CometChat.CallbackListener<String?>() {
-                        override fun onSuccess(s: String?) { listener.onSuccess(s) }
-                        override fun onError(e: CometChatException) { listener.onError(e) }
-                    }
-                )
-            } else {
-                listener.onError(CometChatException("ERROR", "Failed to get FCM token"))
-            }
-        }
-    }
-
-    fun unregisterFCMToken(listener: CometChat.CallbackListener<String>) {
-        CometChatNotifications.unregisterPushToken(object : CometChat.CallbackListener<String?>() {
-            override fun onSuccess(s: String?) { listener.onSuccess(s) }
-            override fun onError(e: CometChatException) { listener.onError(e) }
-        })
-    }
+    fun registerFCMToken(listener: CometChat.CallbackListener<String>) { /* ...as above... */ }
+    fun unregisterFCMToken(listener: CometChat.CallbackListener<String>) { /* ...as above... */ }
 
     fun rejectCallWithBusyStatus(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>? = null
-    ) {
-        CometChat.rejectCall(
-            call.sessionId,
-            CometChatConstants.CALL_STATUS_BUSY,
-            object : CometChat.CallbackListener<Call>() {
-                override fun onSuccess(call: Call?) {
-                    CometChatUIKitHelper.onCallRejected(call)
-                    callbackListener?.onSuccess(call)
-                }
-                override fun onError(e: CometChatException) {
-                    CometChatUIKitHelper.onCallRejected(call)
-                    callbackListener?.onError(e)
-                }
-            }
-        )
-    }
+    ) { /* ...as above... */ }
 
     fun acceptCall(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>
-    ) {
-        CometChat.acceptCall(call.sessionId, object : CometChat.CallbackListener<Call>() {
-            override fun onSuccess(call: Call) {
-                CometChatUIKitHelper.onCallAccepted(call)
-                callbackListener.onSuccess(call)
-            }
-            override fun onError(e: CometChatException) {
-                CometChatUIKitHelper.onCallRejected(call)
-                callbackListener.onError(e)
-            }
-        })
-    }
+    ) { /* ...as above... */ }
 
     fun rejectCall(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>
-    ) {
-        CometChat.rejectCall(call.sessionId, CometChatConstants.CALL_STATUS_REJECTED, object : CometChat.CallbackListener<Call?>() {
-            override fun onSuccess(call: Call?) {
-                CometChatUIKitHelper.onCallRejected(call)
-                callbackListener.onSuccess(call)
-            }
-            override fun onError(e: CometChatException) {
-                CometChatUIKitHelper.onCallRejected(call)
-                callbackListener.onError(e)
-            }
-        })
-    }
+    ) { /* ...as above... */ }
 }
 ```
 
-Minimal pieces from `MyApplication` needed for push/call notifications (adapt package/imports to your namespace):
+**MyApplication (push/call lifecycle essentials)**
 
 ```kotlin
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Init UIKit once (headless) so push handling works even before UI opens
         if (!CometChatUIKit.isSDKInitialized()) {
             SplashViewModel().initUIKit(this)
         }
@@ -462,7 +394,6 @@ Make sure you actually set these at runtime:
 
 ## 5. Application wiring and permissions
 
-- [`MyApplication`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/MyApplication.kt): init UI Kit, track the current chat, manage call overlays, reconnect websockets.
 - [`AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) + [`HomeActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt): request notification/mic/camera/storage permissions early.
 
 ## 6. Register the FCM token after login
