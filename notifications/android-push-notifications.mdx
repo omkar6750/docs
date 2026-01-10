@@ -42,6 +42,9 @@ Fully self-contained: enable push in the CometChat dashboard, create the FCM And
 <Frame>
   <img src="/images/80a520bb-pushnotification-enable-e64632d479a2ebba111453b95bd522c6.png" alt="Enable Push Notifications" />
 </Frame>
+
+and generate a new private key and upload the JSON file when we create the FCM provider on CometChat dashboard.
+
 <Frame>
   <img src="/images/c6447647-pushnotification-fcm-68092b02a5361d51ba14b09289da3a78.png" alt="Upload FCM service account JSON" />
 </Frame>
@@ -325,6 +328,38 @@ object Repository {
                 }
             }
         )
+    }
+
+    fun acceptCall(
+        call: Call,
+        callbackListener: CometChat.CallbackListener<Call>
+    ) {
+        CometChat.acceptCall(call.sessionId, object : CometChat.CallbackListener<Call>() {
+            override fun onSuccess(call: Call) {
+                CometChatUIKitHelper.onCallAccepted(call)
+                callbackListener.onSuccess(call)
+            }
+            override fun onError(e: CometChatException) {
+                CometChatUIKitHelper.onCallRejected(call)
+                callbackListener.onError(e)
+            }
+        })
+    }
+
+    fun rejectCall(
+        call: Call,
+        callbackListener: CometChat.CallbackListener<Call>
+    ) {
+        CometChat.rejectCall(call.sessionId, CometChatConstants.CALL_STATUS_REJECTED, object : CometChat.CallbackListener<Call?>() {
+            override fun onSuccess(call: Call?) {
+                CometChatUIKitHelper.onCallRejected(call)
+                callbackListener.onSuccess(call)
+            }
+            override fun onError(e: CometChatException) {
+                CometChatUIKitHelper.onCallRejected(call)
+                callbackListener.onError(e)
+            }
+        })
     }
 }
 ```
