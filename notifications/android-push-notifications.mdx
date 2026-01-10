@@ -1,114 +1,56 @@
 ---
 title: "Android Push Notifications"
-description: "End-to-end walkthrough for recreating the CometChat push from the Kotlin UI Kit sample on Android."
+description: "Set up FCM, register push tokens with CometChat, and mirror the Kotlin sample’s messaging + calling notifications."
 ---
 
 <Info>
-Make sure you complete [Push Notifications integration](/notifications/push-integration) steps before proceeding.
+Fully self-contained: enable push in the CometChat dashboard, create the FCM Android provider, and wire everything on Android here.
 </Info>
-
-{/* <Card title="Push Notifications Integration" href="/notifications/push-integration">
-
-View Guide
-
-</Card> */}
-
-The Kotlin sample app already handles Firebase Messaging, grouped message notifications, inline replies, and native incoming-call UI via `ConnectionService`. Follow this guide to mirror that implementation in any Android app that uses CometChat UI Kit and Calls SDK.
 
 <Card
   title="Reference implementation"
   icon="github"
   href="https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification"
 >
-  Browse the Kotlin push-notification sample (UI Kit + Calls + VoIP/ConnectionService).
+  Kotlin UI Kit + Calls + push (message grouping, inline replies, ConnectionService).
 </Card>
 
-<Note>
-Folder names in this guide match the sample repo (for example
-<a href="https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm" target="_blank" rel="noopener noreferrer">src/main/java/com/cometchat/sampleapp/kotlin/fcm</a>,
-<a href="https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/AndroidManifest.xml" target="_blank" rel="noopener noreferrer">src/main/AndroidManifest.xml</a>, or
-<a href="https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/build.gradle" target="_blank" rel="noopener noreferrer">build.gradle</a>).
-Copy the same structure into your app and only change identifiers (applicationId, package names, provider IDs) to match your project.
-</Note>
+## What this guide covers
 
-## Architecture map
+- FCM setup and CometChat provider wiring (credentials + Gradle + manifest).
+- Token registration/unregistration so CometChat routes pushes correctly.
+- Message notifications with grouping, avatars, inline replies; call pushes via ConnectionService.
+- Deep links/navigation from notifications and payload customization.
 
-| Sample path | Role | What to copy/replicate |
-| --- | --- | --- |
-| [`src/main/java/com/cometchat/sampleapp/kotlin/fcm`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm) | FCM service, DTOs, notification builder, inline reply broadcast receiver | Copy the package; update package name and constants (`AppConstants.FCMConstants.PROVIDER_ID`, `AppCredentials`). |
-| [`src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip) | ConnectionService wrapper for full-screen incoming-call UI and busy rejection | Keep class names; make sure manifest points to `CometChatVoIPConnectionService`. |
-| [`src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/MyApplication.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/MyApplication.kt) | Initializes UI Kit, tracks foreground activity, manages call overlays, connects/disconnects websockets | Use this as your Application class; set it in `AndroidManifest.xml`. |
-| [`src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) | Runtime permission helpers for notifications, media, mic/camera | Reuse the permission flow or mirror it if you already centralize permissions elsewhere. |
-| [`src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt) | Requests runtime permissions on launch and wires navigation into UI Kit | Copy the permission prompts and keep notification/call permissions in your entry flow. |
-| [`src/main/AndroidManifest.xml`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/AndroidManifest.xml) | Permissions, FCM service, broadcast receiver, ConnectionService declaration | Start from the sample manifest; keep the same permissions and services. |
-| [`build.gradle`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/build.gradle) | Plugins, Firebase + CometChat dependencies, compile/target SDK levels | Align plugin list, Kotlin JVM target, and dependencies before wiring code. |
+## What you need first
 
-## 1. Prerequisites
+- Firebase project with an Android app added, `google-services.json` downloaded, and Cloud Messaging enabled.
+- CometChat App ID, Region, Auth Key; **Push Notifications** extension enabled with an **FCM Android provider** and its Provider ID.
+- Android device with Play Services (sample uses `minSdk 26` because of `ConnectionService`).
+- Latest CometChat UI Kit + Calls SDK dependencies (see Gradle tabs below).
 
-- Firebase project with an Android app added (package name matches your `applicationId`) and Cloud Messaging enabled; place `google-services.json` in `app/src/main` or `app/` per your Gradle setup.
-- CometChat app credentials (App ID, Region, Auth Key) and the **Push Notifications** extension enabled. Create an **FCM Android provider** and copy the provider ID.
-- Android Studio Giraffe+ with a physical Android device (minSdk 26 in the sample; ConnectionService requires API 26+).
-- Latest CometChat UI Kit + Calls SDK dependencies (see the sample Gradle snippet below) and Google Play Services on the device.
+## 1. Prepare Firebase and CometChat
 
-## 2. Prepare credentials before coding
-
-### 2.1 Firebase Console
-
-1. Register your Android package name and download `google-services.json` into your module.
-2. Enable Cloud Messaging and keep the Server key handy if you want to send manual test pushes.
+1. **Firebase Console**: Add your Android package, download `google-services.json` into the app module, and enable Cloud Messaging.
 
 <Frame>
   <img src="/images/firebase-push-notifications.png" alt="Firebase - Push Notifications" />
 </Frame>
 
-### 2.2 CometChat dashboard
-
-1. Turn on the **Push Notifications**.
+2. **CometChat dashboard**: Go to **Notifications → Settings**, enable **Push Notifications**, click **Add Credentials** (FCM), upload the Firebase service account JSON (Project settings → Service accounts → Generate new private key), and copy the Provider ID.
 
 <Frame>
-  <img src="/images/push-notifications-guide-1.png" alt="CometChat Dashboard - Push Notifications" />
+  <img src="/images/80a520bb-pushnotification-enable-e64632d479a2ebba111453b95bd522c6.png" alt="Enable Push Notifications" />
 </Frame>
-
-2. Create an FCM provider for Android and copy the generated provider ID.
-
 <Frame>
-  <img src="/images/push-notifications-guide-2.png" alt="CometChat Dashboard - Push Notifications" />
+  <img src="/images/c6447647-pushnotification-fcm-68092b02a5361d51ba14b09289da3a78.png" alt="Upload FCM service account JSON" />
 </Frame>
 
-### 2.3 Local configuration files
+3. **Local constants**: Set App ID, Auth Key, Region in `AppCredentials.kt`, and paste the Provider ID into `AppConstants.FCMConstants.PROVIDER_ID`. Update `applicationId`, package names, icons, and app name.
 
-- [`AppCredentials.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/AppCredentials.kt) should contain your App ID, Auth Key, and Region.
-- [`AppConstants.FCMConstants.PROVIDER_ID`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt#L20) must be replaced with the provider ID you created for this app.
-- Replace launcher icons and app name in `AndroidManifest.xml` / `res` if you fork the sample.
+## 2. Add dependencies (Gradle)
 
-### 2.4 Push Notification Settings (dashboard)
-
-- Navigate to **Push Notifications** > **Get Started / Integrate** in the CometChat dashboard.
-- Select **Platforms** you want to support (Android, iOS, Web, etc.).
- 
- <Steps>
-  <Step title="Add credentials">
-    Fill `AppCredentials.kt` and set your `AppConstants.FCMConstants.PROVIDER_ID` from the dashboard provider you created.
-  </Step>
-  <Step title="Wire Gradle">
-    Paste the Gradle block below into `app/build.gradle` (keep the plugin + dependency links above for reference).
-  </Step>
-  <Step title="Update the manifest">
-    Add the permissions and services from the manifest snippet; keep the full manifest linked above for context.
-  </Step>
-  <Step title="Request permissions at runtime">
-    Reuse `AppUtils.kt` + `HomeActivity.kt` so notification/mic/camera/storage prompts run before token registration.
-  </Step>
-  <Step title="Register the FCM token after login">
-    Call `registerPushToken` (via `Repository.registerFCMToken`) once `CometChatUIKit.login()` succeeds.
-  </Step>
-</Steps>
-
-## 3. Project setup (Gradle + manifest)
-
-### 3.1 Gradle configuration
-
-Use a version catalog (recommended) and aliases in `app/build.gradle`:
+Use a version catalog and aliases:
 
 <Tabs>
 <Tab title="TOML (libs.versions.toml)">
@@ -195,20 +137,9 @@ dependencies {
 
 - Apply the `google-services` plugin and place `google-services.json` in the same module; keep `viewBinding` enabled if you copy UI Kit screens directly from the sample.
 
-### 3.2 Manifest permissions and components
+## 3. Manifest permissions and services
 
 Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/AndroidManifest.xml):
-
-- Permissions for notifications and calls: `POST_NOTIFICATIONS`, `RECORD_AUDIO`, `CALL_PHONE`, `MANAGE_OWN_CALLS`, `ANSWER_PHONE_CALLS`, `WAKE_LOCK`, `READ_PHONE_STATE`, and media read permissions for attachments.
-- Set `android:name` on `<application>` to your `MyApplication` subclass.
-- Declare:
-- `com.google.firebase.MESSAGING_EVENT` service: [`FCMService`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMService.kt)
-- Reply receiver: [`FCMMessageBroadcastReceiver`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageBroadcastReceiver.kt)
-- VoIP connection service: [`CometChatVoIPConnectionService`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip/CometChatVoIPConnectionService.kt) with `android.permission.BIND_TELECOM_CONNECTION_SERVICE`.
-- Runtime permissions: follow [`AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) and [`HomeActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt) for requesting notification/mic/camera/storage permissions early in the flow.
-
-<Note>
-Minimal manifest block to copy (keep the links above for full context):
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
@@ -224,31 +155,42 @@ Minimal manifest block to copy (keep the links above for full context):
 <uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
 <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
-<service
-    android:name=".fcm.FCMService"
-    android:exported="false">
-    <intent-filter>
-        <action android:name="com.google.firebase.MESSAGING_EVENT" />
-    </intent-filter>
-</service>
-<receiver android:name=".fcm.FCMMessageBroadcastReceiver" />
+<application
+    android:name=".fcm.utils.MyApplication"
+    ...>
 
-<service
-    android:name=".voip.CometChatVoIPConnectionService"
-    android:exported="true"
-    android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
-    <intent-filter>
-        <action android:name="android.telecom.ConnectionService" />
-    </intent-filter>
-</service>
+    <service
+        android:name=".fcm.fcm.FCMService"
+        android:exported="false">
+        <intent-filter>
+            <action android:name="com.google.firebase.MESSAGING_EVENT" />
+        </intent-filter>
+    </service>
+
+    <receiver android:name=".fcm.fcm.FCMMessageBroadcastReceiver" />
+
+    <service
+        android:name=".fcm.voip.CometChatVoIPConnectionService"
+        android:exported="true"
+        android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+        <intent-filter>
+            <action android:name="android.telecom.ConnectionService" />
+        </intent-filter>
+    </service>
+</application>
 ```
-</Note>
 
-## 4. Wire the Kotlin notification stack
+- Set `android:name` on `<application>` to your `MyApplication` subclass.
+- Keep runtime permission prompts for notifications, mic, camera, and media access (see `AppUtils.kt` / `HomeActivity.kt` in the sample).
 
-### 4.1 Token registration (after login)
+## 4. Application wiring and permissions
 
-[`Repository.registerFCMToken`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/data/repository/Repository.kt#L548) fetches the FCM token and registers it with CometChat Push Notifications:
+- [`MyApplication`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/MyApplication.kt): init UI Kit, track the current chat, manage call overlays, reconnect websockets.
+- [`AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) + [`HomeActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt): request notification/mic/camera/storage permissions early.
+
+## 5. Register the FCM token after login
+
+Call registration right after `CometChatUIKit.login()` succeeds:
 
 ```kotlin
 FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -258,104 +200,80 @@ FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             token,
             PushPlatforms.FCM_ANDROID,
             AppConstants.FCMConstants.PROVIDER_ID,
-            object : CometChat.CallbackListener<String?>() { /* handle callbacks */ }
+            object : CometChat.CallbackListener<String?>() {
+                override fun onSuccess(uid: String?) { /* token registered */ }
+                override fun onError(e: CometChatException) { /* handle failure */ }
+            }
         )
     }
 }
 ```
 
-Call this after `CometChatUIKit.login()` succeeds (the sample triggers it during app bootstrap) and keep `unregisterPushToken` for logout flows.
+Re-register on token refresh. Keep the provider ID aligned to the FCM provider you created for this app.
 
-### 4.2 Handling message pushes
+## 6. Unregister the token on logout
 
-- [`FCMService.onMessageReceived`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMService.kt#L25) inspects `message.data["type"]`.
-- For `type == "chat"` it:
-  - Marks the message as delivered via `CometChat.markAsDelivered`.
-  - Skips notifications when the target chat is already open (`MyApplication.currentOpenChatId`).
-  - Builds grouped notifications with avatars and BigText via [`FCMMessageNotificationUtils`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageNotificationUtils.kt), including inline reply actions.
-- [`FCMMessageBroadcastReceiver`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageBroadcastReceiver.kt) captures inline replies, initializes the SDK headlessly (`SplashViewModel.initUIKit`), sends the message, and re-shows the updated notification.
+```kotlin
+CometChatNotifications.unregisterPushToken(object : CometChat.CallbackListener<String?>() {
+    override fun onSuccess(s: String?) { /* success */ }
+    override fun onError(e: CometChatException) { /* handle error */ }
+})
+// Then call CometChatUIKit.logout()
+```
 
-### 4.3 Navigation from notifications
+## 7. Handle message pushes
+  
+- [`FCMService.onMessageReceived`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMService.kt) checks `message.data["type"]`.
+- For `type == "chat"`: mark delivered (`CometChat.markAsDelivered`), skip notifying if the chat is already open (`MyApplication.currentOpenChatId`), and build grouped notifications (avatars + BigText) via [`FCMMessageNotificationUtils`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageNotificationUtils.kt) with inline reply actions.
+- [`FCMMessageBroadcastReceiver`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageBroadcastReceiver.kt) handles inline replies, initializes the SDK headlessly, sends the reply, and refreshes the notification.
 
-- Taps on a notification launch [`SplashActivity`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/SplashActivity.kt) which reads `NOTIFICATION_PAYLOAD` extras to decide whether to open `MessagesActivity` with the right user/group.
-- `MyApplication` keeps track of the foreground activity, reconnects websockets when the app resumes, and shows a top-of-screen incoming-call snackbar if a call arrives while the UI Kit is open.
+## 8. Handle call pushes (ConnectionService)
 
-### 4.4 Incoming calls (ConnectionService)
+- For `type == "call"`, `FCMService.handleCallFlow` parses [`FCMCallDto`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMCallDto.kt) and routes to the `voip` package.
+- [`CometChatVoIP`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip/CometChatVoIP.kt) registers a `PhoneAccount` and triggers `TelecomManager.addNewIncomingCall` for native full-screen UI with Accept/Decline.
+- Busy logic: if already on a call, reject with busy (`Repository.rejectCallWithBusyStatus`). Cancel/timeout pushes end the active telecom call when IDs match.
 
-- For `type == "call"` pushes, `FCMService.handleCallFlow` parses [`FCMCallDto`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMCallDto.kt) and routes to the `voip` package.
-- [`CometChatVoIP`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip/CometChatVoIP.kt) registers a `PhoneAccount` and triggers `TelecomManager.addNewIncomingCall` so Android shows the native full-screen call UI with Accept/Decline.
-- When the app is already on a call, the sample rejects new calls with a busy status (`Repository.rejectCallWithBusyStatus`).
-- Cancel/timeout pushes (`callAction == cancelled/unanswered`) end the active telecom call if the session IDs match.
+## 9. Customize notification text or parse payloads
 
-### 4.5 Notification UI polish
-
-- `FCMMessageNotificationUtils` groups notifications per sender, shows avatars (downloaded on a worker thread), and uses distinct channel IDs for message notifications.
-- Reply actions use `RemoteInput` so users can respond from the shade; messages are re-rendered in the notification after sending.
-- `AppConstants.FCMConstants` centralizes channel IDs, group keys, and summary IDs—update these if you already use conflicting channels in your app.
-
-### 4.6 Convert payloads to CometChat message objects
-
-If you need a `BaseMessage` from a push payload (for deep links or custom UI), parse the `message` JSON and pass it to `CometChatHelper.processMessage` inside `onMessageReceived`:
+Parse the push into a `BaseMessage` for deep links:
 
 ```kotlin
 override fun onMessageReceived(remoteMessage: RemoteMessage) {
     val messageJson = remoteMessage.data["message"] ?: return
     val baseMessage = CometChatHelper.processMessage(JSONObject(messageJson))
-    // Use baseMessage to open the right chat/thread
+    // open the right chat/thread using baseMessage
 }
 ```
 
-### 4.7 Customizing the notification body via metadata
-
-To override the push body, include `pushNotification` inside the message `metadata` before sending:
+Override the push body before sending:
 
 ```kotlin
-val receiverId = "TARGET_UID"
-val customData = JSONObject().put("yourKey", "yourValue")
 val meta = JSONObject().put("pushNotification", "Custom notification body")
-
-val customMessage = CustomMessage(
-    receiverId,
-    CometChatConstants.RECEIVER_TYPE_USER,
-    customData
-).apply { metadata = meta }
-
+customMessage.metadata = meta
 CometChat.sendCustomMessage(customMessage, object : CallbackListener<CustomMessage>() {})
 ```
 
-## 5. Testing checklist
+## 10. Navigation from notifications
+Notification taps launch [`SplashActivity`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/SplashActivity.kt); it reads `NOTIFICATION_PAYLOAD` extras and opens the correct user or group in `MessagesActivity`. Keep `launchMode` settings that allow the intent extras to arrive.
+## 11. Testing checklist
 
-1. Install the app on a physical device, grant notification and microphone permissions (Android 13+ requires `POST_NOTIFICATIONS`).
-2. Log in and ensure `registerPushToken` succeeds (watch Logcat for the token and success callback).
+1. Install on a physical device and grant notification + mic permissions (Android 13+ needs `POST_NOTIFICATIONS`).
+2. Log in and ensure token registration succeeds (check Logcat).
 3. Send a message from another user:
-   - Foreground: grouped local notification shows unless you are in that conversation.
-   - Background/terminated: tapping the FCM notification opens the correct conversation.
-4. Use inline reply from the notification shade; verify the reply is delivered and the notification updates.
+   - Foreground: grouped notification shows unless you are already in that chat.
+   - Background/terminated: tap opens the correct conversation.
+4. Inline reply from the shade delivers the message and updates the notification.
 5. Trigger an incoming call push:
-   - Native full-screen call UI shows with caller info.
-   - Accept/Decline actions reach the app; cancel/timeout dismisses the telecom call.
-6. Rotate network conditions or reinstall the app to confirm token re-registration works.
+   - Native full-screen call UI appears with caller info.
+   - Accept/Decline work; cancel/timeout dismisses the telecom call.
+6. Reinstall or clear app data to confirm token re-registration works.
 
-## 6. Troubleshooting
+## Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |
-| No notifications received | Confirm `google-services.json` location, package name match, notification permission granted, and Push Notifications extension enabled with the correct provider ID. |
-| Token registration fails | Verify `AppConstants.FCMConstants.PROVIDER_ID`, ensure registration runs after login, and check Firebase project uses the same package name. |
-| Notification taps do nothing | Make sure `SplashActivity` consumes `NOTIFICATION_PAYLOAD` extras and that `launchMode` is not preventing the intent from delivering data. |
-| Call UI never shows | Ensure all telecom permissions are declared and granted, `CometChatVoIPConnectionService` is in the manifest, and the device supports `MANAGE_OWN_CALLS`. |
-| Inline reply crashes | Keep the broadcast receiver registered, and avoid proguard stripping classes used by `RemoteInput` or FCM. |
-
-{/* ## Additional resources
-
-<CardGroup>
-
-<Card title="Android - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-android">
-
-Push notifications sample app for Android
-
-View on Github
-
-</Card>
-
-</CardGroup> */}
+| No notifications | Package name matches Firebase app, `google-services.json` is present, notification permission granted, Provider ID correct, Push extension enabled. |
+| Token registration fails | Run registration after login, confirm `AppConstants.FCMConstants.PROVIDER_ID`, and verify the Firebase project matches the app ID. |
+| Notification tap does nothing | Ensure `SplashActivity` reads `NOTIFICATION_PAYLOAD` and activity launch modes do not drop extras. |
+| Call UI never shows | All telecom permissions declared + granted; `CometChatVoIPConnectionService` in manifest; device supports `MANAGE_OWN_CALLS`. |
+| Inline reply crashes | Keep `FCMMessageBroadcastReceiver` registered; do not strip FCM or `RemoteInput` classes in ProGuard/R8. |
