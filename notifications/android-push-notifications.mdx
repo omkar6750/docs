@@ -277,6 +277,38 @@ class SplashViewModel : ViewModel() {
 }
 ```
 
+Minimal pieces from `Repository` that are relevant to push tokens (adapt package/imports to your namespace):
+
+```kotlin
+object Repository {
+    fun registerFCMToken(listener: CometChat.CallbackListener<String>) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val pushToken = task.result
+                CometChatNotifications.registerPushToken(
+                    pushToken,
+                    PushPlatforms.FCM_ANDROID,
+                    AppConstants.FCMConstants.PROVIDER_ID,
+                    object : CometChat.CallbackListener<String?>() {
+                        override fun onSuccess(s: String?) { listener.onSuccess(s) }
+                        override fun onError(e: CometChatException) { listener.onError(e) }
+                    }
+                )
+            } else {
+                listener.onError(CometChatException("ERROR", "Failed to get FCM token"))
+            }
+        }
+    }
+
+    fun unregisterFCMToken(listener: CometChat.CallbackListener<String>) {
+        CometChatNotifications.unregisterPushToken(object : CometChat.CallbackListener<String?>() {
+            override fun onSuccess(s: String?) { listener.onSuccess(s) }
+            override fun onError(e: CometChatException) { listener.onError(e) }
+        })
+    }
+}
+```
+
 Minimal pieces from `MyApplication` needed for push/call notifications (adapt package/imports to your namespace):
 
 ```kotlin
@@ -351,6 +383,18 @@ class MyApplication : Application() {
         private var activityReferences = 0
         private var isActivityChangingConfigurations = false
         private var LISTENER_ID: String = System.currentTimeMillis().toString()
+        private var tempCall: Call? = null
+
+        fun getTempCall(): Call? = tempCall
+        fun setTempCall(call: Call?) {
+            tempCall = call
+            if (call == null && soundManager != null) {
+                soundManager?.pauseSilently()
+            }
+        }
+
+        fun isAppInForeground(): Boolean = isAppInForeground
+        var soundManager: CometChatSoundManager? = null
     }
 }
 ```
