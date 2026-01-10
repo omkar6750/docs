@@ -224,6 +224,54 @@ private fun handleDeepLinking() {
 }
 ```
 
+- In [`SplashViewModel`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/viewmodels/SplashViewModel.kt), keep the pieces that initialize UIKit headlessly and check login state for deep links. If you rename activities or move login logic, update the view model to call your app’s init and login checks, but preserve the flow that ensures SDK init/login before navigating from notification taps.
+Minimal pieces from `SplashViewModel` that are required for push deep links (adapt class/package names as needed):
+
+```kotlin
+class SplashViewModel : ViewModel() {
+    private val loginStatus = MutableLiveData<Boolean>()
+
+    fun initUIKit(context: Context) {
+        val appId = AppUtils.getDataFromSharedPref(context, String::class.java, R.string.app_cred_id, AppCredentials.APP_ID)
+        val region = AppUtils.getDataFromSharedPref(context, String::class.java, R.string.app_cred_region, AppCredentials.REGION)
+        val authKey = AppUtils.getDataFromSharedPref(context, String::class.java, R.string.app_cred_auth, AppCredentials.AUTH_KEY)
+
+        val uiKitSettings = UIKitSettings.UIKitSettingsBuilder()
+            .setAutoEstablishSocketConnection(false)
+            .setAppId(appId)
+            .setRegion(region)
+            .setAuthKey(authKey)
+            .subscribePresenceForAllUsers()
+            .build()
+
+        CometChatUIKit.init(context, uiKitSettings, object : CometChat.CallbackListener<String>() {
+            override fun onSuccess(s: String) {
+                CometChat.setDemoMetaInfo(getAppMetadata(context))
+                checkUserIsNotLoggedIn()
+            }
+            override fun onError(e: CometChatException) {
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun getAppMetadata(context: Context): JSONObject {
+        val jsonObject = JSONObject()
+        jsonObject.put("name", context.getString(R.string.app_name))
+        jsonObject.put("bundle", BuildConfig.APPLICATION_ID)
+        jsonObject.put("version", BuildConfig.VERSION_NAME)
+        jsonObject.put("platform", "android")
+        return jsonObject
+    }
+
+    fun checkUserIsNotLoggedIn() {
+        loginStatus.value = CometChatUIKit.getLoggedInUser() != null
+    }
+
+    fun getLoginStatus(): LiveData<Boolean> = loginStatus
+}
+```
+
 ## 5. Application wiring and permissions
 
 - [`MyApplication`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/MyApplication.kt): init UI Kit, track the current chat, manage call overlays, reconnect websockets.
