@@ -43,8 +43,6 @@ Fully self-contained: enable push in the CometChat dashboard, create the FCM And
   <img src="/images/80a520bb-pushnotification-enable-e64632d479a2ebba111453b95bd522c6.png" alt="Enable Push Notifications" />
 </Frame>
 
-and generate a new private key and upload the JSON file when we create the FCM provider on CometChat dashboard.
-
 <Frame>
   <img src="/images/c6447647-pushnotification-fcm-68092b02a5361d51ba14b09289da3a78.png" alt="Upload FCM service account JSON" />
 </Frame>
@@ -189,18 +187,14 @@ Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/comet
 ## 4. Application wiring, sample code, and callbacks
 
 - Clone/open the [reference repo](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification).
-- Copy these into your app module (keep structure):
-  - [`fcm/fcm`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm) (services, DTOs, notification utils, broadcast receiver)
-  - [`fcm/voip`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip) (ConnectionService + VoIP helpers)
-  - `fcm/utils` (includes `MyApplication`, `AppUtils`, `AppConstants`, `AppCredentials`)
-- Update `package` declarations/imports to match your app’s namespace if it differs from `com.cometchat.sampleapp.kotlin`.
-- Update credentials/constants:
-  - `AppCredentials.kt`: set your App ID, Auth Key, Region.
-  - `AppConstants.FCMConstants.PROVIDER_ID`: set your dashboard Provider ID.
-- Manifest: point `android:name` on `<application>` to your `MyApplication` class; ensure service/receiver class names match your package; replace app name/icons in `AndroidManifest.xml` / `res`.
-- In [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt), keep channel IDs, group keys, notification IDs, and intent extra keys. If you change package names or channel names, update them across manifest and notification builders.
+- Copy into your app module (keep structure):
+  - [`fcm/fcm`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm) for services/DTOs/notification utils/broadcast receiver.
+  - [`fcm/voip`](https://github.com/cometchat/cometchat-uikit-android/tree/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip) for ConnectionService + VoIP helpers.
+  - `fcm/utils` for `MyApplication`, `AppUtils`, `AppConstants`, `AppCredentials`.
+- Update packages to your namespace; set `AppCredentials` (App ID/Auth Key/Region) and `AppConstants.FCMConstants.PROVIDER_ID` to your dashboard provider. Point `<application android:name>` and services/receivers to your package; update app name/icons as needed.
+- Keep notification constants from [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt); rename channels/keys consistently if you change them.
 
-**Splash/entry deep link handler** (update target activity as needed):
+**Splash/entry deep link handler** (adapt activity targets):
 
 ```kotlin
 // In your Splash/entry activity (e.g., SplashActivity)
@@ -226,7 +220,7 @@ private fun handleDeepLinking() {
 }
 ```
 
-**SplashViewModel (headless init + login check)**
+**SplashViewModel (init UIKit + login check)**
 
 ```kotlin
 class SplashViewModel : ViewModel() {
@@ -277,23 +271,23 @@ class SplashViewModel : ViewModel() {
 
 ```kotlin
 object Repository {
-    fun registerFCMToken(listener: CometChat.CallbackListener<String>) { /* ...as above... */ }
-    fun unregisterFCMToken(listener: CometChat.CallbackListener<String>) { /* ...as above... */ }
+    fun registerFCMToken(listener: CometChat.CallbackListener<String>) { /* fetch FCM token and call registerPushToken */ }
+    fun unregisterFCMToken(listener: CometChat.CallbackListener<String>) { /* call unregisterPushToken */ }
 
     fun rejectCallWithBusyStatus(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>? = null
-    ) { /* ...as above... */ }
+    ) { /* reject with CALL_STATUS_BUSY and notify UIKit */ }
 
     fun acceptCall(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>
-    ) { /* ...as above... */ }
+    ) { /* acceptCall and notify UIKit */ }
 
     fun rejectCall(
         call: Call,
         callbackListener: CometChat.CallbackListener<Call>
-    ) { /* ...as above... */ }
+    ) { /* rejectCall with CALL_STATUS_REJECTED and notify UIKit */ }
 }
 ```
 
@@ -311,9 +305,7 @@ class MyApplication : Application() {
         FirebaseApp.initializeApp(this)
         addCallListener()
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                currentActivity = activity
-            }
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { currentActivity = activity }
             override fun onActivityStarted(activity: Activity) {
                 if (activity !is SplashActivity &&
                     CometChatUIKit.isSDKInitialized() &&
@@ -346,9 +338,7 @@ class MyApplication : Application() {
                 }
             }
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {
-                if (currentActivity === activity) currentActivity = null
-            }
+            override fun onActivityDestroyed(activity: Activity) { if (currentActivity === activity) currentActivity = null }
         })
     }
 
@@ -386,11 +376,11 @@ class MyApplication : Application() {
 }
 ```
 
-Make sure you actually set these at runtime:
+State to set at runtime:
 
-- `isAppInForeground` and `currentActivity` are set inside the lifecycle callbacks shown above.
-- `currentOpenChatId`: set when a chat screen opens and clear on exit so message notifications are suppressed only for the active chat.
-- `tempCall` via `setTempCall(...)`: set when an incoming call arrives (before showing the banner) and clear on dismiss/end; `getTempCall()` is read when resuming to re-show the banner.
+- `isAppInForeground`/`currentActivity` inside lifecycle callbacks.
+- `currentOpenChatId` when a chat screen opens; clear on exit to suppress notifications only for the active chat.
+- `tempCall` via `setTempCall(...)` when an incoming call arrives; clear on dismiss/end. `getTempCall()` is read on resume to re-show the banner.
 
 ## 5. Application wiring and permissions
 
