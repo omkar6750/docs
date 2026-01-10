@@ -419,19 +419,48 @@ CometChatNotifications.unregisterPushToken(object : CometChat.CallbackListener<S
 // Then call CometChatUIKit.logout()
 ```
 
-## 8. Handle message pushes
+## 8. What arrives in the push payload
+
+Payload keys delivered to `onMessageReceived` (adapted from the shared push integration):
+
+```json
+{
+  "title": "Andrew Joseph",
+  "body": "Hello!",
+  "sender": "cometchat-uid-1",
+  "senderName": "Andrew Joseph",
+  "senderAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp",
+  "receiver": "cometchat-uid-2",
+  "receiverName": "George Alan",
+  "receiverAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp",
+  "receiverType": "user",
+  "tag": "123",
+  "conversationId": "cometchat-uid-1_user_cometchat-uid-2",
+  "type": "chat", // or "call"
+  "callAction": "initiated", // "initiated" | "cancelled" | "unanswered" | "ongoing" | "rejected" | "ended" | "busy"
+  "sessionId": "v1.123.aik2",
+  "callType": "audio",
+  "sentAt": "1741847453000",
+  "message": { },       // CometChat Message Object if included
+  "custom": { }         // Custom JSON if configured
+}
+```
+
+Use `message` for deep links (`CometChatHelper.processMessage`) and `type/callAction` to branch chat vs call flows.
+
+## 9. Handle message pushes
   
 - [`FCMService.onMessageReceived`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMService.kt) checks `message.data["type"]`.
 - For `type == "chat"`: mark delivered (`CometChat.markAsDelivered`), skip notifying if the chat is already open (`MyApplication.currentOpenChatId`), and build grouped notifications (avatars + BigText) via [`FCMMessageNotificationUtils`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageNotificationUtils.kt) with inline reply actions.
 - [`FCMMessageBroadcastReceiver`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageBroadcastReceiver.kt) handles inline replies, initializes the SDK headlessly, sends the reply, and refreshes the notification.
 
-## 9. Handle call pushes (ConnectionService)
+## 10. Handle call pushes (ConnectionService)
 
 - For `type == "call"`, `FCMService.handleCallFlow` parses [`FCMCallDto`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMCallDto.kt) and routes to the `voip` package.
 - [`CometChatVoIP`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip/CometChatVoIP.kt) registers a `PhoneAccount` and triggers `TelecomManager.addNewIncomingCall` for native full-screen UI with Accept/Decline.
 - Busy logic: if already on a call, reject with busy (`Repository.rejectCallWithBusyStatus`). Cancel/timeout pushes end the active telecom call when IDs match.
 
-## 10. Customize notification text or parse payloads
+## 11. Customize notification text or parse payloads
 
 Parse the push into a `BaseMessage` for deep links:
 
@@ -451,9 +480,9 @@ customMessage.metadata = meta
 CometChat.sendCustomMessage(customMessage, object : CallbackListener<CustomMessage>() {})
 ```
 
-## 11. Navigation from notifications
+## 12. Navigation from notifications
 Notification taps launch [`SplashActivity`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/SplashActivity.kt); it reads `NOTIFICATION_PAYLOAD` extras and opens the correct user or group in `MessagesActivity`. Keep `launchMode` settings that allow the intent extras to arrive.
-## 12. Testing checklist
+## 13. Testing checklist
 
 1. Install on a physical device and grant notification + mic permissions (Android 13+ needs `POST_NOTIFICATIONS`).
 2. Log in and ensure token registration succeeds (check Logcat).
