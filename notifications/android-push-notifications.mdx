@@ -196,6 +196,33 @@ Start from the sample [`AndroidManifest.xml`](https://github.com/cometchat/comet
   - `AppConstants.FCMConstants.PROVIDER_ID`: set your dashboard Provider ID.
 - Manifest: point `android:name` on `<application>` to your `MyApplication` class, and ensure service/receiver class names match your package.
 - Replace app name/icons in `AndroidManifest.xml` / `res` to fit your project branding.
+- In [`AppConstants.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppConstants.kt), keep channel IDs, group keys, notification IDs, and intent extra keys. If you change package names or notification channel names, update them consistently in your copied code, manifest, and notification builders.
+- Update `FCMMessageBroadcastReceiver` to launch your Splash/entry activity that can initialize UIKit and route deep links. In the sample this is `SplashActivity`; change the intent target to your entry activity. You need only the parts that clear notifications and forward payload extras:
+
+```kotlin
+// In your Splash/entry activity (e.g., SplashActivity)
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    // ensure credentials/login then handle deep link
+    handleDeepLinking()
+}
+
+private fun handleDeepLinking() {
+    NotificationManagerCompat.from(this)
+        .cancel(AppConstants.FCMConstants.NOTIFICATION_GROUP_SUMMARY_ID)
+
+    val notificationType = intent.getStringExtra(AppConstants.FCMConstants.NOTIFICATION_TYPE)
+    val notificationPayload = intent.getStringExtra(AppConstants.FCMConstants.NOTIFICATION_PAYLOAD)
+
+    startActivity(
+        Intent(this, HomeActivity::class.java).apply {
+            putExtra(AppConstants.FCMConstants.NOTIFICATION_TYPE, notificationType)
+            putExtra(AppConstants.FCMConstants.NOTIFICATION_PAYLOAD, notificationPayload)
+        }
+    )
+    finish()
+}
+```
 
 ## 5. Application wiring and permissions
 
