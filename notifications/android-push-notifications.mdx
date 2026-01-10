@@ -108,67 +108,92 @@ Copy the same structure into your app and only change identifiers (applicationId
 
 ### 3.1 Gradle configuration
 
-Mirror the sample `build.gradle` plugins and dependencies:
+Use a version catalog (recommended) and aliases in `app/build.gradle`:
+
+<Tabs>
+<Tab title="TOML (libs.versions.toml)">
+
+```toml
+[versions]
+minSdk = "26"
+compileSdk = "35"
+targetSdk = "35"
+agp = "8.7.0"
+kotlin = "2.0.0"
+googleServices = "4.4.2"
+cometChatUikit = "5.2.6"
+cometChatSdk = "4.1.8"
+cometChatCalls = "4.3.2"
+firebaseBom = "33.7.0"
+coreKtx = "1.13.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+gson = "2.11.0"
+glide = "4.16.0"
+
+[libraries]
+cometchat-uikit = { group = "com.cometchat", name = "chat-uikit", version.ref = "cometChatUikit" }
+cometchat-sdk = { group = "com.cometchat", name = "chat-sdk-android", version.ref = "cometChatSdk" }
+cometchat-calls = { group = "com.cometchat", name = "calls-sdk-android", version.ref = "cometChatCalls" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+```
+
+</Tab>
+<Tab title="Groovy (app/build.gradle)">
 
 ```gradle
 plugins {
-  alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.android)
-  id "com.google.gms.google-services"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
-  compileSdk 35
-  defaultConfig {
-    applicationId "your.package.name"
-    minSdk 26
-    targetSdk 35
-  }
-  kotlinOptions { jvmTarget = "11" }
+    compileSdk 35
+    defaultConfig {
+        applicationId "your.package.name"
+        minSdk 26
+        targetSdk 35
+    }
+    kotlinOptions { jvmTarget = "11" }
 }
 
 dependencies {
-  // CometChat
-  implementation "com.cometchat:chat-uikit:5.2.6"      // match your repo version
-  implementation "com.cometchat:chat-sdk-android:4.1.8"
-  implementation "com.cometchat:calls-sdk-android:4.3.2"
+    // CometChat
+    implementation(libs.cometchat.uikit)
+    implementation(libs.cometchat.sdk)
+    implementation(libs.cometchat.calls)
 
-  // Firebase
-  implementation platform("com.google.firebase:firebase-bom:33.7.0")
-  implementation "com.google.firebase:firebase-messaging"
-  implementation "com.google.firebase:firebase-auth"
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.auth)
 
-  // UI + utilities
-  implementation "androidx.core:core-ktx:1.13.1"
-  implementation "androidx.appcompat:appcompat:1.7.0"
-  implementation "com.google.android.material:material:1.12.0"
-  implementation "com.google.code.gson:gson:2.11.0"
-  implementation "com.github.bumptech.glide:glide:4.16.0"
+    // UI + utilities
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.gson)
+    implementation(libs.glide)
 }
 ```
 
-- Apply the `google-services` plugin and place `google-services.json` in the same module as the `build.gradle` above.
-- Keep `viewBinding` enabled if you copy the UI Kit screens directly from the sample.
+</Tab>
+</Tabs>
 
-<Note>
-Need a minimal copy/paste? Keep the links above for context, but at minimum drop these into `app/build.gradle`:
-
-```gradle
-plugins {
-  id "com.google.gms.google-services"
-}
-
-dependencies {
-  implementation "com.cometchat:chat-uikit:5.2.6"
-  implementation "com.cometchat:chat-sdk-android:4.1.8"
-  implementation "com.cometchat:calls-sdk-android:4.3.2"
-
-  implementation platform("com.google.firebase:firebase-bom:33.7.0")
-  implementation "com.google.firebase:firebase-messaging"
-  implementation "com.google.firebase:firebase-auth"
-}
-```
-</Note>
+- Apply the `google-services` plugin and place `google-services.json` in the same module; keep `viewBinding` enabled if you copy UI Kit screens directly from the sample.
 
 ### 3.2 Manifest permissions and components
 
