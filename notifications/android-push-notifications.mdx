@@ -306,6 +306,26 @@ object Repository {
             override fun onError(e: CometChatException) { listener.onError(e) }
         })
     }
+
+    fun rejectCallWithBusyStatus(
+        call: Call,
+        callbackListener: CometChat.CallbackListener<Call>? = null
+    ) {
+        CometChat.rejectCall(
+            call.sessionId,
+            CometChatConstants.CALL_STATUS_BUSY,
+            object : CometChat.CallbackListener<Call>() {
+                override fun onSuccess(call: Call?) {
+                    CometChatUIKitHelper.onCallRejected(call)
+                    callbackListener?.onSuccess(call)
+                }
+                override fun onError(e: CometChatException) {
+                    CometChatUIKitHelper.onCallRejected(call)
+                    callbackListener?.onError(e)
+                }
+            }
+        )
+    }
 }
 ```
 
