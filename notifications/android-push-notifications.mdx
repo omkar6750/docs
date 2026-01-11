@@ -382,7 +382,87 @@ State to set at runtime:
 
 ## 5. Application wiring and permissions
 
-- [`AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) + [`HomeActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/HomeActivity.kt): request notification/mic/camera/storage permissions early.
+- [`AppUtils.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/utils/AppUtils.kt) + your entry screen (e.g., `HomeActivity`): request notification/mic/camera/storage permissions early.
+- In `HomeActivity`, keep the VoIP permission chain and phone-account enablement so call pushes can render the native UI:
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    AppUtils.requestNotificationPermission(this)
+    configureVoIP()
+    handleDeepLinking() // open chats based on NOTIFICATION_TYPE/NOTIFICATION_PAYLOAD
+}
+
+private fun configureVoIP() {
+    CometChatVoIP.init(this, applicationInfo.loadLabel(packageManager).toString())
+    launchVoIP()
+}
+
+private fun launchVoIP() {
+    if (!CometChatVoIP.hasReadPhoneStatePermission(this)) {
+        CometChatVoIP.requestReadPhoneStatePermission(this, CometChatVoIPConstant.PermissionCode.READ_PHONE_STATE)
+        return
+    }
+    if (!CometChatVoIP.hasManageOwnCallsPermission(this)) {
+        CometChatVoIP.requestManageOwnCallsPermission(this, CometChatVoIPConstant.PermissionCode.MANAGE_OWN_CALLS)
+        return
+    }
+    if (!CometChatVoIP.hasAnswerPhoneCallsPermission(this)) {
+        CometChatVoIP.requestAnswerPhoneCallsPermission(this, CometChatVoIPConstant.PermissionCode.ANSWER_PHONE_CALLS)
+        return
+    }
+    CometChatVoIP.hasEnabledPhoneAccountForVoIP(this, object : VoIPPermissionListener {
+        override fun onPermissionsGranted() { /* ready for call pushes */ }
+        override fun onPermissionsDenied(error: CometChatVoIPError?) {
+            CometChatVoIP.alertDialogForVoIP(this@HomeActivity)
+        }
+    })
+}
+
+override fun onRequestPermissionsResult(reqCode: Int, permissions: Array<String>, results: IntArray) {
+    super.onRequestPermissionsResult(reqCode, permissions, results)
+    when (reqCode) {
+        AppUtils.PushNotificationPermissionCode -> if (granted(results)) {
+            CometChatVoIP.requestPhoneStatePermissions(this, CometChatVoIPConstant.PermissionCode.READ_PHONE_STATE)
+        }
+        CometChatVoIPConstant.PermissionCode.READ_PHONE_STATE -> if (granted(results)) {
+            if (CometChatVoIP.hasManageOwnCallsPermission(this)) {
+                CometChatVoIP.requestAnswerPhoneCallsPermissions(this, CometChatVoIPConstant.PermissionCode.ANSWER_PHONE_CALLS)
+            } else {
+                CometChatVoIP.requestManageOwnCallsPermissions(this, CometChatVoIPConstant.PermissionCode.MANAGE_OWN_CALLS)
+            }
+        }
+        CometChatVoIPConstant.PermissionCode.MANAGE_OWN_CALLS -> if (granted(results)) {
+            CometChatVoIP.requestAnswerPhoneCallsPermissions(this, CometChatVoIPConstant.PermissionCode.ANSWER_PHONE_CALLS)
+        }
+        CometChatVoIPConstant.PermissionCode.ANSWER_PHONE_CALLS -> if (granted(results)) {
+            launchVoIP()
+        }
+    }
+}
+
+private fun granted(results: IntArray) =
+    results.isNotEmpty() && results[0] == PackageManager.PERMISSION_GRANTED
+
+// Deep link from notification payload to Chats
+private fun handleDeepLinking() {
+    val type = intent.getStringExtra(AppConstants.FCMConstants.NOTIFICATION_TYPE)
+    val payload = intent.getStringExtra(AppConstants.FCMConstants.NOTIFICATION_PAYLOAD) ?: return
+    if (type == AppConstants.FCMConstants.NOTIFICATION_TYPE_MESSAGE) {
+        val fcmMessageDTO = Gson().fromJson(payload, FCMMessageDTO::class.java)
+        val chatFragment = getFragment(R.id.nav_chats)
+        chatFragment.arguments = Bundle().apply {
+            putString(AppConstants.FCMConstants.NOTIFICATION_TYPE, type)
+            putString(AppConstants.FCMConstants.NOTIFICATION_PAYLOAD, payload)
+        }
+        loadFragment(chatFragment)
+        binding.bottomNavigationView.selectedItemId = R.id.nav_chats
+        MyApplication.currentOpenChatId = if (fcmMessageDTO.receiverType == "user") {
+            fcmMessageDTO.sender
+        } else fcmMessageDTO.receiver
+    }
+}
+```
 
 ## 6. Register the FCM token after login
 
