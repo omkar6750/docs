@@ -50,10 +50,11 @@ Keep the provider IDs—you’ll paste them into your app constants.
 ## 3. Copy helpers and align identifiers
 
 - From the sample repo, copy into your target:
-  - `CometChatAPNsHelper.swift`
-  - `AppDelegate + PN.swift`
-  - `AppDelegate + VoIP.swift`
-  - `NotificationExtension/` (optional, for delivery receipts)
+- `CometChatAPNsHelper.swift`
+- `AppDelegate + PN.swift`
+- `AppDelegate + VoIP.swift`
+- `NotificationExtension/` (optional, for delivery receipts)
+- `CometChatPNHelper.swift` (tap + quick-reply handling)
 - Update bundle ID, team ID, and provider IDs (`AppConstants.PROVIDER_ID` etc.). Keep the `voip` push type.
 
 ## 4. Register APNs device + VoIP tokens with CometChat
@@ -90,7 +91,26 @@ CometChatNotifications.registerPushToken(
 ## 5. Handle incoming pushes
 
 - `UNUserNotificationCenterDelegate.willPresent`: decide alert/sound for foreground messages.
-- `UNUserNotificationCenterDelegate.didReceive`: route taps to chats using the sample helper (`CometChatPNHelper.handleTapActionOnNotification`).
+- `UNUserNotificationCenterDelegate.didReceive`: route taps to chats using the sample helper (`CometChatPNHelper.handleTapActionOnNotification`); handle quick replies with `handleQuickReplyActionOnNotification` if you keep the reply action.
+
+```swift
+func userNotificationCenter(_ center: UNUserNotificationCenter,
+                            didReceive response: UNNotificationResponse,
+                            withCompletionHandler completionHandler: @escaping () -> Void) {
+    let userInfo = response.notification.request.content.userInfo
+    if response.actionIdentifier == "REPLY_ACTION",
+       let textResponse = response as? UNTextInputNotificationResponse {
+        CometChatPNHelper.handleQuickReplyActionOnNotification(
+            userInfo: userInfo,
+            text: textResponse.userText,
+            completionHandler: completionHandler
+        )
+        return
+    }
+    CometChatPNHelper.handleTapActionOnNotification(userInfo: userInfo, completionHandler: completionHandler)
+}
+```
+
 - PushKit `pushRegistry(_:didReceiveIncomingPushWith:)`: parse payload → `Call` → `CXProvider.reportNewIncomingCall`; Accept/Decline via `CometChat.acceptCall` / `CometChat.rejectCall`.
 - If you include the Notification Service Extension, keep delivery receipts via `CometChat.markAsDeliveredFromNotification`.
 
