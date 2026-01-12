@@ -25,6 +25,14 @@ description: "Set up FCM, register push tokens with CometChat, and mirror the Ko
 - Android device with Play Services (sample uses `minSdk 26` because of `ConnectionService`).
 - Latest CometChat UI Kit + Calls SDK dependencies (see Gradle tabs below).
 
+## How FCM and CometChat fit together
+
+- **Why FCM?** Google issues device tokens and delivers raw push payloads to Android. You must add `google-services.json`, the Messaging SDK, and a service receiver (`FCMService`) so the device can receive pushes.
+- **Why a CometChat provider?** The Provider ID tells CometChat which FCM credentials to use when sending to your app. Without registering tokens against this ID, CometChat cannot target your device.
+- **Token registration bridge:** The app retrieves the FCM token and calls `CometChatNotifications.registerPushToken(pushToken, PushPlatforms.FCM_ANDROID, providerId, …)`. That binds the token to your logged-in user so CometChat can route message/call pushes to FCM on your behalf.
+- **Payload handling:** When FCM delivers a push, your `FCMService`/`FCMMessageBroadcastReceiver` parses CometChat’s payload, shows notifications (grouped, inline reply), and forwards intents to your activities. For calls, `CometChatVoIPConnectionService` surfaces a telecom-grade UI and uses the same payload to accept/reject server-side.
+- **Dashboard ↔ app contract:** The Provider ID in `AppConstants.FCMConstants.PROVIDER_ID` must match the dashboard provider you created. The package name in Firebase and the `applicationId` in Gradle must match, or FCM will reject the token.
+
 ## 1. Prepare Firebase and CometChat
 
 1. **Firebase Console**: Add your Android package, download `google-services.json` into the app module, and enable Cloud Messaging.
@@ -217,6 +225,15 @@ private fun handleDeepLinking() {
     finish()
 }
 ```
+
+**What the core pieces do**
+
+- `FCMService` – receives FCM data/notification messages, parses CometChat payload, and hands off to `FCMMessageBroadcastReceiver`.
+- `FCMMessageBroadcastReceiver` – builds grouped notifications, inline reply actions, and routes taps/deeplinks to your `HomeActivity`.
+- `Repository.registerFCMToken` – fetches the FCM token and registers it with CometChat using `AppConstants.FCMConstants.PROVIDER_ID`; call after login.
+- `Repository.acceptCall/rejectCall/rejectCallWithBusyStatus` – performs server-side call actions so the caller sees the correct state even if your UI is backgrounded.
+- `MyApplication` – initializes UIKit, manages websocket connect/disconnect, tracks foreground state, and shows/dismisses incoming call overlays.
+- `CometChatVoIPConnectionService` – handles Android telecom integration so call pushes display a system-grade incoming call UI and cleanly end/busy on reject.
 
 **SplashViewModel (init UIKit + login check)**
 
