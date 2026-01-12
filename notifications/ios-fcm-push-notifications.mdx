@@ -102,6 +102,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           
         return true
     }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print(" APNs device token received")
+        
+        // Pass the device token to Firebase Messaging
+        Messaging.messaging().apnsToken = deviceToken
+        
+        // Log token for debugging
+        let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
+        let token = tokenParts.joined()
+        print("APNs Token: \(token)")
+    }
     
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         print(" Firebase Messaging token refreshed")
