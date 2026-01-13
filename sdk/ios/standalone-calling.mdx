@@ -1,22 +1,37 @@
 ---
-title: "Call Session"
+title: "Standalone Calling"
 ---
 
 ## Overview
 
-This section demonstrates how to start a call session in an iOS application. Previously known as **Direct Calling**.
-
-Before you begin, we strongly recommend you read the [calling setup guide](/sdk/ios/calling-integration).
+This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
 
 <Note>
-If you want to implement a complete calling experience with ringing functionality (incoming/outgoing call UI), follow the [Ringing](/sdk/ios/default-calling) guide first. Once the call is accepted, return here to start the call session.
+Before you begin, ensure you have completed the [Calls SDK setup](/sdk/ios/calling-integration).
 </Note>
+
+## User Authentication
+
+To start a call session, you need a user auth token. Since this implementation doesn't use the Chat SDK, you'll need to obtain the auth token via the CometChat REST API.
+
+<Note>
+To understand user authentication in CometChat, see the [User Auth](/fundamentals/user-auth) documentation.
+</Note>
+
+You can obtain the auth token using one of these REST API endpoints:
+
+- [Create Auth Token](/rest-api/auth-tokens/create) — Creates a new auth token for a user
+- [Get Auth Token](/rest-api/auth-tokens/get) — Retrieves an existing auth token
+
+<Note>
+For testing or POC purposes, you can create an auth token directly from the [CometChat Dashboard](https://app.cometchat.com). Navigate to **Users & Groups → Users**, select a user, and click **+ Create Auth Token**.
+</Note>
+
+Store the auth token securely in your application for use when generating call tokens.
 
 ## Generate Call Token
 
 A call token is required for secure access to a call session. Each token is unique to a specific session and user combination, ensuring that only authorized users can join the call.
-
-You can generate the token just before starting the call, or generate and store it ahead of time based on your use case.
 
 Use the `generateToken()` method to create a call token:
 
@@ -25,10 +40,10 @@ Use the `generateToken()` method to create a call token:
 ```swift
 var callToken: GenerateToken?
 
-let sessionId = "UNIQUE_SESSION_ID" // Random or from Call object in ringing flow
-let authToken = CometChat.getUserAuthToken() // Logged in user auth token
+let sessionId = "UNIQUE_SESSION_ID" // Generate a unique session ID
+let userAuthToken = "USER_AUTH_TOKEN" // Obtained from REST API
 
-CometChatCalls.generateToken(authToken: authToken as NSString, sessionID: sessionId) { token in
+CometChatCalls.generateToken(authToken: userAuthToken as NSString, sessionID: sessionId) { token in
     self.callToken = token
 } onError: { error in
     print("Token generation failed: \(String(describing: error?.errorDescription))")
@@ -39,19 +54,12 @@ CometChatCalls.generateToken(authToken: authToken as NSString, sessionID: sessio
 
 | Parameter | Description |
 | --------- | ----------- |
-| `sessionId` | The unique session ID. In ringing flow, this is available in the `Call` object. For standalone calls, generate a random unique string. |
-| `authToken` | The logged-in user's auth token from `CometChat.getUserAuthToken()`. |
+| `sessionId` | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
+| `userAuthToken` | The user auth token obtained from the CometChat REST API. |
 
 ## Start Call Session
 
-Use the `startSession()` method to join a call session. This method requires a call token (generated in the previous step) and a `CallSettings` object that configures the call UI and behavior.
-
-The `CallSettings` class configures the call UI and behavior. Use `CallSettingsBuilder` to create a `CallSettings` instance with the following required parameters:
-
-| Parameter | Description |
-| --------- | ----------- |
-| `view` | A `UIView` where the calling UI will be rendered |
-| `callToken` | The `GenerateToken` object received from `generateToken()` onSuccess |
+Use the `startSession()` method to join a call session. This method requires a call token and a `CallSettings` object.
 
 <Tabs>
 <Tab title="Swift">
@@ -101,9 +109,7 @@ Configure the call experience using the following `CallSettingsBuilder` methods:
 
 ## Call Listeners
 
-The `CallsEventsDelegate` protocol provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
-
-To receive call events, conform to `CallsEventsDelegate` and set the delegate in `CallSettingsBuilder` using `setDelegate(self)`.
+The `CallsEventsDelegate` protocol provides real-time callbacks for call session events.
 
 <Tabs>
 <Tab title="Swift">
@@ -120,6 +126,8 @@ extension ViewController: CallsEventsDelegate {
     
     func onCallEndButtonPressed() {
         // User pressed end call button
+        CometChatCalls.endSession()
+        // Close the calling screen
     }
     
     func onUserJoined(rtcUser: RTCUser) {
@@ -160,7 +168,7 @@ extension ViewController: CallsEventsDelegate {
 | ----- | ----------- |
 | `onCallEnded()` | Invoked when the call session terminates for a 1:1 call. Both participants receive this callback. |
 | `onSessionTimeout()` | Invoked when the call is auto-terminated due to inactivity (default: 180 seconds). *v4.1.1+* |
-| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. For ringing flow, call `CometChat.endCall()`. For standalone, call `CometChatCalls.endSession()`. |
+| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. Call `CometChatCalls.endSession()` to leave the session. |
 | `onUserJoined(rtcUser: RTCUser)` | Invoked when a remote participant joins. |
 | `onUserLeft(rtcUser: RTCUser)` | Invoked when a remote participant leaves. |
 | `onUserListChanged(rtcUsers: [RTCUser])` | Invoked whenever the participant list changes. |
@@ -171,53 +179,7 @@ extension ViewController: CallsEventsDelegate {
 
 ## End Call Session
 
-Ending a call session properly is essential to release media resources (camera, microphone, network connections) and update call state across all participants.
-
-### Ringing Flow
-
-When using the [Ringing](/sdk/ios/default-calling) flow, you must coordinate between the CometChat Chat SDK and the Calls SDK to properly terminate the call.
-
-<Note>
-The Ringing flow requires calling methods from both the Chat SDK (`CometChat.endCall()`) and the Calls SDK (`CometChatCalls.endSession()`) to ensure proper call termination.
-</Note>
-
-**User who initiates the end call:**
-
-When the user presses the end call button, the `onCallEndButtonPressed()` callback is triggered. Inside this callback, call `CometChat.endCall()`. On success, call `CometChat.clearActiveCall()` and `CometChatCalls.endSession()`.
-
-<Tabs>
-<Tab title="Swift">
-```swift
-func onCallEndButtonPressed() {
-    CometChat.endCall(sessionID: sessionId) { call in
-        CometChat.clearActiveCall()
-        CometChatCalls.endSession()
-        // Close the calling screen
-    } onError: { error in
-        print("End call failed: \(String(describing: error?.errorDescription))")
-    }
-}
-```
-</Tab>
-</Tabs>
-
-**Remote participant** (receives `onCallEnded()` callback):
-
-<Tabs>
-<Tab title="Swift">
-```swift
-func onCallEnded() {
-    CometChat.clearActiveCall()
-    CometChatCalls.endSession()
-    // Close the calling screen
-}
-```
-</Tab>
-</Tabs>
-
-### Session Only Flow
-
-When using the Session Only flow (without ringing), you only need to call the Calls SDK method to end the session.
+To end the call session and release all media resources, call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback.
 
 <Tabs>
 <Tab title="Swift">
