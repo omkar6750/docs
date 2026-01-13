@@ -13,8 +13,9 @@ Refreshed for the latest [`ai-agent-crew-ai-examples`](https://github.com/cometc
 ## What you’ll build
 
 - A CrewAI agent with tools to **get top posts**, **search**, **timeframes**, and **trigger confetti**.
-- A FastAPI `/stream` endpoint emitting newline-delimited JSON (`text_delta`, `text_done`, `done`).
+- A FastAPI `/stream` endpoint emitting newline-delimited JSON (`text_start`, `text_delta`, `text_end`, `done`).
 - CometChat AI Agent wiring that consumes those SSE chunks; your UI listens for the confetti payload.
+- Streaming events follow `text_start` → `text_delta` chunks → `text_end` → `done` (errors emit `type: "error"`).
 
 ---
 
@@ -51,7 +52,8 @@ uvicorn product_hunt_agent.main:app --host 0.0.0.0 --port 8001 --reload</code></
 - `GET /api/top-range` — timeframe queries (`timeframe`, `tz`, `limit`); supports `"today"`, `"yesterday"`, `"last_week"`, `"last_month"`, or ISO dates.
 - `GET /api/search` — Algolia search (`q`, `limit`).
 - `POST /api/chat` — non-streaming CrewAI answer.
-- `POST /stream` — SSE stream (`text_delta`, `text_done`, `done`) ready for CometChat.
+- `POST /stream` — SSE stream (`text_start`, `text_delta`, `text_end`, `done`) ready for CometChat.
+- `POST /api/chat` payload: `{"message": "…", "messages": [{ "role": "user", "content": "…" }]}` (array is required if `message` is omitted).
 
 ### Streaming example
 
@@ -68,9 +70,12 @@ curl -N http://localhost:8001/stream \
 Streaming payload shape:
 
 ```json
-{"type":"text_delta","content":"...","thread_id":"...","run_id":"..."}
-{"type":"text_done","thread_id":"...","run_id":"..."}
+{"type":"text_start","message_id":"...","thread_id":"...","run_id":"..."}
+{"type":"text_delta","content":"...","message_id":"...","thread_id":"...","run_id":"..."}
+{"type":"text_end","message_id":"...","thread_id":"...","run_id":"..."}
 {"type":"done","thread_id":"...","run_id":"..."}
+# errors (when thrown) look like:
+{"type":"error","message":"...","message_id":"...","thread_id":"...","run_id":"..."}
 ```
 
 ***
@@ -81,18 +86,18 @@ Key tools in `product_hunt_agent/agent_builder.py`:
 
 ```python
 @tool("getTopProducts")          # votes-ranked, clamps limit 1-10
-@tool("getTopProductsThisWeek")  # rolling-week window, clamps days/limit
-@tool("getTopProductsByTimeframe")  # "today", "yesterday", "last_week", ISO, ranges
+@tool("getTopProductsThisWeek")  # rolling-week window, clamps days 1-31 and limit 1-10
+@tool("getTopProductsByTimeframe")  # "today", "yesterday", "last_week", ISO, ranges; clamps limit 1-10
 @tool("searchProducts")          # Algolia search (no token needed)
-@tool("triggerConfetti")         # returns payload: colors, counts, spread, etc.
+@tool("triggerConfetti")         # returns payload: colors, particleCount, spread, startVelocity, origin, ticks, disableSound
 ```
 
-All tools run server-side; if `PRODUCTHUNT_API_TOKEN` is missing, top queries return empty arrays but still respond cleanly.
+All tools run server-side; if `PRODUCTHUNT_API_TOKEN` is missing, top/timeframe queries return empty arrays but still respond cleanly (search still works via Algolia defaults).
 
 ***
 
 ## Wire it to CometChat
 
 - Dashboard → AI Agents → **Provider: CrewAI** → **Agent ID** (e.g., `product_hunt`) → **Deployment URL** = your public `/stream`.
-- Listen for `text_delta`/`text_done` to render streaming text; stop on `done`.
+- Listen for `text_start`/`text_delta`/`text_end` to render streaming text; stop on `done`.
 - When `triggerConfetti` returns, map the payload to your UI handler (Widget/React UI Kit). Keep API tokens server-side.

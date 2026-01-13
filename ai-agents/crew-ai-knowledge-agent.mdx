@@ -14,7 +14,7 @@ Based on the refreshed [`ai-agent-crew-ai-examples`](https://github.com/cometcha
 
 - A **CrewAI** agent that grounds replies in your ingested docs (per namespace).
 - A **FastAPI** service with ingest/search/generate endpoints plus a `/stream` SSE.
-- **CometChat AI Agent** wiring that consumes newline-delimited JSON chunks (`text_delta`, `text_done`, `done`).
+- **CometChat AI Agent** wiring that consumes newline-delimited JSON chunks (`text_start`, `text_delta`, `text_end`, `done`).
 
 ***
 
@@ -51,8 +51,9 @@ uvicorn knowledge_agent.main:app --host 0.0.0.0 --port 8000 --reload</code></pre
 
 - `POST /api/tools/ingest` — accept JSON or `multipart/form-data` with `sources` (text/markdown/url) and optional file uploads; returns `saved`, `skipped`, `errors`.
 - `POST /api/tools/searchDocs` — semantic search via Chroma; accepts `namespace`, `query`, `max_results`.
-- `POST /api/agents/knowledge/generate` — single, non-streaming completion.
-- `POST /stream` — newline-delimited JSON over SSE (`text_delta`, `text_done`, `done`) ready for CometChat BYOA.
+- `POST /api/agents/knowledge/generate` — single, non-streaming completion (requires at least one message).
+- `POST /stream` — newline-delimited JSON over SSE (`text_start`, `text_delta`, `text_end`, `done`; `error` on failure) ready for CometChat BYOA.
+- Validation/behavior: `/ingest` dedupes by content hash (skips duplicates) and returns `207` when mixed `errors`/`saved`; `/stream` rejects empty `messages`.
 
 ### Ingest examples
 
@@ -101,9 +102,12 @@ curl -N http://localhost:8000/stream \
 Streaming payload shape:
 
 ```json
-{"type":"text_delta","content":"...","thread_id":"...","run_id":"..."}
-{"type":"text_done","thread_id":"...","run_id":"..."}
+{"type":"text_start","message_id":"...","thread_id":"...","run_id":"..."}
+{"type":"text_delta","content":"...","message_id":"...","thread_id":"...","run_id":"..."}
+{"type":"text_end","message_id":"...","thread_id":"...","run_id":"..."}
 {"type":"done","thread_id":"...","run_id":"..."}
+# errors (if thrown) look like:
+{"type":"error","message":"...","message_id":"...","thread_id":"...","run_id":"..."}
 ```
 
 ***
@@ -133,6 +137,6 @@ crew = Crew(agents=[agent], tasks=[task], process=Process.sequential)
 ## Wire it to CometChat
 
 - Dashboard → AI Agents → **Provider: CrewAI** → **Agent ID** (e.g., `knowledge`) → **Deployment URL** = your public `/stream`.
-- The SSE stream is newline-delimited JSON; CometChat AG-UI adapters can parse `text_delta`/`text_done` to render partials and stop on `done`.
-- Use namespaces to keep customer/workspace data separate; pass `namespace` in the payload or inside `tool_params.namespace`.
+- The SSE stream is newline-delimited JSON; CometChat AG-UI adapters parse `text_start`/`text_delta`/`text_end` and stop on `done`. Message IDs, thread IDs, and run IDs are included for threading.
+- Use namespaces to keep customer/workspace data separate; pass `namespace` in the payload or inside `tool_params.namespace` (either works; defaults to `default` if omitted).
 - Keep secrets server-side; add auth headers on the FastAPI route if needed.
