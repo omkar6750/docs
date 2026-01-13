@@ -1,65 +1,146 @@
 ---
-title: "Flag A Message"
+title: "Flag Message"
 ---
 
-Flagging messages allows users to report inappropriate content to moderators or administrators. CometChat provides methods to flag messages with specific reasons and retrieve available flag reasons configured in your dashboard.
+## Overview
+
+Flagging messages allows users to report inappropriate content to moderators or administrators. When a message is flagged, it appears in the [CometChat Dashboard](https://app.cometchat.com) under **Moderation > Flagged Messages** for review.
+
+<Note>
+For a complete understanding of how flagged messages are reviewed and managed, see the [Flagged Messages](/moderation/flagged-messages) documentation.
+</Note>
+
+## Prerequisites
+
+Before using the flag message feature:
+
+1. Moderation must be enabled for your app in the [CometChat Dashboard](https://app.cometchat.com)
+2. Flag reasons should be configured under **Moderation > Advanced Settings**
+
+## How It Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant SDK
+    participant CometChat
+    participant Dashboard
+
+    User->>App: Reports message
+    App->>SDK: getFlagReasons()
+    SDK-->>App: Available reasons
+    App->>User: Show reason picker
+    User->>App: Select reason + remark
+    App->>SDK: flagMessage(messageId, payload)
+    SDK->>CometChat: Flag message
+    CometChat-->>SDK: Success response
+    SDK-->>App: Message flagged
+    CometChat->>Dashboard: Message in Flagged queue
+```
+
+## Get Flag Reasons
+
+Before flagging a message, retrieve the list of available flag reasons configured in your Dashboard:
+
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.getFlagReasons().then(
+      (reasons) => {
+        console.log("Flag reasons retrieved:", reasons);
+        // reasons is an array of { id, reason } objects
+        // Use these to populate your report dialog UI
+      },
+      (error) => {
+        console.log("Failed to get flag reasons:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.getFlagReasons().then(
+      (reasons: CometChat.FlagReason[]) => {
+        console.log("Flag reasons retrieved:", reasons);
+        // reasons is an array of { id, reason } objects
+        // Use these to populate your report dialog UI
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Failed to get flag reasons:", error);
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+### Response
+
+The response is an array of flag reason objects:
+
+```javascript
+[
+  { "id": "spam", "reason": "Spam or misleading" },
+  { "id": "harassment", "reason": "Harassment or bullying" },
+  { "id": "hate_speech", "reason": "Hate speech" },
+  { "id": "violence", "reason": "Violence or dangerous content" },
+  { "id": "inappropriate", "reason": "Inappropriate content" },
+  { "id": "other", "reason": "Other" }
+]
+```
 
 ## Flag a Message
 
-*In other words, as a user, how do I report a message?*
-
-To flag a message, you can use the `flagMessage()` method. This method takes the message ID and a payload containing an optional reason ID and remark.
+To flag a message, use the `flagMessage()` method with the message ID and a payload containing the reason:
 
 <Tabs>
-<Tab title="Flag Message">
-```javascript
-let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_FLAG";
-let payload = {
-  reasonId: "spam", // Required: ID of the flag reason
-  remark: "This message contains promotional content" // Optional: Additional context
-};
+  <Tab title="JavaScript">
+    ```javascript
+    const messageId = "MESSAGE_ID_TO_FLAG";
+    const payload = {
+      reasonId: "spam",  // Required: ID from getFlagReasons()
+      remark: "This message contains promotional content"  // Optional
+    };
 
-CometChat.flagMessage(messageId, payload).then(
-  response => {
-    console.log("Message flagged successfully", response);
-  }, error => {
-    console.log("Message flagging failed with error:", error);
-  }
-);
-```
-</Tab>
+    CometChat.flagMessage(messageId, payload).then(
+      (response) => {
+        console.log("Message flagged successfully:", response);
+      },
+      (error) => {
+        console.log("Message flagging failed:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const messageId: string = "MESSAGE_ID_TO_FLAG";
+    const payload: { reasonId: string; remark?: string } = {
+      reasonId: "spam",
+      remark: "This message contains promotional content"
+    };
 
-<Tab title="TypeScript">
-```typescript
-let messageId: string = "ID_OF_THE_MESSAGE_YOU_WANT_TO_FLAG";
-let payload: { reasonId: string; remark?: string } = {
-  reasonId: "spam",
-  remark: "This message contains promotional content"
-};
-
-CometChat.flagMessage(messageId, payload).then(
-  (response: CometChat.FlagMessageResponse) => {
-    console.log("Message flagged successfully", response);
-  }, (error: CometChat.CometChatException) => {
-    console.log("Message flagging failed with error:", error);
-  }
-);
-```
-</Tab>
+    CometChat.flagMessage(messageId, payload).then(
+      (response: CometChat.FlagMessageResponse) => {
+        console.log("Message flagged successfully:", response);
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Message flagging failed:", error);
+      }
+    );
+    ```
+  </Tab>
 </Tabs>
 
 ### Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| messageId | string | Yes | The ID of the message to be flagged |
-| payload | object | Yes | Contains flagging details |
-| payload.reasonId | string | Yes | ID of the flag reason (from getFlagReasons) |
-| payload.remark | string | No | Additional context or explanation |
+| messageId | string | Yes | The ID of the message to flag |
+| payload.reasonId | string | Yes | ID of the flag reason (from `getFlagReasons()`) |
+| payload.remark | string | No | Additional context or explanation from the user |
 
 ### Response
-
-On successful flagging, you'll receive a response object:
 
 ```javascript
 {
@@ -68,36 +149,72 @@ On successful flagging, you'll receive a response object:
 }
 ```
 
-## Get Flag Reasons
+## Complete Example
 
-*In other words, what are the available reasons for flagging a message?*
+Here's a complete implementation showing how to build a report message flow:
 
-Before flagging a message, you can retrieve the list of available flag reasons using the `getFlagReasons()` method. These reasons are configured in the CometChat Dashboard.
-
-<Tabs>
-<Tab title="Get Flag Reasons">
 ```javascript
-CometChat.getFlagReasons().then(
-  reasons => {
-    console.log("Flag reasons retrieved", reasons);
-    // Use reasons to populate your UI
-  }, error => {
-    console.log("Failed to get flag reasons:", error);
+class ReportMessageHandler {
+  constructor() {
+    this.flagReasons = [];
   }
-);
-```
-</Tab>
 
-<Tab title="TypeScript">
-```typescript
-CometChat.getFlagReasons().then(
-  (reasons: CometChat.FlagReason[]) => {
-    console.log("Flag reasons retrieved", reasons);
-    // Use reasons to populate your UI
-  }, (error: CometChat.CometChatException) => {
-    console.log("Failed to get flag reasons:", error);
+  // Load flag reasons (call this on app init or when needed)
+  async loadFlagReasons() {
+    try {
+      this.flagReasons = await CometChat.getFlagReasons();
+      return this.flagReasons;
+    } catch (error) {
+      console.error("Failed to load flag reasons:", error);
+      return [];
+    }
   }
+
+  // Get reasons for UI display
+  getReasons() {
+    return this.flagReasons;
+  }
+
+  // Flag a message with selected reason
+  async flagMessage(messageId, reasonId, remark = "") {
+    if (!reasonId) {
+      throw new Error("Reason ID is required");
+    }
+
+    try {
+      const payload = { reasonId };
+      if (remark) {
+        payload.remark = remark;
+      }
+
+      const response = await CometChat.flagMessage(messageId, payload);
+      console.log("Message flagged successfully");
+      return { success: true, response };
+    } catch (error) {
+      console.error("Failed to flag message:", error);
+      return { success: false, error };
+    }
+  }
+}
+
+// Usage
+const reportHandler = new ReportMessageHandler();
+
+// Load reasons when app initializes
+await reportHandler.loadFlagReasons();
+
+// When user wants to report a message
+const reasons = reportHandler.getReasons();
+// Display reasons in UI for user to select...
+
+// When user submits the report
+const result = await reportHandler.flagMessage(
+  "message_123",
+  "spam",
+  "User is sending promotional links"
 );
+
+if (result.success) {
+  showToast("Message reported successfully");
+}
 ```
-</Tab>
-</Tabs>
