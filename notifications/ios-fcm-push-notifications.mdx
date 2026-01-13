@@ -27,6 +27,12 @@ description: "Add Firebase Cloud Messaging to the UIKit iOS push sample so messa
 - Firebase project with an iOS app; `GoogleService-Info.plist` downloaded; APNs key uploaded to Firebase Cloud Messaging.
 - Xcode capabilities: Push Notifications, Background Modes (Remote notifications, Voice over IP), CallKit usage descriptions. Physical device for push testing.
 
+## How FCM + CometChat work together (pattern matches Android)
+
+- **FCM’s role:** Firebase issues the iOS FCM registration token and delivers the push payload. On iOS, FCM hands off to APNs using the APNs key/cert you upload in Firebase.  
+- **CometChat Notifications’ role:** The FCM iOS provider you create in the CometChat dashboard holds your Firebase service account. When you call `CometChatNotifications.registerPushToken(..., .FCM_IOS, providerId)`, CometChat binds that FCM token to the logged-in user and sends pushes to FCM on your behalf.  
+- **Flow (same bridge used in `android-push-notifications.mdx`):** Request permission → register for remote notifications → FCM returns the registration token → after `CometChat.login` succeeds, register that token with `CometChatNotifications` using the FCM provider ID → CometChat sends payloads to FCM → FCM hands to APNs → `UNUserNotificationCenterDelegate` surfaces the notification/tap.
+
 ## 1. Enable push and add providers (CometChat Dashboard)
 
 1) Go to **Notifications → Settings** and enable **Push Notifications**.
@@ -236,6 +242,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 }
 ```
+
+**What this code is doing**
+
+- Initializes Firebase, sets `MessagingDelegate` and `UNUserNotificationCenterDelegate`, asks for alert/badge/sound permission, and registers for remote notifications.  
+- Sets `Messaging.messaging().apnsToken` so FCM can map the APNs token and later deliver via APNs.  
+- Stores the FCM registration token and calls `registerStoredPushToken()` so CometChat can bind the token to your logged-in user (using the Provider ID you configured).  
+- Leaves `willPresent` to show banners/sounds in foreground instead of silently ignoring the notification.
 
 ## 6. Create FCM helper
 
