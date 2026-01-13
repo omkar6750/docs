@@ -1,18 +1,33 @@
 ---
-title: "Call Session"
+title: "Standalone Calling"
 ---
 
 ## Overview
 
-This section demonstrates how to start a call session in an Android application. Previously known as **Direct Calling**.
-
-Before you begin, we strongly recommend you read the [calling setup guide](/sdk/android/setup-calling).
+This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
 
 <Note>
-
-If you want to implement a complete calling experience with ringing functionality (incoming/outgoing call UI), follow the [Ringing](/sdk/android/default-calling) guide first. Once the call is accepted, return here to start the call session.
-
+Before you begin, ensure you have completed the [Calls SDK setup](/sdk/android/setup-calling).
 </Note>
+
+## User Authentication
+
+To start a call session, you need a user auth token. Since this implementation doesn't use the Chat SDK, you'll need to obtain the auth token via the CometChat REST API.
+
+<Note>
+To understand user authentication in CometChat, see the [User Auth](/fundamentals/user-auth) documentation.
+</Note>
+
+You can obtain the auth token using one of these REST API endpoints:
+
+- [Create Auth Token](/rest-api/auth-tokens/create) — Creates a new auth token for a user
+- [Get Auth Token](/rest-api/auth-tokens/get) — Retrieves an existing auth token
+
+<Note>
+For testing or POC purposes, you can create an auth token directly from the [CometChat Dashboard](https://app.cometchat.com). Navigate to **Users & Groups → Users**, select a user, and click **+ Create Auth Token**.
+</Note>
+
+Store the auth token securely in your application for use when generating call tokens.
 
 ## Generate Call Token
 
@@ -25,18 +40,18 @@ Use the `generateToken()` method to create a call token:
 <Tabs>
 <Tab title="Java">
 ```java
-String sessionId = "" //Random or available in call obecjt in case of default calling
-String userAuthToken = CometChat.getUserAuthToken() //Logged in user auth token
+String sessionId = "UNIQUE_SESSION_ID"; // Generate a unique session ID
+String userAuthToken = "USER_AUTH_TOKEN"; // Obtained from REST API
 
 CometChatCalls.generateToken(sessionId, userAuthToken, new CometChatCalls.CallbackListener<GenerateToken>() {
     @Override
     public void onSuccess(GenerateToken generateToken) {
-
+        // Use generateToken to start the session
     }
 
     @Override
-    public void onError(com.cometchat.pro.rtc.exceptions.CometChatException e) {
-
+    public void onError(CometChatException e) {
+        Log.e(TAG, "Token generation failed: " + e.getMessage());
     }
 });
 ```
@@ -45,32 +60,28 @@ CometChatCalls.generateToken(sessionId, userAuthToken, new CometChatCalls.Callba
 
 <Tab title="Kotlin">
 ```kotlin
-val sessionId = "" //Random or available in call obecjt in case of default calling
-val userAuthToken = CometChat.getUserAuthToken() //Logged in user auth token
+val sessionId = "UNIQUE_SESSION_ID" // Generate a unique session ID
+val userAuthToken = "USER_AUTH_TOKEN" // Obtained from REST API
 
-CometChatCalls.generateToken(
-    sessionId,
-    userAuthToken,
-    object : CometChatCalls.CallbackListener<GenerateToken>() {
-        override fun onSuccess(generateToken: GenerateToken) {
-            
-        }
-
-        override fun onError(e: CometChatException) {
-          
-        }
+CometChatCalls.generateToken(sessionId, userAuthToken, object : CometChatCalls.CallbackListener<GenerateToken>() {
+    override fun onSuccess(generateToken: GenerateToken) {
+        // Use generateToken to start the session
     }
-)
+
+    override fun onError(e: CometChatException) {
+        Log.e(TAG, "Token generation failed: ${e.message}")
+    }
+})
 ```
 
 </Tab>
 
 </Tabs>
 
-| Parameter       | Description                                                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sessionId`     | The unique random session ID. In case you are using the ringing flow, the session ID is available in the `Call` object.                 |
-| `userAuthToken` | The user auth token is the logged-in user auth token which you can get by calling CometChat Chat SDK method `CometChat.getUserAuthToken()` |
+| Parameter       | Description                                                                |
+| --------------- | -------------------------------------------------------------------------- |
+| `sessionId`     | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
+| `userAuthToken` | The user auth token obtained from the CometChat REST API.                  |
 
 ## Start Call Session
 
@@ -181,57 +192,58 @@ private String listenerId = "UNIQUE_LISTENER_ID";
 CometChatCalls.addCallsEventListeners(listenerId, new CometChatCallsEventsListener() {
     @Override
     public void onCallEnded() {
-
+        // Call ended, close the calling screen
     }
 
     @Override
     public void onSessionTimeout() {
-
+        // Session timed out due to inactivity
     }
 
     @Override
     public void onCallEndButtonPressed() {
-
+        // User pressed end call button
+        CometChatCalls.endSession();
     }
 
     @Override
     public void onUserJoined(RTCUser user) {
-
+        // A participant joined the call
     }
 
     @Override
     public void onUserLeft(RTCUser user) {
-
+        // A participant left the call
     }
 
     @Override
     public void onUserListChanged(ArrayList<RTCUser> users) {
-
+        // Participant list updated
     }
 
     @Override
     public void onAudioModeChanged(ArrayList<AudioMode> devices) {
-
+        // Available audio devices changed
     }
 
     @Override
     public void onCallSwitchedToVideo(CallSwitchRequestInfo info) {
-
+        // Call upgraded from audio to video
     }
 
     @Override
     public void onUserMuted(RTCMutedUser muteObj) {
-
+        // A participant's mute state changed
     }
 
     @Override
     public void onRecordingToggled(RTCRecordingInfo info) {
-
+        // Recording started or stopped
     }
 
     @Override
     public void onError(CometChatException ce) {
-
+        // An error occurred
     }
 });
 
@@ -246,59 +258,60 @@ CometChatCalls.removeCallsEventListeners(listenerId);
 val listenerId = "UNIQUE_LISTENER_ID"
 
 // Register listener (e.g., in onCreate or onResume)
-CometChatCalls.addCallsEventListeners(listenerId, object: CometChatCallsEventsListener {
+CometChatCalls.addCallsEventListeners(listenerId, object : CometChatCallsEventsListener {
     override fun onCallEnded() {
-
+        // Call ended, close the calling screen
     }
 
     override fun onSessionTimeout() {
-
+        // Session timed out due to inactivity
     }
 
     override fun onCallEndButtonPressed() {
-
+        // User pressed end call button
+        CometChatCalls.endSession()
     }
 
     override fun onUserJoined(user: RTCUser) {
-
+        // A participant joined the call
     }
 
     override fun onUserLeft(user: RTCUser) {
-
+        // A participant left the call
     }
 
     override fun onUserListChanged(users: ArrayList<RTCUser>) {
-
+        // Participant list updated
     }
 
     override fun onAudioModeChanged(devices: ArrayList<AudioMode?>?) {
-
+        // Available audio devices changed
     }
 
     override fun onCallSwitchedToVideo(info: CallSwitchRequestInfo) {
-
+        // Call upgraded from audio to video
     }
 
     override fun onUserMuted(muteObj: RTCMutedUser) {
-
+        // A participant's mute state changed
     }
 
     override fun onRecordingToggled(info: RTCRecordingInfo) {
-
+        // Recording started or stopped
     }
 
     override fun onError(ce: CometChatException?) {
-
+        // An error occurred
     }
 })
 
+// Unregister listener (e.g., in onDestroy or onPause)
+CometChatCalls.removeCallsEventListeners(listenerId)
 ```
 
 </Tab>
 
 </Tabs>
-
-
 
 ### Events
 
@@ -306,7 +319,7 @@ CometChatCalls.addCallsEventListeners(listenerId, object: CometChatCallsEventsLi
 | ----- | ----------- |
 | `onCallEnded()` | Invoked when the call session terminates for a 1:1 call. Both participants receive this callback. Only fires for calls with exactly 2 participants. |
 | `onSessionTimeout()` | Invoked when the call is auto-terminated due to inactivity (default: 180 seconds). Warning appears 60 seconds before. *v4.1.0+* |
-| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. For ringing flow, call `CometChat.endCall()`. For standalone, call `CometChatCalls.endSession()`. |
+| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. Call `CometChatCalls.endSession()` to leave the session. |
 | `onUserJoined(user: RTCUser)` | Invoked when a remote participant joins. The `user` contains UID, name, and avatar. |
 | `onUserLeft(user: RTCUser)` | Invoked when a remote participant leaves the call session. |
 | `onUserListChanged(users: ArrayList<RTCUser>)` | Invoked whenever the participant list changes (join or leave events). |
@@ -318,98 +331,7 @@ CometChatCalls.addCallsEventListeners(listenerId, object: CometChatCallsEventsLi
 
 ## End Call Session
 
-Ending a call session properly is essential to release media resources (camera, microphone, network connections) and update call state across all participants. The termination process differs based on whether you're using the Ringing flow or Session Only flow.
-
-### Ringing Flow
-
-When using the [Ringing](/sdk/android/default-calling) flow, you must coordinate between the CometChat Chat SDK and the Calls SDK to properly terminate the call and notify all participants.
-
-<Note>
-
-The Ringing flow requires calling methods from both the Chat SDK (`CometChat.endCall()`) and the Calls SDK (`CometChatCalls.endSession()`) to ensure proper call termination and participant notification.
-
-</Note>
-
-<Frame>
-  <img src="/images/32c472fd-8kwm94f9vrtxx4kwytx9888yert62oyiy46r2bvkjqiopi2mxtmwihvlqia4pjng-b6de74bdd2156a31ce9bb1ed89ddfaa2.png" />
-</Frame>
-
-**User who initiates the end call:**
-
-When the user presses the end call button in the UI, the `onCallEndButtonPressed()` callback is triggered. You must call `CometChat.endCall()` inside this callback to properly terminate the call and notify other participants. This triggers the `onCallEnded()` callback for the remote participant.
-
-<Tabs>
-<Tab title="Java">
-```java
-@Override
-public void onCallEndButtonPressed() {
-    CometChat.endCall(sessionId, new CometChat.CallbackListener<Call>() {
-        @Override
-        public void onSuccess(Call call) {
-            // Call ended successfully, close the calling screen
-        }
-
-        @Override
-        public void onError(CometChatException e) {
-            Log.e(TAG, "Error ending call: " + e.getMessage());
-        }
-    });
-}
-```
-
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin
-override fun onCallEndButtonPressed() {
-    CometChat.endCall(sessionId, object : CallbackListener<Call?>() {
-        override fun onSuccess(call: Call?) {
-            // Call ended successfully, close the calling screen
-        }
-
-        override fun onError(e: CometChatException) {
-            Log.e(TAG, "Error ending call: ${e.message}")
-        }
-    })
-}
-```
-
-</Tab>
-
-</Tabs>
-
-**Remote participant** (receives the `onCallEnded()` callback):
-
-Call `CometChat.clearActiveCall()` to clear the local call state, then call `CometChatCalls.endSession()` to release media resources.
-
-<Tabs>
-<Tab title="Java">
-```java
-// In onCallEnded() callback
-CometChat.clearActiveCall();
-CometChatCalls.endSession();
-// Close the calling screen
-```
-
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin
-// In onCallEnded() callback
-CometChat.clearActiveCall()
-CometChatCalls.endSession()
-// Close the calling screen
-```
-
-</Tab>
-
-</Tabs>
-
-### Session Only Flow
-
-When using the Session Only flow (direct call without ringing), you only need to call the Calls SDK method to end the session. There's no need to notify the Chat SDK since no call signaling was involved.
-
-Call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback to release all media resources and disconnect from the call session.
+To end the call session and release all media resources (camera, microphone, network connections), call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback.
 
 <Tabs>
 <Tab title="Java">
@@ -537,7 +459,7 @@ CometChatCalls.setAudioMode(audioMode)
 </Tab>
 
 </Tabs>
-### Enter PIP Mode
+
 ### Enter PIP Mode
 
 Enters Picture-in-Picture mode, rendering the call view in a small floating window. This allows users to multitask while staying on the call. Ensure your app has PIP support enabled in the manifest.

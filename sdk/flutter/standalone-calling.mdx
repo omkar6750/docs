@@ -1,18 +1,33 @@
 ---
-title: "Call Session"
+title: "Standalone Calling"
 ---
 
 ## Overview
 
-This section demonstrates how to start a call session in a Flutter application. Previously known as **Direct Calling**.
-
-Before you begin, we strongly recommend you read the [calling setup guide](/sdk/flutter/calling-setup).
+This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
 
 <Note>
-
-If you want to implement a complete calling experience with ringing functionality (incoming/outgoing call UI), follow the [Ringing](/sdk/flutter/default-call) guide first. Once the call is accepted, return here to start the call session.
-
+Before you begin, ensure you have completed the [Calls SDK setup](/sdk/flutter/calling-setup).
 </Note>
+
+## User Authentication
+
+To start a call session, you need a user auth token. Since this implementation doesn't use the Chat SDK, you'll need to obtain the auth token via the CometChat REST API.
+
+<Note>
+To understand user authentication in CometChat, see the [User Auth](/fundamentals/user-auth) documentation.
+</Note>
+
+You can obtain the auth token using one of these REST API endpoints:
+
+- [Create Auth Token](/rest-api/auth-tokens/create) — Creates a new auth token for a user
+- [Get Auth Token](/rest-api/auth-tokens/get) — Retrieves an existing auth token
+
+<Note>
+For testing or POC purposes, you can create an auth token directly from the [CometChat Dashboard](https://app.cometchat.com). Navigate to **Users & Groups → Users**, select a user, and click **+ Create Auth Token**.
+</Note>
+
+Store the auth token securely in your application for use when generating call tokens.
 
 ## Generate Call Token
 
@@ -23,8 +38,8 @@ You can generate the token just before starting the call, or generate and store 
 Use the `generateToken()` method to create a call token:
 
 ```dart
-String sessionId = "SESSION_ID"; // Random or from Call object in ringing flow
-String userAuthToken = await CometChat.getUserAuthToken(); // Logged in user auth token
+String sessionId = "UNIQUE_SESSION_ID"; // Generate a unique session ID
+String userAuthToken = "USER_AUTH_TOKEN"; // Obtained from REST API
 
 CometChatCalls.generateToken(
   sessionId,
@@ -39,10 +54,10 @@ CometChatCalls.generateToken(
 );
 ```
 
-| Parameter       | Description                                                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sessionId`     | The unique random session ID. In case you are using the ringing flow, the session ID is available in the `Call` object.                 |
-| `userAuthToken` | The user auth token is the logged-in user auth token which you can get by calling `CometChat.getUserAuthToken()` |
+| Parameter       | Description                                                                |
+| --------------- | -------------------------------------------------------------------------- |
+| `sessionId`     | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
+| `userAuthToken` | The user auth token obtained from the CometChat REST API.                  |
 
 ## Start Call Session
 
@@ -124,12 +139,23 @@ class YourClassName extends State<YourScreen> with CometChatCallsEventsListener 
   @override
   void onCallEnded() {
     debugPrint("Call ended");
+    CometChatCalls.endSession(
+      onSuccess: (success) {
+        // Close calling screen
+      },
+      onError: (e) {},
+    );
   }
 
   @override
   void onCallEndButtonPressed() {
     debugPrint("End call button pressed");
-    // Handle end call - see End Call Session section
+    CometChatCalls.endSession(
+      onSuccess: (success) {
+        // Close calling screen
+      },
+      onError: (e) {},
+    );
   }
 
   @override
@@ -185,7 +211,7 @@ class YourClassName extends State<YourScreen> with CometChatCallsEventsListener 
 | ----- | ----------- |
 | `onCallEnded()` | Invoked when the call session terminates for a 1:1 call. Both participants receive this callback. Only fires for calls with exactly 2 participants. |
 | `onSessionTimeout()` | Invoked when the call is auto-terminated due to inactivity (default: 180 seconds). Warning appears 60 seconds before. *v4.1.0+* |
-| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. For ringing flow, call `CometChat.endCall()`. For standalone, call `CometChatCalls.endSession()`. |
+| `onCallEndButtonPressed()` | Invoked when the local user taps the end call button. Call `CometChatCalls.endSession()` to leave the session. |
 | `onUserJoined(RTCUser user)` | Invoked when a remote participant joins. The `user` contains UID, name, and avatar. |
 | `onUserLeft(RTCUser user)` | Invoked when a remote participant leaves the call session. |
 | `onUserListChanged(List<RTCUser> users)` | Invoked whenever the participant list changes (join or leave events). |
@@ -197,76 +223,7 @@ class YourClassName extends State<YourScreen> with CometChatCallsEventsListener 
 
 ## End Call Session
 
-Ending a call session properly is essential to release media resources (camera, microphone, network connections) and update call state across all participants. The termination process differs based on whether you're using the Ringing flow or Session Only flow.
-
-### Ringing Flow
-
-When using the [Ringing](/sdk/flutter/default-call) flow, you must coordinate between the CometChat Chat SDK and the Calls SDK to properly terminate the call and notify all participants.
-
-<Note>
-
-The Ringing flow requires calling methods from both the Chat SDK (`CometChat.endCall()`) and the Calls SDK (`CometChatCalls.endSession()`) to ensure proper call termination and participant notification.
-
-</Note>
-
-<Frame>
-  <img src="/images/32c472fd-8kwm94f9vrtxx4kwytx9888yert62oyiy46r2bvkjqiopi2mxtmwihvlqia4pjng-b6de74bdd2156a31ce9bb1ed89ddfaa2.png" />
-</Frame>
-
-**User who initiates the end call:**
-
-When the user presses the end call button in the UI, the `onCallEndButtonPressed()` callback is triggered. You must call `CometChat.endCall()` inside this callback to properly terminate the call and notify other participants. On success, call `CometChat.clearActiveCall()` and `CometChatCalls.endSession()` to release resources.
-
-```dart
-@override
-void onCallEndButtonPressed() {
-  CometChat.endCall(
-    sessionId,
-    onSuccess: (Call call) {
-      debugPrint("Call ended successfully");
-      CometChat.clearActiveCall();
-      CometChatCalls.endSession(
-        onSuccess: (success) {
-          debugPrint("Session ended");
-          // Close the calling screen
-        },
-        onError: (e) {
-          debugPrint("End session failed: $e");
-        },
-      );
-    },
-    onError: (CometChatException e) {
-      debugPrint("End call failed: $e");
-    },
-  );
-}
-```
-
-**Remote participant** (receives the `onCallEnded()` callback):
-
-Call `CometChat.clearActiveCall()` to clear the local call state, then call `CometChatCalls.endSession()` to release media resources.
-
-```dart
-@override
-void onCallEnded() {
-  CometChat.clearActiveCall();
-  CometChatCalls.endSession(
-    onSuccess: (success) {
-      debugPrint("Session ended");
-      // Close the calling screen
-    },
-    onError: (e) {
-      debugPrint("End session failed: $e");
-    },
-  );
-}
-```
-
-### Session Only Flow
-
-When using the Session Only flow (direct call without ringing), you only need to call the Calls SDK method to end the session. There's no need to notify the Chat SDK since no call signaling was involved.
-
-Call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback to release all media resources and disconnect from the call session.
+To end the call session and release all media resources (camera, microphone, network connections), call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback.
 
 ```dart
 @override
