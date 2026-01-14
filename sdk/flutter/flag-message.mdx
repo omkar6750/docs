@@ -1,0 +1,81 @@
+---
+title: "Flag A Message"
+---
+
+Flagging messages allows users to report inappropriate content to moderators or administrators. CometChat provides methods to flag messages with specific reasons and retrieve available flag reasons configured in your dashboard.
+
+## Flag a Message
+
+*In other words, as a user, how do I report a message?*
+
+To flag a message, you can use the `flagMessage()` method. This method takes the message ID and a payload containing an optional reason ID and remark.
+
+<Tabs>
+
+<Tab title="Dart">
+```dart
+        int messageId = 0; // ID of the message to be flagged
+
+  FlagDetail flagDetail = FlagDetail()
+    ..reasonId = "spam" // Required
+    ..remark = "This message contains promotional content"; // Optional
+
+  CometChat.flagMessage(
+    messageId,
+    flagDetail,
+    onSuccess: (String response) {
+      print("Message flagged successfully: $response");
+    },
+    onError: (CometChatException e) {
+      print("Message flagging failed with error: ${e.message}");
+    },
+  );
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter               | Type       | Required | Description                                 |
+|-------------------------|------------|----------|---------------------------------------------|
+| id                      | long       | Yes      | The ID of the message to be flagged         |
+| flagDetail              | FlagDetail | Yes      | Contains flagging details                   |
+| flagDetail.setReasonId  | String     | Yes      | ID of the flag reason (from getFlagReasons) |
+| flagDetail.setRemark    | String     | No       | Additional context or explanation           |
+
+### Response
+
+On successful flagging, you'll receive a response object:
+
+```String
+{
+  "message": "Message {id} has been flagged successfully."
+}
+```
+
+## Get Flag Reasons
+
+*In other words, what are the available reasons for flagging a message?*
+
+Before flagging a message, you can retrieve the list of available flag reasons using the `getFlagReasons()` method. These reasons are configured in the CometChat Dashboard.
+
+<Tabs>
+<Tab title="Dart">
+```dart
+        CometChat.getFlagReasons(
+    onSuccess: (List<FlagReason> reasons) {
+      print("Flag Reasons fetched: $reasons");
+
+      // Example: iterate through reasons
+      for (var reason in reasons) {
+        print("Reason ID: ${reason.id}, Title: ${reason.title}");
+      }
+    },
+    onError: (CometChatException e) {
+      print("Error fetching Flag Reasons: ${e.message}");
+    },
+  );
+```
+</Tab>
+
+</Tabs>

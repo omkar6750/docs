@@ -1,0 +1,103 @@
+---
+title: "Flag A Message"
+---
+
+Flagging messages allows users to report inappropriate content to moderators or administrators. CometChat provides methods to flag messages with specific reasons and retrieve available flag reasons configured in your dashboard.
+
+## Flag a Message
+
+*In other words, as a user, how do I report a message?*
+
+To flag a message, you can use the `flagMessage()` method. This method takes the message ID and a payload containing an optional reason ID and remark.
+
+<Tabs>
+<Tab title="Flag Message">
+```javascript
+let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_FLAG";
+let payload = {
+  reasonId: "spam", // Required: ID of the flag reason
+  remark: "This message contains promotional content" // Optional: Additional context
+};
+
+CometChat.flagMessage(messageId, payload).then(
+  response => {
+    console.log("Message flagged successfully", response);
+  }, error => {
+    console.log("Message flagging failed with error:", error);
+  }
+);
+```
+</Tab>
+
+<Tab title="TypeScript">
+```typescript
+let messageId: string = "ID_OF_THE_MESSAGE_YOU_WANT_TO_FLAG";
+let payload: { reasonId: string; remark?: string } = {
+  reasonId: "spam",
+  remark: "This message contains promotional content"
+};
+
+CometChat.flagMessage(messageId, payload).then(
+  (response: CometChat.FlagMessageResponse) => {
+    console.log("Message flagged successfully", response);
+  }, (error: CometChat.CometChatException) => {
+    console.log("Message flagging failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| messageId | string | Yes | The ID of the message to be flagged |
+| payload | object | Yes | Contains flagging details |
+| payload.reasonId | string | Yes | ID of the flag reason (from getFlagReasons) |
+| payload.remark | string | No | Additional context or explanation |
+
+### Response
+
+On successful flagging, you'll receive a response object:
+
+```javascript
+{
+  "success": true,
+  "message": "Message with id {{messageId}} has been flagged successfully"
+}
+```
+
+## Get Flag Reasons
+
+*In other words, what are the available reasons for flagging a message?*
+
+Before flagging a message, you can retrieve the list of available flag reasons using the `getFlagReasons()` method. These reasons are configured in the CometChat Dashboard.
+
+<Tabs>
+<Tab title="Get Flag Reasons">
+```javascript
+CometChat.getFlagReasons().then(
+  reasons => {
+    console.log("Flag reasons retrieved", reasons);
+    // Use reasons to populate your UI
+  }, error => {
+    console.log("Failed to get flag reasons:", error);
+  }
+);
+```
+</Tab>
+
+<Tab title="TypeScript">
+```typescript
+CometChat.getFlagReasons().then(
+  (reasons: CometChat.FlagReason[]) => {
+    console.log("Flag reasons retrieved", reasons);
+    // Use reasons to populate your UI
+  }, (error: CometChat.CometChatException) => {
+    console.log("Failed to get flag reasons:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
