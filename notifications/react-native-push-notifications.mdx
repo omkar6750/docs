@@ -224,19 +224,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
 Add the following inside the `didFinishLaunchingWithOptions` method:
 ```swift
-    UNUserNotificationCenter.current().delegate = self
+UNUserNotificationCenter.current().delegate = self
 
-    UNUserNotificationCenter.current().requestAuthorization(
-      options: [.alert, .badge, .sound]
-    ) { granted, error in
-      if granted {
+UNUserNotificationCenter.current().requestAuthorization(
+    options: [.alert, .badge, .sound]
+) {
+    granted,
+    error in
+    if granted {
         DispatchQueue.main.async {
-          application.registerForRemoteNotifications()
+            application.registerForRemoteNotifications()
         }
-      } else {
+    } else {
         print("Push Notification permission not granted: \(String(describing: error))")
-      }
-    } 
+    }
+}
 ```
 
 Add the following methods to handle push notification events:
@@ -353,69 +355,21 @@ useEffect(() => {
 
 After user login, register the APNs token:
 ```tsx
-       //  Register token ONLY if we already have it
-        if (apnsTokenRef.current) {
-          await CometChatNotifications.registerPushToken(
-            apnsTokenRef.current,
-            CometChatNotifications.PushPlatforms.APNS_REACT_NATIVE_DEVICE,
-            APNS_PROVIDER_ID
-          );
-          console.log(' APNs token registered with CometChat');
-        }
+//  Register token ONLY if we already have it
+if (apnsTokenRef.current) {
+    await CometChatNotifications.registerPushToken(
+        apnsTokenRef.current,
+        CometChatNotifications.PushPlatforms.APNS_REACT_NATIVE_DEVICE,
+        APNS_PROVIDER_ID
+    );
+    console.log(' APNs token registered with CometChat');
+}
 ```
 
 Prior to logout, unregister the APNs token:
 ```tsx
-    await CometChatNotifications.unregisterPushToken();
+await CometChatNotifications.unregisterPushToken();
 ```
-
-{/* ## 7. Token registration and runtime handling
-
-### 7.1 FCM (Android, optional iOS)
-
-- `getAndRegisterFCMToken` (helper.ts) runs after login; `onTokenRefresh` re-registers. Call `registerPushToken(token, true, false)` with the FCM provider ID.
-- Foreground: `messaging().onMessage` shows Notifee via `displayLocalNotification` unless the chat is open.
-- Background/terminated: `setBackgroundMessageHandler` (index.js) shows Notifee or triggers VoIP UI when `data.type === 'call'`.
-
-### 7.2 APNs device tokens (iOS)
-
-- `PushNotificationIOS.requestPermissions` prompts the user; `'register'` event calls `handleIosApnsToken` which registers with `registerPushToken(token, false, false)` using your APNs provider ID.
-- `checkInitialNotificationIOS` and `onRemoteNotificationIOS` route taps into `Messages` with parent threads when present.
-
-### 7.3 VoIP tokens (iOS)
-
-- `react-native-voip-push-notification` `'register'` event calls `handleIosVoipToken`; PushKit token comes from `pushRegistry(_:didUpdate:for:)`.
-- Register with `registerPushToken(voipToken, false, true)` using the VoIP provider ID.
-- `pushRegistry(_:didReceiveIncomingPushWith:)` should pass `callAction` to CallKeep so incoming calls display even when killed.
-
-### 7.4 Navigation and local notifications
-
-- Notifee foreground/background handlers navigate via `navigateToConversation` after fetching the user/group with `CometChat.CometChatHelper.processMessage`.
-- Skip notifications when the active chat is open to avoid duplicates.
-- Cache initial notification on cold start and replay once navigation is ready.
-
-## 8. Call notifications (VoIP-like)
-
-- FCM `data.type === "call"` is handled in `index.js` background handler; actions (`initiated`, `cancelled`, `rejected`, `busy`, `ended`, `unanswered`, `ongoing`) drive `VoipNotificationHandler`.
-- `VoipNotificationHandler` uses CallKeep to render native incoming call UI and manage telecom permissions; `PendingCallManager` resumes accepted calls after cold starts.
-- iOS VoIP pushes rely on PushKit → CallKeep; ensure CallKeep configuration matches the sample (handle `answerCall`, `endCall`, timeouts).
-
-## 9. Customizing the push body
-
-Set `metadata.pushNotification` before sending to override the body:
-
-```ts
-const metadata = { pushNotification: 'Custom notification body' };
-const message = new CometChat.CustomMessage(
-  receiverId,
-  CometChat.RECEIVER_TYPE.USER,
-  'your_type',
-  { yourKey: 'value' },
-);
-message.setMetadata(metadata);
-CometChat.sendCustomMessage(message); 
-```
-*/}
 
 ## 6. Testing checklist
 
