@@ -207,16 +207,187 @@ Copy the same structure from the sample:
 
 ## 5. iOS setup
 
-1. Enable **Push Notifications** and **Background Modes** (Remote notifications, VoIP) in Xcode.
-2. Add CallKit usage strings to `Info.plist` (microphone/camera) and configure `react-native-callkeep`.
-3. In `AppDelegate.swift`, keep:
-   - `UNUserNotificationCenter` delegate forwarding to `RNCPushNotificationIOS`.
-   - `FirebaseApp.configure()` before plugin registration.
-   - PushKit (`PKPushRegistry` with `.voIP`) forwarding tokens to `RNVoipPushNotificationManager.didUpdate`.
-   - `pushRegistry(_:didReceiveIncomingPushWith:)` mapping payloads to `RNCallKeep.reportNewIncomingCall` and ending calls when cancelled.
-   - `RNVoipPushNotificationManager.voipRegistration()` in `didFinishLaunching`.
+### 5.1 Project Setup
 
+Enable **Push Notifications** and **Background Modes** (Remote notifications) in Xcode.
+{/* 2. Add CallKit usage strings to `Info.plist` (microphone/camera) and configure `react-native-callkeep`. */}
 
+### 5.2 Install dependencies:
+
+```bash 
+npm install react-native-push-notification@^8.1.1 
+npm install @react-native-community/push-notification-ios@^1.12.0
+```
+
+### 5.3 AppDelegate.swift modifications:
+
+Add imports at the top:
+```
+import UserNotifications
+import RNCPushNotificationIOS
+```
+
+Add `UNUserNotificationCenterDelegate` to the `AppDelegate` class declaration:
+```swift
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate 
+```
+
+Add the following inside the `didFinishLaunchingWithOptions` method:
+```swift
+    //==================================================== 
+    UNUserNotificationCenter.current().delegate = self
+
+    UNUserNotificationCenter.current().requestAuthorization(
+      options: [.alert, .badge, .sound]
+    ) { granted, error in
+      if granted {
+        DispatchQueue.main.async {
+          application.registerForRemoteNotifications()
+        }
+      } else {
+        print("Push Notification permission not granted: \(String(describing: error))")
+      }
+    }
+    //====================================================
+```
+
+Add the following methods to handle push notifications:
+```swift
+func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+) {
+    print("APNs device token received: \(deviceToken)")
+    RNCPushNotificationIOS.didRegisterForRemoteNotifications(
+        withDeviceToken: deviceToken
+    )
+}
+
+func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+) {
+    print("APNs registration failed: \(error)")
+    RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
+}
+
+func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+) {
+    RNCPushNotificationIOS.didReceiveRemoteNotification(
+        userInfo,
+        fetchCompletionHandler: completionHandler
+    )
+}
+
+func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+) {
+    completionHandler([.banner, .sound, .badge])
+}
+
+func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+) {
+    RNCPushNotificationIOS.didReceive(response)
+    completionHandler()
+}
+```
+
+Add the following to `Podfile` to avoid framework linkage issues:
+
+```ruby
+  use_frameworks! :linkage => :static
+```
+
+You might have to remove below code if already present in your Podfile:
+```ruby
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+```
+
+Then lets install pods and open the workspace:
+```bash
+cd ios
+pod install
+open YourProjectName.xcworkspace
+```
+
+### 5.4 App.tsx modifications:
+
+Import CometChatNotifications:
+
+```tsx
+import { CometChat, CometChatNotifications } from "@cometchat/chat-sdk-react-native";
+```
+
+Get device token and store it in a ref:
+Also, define your APNs provider ID from the CometChat Dashboard.
+And request permissions on mount:
+
+```tsx
+  const APNS_PROVIDER_ID = 'YOUR_APNS_PROVIDER_ID'; // from CometChat Dashboard
+  const apnsTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    const onRegister = (deviceToken: string) => {
+      console.log(' APNs device token captured:', deviceToken);
+      apnsTokenRef.current = deviceToken;
+    };
+
+    PushNotificationIOS.addEventListener('register', onRegister);
+
+    PushNotificationIOS.addEventListener('registrationError', error => {
+      console.error(' APNs registration error:', error);
+    });
+
+    // Trigger permission + native registration
+    PushNotificationIOS.requestPermissions().then(p =>
+      console.log('Push permissions:', p),
+    );
+
+    return () => {
+      PushNotificationIOS.removeEventListener('register');
+      PushNotificationIOS.removeEventListener('registrationError');
+    };
+  }, []);
+```
+
+After user login, register the APNs token:
+```tsx
+       //  Register token ONLY if we already have it
+        if (apnsTokenRef.current) {
+          await CometChatNotifications.registerPushToken(
+            apnsTokenRef.current,
+            CometChatNotifications.PushPlatforms.APNS_REACT_NATIVE_DEVICE,
+            APNS_PROVIDER_ID
+          );
+          console.log(' APNs token registered with CometChat');
+        }
+```
+
+Prior to logout, unregister the APNs token:
+```tsx
+    // Unregister APNs token if we have it
+    if (apnsTokenRef.current) {
+      await CometChatNotifications.unregisterPushToken(
+        apnsTokenRef.current,
+        CometChatNotifications.PushPlatforms.APNS_REACT_NATIVE_DEVICE
+      );
+      console.log(' APNs token unregistered from CometChat');
+    }
+```
 
 {/* ## 7. Token registration and runtime handling
 
@@ -266,7 +437,7 @@ CometChat.sendCustomMessage(message);
 ```
 */}
 
-## 10. Testing checklist
+## 6. Testing checklist
 
 1. Android: install on device, grant POST_NOTIFICATIONS; log in and verify FCM token registration success.
 2. Send a message from another user:
@@ -276,7 +447,7 @@ CometChat.sendCustomMessage(message);
 4. Trigger incoming call push: native CallKeep UI should show caller info; Accept/Decline routes to the app and clears CallKeep state on cancel/end.
 5. Rotate tokens (reinstall or revoke) and confirm `onTokenRefresh` re-registers.
 
-## 11. Troubleshooting
+## 7. Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |
