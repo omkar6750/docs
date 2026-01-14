@@ -1,10 +1,10 @@
 ---
 title: "Launch a Product Hunt Agent with LangGraph"
 sidebarTitle: "Product Hunt Agent"
-description: "Build a LangGraph agent with Product Hunt-style tools, stream graph state, and prep it for CometChat."
+description: "Build a LangGraph agent (TypeScript or Python) with Product Hunt-style tools, stream graph state, and prep it for CometChat."
 ---
 
-A compact LangGraph example that binds a ChatOpenAI model to Product Hunt-inspired tools, loops until tool calls are complete, and streams every graph state.
+A compact LangGraph example (TypeScript and Python) that binds a ChatOpenAI model to Product Hunt-inspired tools, loops until tool calls are complete, and streams every graph state. Both servers expose `/kickoff` as NDJSON with tool call events.
 
 ***
 
@@ -19,19 +19,17 @@ A compact LangGraph example that binds a ChatOpenAI model to Product Hunt-inspir
 
 ## Prerequisites
 
-* Node.js 18+ (Node 20 recommended).  
-* `OPENAI_API_KEY` in `.env`.  
-* Optional: `PRODUCT_OPENAI_MODEL` to override `gpt-4o-mini`.  
+* TypeScript: Node.js 18+ (Node 20 recommended); `OPENAI_API_KEY` in `.env` (optional `PRODUCT_OPENAI_MODEL`, default `gpt-4o-mini`).  
+* Python: Python 3.10+; `OPENAI_API_KEY` in `.env` (optional `MODEL`, default `gpt-4o-mini`).  
+* CometChat app + AI Agent entry.  
 
 ***
 
 ## Quick links
 
 - Repo root: [ai-agent-lang-graph-examples](https://github.com/cometchat/ai-agent-lang-graph-examples)
-- Project folder: [langgraph-product-hunt-agent](https://github.com/cometchat/ai-agent-lang-graph-examples/tree/main/langgraph-product-hunt-agent)
-- Graph logic: [src/graph.ts](https://github.com/cometchat/ai-agent-lang-graph-examples/blob/main/langgraph-product-hunt-agent/src/graph.ts)
-- Mock launches & search: [src/data/](https://github.com/cometchat/ai-agent-lang-graph-examples/tree/main/langgraph-product-hunt-agent/src/data)
-- Env sample: [.env.example](https://github.com/cometchat/ai-agent-lang-graph-examples/blob/main/.env.example)
+- TypeScript project: [typescript/langgraph-product-hunt-agent](https://github.com/cometchat/ai-agent-lang-graph-examples/tree/main/typescript/langgraph-product-hunt-agent) (`src/graph.ts`, `src/server.ts`, `.env.example`)
+- Python project: [python/langgraph_product_hunt_agent](https://github.com/cometchat/ai-agent-lang-graph-examples/tree/main/python/langgraph_product_hunt_agent) (`agent.py`, `server.py`, `.env`)
 
 ***
 
@@ -44,20 +42,34 @@ A compact LangGraph example that binds a ChatOpenAI model to Product Hunt-inspir
 
 ***
 
-## Setup
+## Setup (TypeScript)
 
 <Steps>
-  <Step title="Clone & install">
-    <code>git clone https://github.com/cometchat/ai-agent-lang-graph-examples.git</code> then <code>cd langgraph-product-hunt-agent</code> and run <code>npm install</code>.
+  <Step title="Install">
+    <code>cd typescript/langgraph-product-hunt-agent && npm install</code>
   </Step>
-  <Step title="Configure environment">
-    Copy <code>../.env.example</code> to <code>.env</code>, set <code>OPENAI_API_KEY</code>, and optionally override <code>PRODUCT_OPENAI_MODEL</code>.
+  <Step title="Env">
+    Copy <code>../.env.example</code> to <code>.env</code>; set <code>OPENAI_API_KEY</code> (optional <code>PRODUCT_OPENAI_MODEL</code>).
   </Step>
-  <Step title="Run the demo">
-    Execute <code>npm run demo</code>. The script runs two prompts on the same thread: listing top launches and finding analytics tools.
+  <Step title="Run demo">
+    <code>npm run demo -- "Top Product Hunt style launches right now?"</code>
   </Step>
-  <Step title="Optional: typecheck">
-    Run <code>npm run typecheck</code> to confirm the TypeScript setup.
+  <Step title="Run server">
+    <code>npm run server</code> → <code>POST /kickoff</code> on <code>http://localhost:3000</code>.
+  </Step>
+</Steps>
+
+## Setup (Python)
+
+<Steps>
+  <Step title="Install">
+    <code>cd python && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt</code>
+  </Step>
+  <Step title="Env">
+    Create <code>.env</code> with <code>OPENAI_API_KEY</code> (optional <code>MODEL</code>).
+  </Step>
+  <Step title="Run server">
+    <code>python -m langgraph_product_hunt_agent.server</code> → <code>POST /kickoff</code> on <code>http://localhost:8000</code>.
   </Step>
 </Steps>
 
@@ -79,19 +91,29 @@ A compact LangGraph example that binds a ChatOpenAI model to Product Hunt-inspir
 
 ***
 
-## Step 2 - Stream the demo
+## Streaming API (HTTP)
 
-`npm run demo` streams the graph state while asking:
+Event order (TypeScript and Python servers): `text_start` → `text_delta` chunks → `tool_call_start` → `tool_call_args` → `tool_call_end` → `tool_result` → `text_end` → `done` (`error` on failure). Each event includes `message_id`; echo `thread_id`/`run_id` from the client if you want threading.
 
-- “What are the top Product Hunt style launches right now?”  
-- “Find tools to help indie founders with analytics.”  
+Example requests:
 
-Watch for tool call logs in between message deltas. The shared `thread_id` demonstrates how `MemorySaver` preserves context across turns.
+```bash
+# TypeScript (localhost:3000/kickoff)
+curl -N http://localhost:3000/kickoff \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"What are the top Product Hunt style launches right now?"}]}'
+
+# Python (localhost:8000/kickoff)
+curl -N http://localhost:8000/kickoff \
+  -H "Content-Type: application/json" \
+  -d '{"thread_id":"t1","run_id":"r1","messages":[{"role":"user","content":"What are the top Product Hunt style launches right now?"}]}'
+```
 
 ***
 
-## Step 3 - Extend & ship
+## Extend & ship
 
-- Wrap the graph in a server (Express, Fastify, Next.js API route) that exposes `/agent` as SSE or newline-delimited JSON. Echo `thread_id` and `run_id` in each event so CometChat can correlate deltas.
-- Swap `products.ts` for your own data source (Product Hunt GraphQL, databases, analytics APIs) while keeping the same tool signatures.
-- Add more tools (e.g., “draft_launch_post”, “schedule_announcement”) and bind them to the model before compiling the graph.
+- Point CometChat BYO Agent at your public `/kickoff` endpoint (TypeScript or Python).
+- Parse NDJSON events; render `text_delta`, surface `tool_call_*` and `tool_result` if you want UI actions, stop on `text_end`/`done`.
+- Replace the mock launch data with Product Hunt GraphQL/Algolia or your own source while keeping the tool signatures (`list_top_posts`, `search_launches`) intact.
+- Add more tools (e.g., “draft_launch_post”, “schedule_announcement”) before compiling the graph.
