@@ -13,17 +13,17 @@ description: "Bring the SampleAppWithPushNotifications experience—FCM/APNs, in
 
 ## What this guide covers
 
-- CometChat dashboard setup (enable push, add FCM + APNs/VoIP providers) with screenshots.
+- CometChat Dashboard setup (enable push, add FCM + APNs providers).
 - Platform credentials (Firebase for Android/iOS, Apple entitlements).
 - Copying the sample notification stack and aligning IDs/provider IDs.
-- Native glue for Android (manifest, CallKeep permissions) and iOS (PushKit + CallKeep).
+- Native glue for Android (manifest permissions) and iOS (PushKit).
 - Token registration, navigation from pushes, testing, and troubleshooting.
 
 ## What you need first
 
-- CometChat app credentials (App ID, Region, Auth Key) and Push Notifications enabled with an **FCM provider (React Native Android)** and **APNs/VoIP provider** for iOS.
+- CometChat app credentials (App ID, Region, Auth Key) and Push Notifications enabled with an **FCM provider (React Native Android)** and **APNs provider** for iOS.
 - Firebase project with an Android app (`google-services.json` in `android/app`) and Cloud Messaging enabled; optional iOS app if you use FCM on iOS.
-- Apple push setup: APNs `.p8` key/cert in CometChat, iOS project with Push Notifications + Background Modes (Remote notifications, VoIP) + CallKit permissions.
+- Apple push setup: APNs `.p8` key/cert in CometChat, iOS project with Push Notifications + Background Modes (Remote notifications) permissions.
 - React Native 0.81+, Node 18+, physical Android + iOS devices for reliable push/call testing.
 
 ## 1. Enable push and add providers (CometChat Dashboard)
@@ -40,7 +40,7 @@ description: "Bring the SampleAppWithPushNotifications experience—FCM/APNs, in
   <img src="/images/c6447647-pushnotification-fcm-68092b02a5361d51ba14b09289da3a78.png" alt="Upload FCM service account JSON" />
 </Frame>
 
-3. Add an **APNs** (and optional **APNs VoIP**) provider for iOS and copy the Provider IDs.
+3. Add an **APNs** provider for iOS and copy the Provider ID.
 
 <Frame>
   <img src="/images/1133421a-add-apns-credentials-f8c2fd747ab4cf3905c6d13cf215b4c1.png" alt="Upload APNs credentials" />
@@ -60,15 +60,14 @@ description: "Bring the SampleAppWithPushNotifications experience—FCM/APNs, in
 ### 2.2 Apple Developer portal
 
 1. Generate an APNs Auth Key (`.p8`) and note the **Key ID** and **Team ID**.
-2. Enable Push Notifications plus Background Modes → *Remote notifications* and *Voice over IP* on the bundle ID.
-3. Configure CallKit usage descriptions (microphone/camera) in `Info.plist`.
+2. Enable Push Notifications plus Background Modes → *Remote notifications* on the bundle ID.
 
 ## 3. Local configuration
 
-- Update `src/utils/AppConstants.tsx` with `appId`, `authKey`, `region`, `fcmProviderId`, and `apnProviderId` (and VoIP provider ID if you use it).
+- Update `src/utils/AppConstants.tsx` with `appId`, `authKey`, `region`, `fcmProviderId`, and `apnProviderId`.
 - Keep `app.json` name consistent with your bundle ID / applicationId.
 
-### 3.1 Dependencies snapshot (from sample)
+### 3.1 Dependencies snapshot (from Sample App)
 
 ```npm
 npm install \
@@ -177,7 +176,7 @@ console.log("FCM Token:", FCM_TOKEN);
 CometChatNotifications.registerPushToken(
         FCM_TOKEN,
         CometChatNotifications.PushPlatforms.FCM_REACT_NATIVE_ANDROID,
-        "FCM-5"
+        "YOUR_FCM_PROVIDER_ID" // from CometChat Dashboard
     )
     .then(() => {
         console.log("Token registration successful");
@@ -192,25 +191,11 @@ CometChatNotifications.registerPushToken(
 Typically, push token unregistration should occur prior to user logout, using the `CometChat.logout()` method.
 For token unregistration, use the `CometChatNotifications.unregisterPushToken()` method provided by the SDKs.
 
-{/* ## 4. Bring the notification stack into your app
-
-Copy the same structure from the sample:
-
-| Sample path | Role | What to copy/replicate |
-| --- | --- | --- |
-| [`App.tsx`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/App.tsx) | Initializes CometChat UI Kit, requests permissions, registers tokens, handles foreground FCM, and navigates on notification taps | Mirror the effects for FCM/APNs/VoIP token handling and Notifee foreground events. |
-| [`index.js`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/index.js) | Background handlers: FCM `setBackgroundMessageHandler`, Notifee `onBackgroundEvent`, and VoIP call actions | Keep the same handlers so taps from killed/background states navigate correctly and call pushes render native UI. |
-| [`src/utils/PushNotification.tsx`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/src/utils/PushNotification.tsx) | Wrapper around `CometChatNotifications.registerPushToken` / `unregisterPushToken` for FCM + APNs/VoIP | Reuse for token registration; update provider IDs. |
-| [`src/utils/helper.ts`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/src/utils/helper.ts) | FCM token retrieval, local notifications via Notifee, iOS initial/tap handling, deep links into chats | Copy the helper and keep the navigation logic for conversation routing. |
-| [`src/utils/VoipNotificationHandler.ts`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/src/utils/VoipNotificationHandler.ts) | CallKeep + Notifee bridge for incoming call UI (Android/iOS) and call actions | Use as-is; ensure Android phone account permissions/capabilities and iOS CallKit permissions are configured. |
-| [`ios/.../AppDelegate.swift`](https://github.com/cometchat/cometchat-uikit-react-native/blob/v5/examples/SampleAppWithPushNotifications/ios/SampleAppWithPushNotifications/AppDelegate.swift) | Native glue for iOS: Firebase/UNUserNotificationCenter delegates, PushKit VoIP token, CallKeep incoming calls | Copy the delegates and PushKit setup so FCM/APNs/VoIP events reach JS and CallKeep renders incoming calls. | */}
-
 ## 5. iOS setup
 
 ### 5.1 Project Setup
 
 Enable **Push Notifications** and **Background Modes** (Remote notifications) in Xcode.
-{/* 2. Add CallKit usage strings to `Info.plist` (microphone/camera) and configure `react-native-callkeep`. */}
 
 <Frame>
   <img src="/images/signing-capabilities-rn-ios.png" alt="Enable Push Notifications" />
@@ -218,6 +203,7 @@ Enable **Push Notifications** and **Background Modes** (Remote notifications) in
 
 ### 5.2 Install dependencies:
 
+Install the required packages for iOS push notifications:
 ```bash 
 npm install react-native-push-notification@^8.1.1 
 npm install @react-native-community/push-notification-ios@^1.12.0
@@ -226,7 +212,7 @@ npm install @react-native-community/push-notification-ios@^1.12.0
 ### 5.3 AppDelegate.swift modifications:
 
 Add imports at the top:
-```
+```swift
 import UserNotifications
 import RNCPushNotificationIOS
 ```
@@ -253,7 +239,7 @@ Add the following inside the `didFinishLaunchingWithOptions` method:
     } 
 ```
 
-Add the following methods to handle push notifications:
+Add the following methods to handle push notification events:
 ```swift
 func application(
     _ application: UIApplication,
@@ -303,7 +289,6 @@ func userNotificationCenter(
 ```
 
 Add the following to `Podfile` to avoid framework linkage issues:
-
 ```ruby
   use_frameworks! :linkage => :static
 ```
@@ -337,33 +322,33 @@ Also, define your APNs provider ID from the CometChat Dashboard.
 And request permissions on mount:
 
 ```tsx
-  const APNS_PROVIDER_ID = 'YOUR_APNS_PROVIDER_ID'; // from CometChat Dashboard
-  const apnsTokenRef = useRef<string | null>(null);
+const APNS_PROVIDER_ID = 'YOUR_APNS_PROVIDER_ID'; // from CometChat Dashboard
+const apnsTokenRef = useRef < string | null > (null);
 
-  useEffect(() => {
+useEffect(() => {
     if (Platform.OS !== 'ios') return;
 
     const onRegister = (deviceToken: string) => {
-      console.log(' APNs device token captured:', deviceToken);
-      apnsTokenRef.current = deviceToken;
+        console.log(' APNs device token captured:', deviceToken);
+        apnsTokenRef.current = deviceToken;
     };
 
     PushNotificationIOS.addEventListener('register', onRegister);
 
     PushNotificationIOS.addEventListener('registrationError', error => {
-      console.error(' APNs registration error:', error);
+        console.error(' APNs registration error:', error);
     });
 
     // Trigger permission + native registration
     PushNotificationIOS.requestPermissions().then(p =>
-      console.log('Push permissions:', p),
+        console.log('Push permissions:', p),
     );
 
     return () => {
-      PushNotificationIOS.removeEventListener('register');
-      PushNotificationIOS.removeEventListener('registrationError');
+        PushNotificationIOS.removeEventListener('register');
+        PushNotificationIOS.removeEventListener('registrationError');
     };
-  }, []);
+}, []);
 ```
 
 After user login, register the APNs token:
