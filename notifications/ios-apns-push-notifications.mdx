@@ -144,7 +144,7 @@ extension AppDelegate: PKPushRegistryDelegate, CXProviderDelegate {
             pushRegistry = registry
             print("Push registry initialized")
         } else {
-            print("ℹ️ Push registry already initialized")
+            print("Push registry already initialized")
         }
     }
 
@@ -167,7 +167,7 @@ extension AppDelegate: PKPushRegistryDelegate, CXProviderDelegate {
         for type: PKPushType,
         completion: @escaping () -> Void
     ) {
-        print("📞 Incoming VoIP push received")
+        print("Incoming VoIP push received")
         let provider = cometchatAPNsHelper.didReceiveIncomingPushWith(payload: payload)
         provider?.setDelegate(self, queue: nil)
         completion()
@@ -181,12 +181,12 @@ extension AppDelegate: PKPushRegistryDelegate, CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        print("📞 User answered call")
+        print("User answered call")
         cometchatAPNsHelper.onAnswerCallAction(action: action)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        print("📵 User ended call")
+        print("User ended call")
         cometchatAPNsHelper.onEndCallAction(action: action)
         action.fulfill()
     }
@@ -287,7 +287,7 @@ class CometChatAPNsHelper {
         
         let hexString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         UserDefaults.standard.set(hexString, forKey: "apnspuToken")
-        print("📱 APNs token: \(hexString)")
+        print("APNs token: \(hexString)")
         
         CometChatNotifications.registerPushToken(
             pushToken: hexString,
@@ -305,7 +305,7 @@ class CometChatAPNsHelper {
     // MARK: - Register Pending Token (After Login)
     private func registerPendingTokenIfNeeded() {
         if let pendingToken = UserDefaults.standard.string(forKey: "pendingAPNsToken") {
-            print("📱 Registering pending APNs token after login...")
+            print("Registering pending APNs token after login...")
             if let tokenData = hexStringToData(pendingToken) {
                 registerTokenForPushNotification(deviceToken: tokenData)
                 UserDefaults.standard.removeObject(forKey: "pendingAPNsToken")
@@ -338,7 +338,7 @@ class CometChatAPNsHelper {
         
         let deviceToken = pushCredentials.token.reduce("", {$0 + String(format: "%02X", $1) })
         UserDefaults.standard.set(deviceToken, forKey: "voipToken")
-        print("📞 VoIP token: \(deviceToken)")
+        print("VoIP token: \(deviceToken)")
         
         CometChatNotifications.registerPushToken(
             pushToken: deviceToken,
@@ -494,7 +494,7 @@ extension CometChatAPNsHelper {
         }
         
         let applicationState = UIApplication.shared.applicationState
-        print("📞 VoIP push received - Action: \(callAction), State: \(applicationState.rawValue)")
+        print("VoIP push received - Action: \(callAction), State: \(applicationState.rawValue)")
         
         if type == "call" {
             switch callAction {
@@ -502,7 +502,7 @@ extension CometChatAPNsHelper {
                 switch applicationState {
                 case .active:
                     if CometChat.getActiveCall() != nil {
-                        print("📵 User already on a call, rejecting with busy...")
+                        print("User already on a call, rejecting with busy...")
                         CometChat.rejectCall(sessionID: sessionId, status: .busy, onSuccess: { rejectedCall in
                             print("Rejected incoming call with busy status")
                         }, onError: { error in
@@ -519,7 +519,7 @@ extension CometChatAPNsHelper {
                 }
                 
             case "ongoing":
-                print("📞 Call ongoing")
+                print("Call ongoing")
                 break
                 
             case "unanswered":
