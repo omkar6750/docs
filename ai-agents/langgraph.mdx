@@ -121,20 +121,3 @@ Choose how you’ll ship the experience (Widget or React UI Kit export).
   <Step title="React UI Kit path">Export the variant as code if you need deeper theming or custom logic.</Step>
 <Step title="Verify agent inclusion">Preview to confirm your LangGraph agent responds and streams correctly.</Step>
 </Steps>
-
----
-
-## Reference runnable services (examples)
-
-- **TypeScript** (NDJSON over HTTP): `typescript/langgraph-knowledge-agent` and `typescript/langgraph-product-hunt-agent`
-  - Install: `npm install`
-  - Env: copy `.env.example` → `.env`, set `OPENAI_API_KEY` (optional model override per service)
-  - Run server: `npm run server` (listens on `http://localhost:3000/kickoff`)
-  - Test: `curl -N http://localhost:3000/kickoff -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Hello"}]}'`
-- **Python** (FastAPI NDJSON): `python/langgraph_knowledge_agent` and `python/langgraph_product_hunt_agent`
-  - Install: `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
-  - Env: `.env` with `OPENAI_API_KEY` (optional `MODEL`)
-  - Run server: `python -m langgraph_knowledge_agent.server` or `python -m langgraph_product_hunt_agent.server` (listen on `http://localhost:8000/kickoff`)
-  - Test: `curl -N http://localhost:8000/kickoff -H "Content-Type: application/json" -d '{"thread_id":"t1","run_id":"r1","messages":[{"role":"user","content":"Hi"}]}'`
-
-All example servers emit newline-delimited JSON with the event order noted above and include tool call events. Echo `thread_id`/`run_id` from the request so CometChat can stitch turns together.
