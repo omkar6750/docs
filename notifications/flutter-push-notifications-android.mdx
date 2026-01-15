@@ -26,6 +26,12 @@ description: "CometChat push notifications in Flutter apps on Android using Fire
 - Flutter 3.24+ / Dart 3+, the latest CometChat UI Kit (`cometchat_chat_uikit`) and Calls UI Kit (`cometchat_calls_uikit`) packages.
 - Physical Android device for testing—full-screen call notifications and background delivery are unreliable on emulators.
 
+## How FCM + CometChat work together
+
+- **FCM’s role:** Issues the Android registration token and delivers the push payload to the device.  
+- **CometChat’s role:** The FCM provider you add in the CometChat dashboard stores your Firebase service account. When `PNRegistry.registerPNService(token, true, false)` runs after login, CometChat binds that token to the logged-in user and sends pushes to FCM on your behalf.  
+- **Flow:** Permission (Android 13+ `POST_NOTIFICATIONS`) → Firebase returns FCM token → after `CometChatUIKit.login`, register with `PNRegistry` (uses `AppCredentials.fcmProviderId`) → CometChat sends to FCM → FCM delivers to the device → `NotificationLaunchHandler` / `VoipNotificationHandler` route taps and call actions.
+
 ## 1. Enable push and add providers (CometChat Dashboard)
 
 1. Go to **Notifications → Settings** and enable **Push Notifications**.

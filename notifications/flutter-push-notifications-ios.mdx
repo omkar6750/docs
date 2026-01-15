@@ -26,6 +26,12 @@ description: "CometChat push notifications in Flutter apps on iOS using Apple Pu
 - Flutter 3.24+ / Dart 3+, the latest CometChat UI Kit (`cometchat_chat_uikit`) and Calls UI Kit (`cometchat_calls_uikit`) packages.
 - Physical iPhone or iPad for testing—simulators cannot receive VoIP pushes or present CallKit UI.
 
+## How FCM + CometChat work together
+
+- **APNs is primary on iOS:** FCM can be used only as a bridge. Firebase hands the payload to APNs using the APNs key you uploaded in Firebase.  
+- **CometChat providers:** The APNs/VoIP/FCM providers you create in the CometChat dashboard hold your Apple/FCM credentials. `CometChatPushRegistry.register(token, isFcm: false, isVoip: ...)` binds the APNs/VoIP tokens; `isFcm: true` uses the FCM provider if you decide to register FCM tokens too.  
+- **Flow:** Permission prompt → APNs (and/or FCM) token issued → after `CometChatUIKit.login` succeeds, register tokens with `CometChatPushRegistry` using the matching provider IDs → CometChat sends to FCM/APNs → APNs delivers to the device → Flutter handles taps via `NotificationLaunchHandler` and `APNSService`.
+
 ## 1. Enable push and add providers (CometChat Dashboard)
 
 1. Go to **Notifications → Settings** and enable **Push Notifications**.
