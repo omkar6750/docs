@@ -550,7 +550,7 @@ CometChatNotifications.unregisterPushToken(object : CometChat.CallbackListener<S
 // Then call CometChatUIKit.logout()
 ```
 
-## 8. What arrives in the push payload
+{/* ## 8. What arrives in the push payload
 
 Payload keys delivered to `onMessageReceived` (adapted from the shared push integration):
 
@@ -577,16 +577,16 @@ Payload keys delivered to `onMessageReceived` (adapted from the shared push inte
 }
 ```
 
-Use `message` for deep links (`CometChatHelper.processMessage`) and `type/callAction` to branch chat vs call flows.
+Use `message` for deep links (`CometChatHelper.processMessage`) and `type/callAction` to branch chat vs call flows. */}
 
-## 9. Handle message pushes
+## 8. Handle message pushes
   
 - [`FCMService.onMessageReceived`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMService.kt) checks `message.data["type"]`.
 - For `type == "chat"`: mark delivered (`CometChat.markAsDelivered`), skip notifying if the chat is already open (`MyApplication.currentOpenChatId`), and build grouped notifications (avatars + BigText) via [`FCMMessageNotificationUtils`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageNotificationUtils.kt) with inline reply actions.
 - [`FCMMessageBroadcastReceiver`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMMessageBroadcastReceiver.kt) handles inline replies, initializes the SDK headlessly, sends the reply, and refreshes the notification.
 - In your messaging service (e.g., `FCMService`), set the notification tap intent to your splash/entry activity (e.g., `SplashActivity`), and keep the `currentOpenChatId` check to suppress notifications for the open chat.
 
-## 10. Handle call pushes (ConnectionService)
+## 9. Handle call pushes (ConnectionService)
 
 - For `type == "call"`, `FCMService.handleCallFlow` parses [`FCMCallDto`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/fcm/FCMCallDto.kt) and routes to the `voip` package.
 - [`CometChatVoIP`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/voip/CometChatVoIP.kt) registers a `PhoneAccount` and triggers `TelecomManager.addNewIncomingCall` for native full-screen UI with Accept/Decline.
@@ -595,7 +595,7 @@ Use `message` for deep links (`CometChatHelper.processMessage`) and `type/callAc
 - Foreground suppression: the sample ignores VoIP banners if `MyApplication.isAppInForeground()` is true; keep or remove based on your UX.
 - Cancel/unanswered handling: on `callAction` of `cancelled`/`unanswered`, end the active telecom call if the session IDs match.
 
-## 11. Customize notification text or parse payloads
+## 10. Customize notification text or parse payloads
 
 Parse the push into a `BaseMessage` for deep links:
 
@@ -618,9 +618,9 @@ CometChat.sendCustomMessage(customMessage, object : CallbackListener<CustomMessa
 ```
 
 Adds a `pushNotification` field in metadata so CometChat uses your custom text as the push body for that message.
-## 12. Navigation from notifications
+## 11. Navigation from notifications
 Notification taps launch [`SplashActivity`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/sample-app-kotlin%2Bpush-notification/src/main/java/com/cometchat/sampleapp/kotlin/fcm/ui/activity/SplashActivity.kt); it reads `NOTIFICATION_PAYLOAD` extras and opens the correct user or group in `MessagesActivity`. Keep `launchMode` settings that allow the intent extras to arrive.
-## 13. Testing checklist
+## 12. Testing checklist
 
 1. Install on a physical device and grant notification + mic permissions (Android 13+ needs `POST_NOTIFICATIONS`).
 2. Log in and ensure token registration succeeds (check Logcat).
