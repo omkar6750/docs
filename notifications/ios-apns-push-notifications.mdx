@@ -1,6 +1,6 @@
 ---
 title: "iOS APNs Push Notifications"
-description: "Implement APNs + PushKit + CallKit like the UIKit iOS push sample so messages and calls work from foreground to terminated states—no separate integration page needed."
+description: "Implement APNs push notifications with CometChat UIKit for iOS, including CallKit integration for VoIP calls."
 --- 
 
 <Card
@@ -24,7 +24,7 @@ description: "Implement APNs + PushKit + CallKit like the UIKit iOS push sample 
 - Apple capabilities: Push Notifications, Background Modes (Remote notifications, Voice over IP), CallKit usage descriptions. Physical device required.
 - `.p8` APNs key (Key ID, Team ID, Bundle ID) or certificates.
 
-## 1. Enable push and add providers (CometChat dashboard)
+## 1. Enable push and add providers (CometChat Dashboard)
 
 1) Go to **Notifications → Settings** and enable **Push Notifications**.
 
@@ -53,13 +53,13 @@ Keep the provider IDs—you’ll paste them into your app constants.
 
 ## 3. Wiring APNs + PushKit/CallKit
 
-- Copy `CometChatAPNsHelper.swift`, `CometChatPNHelper.swift`, and the two `AppDelegate` extensions (`AppDelegate+PN.swift` and `AppDelegate+VoIP.swift`) into your project.
+- From below code, copy `CometChatAPNsHelper.swift`, `CometChatPNHelper.swift`, and the two `AppDelegate` extensions (`AppDelegate+PN.swift` and `AppDelegate+VoIP.swift`) into your project.
 - These files implement APNs + PushKit/CallKit handling, notification presentation, tap and quick-reply actions, and call management.
 - Update bundle ID, team ID, and provider IDs (`AppConstants.PROVIDER_ID` etc.). Keep the `voip` push type.
 
 <Tabs>
   <Tab title="AppDelegate + PN.swift">
-```swift
+```swift lines
 import Foundation
 import UIKit
 import CometChatSDK
@@ -103,7 +103,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 ```
   </Tab>
   <Tab title="AppDelegate + VoIP.swift">
-  ```swift
+  ```swift lines
 #if canImport(CometChatCallsSDK)
 
 import Foundation
@@ -250,7 +250,7 @@ extension AppDelegate: PKPushRegistryDelegate, CXProviderDelegate {
   ```
   </Tab>
   <Tab title="CometChatAPNsHelper.swift">
-```swift
+```swift lines
 import Foundation
 import UIKit
 import CometChatSDK
@@ -807,7 +807,7 @@ extension CometChatAPNsHelper: CometChatCallEventListener {
   ```
   </Tab>
   <Tab title="CometChatPNHelper.swift">
-  ```swift
+  ```swift lines
 import Foundation
 import UIKit
 import CometChatSDK
@@ -1072,12 +1072,11 @@ class CometChatPNHelper {
   ```
   </Tab>
   <Tab title="AppConstants.swift">
-```swift
+```swift lines highlight={5-8}
 import Foundation
 import UIKit
 
 class AppConstants {
-    
     static var APP_ID: String = ""
     static var AUTH_KEY: String = ""
     static var REGION: String = ""
@@ -1107,7 +1106,7 @@ extension AppConstants{
 - Make sure to import the necessary modules at the top of the file.
 - Complete your `AppDelegate.swift` as shown below:
 
-```Swift
+```Swift lines highlight={17, 19, 22}
 import UIKit
 import PushKit
 import CometChatSDK
