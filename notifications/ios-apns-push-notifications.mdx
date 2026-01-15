@@ -24,6 +24,12 @@ description: "Implement APNs push notifications with CometChat UIKit for iOS, in
 - Apple capabilities: Push Notifications, Background Modes (Remote notifications, Voice over IP), CallKit usage descriptions. Physical device required.
 - `.p8` APNs key (Key ID, Team ID, Bundle ID) or certificates.
 
+## How APNs + CometChat work together
+
+- **APNs is the transport:** Apple issues the APNs device/VoIP tokens and delivers the payloads. No FCM bridge is involved.  
+- **CometChat providers:** The APNs Device and APNs VoIP providers you add in the CometChat dashboard hold your APNs key/cert. When you call `CometChatNotifications.registerPushToken(..., .APNS_IOS_DEVICE / .APNS_IOS_VOIP, providerId)` after login, CometChat binds those tokens to the logged-in user and sends to APNs for you.  
+- **Flow:** Permission prompt → APNs returns device + VoIP tokens → after `CometChat.login`, register both tokens with the matching provider IDs → CometChat sends to APNs → APNs delivers → `UNUserNotificationCenterDelegate` (and `PushKit`/`CallKit` for VoIP) surface the notification/tap.
+
 ## 1. Enable push and add providers (CometChat Dashboard)
 
 1) Go to **Notifications → Settings** and enable **Push Notifications**.
