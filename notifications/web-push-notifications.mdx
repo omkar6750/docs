@@ -326,6 +326,78 @@ await CometChatNotifications.registerPushToken(
 - On logout: `CometChatNotifications.unregisterPushToken()` before ending the session.
 - Handle token refresh by calling `getToken` again and re-registering if it changes.
 
+Example Implementation 
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
+import { COMETCHAT_CONSTANTS } from "./AppConstants.ts";
+
+import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
+
+// Your firebase helper (from firebase.js)
+// Adjust the path if your file lives somewhere else.
+import firebaseInitialize, { registerPushTokenAfterLogin } from "./firebase";
+
+/**
+ * CometChat Constants - Replace with your actual credentials
+ */
+
+const UID = "cometchat-uid-1";
+
+/**
+ * Configure the CometChat UI Kit using the UIKitSettingsBuilder.
+ */
+const UIKitSettings = new UIKitSettingsBuilder()
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
+
+function mountApp() {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+}
+
+async function boot() {
+  try {
+    // 1) Init CometChat UIKit
+    await CometChatUIKit.init(UIKitSettings);
+    console.log("CometChat UI Kit initialized successfully.");
+
+    // 2) Init Firebase messaging + foreground handlers once
+    // (This sets up messagingInstance and onMessage handler in your firebase.js)
+    await firebaseInitialize();
+
+    // 3) Login if needed
+    const existing = await CometChatUIKit.getLoggedinUser();
+    if (!existing) {
+      const user = await CometChatUIKit.login(UID);
+      console.log("Login Successful:", { user });
+    } else {
+      console.log("User already logged in:", { user: existing });
+    }
+
+    // 4) Mount UI (don’t block UI on push)
+    mountApp();
+
+    // 5) Register push AFTER login (requests permission if needed)
+    // Non-blocking so app loads even if user denies permission
+    void registerPushTokenAfterLogin();
+  } catch (error) {
+    console.error("CometChat UI Kit initialization/login failed:", error);
+  }
+}
+
+boot();
+```
+
 ## 7. Foreground + background handling
 
 - **Foreground**: `messaging.onMessage` → show a `Notification` or in-app toast; deep link using payload data.
