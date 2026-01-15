@@ -41,31 +41,38 @@ description: "Guide to integrating Firebase Cloud Messaging (FCM) push notificat
   <img src="/images/80a520bb-pushnotification-enable-e64632d479a2ebba111453b95bd522c6.png" alt="Enable Push Notifications" />
 </Frame>
 
-2) Click **Add Credentials**:
-   - Add an **FCM iOS provider** and upload your Firebase service account JSON; copy the Provider ID.
+2) On Firebase:
+    - Go to **Project Settings → Service accounts** and generate a new private key; download the JSON file.
 
 <Frame>
   <img src="/images/c6447647-pushnotification-fcm-68092b02a5361d51ba14b09289da3a78.png" alt="Add FCM credentials" />
 </Frame>
 
-Add FCM provider:
+3) On CometChat Dashboard:
+   - Add an **FCM iOS provider** and upload your Firebase service account JSON; copy the Provider ID.
 
 <Frame>
   <img src="/images/push-notifications-guide-2.png" alt="Add FCM credentials" />
 </Frame>
-
-3) Keep the provider IDs handy; you’ll paste them into your app constants.
 
  ## 2. Upload your APNs Certificates
 
 1) In the **Firebase Console**, go to **Project Settings → Cloud Messaging**.
 2) Under **iOS app configuration**, upload your APNs authentication key or certificates.
 
+<Frame>
+  <img src="/images/push-notifications-ios-fcm.png" alt="Upload APNs Certificates in Firebase Console" />
+</Frame>
+
 ## 3. Prepare Firebase and CometChat
 
-1) Dashboard: enable **Push Notifications**, add providers for **FCM iOS**. Copy the provider IDs.  
-2) Firebase Console: upload APNs auth key/cert under Cloud Messaging; add `GoogleService-Info.plist` to your target.  
-3) Xcode capabilities: Push Notifications, Background Modes → Remote notifications.
+1) Firebase Console: download and add `GoogleService-Info.plist` to your target.  
+
+<Frame>
+  <img src="/images/push-notifications-ios-fcm-info.png" alt="Upload APNs Certificates in Firebase Console" />
+</Frame>
+
+2) Xcode capabilities: Push Notifications, Background Modes → Remote notifications.
 
 <Frame>
   <img src="/images/notification-capabilities-fcm.png" alt="Enable Push Notifications and Background Modes for FCM" />
@@ -73,7 +80,7 @@ Add FCM provider:
 
 ## 4. Add dependencies (Podfile)
 
-```ruby
+```ruby lines
 target 'YourApp' do
   use_frameworks!
 
@@ -88,7 +95,7 @@ Run `pod install`.
 
 ## 5. Wire AppDelegate (Firebase + delegates)
 
-```swift
+```swift lines highlight={15, 17, 19-37}
 import UIKit
 import FirebaseCore
 import FirebaseMessaging
