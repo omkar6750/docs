@@ -2,13 +2,18 @@
 title: "Integration"
 ---
 
-Email notifications integration is possible using SendGrid as a provider or a custom provider. Custom provider allows integration with providers other than SendGrid.
+Connect CometChat email notifications to SendGrid or your own provider, wire the required webhooks, and keep timezones in sync for scheduling.
 
-## SendGrid
+## Provider options
+
+- **SendGrid (recommended)**: Native integration with templates, unsubscribe groups, and replies.
+- **Custom provider**: Bring your own email gateway/webhook. See `notifications/email-custom-providers.mdx` for payload and endpoint details.
+
+## SendGrid setup
 
 We have partnered with SendGrid for sending Email Notifications and hence you need to set up an account on [SendGrid](https://www.sendgrid.com/) before you start using the extension.
 
-### Get your SendGrid API Key
+### 1. Get your SendGrid API key
 
 1. Log in to your SendGrid account.
 2. In the left navigation pane, go to Settings and select API Keys.
@@ -16,7 +21,7 @@ We have partnered with SendGrid for sending Email Notifications and hence you ne
 4. Give a name to your API Key and select Full Access to get started.
 5. Make a note of the **API key** for later use.
 
-### Create an email template
+### 2. Create an email template
 
 1. Log in to your SendGrid account.
 2. In the left navigation pane, go to Email API and select Dynamic Templates.
@@ -33,7 +38,7 @@ We have partnered with SendGrid for sending Email Notifications and hence you ne
 
 <Tabs>
 <Tab title="For one-on-one conversation">
-```json
+```json lines
 {
   "to": {
     "uid": "cometchat-uid-1",
@@ -72,7 +77,7 @@ We have partnered with SendGrid for sending Email Notifications and hence you ne
 </Tab>
 
 <Tab title="For group conversation">
-```json
+```json lines
 {
   "to": {
     "uid": "cometchat-uid-1",
@@ -112,9 +117,9 @@ We have partnered with SendGrid for sending Email Notifications and hence you ne
 
 </Tabs>
 
-13. The email template recommended by us is as follows. Replace "[https://www.YOURSITE.com](https://www.YOURSITE.com)" with your website's URL in the below template.
+13. (Optional) Use our starter template below. Replace `https://www.YOURSITE.com` with your site URL.
 
-```html
+```html lines
 <!doctype html>
 <html>
 
@@ -349,7 +354,7 @@ We have partnered with SendGrid for sending Email Notifications and hence you ne
 </html>
 ```
 
-### Add an unsubscribe group
+### 3. Add an unsubscribe group
 
 An unsubscribe group will allow your users to unsubscribe to only chat email notifications and will allow you to continue to send other emails to that user via SendGrid.
 
@@ -357,11 +362,11 @@ An unsubscribe group will allow your users to unsubscribe to only chat email not
 2. Click on "Create New Group" and give it a name and proper description.
 3. Save your new group and make a note of the **Unsubscribe Group ID** for later use.
 
-### Store contact details
+### 4. Store contact details
 
 Store the Email IDs of your users by using our [Update Contact details API](https://api-explorer.cometchat.com/reference/notifications-update-contact-details).
 
-### Enable Email notifications
+### 5. Enable Email notifications
 
 <Frame>
   <img src="/images/54ca8389-cometchat-notifications-email-enable-b513feed24188a451264b5eeb6f9e2f7.png" />
@@ -371,7 +376,7 @@ Store the Email IDs of your users by using our [Update Contact details API](http
 2. Navigate to **Notifications** > **Settings** in the left-hand menu.
 3. Enable Email notifications feature.
 
-### Save the SendGrid credentials
+### 6. Save the SendGrid credentials
 
 <Frame>
   <img src="/images/a616f241-cometchat-notifications-email-sendgrid-6cfe81f0c6427779357c76bc844874e0.png" />
@@ -391,7 +396,7 @@ The domain used in Sender's Email needs to be Authenticated. Refer to SendGrid's
 
 </Note>
 
-### Save user's timezone
+### 7. Save user timezones
 
 A user's timezone is required to allow them to set a schedule for receiving notifications. In case the timezone is not registered, the default timezone for
 
@@ -414,7 +419,7 @@ This functionality is available in the following SDK versions:
 
 </Note>
 
-### Receive notifications
+### 8. Receive notifications
 
 <Frame>
   <img src="/images/6bfa371b-cometchat-notifications-email-notification-received-8d62facaadbeb1177f2222f7035ea7d7.png" />
@@ -422,7 +427,7 @@ This functionality is available in the following SDK versions:
 
 Send a message to any user and keep the conversation unread for the designated amount of time to receive an email notification.
 
-### Configure email replies
+### 9. Configure email replies (optional)
 
 In the SendGrid provider settings, enable the email replies. Optionally, you can set a different sender's email address. Only ensure that the it doesn't contain any "+" symbol in it.
 
@@ -434,6 +439,14 @@ Before saving the Inbound Host and URL:
 2. Uncheck Send Raw checkbox.
 
 Once this setup is successful, users will be able to reply to an email notification and send messages in a particular conversation on CometChat. The parsing of the replies is heavily dependent on the Email client used and the content of the reply.
+
+### Quick checklist
+
+- Provider: SendGrid API key, Template ID, Unsubscribe Group ID saved in dashboard.
+- Sender: Authenticated domain; sender name/email set.
+- Users: Contact email stored via Update Contact details API; timezones synced via `updateTimezone`.
+- Templates: Email templates configured (subject/body) and wait windows set in preferences.
+- Optional: Replies enabled with Inbound Parse; custom provider wired if not using SendGrid.
 
 
 <CardGroup cols={3}>
