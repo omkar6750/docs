@@ -2,7 +2,13 @@
 title: "Email Templates"
 ---
 
-Use these payload fields when rendering your own email bodies. No sounds apply to email. Providers like SendGrid can consume these fields—map them into Dynamic Template variables or assemble the subject/body in your service before sending.
+Design the subject/body your users see in unread-message emails. No sounds apply to email. Providers like SendGrid can consume these fields—map them into Dynamic Template variables or assemble the subject/body in your service before sending.
+
+## What to customize
+
+- **Subjects and bodies** for 1:1 and group emails (default vs privacy-friendly).
+- **Preview content** from `messages[]` (unread list) and `senderDetails`/`groupDetails`.
+- **Deep links** back to the conversation (add in your provider template).
 
 ## Payload shapes
 
@@ -58,6 +64,12 @@ You can use the provided `subject` field or build your own using `senderDetails.
 | --- | --- | --- | --- |
 | One-on-one notification | New messages from `{{senderDetails.name}}` | New messages from `{{senderDetails.name}}` | New messages from Susan Marie |
 | Group notification | New messages in `{{groupDetails.name}}` | New messages in `{{groupDetails.name}}` | New messages in Hiking Group |
+
+## Tips
+
+- Keep privacy variants generic to avoid leaking message content.
+- Use `messages[0].message` for a short preview; use the length for unread counts.
+- If you use SendGrid Dynamic Templates, map the payload into `dynamic_template_data` (subject, recipient name, sender name, unread count, preview, and the `messages` array).
 
 {/* ## Example: using with SendGrid API
 
