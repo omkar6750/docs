@@ -2,19 +2,40 @@
 title: "Preferences"
 ---
 
-Login to CometChat dashboard and navigate to the Notifications section.
+Preferences define how CometChat notifies users and which parts they can change.
 
-Under Preferences tab, set the event preferences at the CometChat app-level and decide if users have the capability to override these settings. When **"Override"** toggle is enabled, users will have the capability to modify the default value that has been set.
+Set app-wide defaults in **Dashboard -> Notifications -> Preferences**, then decide which settings end users can override. The SDK returns the merged view (admin defaults + user choices) and silently ignores updates to non-overridable fields so admin rules always win.
 
 <Frame>
   <img src="/images/push-notification-preferences.png" />
 </Frame>
 
+**How it flows**
+- Admin sets defaults and override rules in the dashboard.
+- Users inherit those defaults until they change a setting the admin allows.
+- `CometChatNotifications.fetchPreferences()` returns the current merged view.
+- `CometChatNotifications.updatePreferences()` saves allowed changes and returns the updated snapshot.
+
+**Key SDK helpers**
+- `CometChatNotifications.fetchPreferences()` / `updatePreferences()`
+- `CometChatNotifications.getMutedConversations()` / `muteConversations()` / `unmuteConversations()`
+- `CometChatNotifications.resetPreferences()` to restore dashboard defaults
+
+**What's covered**
+- [Push payload message options](#push-payload-message-options)
+- [Group preferences](#group-preferences)
+- [One-on-one preferences](#one-on-one-preferences)
+- [Mute preferences](#mute-preferences) and [Notification schedule](#notification-schedule)
+- [Bypass preferences](#bypass-preferences-for-mentions) for mentions and `@all`
+- [Calls preferences](#calls-preferences) and [Reset preferences](#reset-preferences)
+
+Each section pairs the dashboard defaults with matching client-side snippets so you can mirror the same behavior in your app.
+
 ## Push payload message options
 
 These control what CometChat includes in push payloads. All are optional toggles:
 
-- Include entire message object in payload
+- Include entire message object in payload (largest footprint)
 - Include message metadata in payload
 - Include sender's metadata in payload
 - Include receiver's metadata in payload
@@ -52,6 +73,8 @@ Push notifications should be triggered for the message edited and message delete
 </Note>
 
 #### Client-side implementation
+
+The fetch/update pattern shown here applies to group, one-on-one, mute, and schedule preferences; only the preference classes change.
 
 **1. Fetch group preferences**
 
@@ -166,7 +189,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -205,7 +228,7 @@ groupPreferences.setMemberScopeChangedPreference(
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setGroupPreferences(groupPreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -334,8 +357,8 @@ As the name suggests, these preferences help you to configure Notifications for 
 | --------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | Conversations   | New messages                | • Don't notify<br/>• **Notify for all messages (Default)**<br/>• Notify for messages with mentions                                   | • **Yes (Default)**<br/>• No |
 |                 | New replies                 | • Don't notify<br/>• **Notify for all replies (Default)**<br/>• Notify for replies with mentions                                     | • **Yes (Default)**<br/>• No |
-| Message actions | Message is edited           | • Don't notify<br/>• **Notify (Default)**                                                                                        | - Yes<br/>• **No (Default)** |
-|                 | Message is deleted          | • Don't notify<br/>• **Notify (Default)**                                                                                        | - Yes<br/>• **No (Default)** |
+| Message actions | Message is edited           | • Don't notify<br/>• **Notify (Default)**                                                                                        | • Yes<br/>• **No (Default)** |
+|                 | Message is deleted          | • Don't notify<br/>• **Notify (Default)**                                                                                        | • Yes<br/>• **No (Default)** |
 |                 | Message receives a reaction | • Don't notify<br/>• Notify for reactions received on all messages<br/>• **Notify for reactions received on own messages (Default)** | • **Yes (Default)**<br/>• No |
 
 <Note>
@@ -431,7 +454,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -455,7 +478,7 @@ oneOnOnePreferences.setReactionsPreference(ReactionsOptions.DONT_SUBSCRIBE);
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setOneOnOnePreferences(oneOnOnePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -558,7 +581,7 @@ CometChatNotifications.updatePreferences(updatedPreferences,
 
 #### Dashboard configuration
 
-These preferences allow you to control whether the users will be able to modify mute preferences.
+These preferences control whether end users can change mute settings in the client.
 
 | Mute preferences              | Can user configure?                                                                                                     |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -676,7 +699,9 @@ CometChatNotifications.getMutedConversations(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings. It is unnecessary to specify all values; only set and save the preferences that have been changed.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
+
+It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
 **To mute** one or more group or one-on-one conversations, utilize the `CometChatNotifications.muteConversations()` method. This method requires an array of `MutedConversation` objects, each containing the following properties:
 
@@ -710,7 +735,7 @@ mutePreferences.setDNDPreference(DNDOptions.ENABLED);
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setMutePreferences(mutePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const notificationPreferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -952,13 +977,13 @@ Notifications will be delivered based on the specified daily timetable, adhering
 
 | Day       | From                                | To                              | Can user override?                                                                     |
 | --------- | ----------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------- |
-| Monday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** | • **Yes (Default)** - *Users can configure a personalized notification schedule.*<br/>• No |
-| Tuesday   | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Wednesday | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Thursday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Friday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Saturday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Sunday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
+| Monday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** | • **Yes (Default)** - *Users can configure a personalized notification schedule.*<br/>• No |
+| Tuesday   | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Wednesday | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Thursday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Friday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Saturday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Sunday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
 
 #### Client-side implementation
 
@@ -1004,7 +1029,7 @@ CometChatNotifications.fetchPreferences(new CometChat.CallbackListener<Notificat
       DaySchedule monday = scheduleMap.get(DayOfWeek.MONDAY);
       DaySchedule tuesday = scheduleMap.get(DayOfWeek.TUESDAY);
       DaySchedule wednesday = scheduleMap.get(DayOfWeek.WEDNESDAY);
-      DaySchedule thrusday = scheduleMap.get(DayOfWeek.THURSDAY);
+      DaySchedule thursday = scheduleMap.get(DayOfWeek.THURSDAY);
       DaySchedule friday = scheduleMap.get(DayOfWeek.FRIDAY);
       DaySchedule saturday = scheduleMap.get(DayOfWeek.SATURDAY);
       DaySchedule sunday = scheduleMap.get(DayOfWeek.SUNDAY);
@@ -1086,7 +1111,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -1115,7 +1140,7 @@ updatedPreferences.setOneOnOnePreferences(oneOnOnePreferences);
 updatedPreferences.setGroupPreferences(groupPreferences);
 updatedPreferences.setMutePreferences(mutePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(updatedPreferences);
 ```
 
@@ -1259,7 +1284,7 @@ const defaultPreferences = await CometChatNotifications.resetPreferences();
 CometChatNotifications.resetPreferences(new CometChat.CallbackListener<NotificationPreferences>() {
     @Override
     public void onSuccess(NotificationPreferences defaultPreferences) {
-        // Display the defaultPreferneces.
+        // Display the defaultPreferences.
     }
 
     @Override
