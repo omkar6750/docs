@@ -2,35 +2,32 @@
 title: "Custom Providers"
 ---
 
-Custom provider allows you to make use of providers apart from Twilio for triggering SMS notifications. This is implemented using webhook URL which gets all the required details that can be used to trigger SMS notifications.
+Use a custom provider to send CometChat SMS notifications through any gateway via webhook. Twilio is built-in; choose custom when you want another SMS service or your own bridge.
 
-#### Pre-requisite
+## Prerequisites
 
-1. Your webhook endpoint must be accessible over `HTTPS`. This is essential to ensure the security and integrity of data transmission.
-2. This URL should be publicly accessible from the internet.
-3. Ensure that your endpoint supports the `HTTP POST` method. Event payloads will be delivered via `HTTP POST` requests in `JSON` format.
-4. Configure your endpoint to respond immediately to the CometChat server with a 200 OK response. The response should be sent within 2 seconds of receiving the request.
-5. For security, it is recommended to set up Basic Authentication that is usually used for server-to-server calls. This requires you to configure a username and password. Whenever your webhook URL is triggered, the HTTP Header will contain:
+1. Public `https://` webhook that accepts `POST` JSON.
+2. Return `200 OK` within ~2 seconds (do heavy work async).
+3. Secure the endpoint (recommended): Basic Auth or a verified signature. With Basic Auth, requests include:
 
 ```html
 Authorization: Basic <Base64-encoded-credentials>
 ```
 
-#### Add credentials
+## Add credentials
 
 1. Click on the "+ Add Credentials" button.
 2. Enable the provider.
-3. Enter the publically accessible Webhook URL.
-4. It is recommended to enable Basic Authentication.
-5. Enter the username and password.
-6. Enabling the "Trigger only if phone number is stored with CometChat" setting requires users' phone numbers to be stored with CometChat using the [Update Contact details API](https://api-explorer.cometchat.com/reference/notifications-update-contact-details). When enabled, the webhook is triggered only for those users. If this setting is disabled, the webhook triggers regardless of whether users' phone numbers are stored with CometChat.
-7. Save the credentials.
+3. Enter the publicly accessible webhook URL.
+4. (Recommended) Enable Basic Authentication and set username/password.
+5. Decide if you want to **Trigger only if phone number is stored with CometChat** (via [Update Contact details API](https://api-explorer.cometchat.com/reference/notifications-update-contact-details)); when off, the webhook fires regardless.
+6. Save the credentials.
 
 <Frame>
   <img src="/images/7a3c6338-cometchat-sms-notifications-custom-provider-268e15d0ed5778ccdb0fff5b61d79d81.png" />
 </Frame>
 
-#### How does it work?
+## How delivery works
 
 The Custom provider is triggered once for an event in one-on-one conversation. In case of notifying users in a group, the custom provider is triggered once for each user present in that group.
 
@@ -188,4 +185,3 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 ```
-
