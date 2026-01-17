@@ -1,12 +1,40 @@
 ---
-title: "Preferences, Templates & Sounds"
+title: "Preferences"
 ---
 
-## Common Preferences
+Preferences define how CometChat notifies users and which parts they can change.
 
-Login to CometChat dashboard and navigate to the Notifications section.
+Set app-wide defaults in **Dashboard -> Notifications -> Preferences**, then decide which settings end users can override. The SDK returns the merged view (admin defaults + user choices) and silently ignores updates to non-overridable fields so admin rules always win.
 
-Under Preferences tab, set the event preferences at the CometChat app-level and decide if users have the capability to override these settings. When **"Override"** toggle is enabled, users will have the capability to modify the default value that has been set.
+<Frame>
+  <img src="/images/push-notification-preferences.png" />
+</Frame>
+
+**How it flows**
+- Admin sets defaults and override rules in the dashboard.
+- Users inherit those defaults until they change a setting the admin allows.
+- `CometChatNotifications.fetchPreferences()` returns the current merged view.
+- `CometChatNotifications.updatePreferences()` saves allowed changes and returns the updated snapshot.
+
+**Key SDK helpers**
+- `CometChatNotifications.fetchPreferences()` / `updatePreferences()`
+- `CometChatNotifications.getMutedConversations()` / `muteConversations()` / `unmuteConversations()`
+- `CometChatNotifications.resetPreferences()` to restore dashboard defaults
+
+Each section pairs the dashboard defaults with matching client-side snippets so you can mirror the same behavior in your app.
+
+## Push payload message options
+
+These control what CometChat includes in push payloads. All are optional toggles:
+
+- Include entire message object in payload (largest footprint)
+- Include message metadata in payload
+- Include sender's metadata in payload
+- Include receiver's metadata in payload
+- Trim CometChat message object (strip down to stay within provider limits)
+- Additional data in payload (JSON you add)
+
+Use a minimal combination to stay under ~4 KB for FCM/APNs.
 
 ### Group preferences
 
@@ -37,6 +65,8 @@ Push notifications should be triggered for the message edited and message delete
 </Note>
 
 #### Client-side implementation
+
+The fetch/update pattern shown here applies to group, one-on-one, mute, and schedule preferences; only the preference classes change.
 
 **1. Fetch group preferences**
 
@@ -151,7 +181,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -190,7 +220,7 @@ groupPreferences.setMemberScopeChangedPreference(
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setGroupPreferences(groupPreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -319,8 +349,8 @@ As the name suggests, these preferences help you to configure Notifications for 
 | --------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | Conversations   | New messages                | • Don't notify<br/>• **Notify for all messages (Default)**<br/>• Notify for messages with mentions                                   | • **Yes (Default)**<br/>• No |
 |                 | New replies                 | • Don't notify<br/>• **Notify for all replies (Default)**<br/>• Notify for replies with mentions                                     | • **Yes (Default)**<br/>• No |
-| Message actions | Message is edited           | • Don't notify<br/>• **Notify (Default)**                                                                                        | - Yes<br/>• **No (Default)** |
-|                 | Message is deleted          | • Don't notify<br/>• **Notify (Default)**                                                                                        | - Yes<br/>• **No (Default)** |
+| Message actions | Message is edited           | • Don't notify<br/>• **Notify (Default)**                                                                                        | • Yes<br/>• **No (Default)** |
+|                 | Message is deleted          | • Don't notify<br/>• **Notify (Default)**                                                                                        | • Yes<br/>• **No (Default)** |
 |                 | Message receives a reaction | • Don't notify<br/>• Notify for reactions received on all messages<br/>• **Notify for reactions received on own messages (Default)** | • **Yes (Default)**<br/>• No |
 
 <Note>
@@ -416,7 +446,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -440,7 +470,7 @@ oneOnOnePreferences.setReactionsPreference(ReactionsOptions.DONT_SUBSCRIBE);
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setOneOnOnePreferences(oneOnOnePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -543,7 +573,7 @@ CometChatNotifications.updatePreferences(updatedPreferences,
 
 #### Dashboard configuration
 
-These preferences allow you to control whether the users will be able to modify mute preferences.
+These preferences control whether end users can change mute settings in the client.
 
 | Mute preferences              | Can user configure?                                                                                                     |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -661,7 +691,9 @@ CometChatNotifications.getMutedConversations(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings. It is unnecessary to specify all values; only set and save the preferences that have been changed.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
+
+It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
 **To mute** one or more group or one-on-one conversations, utilize the `CometChatNotifications.muteConversations()` method. This method requires an array of `MutedConversation` objects, each containing the following properties:
 
@@ -695,7 +727,7 @@ mutePreferences.setDNDPreference(DNDOptions.ENABLED);
 // Load the updates in the NotificationPreferences instance.
 updatedPreferences.setMutePreferences(mutePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const notificationPreferences = await CometChatNotifications.updatePreferences(
   updatedPreferences
 );
@@ -937,13 +969,13 @@ Notifications will be delivered based on the specified daily timetable, adhering
 
 | Day       | From                                | To                              | Can user override?                                                                     |
 | --------- | ----------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------- |
-| Monday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** | • **Yes (Default)** - *Users can configure a personalized notification schedule.*<br/>• No |
-| Tuesday   | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Wednesday | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Thursday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Friday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Saturday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
-| Sunday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Upto 2359 **(Default: 2359)** |                                                                                        |
+| Monday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** | • **Yes (Default)** - *Users can configure a personalized notification schedule.*<br/>• No |
+| Tuesday   | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Wednesday | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Thursday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Friday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Saturday  | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
+| Sunday    | • 0 to 2359 **(Default: 0)**<br/>• None | • Up to 2359 **(Default: 2359)** |                                                                                        |
 
 #### Client-side implementation
 
@@ -989,7 +1021,7 @@ CometChatNotifications.fetchPreferences(new CometChat.CallbackListener<Notificat
       DaySchedule monday = scheduleMap.get(DayOfWeek.MONDAY);
       DaySchedule tuesday = scheduleMap.get(DayOfWeek.TUESDAY);
       DaySchedule wednesday = scheduleMap.get(DayOfWeek.WEDNESDAY);
-      DaySchedule thrusday = scheduleMap.get(DayOfWeek.THURSDAY);
+      DaySchedule thursday = scheduleMap.get(DayOfWeek.THURSDAY);
       DaySchedule friday = scheduleMap.get(DayOfWeek.FRIDAY);
       DaySchedule saturday = scheduleMap.get(DayOfWeek.SATURDAY);
       DaySchedule sunday = scheduleMap.get(DayOfWeek.SUNDAY);
@@ -1071,7 +1103,7 @@ CometChatNotifications.fetchPreferences(
 
 `CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
 
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
+Use this sparingly, only when you must temporarily override preferences for a critical event, so users are not surprised by unexpected notification changes.
 
 It is unnecessary to specify all values; only set and save the preferences that have been changed.
 
@@ -1100,7 +1132,7 @@ updatedPreferences.setOneOnOnePreferences(oneOnOnePreferences);
 updatedPreferences.setGroupPreferences(groupPreferences);
 updatedPreferences.setMutePreferences(mutePreferences);
 
-// Update the preferences and receive the udpated copy.
+// Update the preferences and receive the updated copy.
 const preferences = await CometChatNotifications.updatePreferences(updatedPreferences);
 ```
 
@@ -1244,7 +1276,7 @@ const defaultPreferences = await CometChatNotifications.resetPreferences();
 CometChatNotifications.resetPreferences(new CometChat.CallbackListener<NotificationPreferences>() {
     @Override
     public void onSuccess(NotificationPreferences defaultPreferences) {
-        // Display the defaultPreferneces.
+        // Display the defaultPreferences.
     }
 
     @Override
@@ -1280,540 +1312,3 @@ CometChatNotifications.resetPreferences(onSuccess: (defaultPreferences) {
 </Tab>
 
 </Tabs>
-
-## Push notification preferences
-
-The notification payload sent to FCM, APNs, or custom providers can be customized to include the CometChat message object for new messages and replies. To comply with the 4 KB payload size limit required by FCM and APNs, specific parts of the message object can be excluded to reduce the payload size. Additionally, a custom payload in the form of a JSON object can be included in the push payload.
-
-<Frame>
-  <img src="/images/8404b0ad-push-notification-payload-preferences-44e10825461f840f8981af1f2ddac715.png" />
-</Frame>
-
-| Payload setting                  | Available preferences                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| Include CometChat message object | • **false (Default)**<br/>• true                                      |
-| Include Sender's metadata        | • false<br/>• **true (Default)**                                      |
-| Include Receiver's metadata      | • false<br/>• **true (Default)**                                      |
-| Include message metadata         | • false<br/>• **true (Default)**                                      |
-| Trim CometChat text message      | • **false (Default)**<br/>• true                                      |
-| Custom JSON                      | No defaults for this value. If not set, this key is not included. |
-
-## Email notification preferences
-
-| Preference                                   | Values                       | Description                                                                                                                                                                                       |
-| -------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Notify for unread messages only              | • **true (Default)**<br/>• false | • Email notifications are sent only when there are unread messages in a conversation.<br/>• When set to `false`, the notifications are sent irrespective of whether there are unread messages or not. |
-| The interval between two emails (in minutes) | 120                          | • By default, the notifications are triggered after 120 minutes.<br/>• The minimum allowed value is 1 minute.<br/>• The maximum is 1440 minutes (24 hours).                                               |
-| Maximum emails per day                       | 20                           | • By default, a maximum of 20 email notifications can be sent to a user on a given day.<br/>• The minimum value can be set to 1.<br/>• The maximum can be 30.                                             |
-| Maximum emails per conversation per day      | 2                            | • By default, a maximum of 2 email notifications can be sent to a user for a given conversation on a given day.<br/>• The minimum value can be set to 1.<br/>• The maximum can be 30.                     |
-| Include CometChat message object             | • **false (Default)**<br/>• true | If enabled, the message object will be included in the email notification payload. |
-| Include Sender's metadata                    | • **false (Default)**<br/>• true | If enabled, the sender's metadata will be included in the message object (applicable only when the message object is included). |
-| Include Receiver's metadata                  | • **false (Default)**<br/>• true | If enabled, the receiver's metadata will be included in the message object (applicable only when the message object is included). |
-| Include message metadata                     | • **false (Default)**<br/>• true | If enabled, the message metadata will be included in the message object (applicable only when the message object is included). |
-
-## SMS notification preferences
-
-| Preference                                   | Values                       | Description                                                                                                                                                                                     |
-| -------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Notify for unread messages only              | • **true (Default)**<br/>• false | • SMS notifications are sent only when there are unread messages in a conversation.<br/>• When set to `false`, the notifications are sent irrespective of whether there are unread messages or not. |
-| The interval between two emails (in minutes) | 120                          | • By default, the notifications are triggered after 120 minutes.<br/>• The minimum allowed value is 1 minute.<br/>• The maximum is 1440 minutes (24 hours).                                             |
-| Maximum SMS per day                          | 20                           | • By default, a maximum of 20 SMS notifications can be sent to a user on a given day.<br/>• The minimum value can be set to 1.<br/>• The maximum can be 30.                                             |
-| Maximum SMS per conversation per day         | 2                            | • By default, a maximum of 2 SMS notifications can be sent to a user for a given conversation on a given day.<br/>• The minimum value can be set to 1.<br/>• The maximum can be 30.                     |
-| Include CometChat message object             | • **false (Default)**<br/>• true | If enabled, the message object will be included in the SMS notification payload. |
-| Include Sender's metadata                    | • **false (Default)**<br/>• true | If enabled, the sender's metadata will be included in the message object (applicable only when the message object is included). |
-| Include Receiver's metadata                  | • **false (Default)**<br/>• true | If enabled, the receiver's metadata will be included in the message object (applicable only when the message object is included). |
-| Include message metadata                     | • **false (Default)**<br/>• true | If enabled, the message metadata will be included in the message object (applicable only when the message object is included). |
-
-## Common templates and sounds
-
-Templates are designed to specify the content displayed in notifications on the user's device for different events.
-
-Templates incorporate `placeholders`, which reference specific pieces of information determined by properties from the event.
-
-**For example**, New message event has the following structure:
-
-```json
-{
-  "data": {
-    "id": "17",
-    "conversationId": "group_cometchat-guid-1",
-    "sender": "cometchat-uid-2",
-    "receiverType": "group",
-    "receiver": "cometchat-guid-1",
-    "category": "message",
-    "type": "text",
-    "data": {
-      "text": "Hello! How are you?",
-      "entities": {
-        "sender": {
-          "entity": {
-            "uid": "cometchat-uid-2",
-            "name": "George Alan",
-            "role": "default",
-            "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp",
-            "status": "available",
-            "lastActiveAt": 1707901272
-          },
-          "entityType": "user"
-        },
-        "receiver": {
-          "entity": {
-            "guid": "cometchat-guid-1",
-            "icon": "https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp",
-            "name": "Hiking Group",
-            "type": "public",
-            "owner": "cometchat-uid-1",
-            "createdAt": 1706014061,
-            "conversationId": "group_cometchat-guid-1",
-            "onlineMembersCount": 3
-          },
-          "entityType": "group"
-        }
-      },
-    },
-    "sentAt": 1707902030,
-    "updatedAt": 1707902030
-  }
-}
-```
-
-The sender's name is accessible via `data.entities.sender.name`, so the placeholder for the sender's name will be `{{message.data.entities.sender.name}}`. This `placeholder` is substituted within the template with the actual name of the sender aka the `substitution value`.
-
-As an administrator, you can configure:
-
-1. **Default templates** - Use these templates to display previews by leveraging the information contained in the event.
-2. **Privacy templates** - Employ these templates to present generic content in the notification.
-
-### Privacy setting
-
-#### Dashboard configuration
-
-Configure which template will be used for displaying the content of the notifications displayed on user's devices. The available preferences are:
-
-1. Use default template - Enforces the use of default templates for all the users.
-2. Use privacy template - Enforces the use of privacy templates for all the users.
-3. **Use default templates with user privacy override (Default)** - Uses default templates by default, but allows the users to enable privacy to hide the previews.
-
-#### Client-side implementation
-
-**1. Fetch privacy setting**
-
-The method `CometChatNotifications.fetchPreferences()` retrieves the notification preferences saved by the user as an instance of `NotificationPreferences` class. If the user has not configured any preferences, the default preferences defined by the CometChat administrator via the dashboard will be utilized.
-
-<Tabs>
-<Tab title="JavaScript">
-```js
-// This is applicable for web, React native, Ionic cordova
-const preferences = await CometChatNotifications.fetchPreferences();
-
-// Display a toggle for use privacy option TODO
-const usePrivacyTemplate = preferences.getUsePrivacyTemplate();
-```
-
-</Tab>
-
-<Tab title="Android">
-```kotlin
-CometChatNotifications.fetchPreferences(new CometChat.CallbackListener<NotificationPreferences>() {
-  @Override
-  public void onSuccess(NotificationPreferences notificationPreferences) {
-      // Display a toggle for use privacy option
-      boolean usePrivacyTemplate = notificationPreferences.getUsePrivacyTemplate();
-  }
-
-  @Override
-  public void onError(CometChatException e) {
-      // Something went wrong while fetching notification preferences
-  }
-});
-```
-
-</Tab>
-
-<Tab title="iOS">
-```swift
-CometChatNotifications.fetchPreferences { notificationPreferences in
-  // Display a toggle for use privacy option
-  let usePrivacyTemplate = notificationPreferences.usePrivacyTemplate;
-
-} onError: { error in
-  // Something went wrong while fetching notification preferences.
-  print("fetchPreferences: \(error.errorCode) \(error.errorDescription)");
-}
-```
-
-</Tab>
-
-<Tab title="Flutter">
-```dart
-CometChatNotifications.fetchPreferences(
-    onSuccess: (notificationPreferences) {
-      // Display a toggle for use privacy option
-      bool? usePrivacyTemplate = notificationPreferences.usePrivacyTemplate;
-
-    },
-    onError: (e) {
-      debugPrint("fetchPreferences:error ${e.toString()}");
-    });
-```
-
-</Tab>
-
-</Tabs>
-
-**2. Update privacy setting**
-
-`CometChatNotifications.updatePreferences()` method is used to update a user's notification preferences. The "**override**" toggle defined in the dashboard is crucial when updating preferences. If any preference is non-overridable, the method doesn't generate an error; it instead returns the `NotificationPreferences` object with the updated values where overrides are allowed.
-
-This functionality can be beneficial for temporarily superseding certain user preferences to ensure notifications for a specific event are delivered. Nonetheless, it is advisable to use this approach temporarily to avoid confusing users with unexpected changes to their notification settings.
-
-It is unnecessary to specify all values; only set and save the preferences that have been changed.
-
-<Tabs>
-<Tab title="JavaScript">
-```js
-// This is applicable for web, React native, Ionic cordova
-// The example demonstrates modifying all values; however, modifying only the changed values is sufficient.
-
-// Instantiate the NotificationPreferences.
-const updatedPreferences = new NotificationPreferences();
-
-// To update the preference for privacy template
-updatedPreferences.setUsePrivacyTemplate(true);
-
-// Update the preferences and receive the udpated copy.
-const notificationPreferences = await CometChatNotifications.updatePreferences(
-  updatedPreferences
-);
-```
-
-</Tab>
-
-<Tab title="Android">
-```kotlin
-// The example demonstrates modifying all values; however, modifying only the changed values is sufficient.
-// Instantiate the NotificationPreferences.
-NotificationPreferences updatedPreferences = new NotificationPreferences();
-
-// To update the preference for privacy template
-updatedPreferences.setUsePrivacyTemplate(true);
-
-// Update the preferences.
-CometChatNotifications.updatePreferences(updatedPreferences, new CometChat.CallbackListener<NotificationPreferences>() {
-    @Override
-    public void onSuccess(NotificationPreferences notificationPreferences) {
-        // Updated notificationPreferences
-    }
-
-    @Override
-    public void onError(CometChatException e) {
-        // Something went wrong
-    }
-});
-```
-
-</Tab>
-
-<Tab title="iOS">
-```swift
-// The example demonstrates modifying all values; however, modifying only the changed values is sufficient.
-
-// Instantiate the NotificationPreferences.
-let updatedPreferences = CometChatNotifications.NotificationPreferences();
-
-// To update the preference for privacy template
-updatedPreferences.set(usePrivacyTemplate: true)
-
-// Update the preferences.
-CometChatNotifications.updatePreferences(updatedPreferences) { prefs in
-    print("updatePreferences: \(prefs)")
-} onError: { error in
-    print("updatePreferences: \(error.errorCode) \(error.errorDescription)")
-}
-```
-
-</Tab>
-
-<Tab title="Flutter">
-```dart
-// The example demonstrates modifying all values; however, modifying only the changed values is sufficient.
-
-// Instantiate the NotificationPreferences
-NotificationPreferences updatedPreferences = NotificationPreferences();
-
-// To update the preference for privacy template
-updatedPreferences.usePrivacyTemplate = true;
-
-// Update the preferences.
-CometChatNotifications.updatePreferences(updatedPreferences,
-    onSuccess: (preferencesAfterUpdate) {
-  debugPrint("updatePreferences:success");
-  // Use the preferencesAfterUpdate
-}, onError: (e) {
-  debugPrint("updatePreferences:error: ${e.toString()}");
-});
-```
-
-</Tab>
-
-</Tabs>
-
-### Text message templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | `{{message.data.text}}`                                                                           | New message                                                                                       |
-
-### Media message templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body for Image     | 📷 Has sent an image                                                                              | New image message                                                                                 |
-| Body for Audio     | 🔈 Has sent an audio                                                                              | New audio message                                                                                 |
-| Body for Audio     | 🎥 Has sent a video                                                                               | New video message                                                                                 |
-| Body for Audio     | 📄 Has sent a file                                                                                | New file message                                                                                  |
-
-### Custom message templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | `{{message.data.text}}`                                                                           | `{{message.data.text}}`                                                                           |
-| Body (Fallback)    | New message                                                                                       | New message                                                                                       |
-
-**Note:** The "Body (Fallback)" value is utilized when any placeholders within the "Body" fail to resolve to an appropriate substitution value.
-
-**For example**, if `{{message.data.text}}` in the aforementioned scenario evaluates to `null` or `undefined`, the "Body (Fallback)" value will be utilized.
-
-Ideally, the "Body (Fallback)" value should not contain any placeholders to prevent additional resolution failures.
-
-### Interactive form templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | `{{data.interactiveData.title}}`                                                                  | New message                                                                                       |
-
-### Interactive card templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | `{{data.interactiveData.title}}`                                                                  | New message                                                                                       |
-
-### Interactive scheduler templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | New invite                                                                                        | New invite                                                                                        |
-
-### Custom Interactive message templates
-
-| Template for       | Default template values                                                                           | Privacy template values                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Title (One-on-one) | `{{message.data.entities.sender.entity.name}}`                                                    | `{{message.data.entities.sender.entity.name}}`                                                    |
-| Title (Group)      | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` | `{{message.data.entities.sender.entity.name}}` @ `{{message.data.entities.receiver.entity.name}}` |
-| Body               | New message                                                                                       | New message                                                                                       |
-
-### Sounds
-
-The sound files must be included within the app's bundle. These values are set within the notification payload as values of the "sound" field.
-
-**Sound for Call Notifications:** Specify the name of the sound file you wish to play for call notifications.
-
-**Sound for Chat Notifications:** Specify the name of the sound file you wish to play for chat notifications.
-
-## Email notification templates
-
-You can use a default template or a privacy template in case you consider the information to be displayed as sensitive. The data available for email's subject template is as follows:
-
-<Tabs>
-<Tab title="For one-on-one conversation">
-```json
-{
-  "to": {
-    "uid": "cometchat-uid-1",
-    "name": "Andrew Joseph",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"
-  },
-  "messages": [
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "Are we meeting on this weekend?",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    },
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "📷 Has shared an image",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    }
-  ],
-  "senderDetails": {
-    "uid": "cometchat-uid-4",
-    "name": "Susan Marie",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp"
-  }
-}
-```
-
-</Tab>
-
-<Tab title="For group conversation">
-```json
-{
-  "to": {
-    "uid": "cometchat-uid-1",
-    "name": "Andrew Joseph",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"
-  },
-  "messages": [
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "Hello all! What's up?",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    },
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "This is the place I was thinking about",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    }
-  ],
-  "groupDetails": {
-    "guid": "cometchat-guid-1",
-    "name": "Hiking Group",
-    "icon": "https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"
-  }
-}
-```
-
-</Tab>
-
-</Tabs>
-
-Considering the above data, an email's subject can be formatted as follows:
-
-| Subject for             | Template                                                                                      | Final subject                                                            |
-| ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Group notification      | Hello `{{to.name}}`! You have `{{messages.length}}` message(s) in `{{groupDetails.name}}`.    | Hello **Andrew Joseph**! You have **2** message(s) in **Hiking Group**.  |
-| One-on-one notification | Hello `{{to.name}}`! You have `{{messages.length}}` message(s) from `{{senderDetails.name}}`. | Hello **Andrew Joseph**! You have **2** message(s) from **Susan Marie**. |
-
-## SMS notification templates
-
-You can use a default template or a privacy template in case you consider the information to be displayed as sensitive. The data available for SMS template is as follows:
-
-<Tabs>
-<Tab title="For one-on-one conversation">
-```json
-{
-  "to": {
-    "uid": "cometchat-uid-1",
-    "name": "Andrew Joseph",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"
-  },
-  "messages": [
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "Are we meeting on this weekend?",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    },
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "📷 Has shared an image",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    }
-  ],
-  "senderDetails": {
-    "uid": "cometchat-uid-4",
-    "name": "Susan Marie",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp"
-  }
-}
-```
-
-</Tab>
-
-<Tab title="For group conversation">
-```json
-{
-  "to": {
-    "uid": "cometchat-uid-1",
-    "name": "Andrew Joseph",
-    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"
-  },
-  "messages": [
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "Hello all! What's up?",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    },
-    {
-      "sender": {
-        "uid": "cometchat-uid-4",
-        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-4.webp",
-        "name": "Susan Marie"
-      },
-      "message": "This is the place I was thinking about",
-      "messageObject": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited
-    }
-  ],
-  "groupDetails": {
-    "guid": "cometchat-guid-1",
-    "name": "Hiking Group",
-    "icon": "https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"
-  }
-}
-```
-
-</Tab>
-
-</Tabs>
-
-Considering the above data, an SMS can be formatted as follows:
-
-| SMS for                 | Template                                                                                                                                                     | Final content                                                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Group notification      | You've received `{{messages.length}}` message(s) in `{{groupDetails.name}}`! Read them at [https://your-website.com](https://your-website.com).              | You've received **2** message(s) in Hiking Group! Read them at [https://your-website.com](https://your-website.com).                |
-| One-on-one notification | You've received `{{messages.length}}` message(s) from `{{senderDetails.name}}`! Read them at [https://your-website.com/chat](https://your-website.com/chat). | You've received **2** message(s) from **Susan Marie**! Read them at [https://your-website.com/chat](https://your-website.com/chat). |
-
-<Note>
-
-Replace [https://your-website.com/chat](https://your-website.com/chat) with the URL of your actual website.
-
-</Note>
