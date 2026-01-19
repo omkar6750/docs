@@ -99,94 +99,100 @@ Add the CometChat Widget by pasting one small code snippet. It drops in like any
 ### Paste this into Footer (Code Injection)
 
 ```html
+<!-- Add to Code Injection or Code Block -->
 <div id="cometChatMount"></div>
+
 <script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
 
 <script>
-  const COMETCHAT_CONFIG = {
-    appID: "YOUR_APP_ID",
-    region: "YOUR_APP_REGION",
-    authKey: "YOUR_AUTH_KEY",
-  };
+const COMETCHAT_CONFIG = {
+  appID: "YOUR_APP_ID",
+  region: "YOUR_APP_REGION",      // e.g. "us", "eu", "in"
+  authKey: "YOUR_AUTH_KEY",
+};
 
-  const WIDGET_SETTINGS = {
-    targetElementID: "cometChatMount",
-    width: "450px",
-    height: "80vh",
-    isDocked: true,
-  };
+const WIDGET_SETTINGS = {
+  mount: "#cometChatMount",
+  width: "450px",
+  height: "80vh",
+  isDocked: true,
+  // dockedAlignment: "right",
+  // variantID: "YOUR_VARIANT_ID",
+  // chatType: "user",
+  // defaultChatID: "uid_or_guid",
+};
 
-  function getSquarespaceMember() {
-    const name = "SiteUserInfo=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const ca = decodedCookie.split(';');
-    
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i].trim();
-      if (c.indexOf(name) === 0) {
-        try {
-          const userData = JSON.parse(c.substring(name.length, c.length));
-          if (userData.authenticated) {
-            return {
-              uid: userData.siteUserId,
-              name: userData.firstName || "Member",
-              isMember: true
-            };
-          }
-        } catch (e) {
-          console.error("Failed to parse Squarespace user cookie", e);
+function getSquarespaceMember() {
+  const name = "SiteUserInfo=";
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const ca = decodedCookie.split(';');
+  
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i].trim();
+    if (c.indexOf(name) === 0) {
+      try {
+        const userData = JSON.parse(c.substring(name.length, c.length));
+        if (userData.authenticated) {
+          return {
+            uid: userData.siteUserId,
+            name: userData.firstName || "Member",
+            avatar: userData.imageUrl || "",
+            isMember: true
+          };
         }
+      } catch (e) {
+        console.error("Failed to parse Squarespace user cookie", e);
       }
     }
-    return null;
   }
+  return null;
+}
 
-  async function initializeCometChat() {
-    try {
-      const member = getSquarespaceMember();
-      let user;
+function initializeCometChat() {
+  const member = getSquarespaceMember();
+  let userConfig;
 
-      if (member) {
-        user = member;
-      } else {
-        let guestId = localStorage.getItem('cometchat_guest_id') || 
-                      ('guest_' + Math.random().toString(36).substr(2, 9));
-        localStorage.setItem('cometchat_guest_id', guestId);
-        user = { uid: guestId, name: "Guest User", isMember: false };
+  if (member) {
+    // Logged-in Squarespace member
+    userConfig = {
+      mode: "uid",
+      uid: member.uid,
+      user: {
+        name: member.name,
+        avatar: member.avatar
       }
-
-      await CometChatApp.init(COMETCHAT_CONFIG);
-      const loggedInUser = await CometChatApp.CometChat.getLoggedinUser();
-
-      if (!loggedInUser || loggedInUser.uid !== user.uid) {
-        if (loggedInUser) await CometChatApp.logout();
-
-        const ccUser = new CometChatApp.CometChat.User(user.uid);
-        ccUser.setName(user.name);
-        
-        try {
-          await CometChatApp.createOrUpdateUser(ccUser);
-        } catch (e) {
-          console.warn("User creation skipped:", e.message);
-        }
-
-        await CometChatApp.login({ 
-          uid: user.uid, 
-          authKey: COMETCHAT_CONFIG.authKey 
-        });
-      }
-
-      CometChatApp.launch(WIDGET_SETTINGS);
-    } catch (error) {
-      console.error("CometChat Integration Error:", error);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeCometChat);
+    };
   } else {
-    initializeCometChat();
+    // Guest user - generate persistent ID
+    let guestId = localStorage.getItem('cometchat_guest_id');
+    if (!guestId) {
+      guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('cometchat_guest_id', guestId);
+    }
+    userConfig = {
+      mode: "uid",
+      uid: guestId,
+      user: {
+        name: "Guest User"
+      }
+    };
   }
+
+  // Merge all config and start
+  const fullConfig = {
+    ...COMETCHAT_CONFIG,
+    ...WIDGET_SETTINGS,
+    ...userConfig
+  };
+
+  CometChatApp.CometChatAuth.start(fullConfig);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeCometChat);
+} else {
+  initializeCometChat();
+}
 </script>
 ```
 
