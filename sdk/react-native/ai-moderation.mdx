@@ -204,7 +204,7 @@ Register a message listener to receive moderation results in real-time:
 
 ### Step 3: Handle Disapproved Messages
 
-When a message is disapproved, you should handle it appropriately in your UI:
+When a message is disapproved, handle it appropriately in your UI:
 
 ```javascript
 function handleDisapprovedMessage(message) {
@@ -222,80 +222,3 @@ function handleDisapprovedMessage(message) {
   }
 }
 ```
-
-## Complete Example
-
-Here's a complete implementation showing the full moderation flow:
-
-<Tabs>
-  <Tab title="JavaScript">
-    ```javascript
-    class ModerationHandler {
-      constructor() {
-        this.pendingMessages = new Map();
-        this.setupListener();
-      }
-
-      setupListener() {
-        CometChat.addMessageListener(
-          "MODERATION_LISTENER",
-          new CometChat.MessageListener({
-            onMessageModerated: (message) => this.onModerated(message)
-          })
-        );
-      }
-
-      async sendMessage(receiverUID, text) {
-        const textMessage = new CometChat.TextMessage(
-          receiverUID,
-          text,
-          CometChat.RECEIVER_TYPE.USER
-        );
-
-        try {
-          const message = await CometChat.sendMessage(textMessage);
-          const status = message.getModerationStatus();
-
-          if (status === CometChat.ModerationStatus.PENDING) {
-            // Track pending message
-            this.pendingMessages.set(message.getId(), message);
-            return { success: true, pending: true, message };
-          }
-
-          return { success: true, pending: false, message };
-        } catch (error) {
-          return { success: false, error };
-        }
-      }
-
-      onModerated(message) {
-        const messageId = message.getId();
-        const status = message.getModerationStatus();
-
-        // Remove from pending
-        this.pendingMessages.delete(messageId);
-
-        // Emit event for UI update
-        this.emit("moderationResult", {
-          messageId,
-          status,
-          approved: status === CometChat.ModerationStatus.APPROVED,
-          message
-        });
-      }
-
-      cleanup() {
-        CometChat.removeMessageListener("MODERATION_LISTENER");
-      }
-    }
-
-    // Usage
-    const handler = new ModerationHandler();
-    const result = await handler.sendMessage("user123", "Hello!");
-
-    if (result.pending) {
-      console.log("Message pending moderation...");
-    }
-    ```
-  </Tab>
-</Tabs>
