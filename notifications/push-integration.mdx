@@ -1,19 +1,19 @@
 ---
-title: "Integration"
+title: "Integration (TO BE REMOVED)"
 ---
-
-## Enable Push notifications
+ 
+ ## Step 1: Enable Push notifications
 
 <Frame>
   <img src="/images/80a520bb-pushnotification-enable-e64632d479a2ebba111453b95bd522c6.png" />
 </Frame>
 
 1. Login to [CometChat](https://app.cometchat.com/login) dashboard and select your app.
-2. Navigate to **Notifications** > **Notifications** in the left-hand menu.
+2. Navigate to **Notifications** > **Settings** in the left-hand menu.
 3. Enable the Push notifications feature.
-4. Continue to configure Push notifications by clicking on "Configure".
-
-## Add Providers
+4. Continue to configure Push notifications.
+ 
+## Step 2: Add Providers
 
 Firebase Cloud Messaging (FCM) and Apple Push Notification Service (APNS) are the two primary supported providers for sending push notifications.
 
@@ -32,7 +32,7 @@ Generate a service account key for your Firebase application by navigating to th
 1. Select the "+ Add Credentials" button.
 2. In the dialogue that appears, provide a unique, memorable identifier for your provider.
 3. Upload the service account JSON file you previously acquired.
-4. Specify whether the push payload should include the "notification" key. Additional information on this configuration is available in FCM's documentation - [About FCM messages](https://firebase.google.com/docs/cloud-messaging/concept-options).
+4. Specify whether the push payload should include the "notification" key. Additional information on this configuration is available in FCM's documentation - [About FCM messages](https://firebase.google.com/docs/cloud-messaging/get-started).
 
 Similarly, you can add multiple FCM Credentials in case you have multiple FCM projects for your apps.
 
@@ -44,7 +44,7 @@ Similarly, you can add multiple FCM Credentials in case you have multiple FCM pr
 
 #### Pre-requisite
 
-1. To generate a .p8 key file, go to [Apple developer account](https://developer.apple.com/account), then select "Certificates, IDs & Profiles".
+1. To generate a .p8 key file, go to [Apple Developer Account](https://developer.apple.com/account), then select "Certificates, IDs & Profiles".
 2. Select Keys and click on the "+" button to add a new key.
 3. In the new key page, type in your key name and check the Apple Push Notification service (APNs) box, then click "Continue" and click "Register".
 4. Then proceed to download the key file by clicking Download.
@@ -68,291 +68,11 @@ Similarly, you can add multiple APNS Credentials in case you have multiple apps 
   <img src="/images/1133421a-add-apns-credentials-f8c2fd747ab4cf3905c6d13cf215b4c1.png" />
 </Frame>
 
-### Add Custom provider credentials
+### Custom providers
 
-Custom providers allow you to make use of providers apart from FCM and APNs. This is implemented using webhook URL which gets all the required details that can be used to trigger Push notifications.
+For webhook-based providers and payload samples, see [Custom Providers](/notifications/custom-providers).
 
-#### Pre-requisite
-
-1. Your webhook endpoint must be accessible over `HTTPS`. This is essential to ensure the security and integrity of data transmission.
-2. This URL should be publicly accessible from the internet.
-3. Ensure that your endpoint supports the `HTTP POST` method. Event payloads will be delivered via `HTTP POST` requests in `JSON` format.
-4. Configure your endpoint to respond immediately to the CometChat server with a 200 OK response. The response should be sent within 2 seconds of receiving the request.
-5. For security, it is recommended to set up Basic Authentication that is usually used for server-to-server calls. This requires you to configure a username and password. Whenever your webhook URL is triggered, the HTTP Header will contain:
-
-```html
-Authorization: Basic <Base64-encoded-credentials>
-```
-
-6. Your frontend application should implement the logic to get the push token and register it to your backend when the user logs in and unregister the push token when the user logs out.
-7. To enable multi-device logins, you can map the push tokens to the user's auth tokens. Where each new login makes use of a new auth token.
-
-#### Add credentials
-
-1. Click on the "+ Add Credentials" button.
-2. Enable the provider.
-3. Enter the publically accessible Webhook URL.
-4. It is recommended to enable Basic Authentication.
-5. Enter the username and password.
-6. Save the credentials.
-
-<Frame>
-  <img src="/images/0a295fd9-cometchat-push-notifications-custom-provider-09e553a8b0fe2badff1f6e4ea5783307.png" />
-</Frame>
-
-#### How does it work?
-
-The Custom provider is triggered once for an event in one-on-one conversation. In case of notifying the members of a group, the custom provider is triggered once for each user present in that group.
-
-For example, if there are 100 members in the group, your webhook will receive 100 HTTP requests. Once for each member of the group.
-
-Below are the sample payloads for different events:
-
-<Tabs>
-<Tab title="Chat notification payload">
-```json
-{
-  "trigger": "push-notification-payload-generated",
-  "data": {
-    "to": {
-      "uid": "cometchat-uid-2"
-    },
-    "notificationDetails": {
-      // Notification details
-      "title": "Andrew Joseph", // The title of the notification to be displayed
-      "body": "Hello!", // The body of the notification to be displayed
-  
-      // Sender's details
-      "sender": "cometchat-uid-1", // UID of the user who sent the message.
-      "senderName": "Andrew Joseph", // Name of the user who sent the message.
-      "senderAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp", // Avatar URL of the user.
-  
-      // Receiver's details
-      "receiver": "cometchat-uid-2", // UID or GUID of the receiver.
-      "receiverName": "George Alan", // Name of the user or group.
-      "receiverAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp", // Avatar URL of the receiver.
-      "receiverType": "user", // Values can be "user" or "group"
-  
-      // Message details
-      "tag": "123", // The ID of the message that can be used as the ID of the notification to be displayed.
-      "conversationId": "cometchat-uid-1_user_cometchat-uid-2", // The ID of the conversation that the message belongs to.
-      "type": "chat",
-      "sentAt": "1741847453000",
-      "message": {CometChat Message Object}, // Present if "Include message object" is enabled. The message object is present for new messages or in case a message was edited or deleted.
-      "custom": {Custom JSON} // Custom JSON object is added in case it is configured in the preferences.
-    }
-  },
-  "appId": "app123",
-  "region": "us/eu/in",
-  "webhook": "custom"
-}
-```
-
-</Tab>
-
-<Tab title="Call notification payload">
-```json
-{
-  "trigger": "push-notification-payload-generated",
-  "data": {
-    "to": {
-      "uid": "cometchat-uid-2"
-    },
-    "notificationDetails": {
-      // Notification details
-      "title": "Caller", // The title of the notification to be displayed
-      "body": "AUDIO CALL", // "AUDIO CALL" or "VIDEO CALL"
-  
-      // Sender's details
-      "sender": "cometchat-uid-1", // UID of the user who sent the message.
-      "senderName": "Andrew Joseph", // Name of the user who sent the message.
-      "senderAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp", // Avatar URL of the user.
-  
-      // Receiver's details
-      "receiver": "cometchat-uid-2", // UID or GUID of the receiver.
-      "receiverName": "George Alan", // Name of the user or group.
-      "receiverAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp", // Avatar URL of the receiver.
-      "receiverType": "user", //  "user" or "group"
-  
-      // Message details
-      "tag": "123", // The ID of the message that can be used as the ID of the notification to be displayed.
-      "conversationId": "cometchat-uid-1_user_cometchat-uid-2", // The ID of the conversation that the call belongs to.
-      "type": "call",
-  
-      // Call details
-      "callAction": "initiated", // "initiated" or "cancelled" or "unanswered" or "ongoing" or "rejected" or "ended" or "busy"
-      "sessionId": "v1.123.aik2", // The unique sessionId of the call that can be used as an identifier in CallKit or ConnectionService.
-      "callType": "audio", // "audio" or "video"
-      "sentAt": "1741847453000",
-      "custom": {Custom JSON} // Custom JSON object is added in case it is configured in the preferences.
-    }
-  },
-  "appId": "app123",
-  "region": "us/eu/in",
-  "webhook": "custom"
-}
-```
-
-</Tab>
-
-<Tab title="Reaction notification payload">
-```json
-{
-  "trigger": "push-notification-payload-generated",
-  "data": {
-    "to": { 
-      "uid": "cometchat-uid-2"
-    },
-    "notificationDetails": {
-      // Notification details
-      "title": "Andrew Joseph",
-      "body": "Reacted to your message: 😎",
-      
-      // Sender's details
-      "sender": "cometchat-uid-1",
-      "senderName": "Andrew Joseph",
-      "senderAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp",
-
-      // Receiver's details
-      "receiver": "cometchat-uid-1",
-      "receiverName": "Andrew Joseph",
-      "receiverAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp",
-      "receiverType": "user",
-
-      // Message details
-      "tag": "58",
-      "conversationId": "cometchat-uid-1_user_cometchat-uid-2",
-      "type": "chat",
-      "sentAt": "1741847453000",
-      "custom": {Custom JSON} // Custom JSON object is added in case it is configured in the preferences.
-    }
-  },
-  "appId": "app123",
-  "region": "us",
-  "webhook": "custom"
-}
-```
-
-</Tab>
-
-<Tab title="Group action notification payload">
-```json
-{
-  "trigger": "push-notification-payload-generated",
-  "data": {
-    "to": {
-      "uid": "g-messages-none"
-    },
-    "notificationDetails": {
-      // Notification details
-      "title": "Hiking group",
-      "body": "Andrew Joseph has left", // Similarly for joined, kicked, banned, unbanned, added events
-      
-      // Sender details
-      "sender": "cometchat-uid-1",
-      "senderName": "Andrew Joseph",
-      "senderAvatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp",
-      
-      // Receiver details
-      "receiver": "cometchat-guid-1",
-      "receiverName": "Hiking group",
-      "receiverType": "group",
-      
-      // Message details
-      "tag": "cometchat-guid-1",
-      "conversationId": "group_cometchat-guid-1",
-      "type": "chat",
-      "sentAt": "1741847453000",
-      "custom": {Custom JSON} // Custom JSON object is added in case it is configured in the preferences.
-    }
-  },
-  "appId": "app123",
-  "region": "us",
-  "webhook": "custom"
-}
-```
-
-</Tab>
-
-</Tabs>
-
-#### Sample server-side code
-
-```typescript
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// Optional: Basic authentication middleware
-const basicAuth = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  next();
-};
-
-const triggerPushNotification = async (to, notificationDetails) => {
-  const { name, uid } = to;
-  const { type, notificationTitle, notificationBody } = notificationDetails;
-
-  if (type == 'call') {
-    console.log('Push notification for calling event');
-    // Use the following details to send a call notification.
-    const { callAction, sessionId, callType } = notificationDetails;
-  }
-
-  if (type == 'chat') {
-    console.log('Push notification for messaging event');
-  }
-
-  const token = await fetchPushToken(uid);
-
-  // Your implementation for sending the Push notification
-  await sendPushNotification(token, notificationTitle, notificationBody);
-};
-
-app.post('/webhook', basicAuth, (req, res) => {
-  const { trigger, data, appId, region, webhook } = req.body;
-
-  if (
-    trigger !== 'push-notification-payload-generated' ||
-    webhook !== 'custom'
-  ) {
-    return res.status(400).json({ message: 'Invalid trigger or webhook type' });
-  }
-
-  console.log('Received Webhook:', JSON.stringify(req.body, null, 2));
-
-  triggerPushNotification(to, data)
-    .then((result) => {
-      console.log(
-        'Successfully triggered Push notification for',
-        appId,
-        to.uid,
-        result
-      );
-    })
-    .catch((error) => {
-      console.error(
-        'Something went wrong while triggering Push notification for',
-        appId,
-        to.uid,
-        error.message
-      );
-    });
-
-  res.status(200).json({ message: 'Webhook received successfully' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-```
-
-## Tokens management
+## Step 3: Tokens management
 
 ### Register push token after login
 
@@ -617,7 +337,7 @@ CometChatNotifications.unregisterPushToken(onSuccess: (response) {
 
 </Tabs>
 
-## Handle incoming Push notifications
+## Step 4: Handle incoming Push notifications
 
 Push notifications should be managed primarily when the app is in the background or in a terminated state.
 
@@ -665,50 +385,47 @@ The push payload delivered to the user's device includes the following informati
 
 </Tabs>
 
-## Sample apps
 
-Check out our sample apps for understanding the implementation.
+## Continue to platform-specific implementation
+
+Choose your platform to continue with the Push notifications implementation.
 
 <CardGroup>
 
-<Card title="React - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-react">
+<Card title="Android" icon={<img src="/docs/images/icons/android.svg" alt="Android" />} href="/notifications/android-push-notifications">
 
-Push notifications sample app for the web
-
-View on Github
+Android UI Kit Implementation
 
 </Card>
 
-<Card title="React Native - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-react-native">
+<Card title="iOS (APNS)" icon={<img src="/docs/images/icons/swift.svg" alt="iOS Swift" />} href="/notifications/ios-apns-push-notifications">
 
-Push notifications sample app for React Native
-
-View on Github
+iOS (APNS) UI Kit Implementation
 
 </Card>
 
-<Card title="iOS - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-ios">
+<Card title="iOS (FCM)" icon={<img src="/docs/images/icons/swift.svg" alt="iOS Swift" />} href="/notifications/ios-fcm-push-notifications">
 
-Push notifications sample app for iOS
-
-View on Github
+iOS (FCM) UI Kit Implementation
 
 </Card>
 
-<Card title="Android - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-android">
+<Card title="Flutter (Android)" icon={<img src="/docs/images/icons/flutter.svg" alt="iOS Swift" />} href="/notifications/flutter-push-notifications-android">
 
-Push notifications sample app for Android
-
-View on Github
+Flutter (Android) UI Kit Implementation
 
 </Card>
 
-<Card title="Flutter - Push notifications sample app" icon="github" href="https://github.com/cometchat/cometchat-push-notification-app-flutter">
+<Card title="Flutter (iOS)" icon={<img src="/docs/images/icons/flutter.svg" alt="iOS Swift" />} href="/notifications/flutter-push-notifications-ios">
 
-Push notifications sample app for Flutter
-
-View on Github
+Flutter (iOS) UI Kit Implementation
 
 </Card>
-  
+
+<Card title="React Native" icon={<img src="/docs/images/icons/react-native.svg" alt="React Native" />} href="/notifications/react-native-push-notifications">
+
+React Native UI Kit Implementation
+
+</Card>
+
 </CardGroup>
