@@ -2,7 +2,7 @@
 title: "Badge Count"
 ---
 
-Use this guide to understand and configure the **unread message badge count** feature in push notifications.
+Use this guide to understand the **unread message badge count** feature in push notifications.
 
 ### Overview
 
@@ -69,134 +69,6 @@ When badge count is enabled, the push notification payload includes the `unreadM
 }
 ```
 
-### Client-side implementation
-
-#### iOS (Swift)
-
-Update the badge when receiving a push notification:
-
-```swift theme={null}
-func userNotificationCenter(_ center: UNUserNotificationCenter,
-                            didReceive response: UNNotificationResponse,
-                            withCompletionHandler completionHandler: @escaping () -> Void) {
-    let userInfo = response.notification.request.content.userInfo
-    
-    // Get badge count from payload
-    if let payload = userInfo["payload"] as? [String: Any],
-       let badgeCount = payload["unreadMessageCount"] as? Int {
-        // Update app badge
-        UIApplication.shared.applicationIconBadgeNumber = badgeCount
-    }
-    
-    completionHandler()
-}
-```
-
-#### Android (Kotlin)
-
-Update the badge when receiving a push notification:
-
-```kotlin theme={null}
-class MyFirebaseMessagingService : FirebaseMessagingService() {
-    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val data = remoteMessage.data
-        
-        // Get badge count from payload
-        val badgeCount = data["unreadMessageCount"]?.toIntOrNull() ?: 0
-        
-        // Update badge using ShortcutBadger or similar library
-        ShortcutBadger.applyCount(applicationContext, badgeCount)
-        
-        // Show notification
-        showNotification(remoteMessage)
-    }
-}
-```
-
-#### React Native
-
-Handle badge count in your notification handler:
-
-```javascript theme={null}
-import messaging from '@react-native-firebase/messaging';
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
-
-messaging().onMessage(async remoteMessage => {
-  const badgeCount = parseInt(remoteMessage.data?.unreadMessageCount || '0', 10);
-  
-  // iOS
-  PushNotificationIOS.setApplicationIconBadgeNumber(badgeCount);
-  
-  // Android - use a badge library
-});
-```
-
-#### Flutter
-
-Handle badge count in your notification handler:
-
-```dart theme={null}
-import 'package:flutter_app_badger/flutter_app_badger.dart';
-
-FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  final badgeCount = int.tryParse(message.data['unreadMessageCount'] ?? '0') ?? 0;
-  
-  // Update badge
-  FlutterAppBadger.updateBadgeCount(badgeCount);
-});
-```
-
-### Clearing the badge
-
-Clear the badge when the user opens the app or marks messages as read:
-
-<Tabs>
-  <Tab title="iOS">
-    ```swift theme={null}
-    // Clear badge when app becomes active
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        UIApplication.shared.applicationIconBadgeNumber = 0
-    }
-    ```
-  </Tab>
-
-  <Tab title="Android">
-    ```kotlin theme={null}
-    // Clear badge when app opens
-    override fun onResume() {
-        super.onResume()
-        ShortcutBadger.removeCount(applicationContext)
-    }
-    ```
-  </Tab>
-
-  <Tab title="React Native">
-    ```javascript theme={null}
-    import { AppState } from 'react-native';
-    import PushNotificationIOS from '@react-native-community/push-notification-ios';
-
-    AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        PushNotificationIOS.setApplicationIconBadgeNumber(0);
-      }
-    });
-    ```
-  </Tab>
-
-  <Tab title="Flutter">
-    ```dart theme={null}
-    import 'package:flutter_app_badger/flutter_app_badger.dart';
-
-    @override
-    void didChangeAppLifecycleState(AppLifecycleState state) {
-      if (state == AppLifecycleState.resumed) {
-        FlutterAppBadger.removeBadge();
-      }
-    }
-    ```
-  </Tab>
-</Tabs>
-
 ### Best practices
 
 1. **Always handle missing values** - The `unreadMessageCount` field may be undefined if the feature is not enabled.
@@ -214,4 +86,3 @@ Clear the badge when the user opens the app or marks messages as read:
 | Badge count not appearing | Ensure the feature is enabled for your app. [Contact CometChat team](https://www.cometchat.com/contact) to enable it. |
 | Count not updating | Ensure read receipts are being sent when messages are read |
 | Badge shows wrong number | Clear the badge on app open and let it sync from the next notification |
-| Android badge not working | Some Android launchers don't support badges; use a library like ShortcutBadger |
