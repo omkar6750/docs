@@ -295,7 +295,7 @@ const options: IOptions = {
 };
 
 function uuid() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = Math.floor(Math.random() * 16);
     const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
@@ -326,7 +326,7 @@ class VoipNotificationHandler {
         await this.getPermissions();
         this.setupEventListeners();
         this.initialized = true;
-      })().catch(err => {
+      })().catch((err) => {
         this.setupPromise = null;
         throw err;
       });
@@ -338,7 +338,9 @@ class VoipNotificationHandler {
     await RNCallKeep.setup(options);
     RNCallKeep.setAvailable(true);
     RNCallKeep.setReachable();
-    try { await RNCallKeep.checkPhoneAccountEnabled(); } catch {}
+    try {
+      await RNCallKeep.checkPhoneAccountEnabled();
+    } catch {}
   }
 
   async createNotificationChannel() {
@@ -351,13 +353,24 @@ class VoipNotificationHandler {
     });
   }
 
-  async displayNotification({ title, body, data }: { title: string; body: string; data?: any }) {
-    if (Platform.OS === "android" && !this.channelId) await this.createNotificationChannel();
+  async displayNotification({
+    title,
+    body,
+    data,
+  }: {
+    title: string;
+    body: string;
+    data?: any;
+  }) {
+    if (Platform.OS === "android" && !this.channelId)
+      await this.createNotificationChannel();
     await notifee.displayNotification({
       title,
       body,
       data,
-      android: this.channelId ? { channelId: this.channelId, smallIcon: "ic_launcher" } : undefined,
+      android: this.channelId
+        ? { channelId: this.channelId, smallIcon: "ic_launcher" }
+        : undefined,
     });
   }
 
@@ -367,7 +380,12 @@ class VoipNotificationHandler {
     this.isRinging = true;
     this.callerId = uuid();
     const callerName = this.msg?.senderName || "Incoming Call";
-    await RNCallKeep.displayIncomingCall(this.callerId, callerName, callerName, "generic");
+    await RNCallKeep.displayIncomingCall(
+      this.callerId,
+      callerName,
+      callerName,
+      "generic",
+    );
   }
 
   onAnswerCall = async ({ callUUID }: { callUUID: string }) => {
@@ -381,8 +399,20 @@ class VoipNotificationHandler {
       const loggedInUser = await CometChat.getLoggedinUser().catch(() => null);
       if (!loggedInUser) {
         this.pendingAcceptance = true;
-        await setPendingAnsweredCall({ sessionId: sessionID, raw: this.msg, storedAt: Date.now() });
-        RNCallKeep.backToForeground();
+        await setPendingAnsweredCall({
+          sessionId: sessionID,
+          raw: this.msg,
+          storedAt: Date.now(),
+        });
+        try {
+          RNCallKeep.backToForeground();
+        } catch (err) {
+          // Activity may not exist yet if app was killed - the pending call will be handled when app opens
+          console.log(
+            "[VoIP] backToForeground failed, pending call saved:",
+            err,
+          );
+        }
         return;
       }
       try {
@@ -402,7 +432,9 @@ class VoipNotificationHandler {
         this.isAnswered = false;
         CometChat.endCall(sessionID);
       } else if (sessionID) {
-        const loggedInUser = await CometChat.getLoggedinUser().catch(() => null);
+        const loggedInUser = await CometChat.getLoggedinUser().catch(
+          () => null,
+        );
         if (loggedInUser) {
           setTimeout(() => {
             CometChat.rejectCall(sessionID, CometChat.CALL_STATUS.REJECTED);
