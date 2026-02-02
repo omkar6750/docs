@@ -1,6 +1,6 @@
 ---
 title: "React Native Push Notification (Android)"
-description: "Bring the SampleAppWithPushNotifications experience—FCM—into any React Native project using CometChat UI Kit."
+description: "Bring the SampleAppWithPushNotifications experience—FCM + VoIP calls—into any React Native project using CometChat UI Kit."
 ---
 
 <Card
@@ -17,6 +17,7 @@ description: "Bring the SampleAppWithPushNotifications experience—FCM—into a
 - Platform credentials (Firebase).
 - Copying the sample notification stack and aligning IDs/provider IDs.
 - Native glue for Android (manifest permissions).
+- VoIP call alerts with FCM data-only pushes + CallKeep native dialer.
 - Token registration, navigation from pushes, testing, and troubleshooting.
 
 ## What you need first
@@ -76,7 +77,13 @@ Install these dependencies in your React Native app:
 npm install \
     @react-native-firebase/app@23.4.0 \
     @react-native-firebase/messaging@23.4.0 \
-    @notifee/react-native@9.1.8
+    @notifee/react-native@9.1.8 \
+    @cometchat/chat-sdk-react-native@4.0.18 \
+    @cometchat/calls-sdk-react-native@4.4.0 \
+    @cometchat/chat-uikit-react-native@5.2.6 \
+    @react-native-async-storage/async-storage@2.2.0 \
+    react-native-callkeep@github:cometchat/react-native-callkeep \
+    react-native-voip-push-notification@3.3.3
 ```
 
 Match these or newer compatible versions in your app.
@@ -121,6 +128,9 @@ apply plugin: 'com.google.gms.google-services'
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Android 14+ foreground service types for camera/mic during calls -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
 ```
 
 and ask for runtime permissions where needed (e.g. `POST_NOTIFICATIONS` on Android 13+).
@@ -189,27 +199,360 @@ CometChatNotifications.registerPushToken(
 Typically, push token unregistration should occur prior to user logout, using the `CometChat.logout()` method.
 For token unregistration, use the `CometChatNotifications.unregisterPushToken()` method provided by the SDKs.
 
-## 5. Handling notification taps and navigation
+## 5. VoIP call notifications (Android)
+
+These steps mirror the working sample in `PushNotificationTest` and stay Android-only—copy/paste and fill your IDs.
+
+### 5.1 Add CallKeep services to `android/app/src/main/AndroidManifest.xml`
+Inside the `<application>` tag add:
+
+```xml lines
+<service
+    android:name="io.wazo.callkeep.VoiceConnectionService"
+    android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+    android:foregroundServiceType="camera|microphone"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.telecom.ConnectionService" />
+    </intent-filter>
+</service>
+
+<service android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService" />
+```
+
+### 5.2 Background handler for call pushes (`index.js`)
+Data-only FCM calls show the native dialer even when the app is killed.
+
+```js lines
+import messaging from "@react-native-firebase/messaging";
+import { Platform } from "react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { voipHandler } from "./VoipNotificationHandler";
+import { displayLocalNotification } from "./LocalNotificationHandler";
+
+if (Platform.OS === "android") {
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    const data = remoteMessage.data || {};
+    if (data.type === "call") {
+      await voipHandler.initialize();
+      switch (data.callAction) {
+        case "initiated":
+          voipHandler.msg = data;
+          await voipHandler.displayCallAndroid();
+          break;
+        case "ended":
+        case "unanswered":
+        case "busy":
+        case "rejected":
+        case "cancelled":
+          CometChat.clearActiveCall();
+          if (voipHandler?.callerId) {
+            voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
+          }
+          await voipHandler.endCall({ callUUID: voipHandler.callerId });
+          break;
+        case "ongoing":
+          voipHandler.displayNotification({
+            title: data?.receiverName || "",
+            body: "ongoing call",
+          });
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+    await displayLocalNotification(remoteMessage);
+  });
+}
+```
+
+### 5.3 Drop in `VoipNotificationHandler.ts`
+Handles CallKeep setup, shows the incoming call UI, accepts/rejects via CometChat, and defers acceptance if login/navigation isn’t ready.
+
+```ts lines
+import { Platform } from "react-native";
+import notifee, { AndroidImportance } from "@notifee/react-native";
+import RNCallKeep, { IOptions } from "react-native-callkeep";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { setPendingAnsweredCall } from "./PendingCallManager";
+
+const options: IOptions = {
+  android: {
+    alertTitle: "VoIP permissions",
+    alertDescription: "Allow phone account access to show incoming calls",
+    cancelButton: "Cancel",
+    okButton: "OK",
+    imageName: "ic_notification",
+    additionalPermissions: [],
+    foregroundService: {
+      channelId: "com.cometchat.sampleapp.reactnative.android",
+      channelName: "Sampleapp Channel",
+      notificationTitle: "Sampleapp is running in the background",
+    },
+  },
+  ios: { appName: "Sampleapp" },
+};
+
+function uuid() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = Math.floor(Math.random() * 16);
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+class VoipNotificationHandler {
+  channelId = "";
+  isRinging = false;
+  isAnswered = false;
+  pendingAcceptance = false;
+  callerId = "";
+  msg: any = {};
+  initialized = false;
+  private setupPromise: Promise<void> | null = null;
+  private listenersAttached = false;
+
+  async initialize() {
+    if (this.initialized && this.setupPromise) {
+      await this.setupPromise;
+      return;
+    }
+    if (!this.setupPromise) {
+      this.setupPromise = (async () => {
+        if (Platform.OS === "android") {
+          await this.createNotificationChannel();
+        }
+        await this.getPermissions();
+        this.setupEventListeners();
+        this.initialized = true;
+      })().catch(err => {
+        this.setupPromise = null;
+        throw err;
+      });
+    }
+    await this.setupPromise;
+  }
+
+  async getPermissions() {
+    await RNCallKeep.setup(options);
+    RNCallKeep.setAvailable(true);
+    RNCallKeep.setReachable();
+    try { await RNCallKeep.checkPhoneAccountEnabled(); } catch {}
+  }
+
+  async createNotificationChannel() {
+    this.channelId = await notifee.createChannel({
+      id: "message",
+      name: "Messages",
+      lights: true,
+      vibration: true,
+      importance: AndroidImportance.HIGH,
+    });
+  }
+
+  async displayNotification({ title, body, data }: { title: string; body: string; data?: any }) {
+    if (Platform.OS === "android" && !this.channelId) await this.createNotificationChannel();
+    await notifee.displayNotification({
+      title,
+      body,
+      data,
+      android: this.channelId ? { channelId: this.channelId, smallIcon: "ic_launcher" } : undefined,
+    });
+  }
+
+  async displayCallAndroid() {
+    if (this.isAnswered || this.pendingAcceptance) return;
+    await this.initialize();
+    this.isRinging = true;
+    this.callerId = uuid();
+    const callerName = this.msg?.senderName || "Incoming Call";
+    await RNCallKeep.displayIncomingCall(this.callerId, callerName, callerName, "generic");
+  }
+
+  onAnswerCall = async ({ callUUID }: { callUUID: string }) => {
+    if (this.isAnswered) return;
+    this.isRinging = false;
+    this.isAnswered = true;
+    const sessionID = this.msg?.sessionId;
+    if (!sessionID) return;
+
+    setTimeout(async () => {
+      const loggedInUser = await CometChat.getLoggedinUser().catch(() => null);
+      if (!loggedInUser) {
+        this.pendingAcceptance = true;
+        await setPendingAnsweredCall({ sessionId: sessionID, raw: this.msg, storedAt: Date.now() });
+        RNCallKeep.backToForeground();
+        return;
+      }
+      try {
+        await CometChat.acceptCall(sessionID);
+      } catch (error: any) {
+        if (error?.code !== "ERR_CALL_USER_ALREADY_JOINED") throw error;
+      }
+      RNCallKeep.endAllCalls();
+      this.pendingAcceptance = false;
+    }, 600);
+  };
+
+  endCall = async ({ callUUID }: { callUUID: string }) => {
+    if (this.msg?.type === "call") {
+      const sessionID = this.msg.sessionId;
+      if (this.isAnswered && sessionID) {
+        this.isAnswered = false;
+        CometChat.endCall(sessionID);
+      } else if (sessionID) {
+        const loggedInUser = await CometChat.getLoggedinUser().catch(() => null);
+        if (loggedInUser) {
+          setTimeout(() => {
+            CometChat.rejectCall(sessionID, CometChat.CALL_STATUS.REJECTED);
+          }, 300);
+        }
+      }
+    }
+    const id = callUUID || this.callerId;
+    if (id) RNCallKeep.endCall(id);
+    RNCallKeep.endAllCalls();
+    this.isRinging = false;
+    this.isAnswered = false;
+    this.pendingAcceptance = false;
+    this.callerId = "";
+    this.msg = {};
+  };
+
+  removeCallDialerWithUUID = (callerId: string) => {
+    const id = callerId || this.callerId;
+    if (id) RNCallKeep.reportEndCallWithUUID(id, 6);
+  };
+
+  setupEventListeners() {
+    if (this.listenersAttached) return;
+    RNCallKeep.addEventListener("answerCall", this.onAnswerCall);
+    RNCallKeep.addEventListener("endCall", this.endCall);
+    RNCallKeep.addEventListener("didDisplayIncomingCall", ({ callUUID }) => {
+      if (callUUID) this.callerId = callUUID;
+      this.isRinging = true;
+    });
+    this.listenersAttached = true;
+  }
+}
+
+export const voipHandler = new VoipNotificationHandler();
+```
+
+### 5.4 Add `PendingCallManager.ts`
+Stores an answered call during cold-start so you can accept it once login/navigation is ready.
+
+```ts lines
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+export interface PendingAnsweredCallPayload {
+  sessionId: string;
+  raw: any;
+  storedAt: number;
+}
+
+let inMemoryPending: PendingAnsweredCallPayload | null = null;
+const STORAGE_KEY = "pendingAnsweredCall";
+
+export async function setPendingAnsweredCall(payload: PendingAnsweredCallPayload) {
+  inMemoryPending = payload;
+  try { await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch {}
+}
+
+export async function consumePendingAnsweredCall(): Promise<PendingAnsweredCallPayload | null> {
+  if (inMemoryPending) {
+    const tmp = inMemoryPending;
+    inMemoryPending = null;
+    try { await AsyncStorage.removeItem(STORAGE_KEY); } catch {}
+    return tmp;
+  }
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      const parsed: PendingAnsweredCallPayload = JSON.parse(raw);
+      inMemoryPending = null;
+      return parsed;
+    }
+  } catch {}
+  return null;
+}
+
+export function isPendingStale(p: PendingAnsweredCallPayload, maxAgeMs = 2 * 60 * 1000) {
+  return Date.now() - p.storedAt > maxAgeMs;
+}
+```
+
+### 5.5 Wire `App.tsx` to init VoIP + consume pending accepts
+Add this after CometChat init/login:
+
+```ts lines
+import messaging from "@react-native-firebase/messaging";
+import { voipHandler } from "./VoipNotificationHandler";
+import { consumePendingAnsweredCall, isPendingStale } from "./PendingCallManager";
+
+const pending = await consumePendingAnsweredCall();
+if (pending && !isPendingStale(pending)) {
+  try { await CometChat.acceptCall(pending.sessionId); } catch (err) { console.log(err); }
+}
+
+if (Platform.OS === "android") {
+  const fcmToken = await messaging().getToken();
+  await CometChatNotifications.registerPushToken(
+    fcmToken,
+    CometChatNotifications.PushPlatforms.FCM_REACT_NATIVE_ANDROID,
+    "YOUR_FCM_PROVIDER_ID"
+  );
+}
+
+useEffect(() => {
+  if (Platform.OS === "android" && loggedIn) {
+    const t = setTimeout(() => voipHandler.initialize(), 3000);
+    return () => clearTimeout(t);
+  }
+}, [loggedIn]);
+```
+
+### 5.6 Call push payload (FCM data)
+Send a data-only FCM message like:
+
+```json
+{
+  "to": "<DEVICE_FCM_TOKEN>",
+  "priority": "high",
+  "data": {
+    "type": "call",
+    "callAction": "initiated",
+    "sessionId": "<COMETCHAT_SESSION_ID>",
+    "senderName": "Alice",
+    "receiverName": "Bob"
+  }
+}
+```
+
+## 6. Handling notification taps and navigation
 
 To handle notification taps and navigate to the appropriate chat screen, you need to set up handlers for both foreground and background notifications.
 
 {/* :TODO: Add code snippets and explanation for setting up Notifee handlers and navigation logic. */}
 
 
-## 6. Testing checklist
+## 7. Testing checklist
 
 1. Android: install on device, grant POST_NOTIFICATIONS; log in and verify FCM token registration success.
 2. Send a message from another user:
    - Foreground: Notifee banner shows unless that chat is open.
    - Background/terminated: tap opens the correct conversation; Notifee background handler runs.
-3. Rotate tokens (reinstall or revoke) and confirm `onTokenRefresh` re-registers.
+3. VoIP call: send `callAction=initiated` push; expect native dialer to show. Answer and verify the call connects; send `callAction=ended` to clear it.
+4. Rotate tokens (reinstall or revoke) and confirm `onTokenRefresh` re-registers.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |
 | No pushes | Confirm `google-services.json` location, package IDs match Firebase, Push extension enabled with correct provider IDs, permissions granted. |
 | Token registration fails | Ensure registration runs **after login**, provider IDs are set, and `registerDeviceForRemoteMessages()` is called (Android). |
-{/* | Notification taps do nothing | Keep Notifee foreground/background handlers and `checkInitialNotificationIOS`; ensure navigation ref is ready before routing. | */}
-{/* | Call UI not showing | Verify CallKeep setup, telecom permissions (Android), and that `VoipNotificationHandler.initialize()` runs post-login. | */}
+{/* | Notification taps do nothing | Keep Notifee foreground/background handlers and ensure the navigation ref is ready before routing. | */}
+{/* | Call UI not showing | Verify CallKeep setup, telecom permissions, and that `VoipNotificationHandler.initialize()` runs post-login. | */}
 {/* | Inline reply needed | Extend Notifee action buttons; CometChat expects you to send the message manually after reading `remoteMessage.data`. | */}
