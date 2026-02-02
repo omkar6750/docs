@@ -492,11 +492,6 @@ import messaging from "@react-native-firebase/messaging";
 import { voipHandler } from "./VoipNotificationHandler";
 import { consumePendingAnsweredCall, isPendingStale } from "./PendingCallManager";
 
-const pending = await consumePendingAnsweredCall();
-if (pending && !isPendingStale(pending)) {
-  try { await CometChat.acceptCall(pending.sessionId); } catch (err) { console.log(err); }
-}
-
 if (Platform.OS === "android") {
   const fcmToken = await messaging().getToken();
   await CometChatNotifications.registerPushToken(
@@ -512,6 +507,21 @@ useEffect(() => {
     return () => clearTimeout(t);
   }
 }, [loggedIn]);
+
+// Handle pending calls in a useEffect
+useEffect(() => {
+  const handlePendingCall = async () => {
+    const pending = await consumePendingAnsweredCall();
+    if (pending && !isPendingStale(pending)) {
+      try {
+        await CometChat.acceptCall(pending.sessionId);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+  handlePendingCall();
+}, []);
 ```
 
 ### 5.6 Call push payload (FCM data)
