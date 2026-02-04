@@ -6,6 +6,18 @@ metadata:
     version: "1.0"
 ---
 
+## How to Use This Skill (agent playbook)
+- **When to use**: Any time the user asks about chat/messaging/calling features, CometChat setup, SDK usage, migration, moderation, push, or compliance.
+- **What to ask the user first**: platform (web/React/React Native/iOS/Android/Flutter/backend), target features (chat, calls, notifications, AI/moderation), region (US/EU/IN), auth model (JWT vs API key), and whether they already have AppID/API key.
+- **Response pattern**:
+  1) Confirm platform and features; restate the goal in one line.
+  2) Give the shortest viable path (SDK/UI Kit if possible, REST only when needed).
+  3) Provide exact init snippet and required keys/placeholders.
+  4) Add one validation step and one fallback/troubleshooting check.
+  5) Link to the precise doc section (use https://www.cometchat.com/docs/llms.txt entry when unsure).
+- **Guardrails**: Never expose real API keys; remind users to keep API keys server-side. Default to regional endpoints that match their data residency.
+- **Keep answers concise**: prioritize checklists and code blocks over prose; include curl/examples only when they help the next step.
+
 ## Capabilities
 
 CometChat enables agents to build and manage complete real-time communication systems including one-on-one and group messaging, voice/video calling, AI-powered features, content moderation, and multi-channel notifications. Agents can integrate CometChat through REST APIs, SDKs (JavaScript, React Native, iOS, Android, Flutter, Ionic), pre-built UI Kits, or no-code widgets. The platform supports enterprise-grade security, multi-tenancy, webhooks for event-driven workflows, and extensive customization.
@@ -190,6 +202,13 @@ CometChat enables agents to build and manage complete real-time communication sy
 
 ## Workflows
 
+### Quickstarts (pick one)
+- **Web/React**: Install `@cometchat-pro/chat`, init with `CometChat.init(appId, region)`, then `CometChat.login(authToken)`; mount ConversationList + MessageList + Composer from the UI Kit when possible.
+- **React Native**: Install `@cometchat-pro/react-native-chat` and platform pods, init with AppID/region, login with auth token, then use UI Kit components or JS SDK methods.
+- **iOS (Swift)**: Add via Swift Package Manager, call `CometChat.init(appId:region:)`, then `CometChat.login(uid:authToken:)`; request mic/camera permissions for calling.
+- **Android (Kotlin/Java)**: Add Gradle dependency, `CometChat.init(this, appId, region)`, `CometChat.login(uid, authToken)`; ensure required permissions in manifest.
+- **Server/Backend**: Use REST APIs with the REST API key (server-side only). Common base: `https://{region}.api.cometchat.io/v3`.
+
 ### Setting Up a Chat Application
 1. Create an account and obtain AppID and API key from CometChat dashboard
 2. Create users via REST API: `POST /v3/users` with user details
@@ -268,6 +287,32 @@ CometChat enables agents to build and manage complete real-time communication sy
 6. Test agent responses
 7. Monitor agent performance and conversations
 8. Update agent knowledge and rules as needed
+
+## Troubleshooting & Validation
+- **Auth errors**: Confirm correct AppID/region and that auth token matches UID; REST calls must use server-side API key, not client keys.
+- **Real-time not connecting**: Check WebSocket reachability, ensure correct region, and verify network allows wss on required ports.
+- **Push issues**: Validate FCM/APNs credentials, confirm device token registration, and inspect `/v3/notifications/logs`.
+- **Calls failing**: Ensure camera/mic permissions, check TURN/ICE config if on restrictive networks, and verify appID/region match between caller/callee.
+- **Moderation**: If messages are blocked, review moderation rules and flagged message logs; adjust action from block to flag if needed.
+- **Rate limits**: Check response headers for limit info; back off with exponential retry.
+- **Quick validation**: Send a test message via REST, read it via SDK, verify receipts/typing indicators, place a 1:1 test call, then send a test push.
+
+## Security & Compliance Guardrails
+- Keep API key server-side; never expose REST API key in client apps.
+- Use region-specific endpoints to satisfy data residency (US/EU/IN).
+- Enable least-privilege roles; use scoped auth tokens where possible.
+- For healthcare/enterprise, confirm BAA/SOC2/ISO needs before go-live; enable message retention and audit logs.
+- Mask PII in logs; enable data masking and profanity/XSS filters as defaults for new launches.
+
+## Reference Map
+- Main docs index (for deep links): https://www.cometchat.com/docs/llms.txt
+- REST API overview: `/docs/rest/v3/` (via index above)
+- JS SDK and UI Kits: `/docs/javascript/` and `/docs/ui-kits/`
+- React Native: `/docs/react-native/`
+- iOS: `/docs/ios/`
+- Android: `/docs/android/`
+- Notifications: `/docs/notifications/`
+- Moderation/AI/Extensions: `/docs/extensions/`
 
 ## Integration
 
