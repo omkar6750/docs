@@ -2,111 +2,392 @@
 title: "Transient Messages"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables sending transient messages—real-time messages that are delivered instantly but never stored or persisted. Transient messages are ideal for ephemeral interactions like live reactions, typing indicators, or any data that should only be received by online users and doesn't need to be retrieved later.
 
-Transient messages are messages that are sent in real-time only and are not saved or tracked anywhere. The receiver of the message will only receive the message if he is online and these messages cannot be retrieved later.
+## When to Use This
 
-## Send a Transient Message
+- When implementing live reactions (hearts, thumbs up, etc.) that float across the screen
+- When building custom typing indicators beyond the built-in functionality
+- When sending ephemeral notifications that shouldn't clutter message history
+- When implementing "user is viewing" or presence-like features
+- When broadcasting temporary status updates to conversation participants
+- When building interactive features like polls or games that need real-time sync without persistence
 
-You can use the `sendTransientMessage()` method to send a transient message to a user or in a group. The receiver will receive this information in the `onTransientMessageReceived()` method of the `MessageListener` class. In order to send the transient message, you need to use the `TransientMessage` class.
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before sending or receiving transient messages
+- **Receiver Online**: The recipient must be online to receive the transient message (messages are not queued for offline users)
+- **Conversation**: An existing user or group conversation context
+
+## Minimal Example
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
-let receiverId = "UID";
-let receiverType = CometChat.RECEIVER_TYPE.USER;
-let data = { "LIVE_REACTION": "heart" };
+const receiverId = "UID";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+const data = { "LIVE_REACTION": "heart" };
 
-let transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
+const transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
 CometChat.sendTransientMessage(transientMessage);
 ```
-
 </Tab>
-
-<Tab title="Group">
-```javascript
-let receiverId = "GUID";
-let receiverType = CometChat.RECEIVER_TYPE.GROUP;
-let data = { "LIVE_REACTION": "heart" };
-
-let transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
-CometChat.sendTransientMessage(transientMessage); 
-```
-
-</Tab>
-
-<Tab title="User (Typescript)">
+<Tab title="TypeScript">
 ```typescript
-let receiverId: string = "UID";
-let receiverType: string = CometChat.RECEIVER_TYPE.USER;
-let data: Object = { "LIVE_REACTION": "heart" };
+const receiverId: string = "UID";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+const data: object = { "LIVE_REACTION": "heart" };
 
-let transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
+const transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(
+  receiverId,
+  receiverType,
+  data
+);
 CometChat.sendTransientMessage(transientMessage);
 ```
-
 </Tab>
-
-<Tab title="Group (Typescript)">
-```typescript
-let receiverId: string = "GUID";
-let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
-let data: Object = { "LIVE_REACTION": "heart" };
-
-let transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
-CometChat.sendTransientMessage(transientMessage);
-```
-
-</Tab>
-
 </Tabs>
 
-## Real-time Transient Messages
+## Step-by-Step
+
+### Send a Transient Message
+
+*In other words, how do I send a real-time message that won't be stored?*
+
+Use the `sendTransientMessage()` method to send a transient message to a user or group. Create a `TransientMessage` object with the receiver ID, receiver type, and a custom data payload.
+
+#### Send to a User
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverId = "UID";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+const data = { "LIVE_REACTION": "heart" };
+
+const transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverId: string = "UID";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+const data: object = { "LIVE_REACTION": "heart" };
+
+const transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(
+  receiverId,
+  receiverType,
+  data
+);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+</Tabs>
+
+#### Send to a Group
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverId = "GUID";
+const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+const data = { "LIVE_REACTION": "thumbsup" };
+
+const transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverId: string = "GUID";
+const receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+const data: object = { "LIVE_REACTION": "thumbsup" };
+
+const transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(
+  receiverId,
+  receiverType,
+  data
+);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+</Tabs>
+
+#### Send Custom Data
+
+You can include any custom data in the transient message payload:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverId = "UID";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+const data = {
+  type: "cursor_position",
+  x: 150,
+  y: 300,
+  timestamp: Date.now()
+};
+
+const transientMessage = new CometChat.TransientMessage(receiverId, receiverType, data);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverId: string = "UID";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+const data: object = {
+  type: "cursor_position",
+  x: 150,
+  y: 300,
+  timestamp: Date.now()
+};
+
+const transientMessage: CometChat.TransientMessage = new CometChat.TransientMessage(
+  receiverId,
+  receiverType,
+  data
+);
+CometChat.sendTransientMessage(transientMessage);
+```
+</Tab>
+</Tabs>
+
+### Receive Real-Time Transient Messages
 
 *In other words, as a recipient, how do I know when someone sends a transient message?*
 
-You will receive the transient message in the `onTransientMessageReceived()` method of the registered `MessageListener` class.
+Register a `MessageListener` to receive transient messages in real-time. The `onTransientMessageReceived` callback is triggered whenever a transient message is received.
+
+#### Registering the Listener
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerId = "UNIQUE_LITENER_ID";
+const listenerID = "UNIQUE_LISTENER_ID";
 
 CometChat.addMessageListener(
-listenerId,
-new CometChat.MessageListener({
-  onTransientMessageReceived: transientMessage => {
-    console.log('transient message received', transientMessage);
-  },
-})
-);   
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let listenerId: string = "UNIQUE_LITENER_ID";
-
-CometChat.addMessageListener(
-  listenerId,
+  listenerID,
   new CometChat.MessageListener({
-      onTransientMessageReceived: (transientMessage: CometChat.TransientMessage) => {
-          console.log('transient message received', transientMessage);
-      },
+    onTransientMessageReceived: (transientMessage) => {
+      console.log("Transient message received:", transientMessage);
+      
+      const data = transientMessage.getData();
+      if (data.LIVE_REACTION) {
+        // Handle live reaction animation
+        showReactionAnimation(data.LIVE_REACTION);
+      }
+    }
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerID: string = "UNIQUE_LISTENER_ID";
 
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onTransientMessageReceived: (transientMessage: CometChat.TransientMessage) => {
+      console.log("Transient message received:", transientMessage);
+      
+      const data: any = transientMessage.getData();
+      if (data.LIVE_REACTION) {
+        // Handle live reaction animation
+        showReactionAnimation(data.LIVE_REACTION);
+      }
+    }
+  })
+);
+```
+</Tab>
 </Tabs>
 
-The `TransientMessage` class consists of the below parameters:
+#### Removing the Listener
 
-| Parameter        | Information                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------- |
-| **sender**       | An object of the User class holding all the information. related to the sender of the transient message. |
-| **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the transient message is sent to. |
-| **receiverType** | The type of the receiver - `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`             |
-| **data**         | A JSONObject to provide data.                                                                            |
+Always remove listeners when they are no longer needed to prevent memory leaks:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerID = "UNIQUE_LISTENER_ID";
+
+CometChat.removeMessageListener(listenerID);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerID: string = "UNIQUE_LISTENER_ID";
+
+CometChat.removeMessageListener(listenerID);
+```
+</Tab>
+</Tabs>
+
+### Handle Transient Message Data
+
+*In other words, how do I extract and use the data from a transient message?*
+
+The `TransientMessage` object provides methods to access the sender, receiver, and custom data:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+CometChat.addMessageListener(
+  "transient-handler",
+  new CometChat.MessageListener({
+    onTransientMessageReceived: (transientMessage) => {
+      // Get sender information
+      const sender = transientMessage.getSender();
+      console.log("From:", sender.getName());
+      
+      // Get receiver information
+      const receiverId = transientMessage.getReceiverId();
+      const receiverType = transientMessage.getReceiverType();
+      
+      // Get custom data payload
+      const data = transientMessage.getData();
+      console.log("Data:", data);
+      
+      // Handle based on data type
+      switch (data.type) {
+        case "live_reaction":
+          displayReaction(data.reaction, sender);
+          break;
+        case "cursor_position":
+          updateCursorPosition(data.x, data.y, sender);
+          break;
+        default:
+          console.log("Unknown transient message type");
+      }
+    }
+  })
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+CometChat.addMessageListener(
+  "transient-handler",
+  new CometChat.MessageListener({
+    onTransientMessageReceived: (transientMessage: CometChat.TransientMessage) => {
+      // Get sender information
+      const sender: CometChat.User = transientMessage.getSender();
+      console.log("From:", sender.getName());
+      
+      // Get receiver information
+      const receiverId: string = transientMessage.getReceiverId();
+      const receiverType: string = transientMessage.getReceiverType();
+      
+      // Get custom data payload
+      const data: any = transientMessage.getData();
+      console.log("Data:", data);
+      
+      // Handle based on data type
+      switch (data.type) {
+        case "live_reaction":
+          displayReaction(data.reaction, sender);
+          break;
+        case "cursor_position":
+          updateCursorPosition(data.x, data.y, sender);
+          break;
+        default:
+          console.log("Unknown transient message type");
+      }
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### TransientMessage Constructor
+
+Creates a new transient message object.
+
+```
+new CometChat.TransientMessage(receiverId: string, receiverType: string, data: object)
+```
+
+#### Parameters
+
+| Parameter    | Type   | Required | Description                                                                 |
+| ------------ | ------ | -------- | --------------------------------------------------------------------------- |
+| receiverId   | string | Yes      | The UID of the user or GUID of the group to send the message to             |
+| receiverType | string | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`           |
+| data         | object | Yes      | Custom JSON data payload to send with the transient message                 |
+
+### sendTransientMessage Method
+
+Sends a transient message to the specified receiver.
+
+```
+CometChat.sendTransientMessage(transientMessage: TransientMessage): void
+```
+
+#### Parameters
+
+| Parameter        | Type             | Required | Description                          |
+| ---------------- | ---------------- | -------- | ------------------------------------ |
+| transientMessage | TransientMessage | Yes      | The transient message object to send |
+
+#### Return Value
+
+This method does not return a value. Transient messages are fire-and-forget—there is no delivery confirmation.
+
+### TransientMessage Properties
+
+| Property       | Type   | Description                                                                                              |
+| -------------- | ------ | -------------------------------------------------------------------------------------------------------- |
+| sender         | User   | An object of the User class holding all the information related to the sender of the transient message   |
+| receiverId     | string | Unique ID of the receiver. This can be the UID of the user or GUID of the group                          |
+| receiverType   | string | The type of the receiver - `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`             |
+| data           | object | A JSON object containing the custom data payload                                                         |
+
+### TransientMessage Methods
+
+| Method           | Return Type | Description                                      |
+| ---------------- | ----------- | ------------------------------------------------ |
+| getSender()      | User        | Returns the sender User object                   |
+| getReceiverId()  | string      | Returns the receiver ID (UID or GUID)            |
+| getReceiverType()| string      | Returns the receiver type (user or group)        |
+| getData()        | object      | Returns the custom data payload                  |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Receiver Must Be Online**: Transient messages are only delivered to users who are currently online. If the recipient is offline, the message is silently dropped and cannot be retrieved later. Do not use transient messages for critical data that must be delivered.
+</Warning>
+
+<Warning>
+**No Delivery Confirmation**: The `sendTransientMessage()` method does not return a Promise or provide any delivery confirmation. You cannot know if the message was successfully received. For use cases requiring delivery guarantees, use regular messages instead.
+</Warning>
+
+<Warning>
+**No Message History**: Transient messages are never stored and cannot be fetched using `MessagesRequest`. If you need to persist the data, you must handle storage separately in your application or use regular messages.
+</Warning>
+
+<Warning>
+**Listener ID Uniqueness**: Each listener must have a unique `listenerID`. If you register multiple listeners with the same ID, only the last one will be active. Use descriptive, unique IDs like `"live-reactions-listener"` to avoid conflicts.
+</Warning>
+
+<Warning>
+**Memory Leaks from Listeners**: Always remove message listeners when navigating away from the view or when the component unmounts. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+## Next Steps
+
+- [Send a Message](/sdk/javascript/send-message) - Learn about sending persistent messages
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages and events
+- [Typing Indicators](/sdk/javascript/typing-indicators) - Built-in typing indicator functionality
+- [User Presence](/sdk/javascript/user-presence) - Track user online/offline status
+- [Custom Messages](/sdk/javascript/send-message#custom-message) - Send custom message types with persistence
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Overview of all available listeners

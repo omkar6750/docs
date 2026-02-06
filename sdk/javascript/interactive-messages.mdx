@@ -2,202 +2,650 @@
 title: "Interactive Messages"
 ---
 
+## Summary
 
+Interactive Messages in the CometChat JavaScript SDK enable you to send rich, interactive content within chat messages, such as embedded forms, cards, and custom interactive elements. Users can interact directly with these messages without leaving the chat interface, enhancing engagement and enabling workflows like surveys, feedback collection, and action buttons.
 
-An InteractiveMessage is a specialised object that encapsulates an interactive unit within a chat message, such as an embedded form that users can fill out directly within the chat interface. This enhances user engagement by making the chat experience more interactive and responsive to user input.
+## When to Use This
 
-## InteractiveMessage
+- When building in-chat forms for surveys, feedback, or data collection
+- When creating interactive cards with action buttons (e.g., approve/reject workflows)
+- When implementing custom interactive elements like polls or quizzes
+- When tracking user interactions and goal completion within messages
+- When enabling sender interaction with their own interactive messages
 
-`InteractiveMessage` is a chat message with embedded interactive content. It can contain various properties:
+## Prerequisites
 
-| Parameter              | Description                                                                                                                                                       | Required                  |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| receiverId             | The UID or GUID of the recipient                                                                                                                                  | Yes                       |
-| receiverType           | The type of the receiver to whom the message is to be sent i.e CometChatConstants.RECEIVER\_TYPE\_USER (user) or CometChatConstants.RECEIVER\_TYPE\_GROUP (group) | Yes                       |
-| messageType            | The type of the message that needs to be sent                                                                                                                     | Yes                       |
-| interactiveData        | A JSONObject holding structured data for the interactive element.                                                                                                 | Yes                       |
-| allowSenderInteraction | A boolean determining whether the message sender can interact with the message by default it is set to false.                                                     | Optional (Default: false) |
-| interactionGoal        | An InteractionGoal object encapsulating the intended outcome of interacting with the InteractiveMessage by default it is set to none                              | Optional (Default: none)  |
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before sending or receiving interactive messages
+- **Receiver**: The recipient user (UID) or group (GUID) must exist in CometChat
 
-## Interaction
-
-An `Interaction` represents a user action involved with an `InteractiveMessage`. It includes:
-
-* `elementId`: An identifier for a specific interactive element.
-* `interactedAt`: A timestamp indicating when the interaction occurred.
-
-## Goal Completion
-
-A key feature of `InteractiveMessage` is checking whether a user's interactions with the message meet the defined `InteractionGoal`
-
-You would be tracking every interaction users perform on an `InteractiveMessage` (captured as `Interaction` objects) and comparing those with the defined `InteractionGoal`. The completion of a goal can vary depending on the goal type:
-
-| Goals                            | Description                                                            | Keys                                          |
-| -------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------- |
-| **Any Interaction**              | The goal is considered completed if there is at least one interaction. | CometChatConstants.INTERACTION\_TYPE\_ANY     |
-| **Any of Specific Interactions** | The goal is achieved if any of the specified interactions occurred.    | CometChatConstants.INTERACTION\_TYPE\_ANY\_OF |
-| **All of Specific Interactions** | The goal is completed when all specified interactions occur.           | CometChatConstants.INTERACTION\_TYPE\_ALL\_OF |
-| **None**                         | The goal is never completed.                                           | CometChatConstants.INTERACTION\_TYPE\_NONE    |
-
-This user interaction tracking mechanism provides a flexible and efficient way to monitor user engagement within an interactive chat session. By defining clear interaction goals and checking user interactions against these goals, you can manage user engagement and improve the overall chat experience in your CometChat-enabled application.
-
-## InteractionGoal
-
-The `InteractionGoal` represents the desired outcome of an interaction with an `InteractiveMessage`. It includes:
-
-* `elementIds`: A list of identifiers for the interactive elements.
-* `type`: The type of interaction goal from the `CometChatConstants`.
-
-## Sending InteractiveMessages
-
-The `InteractiveMessage` can be sent using the `sendInteractiveMessage` method of the `CometChat` class. The method requires an `InteractiveMessage` object and a `CallbackListener` for handling the response.
-
-Here is an example of how to use it:
+## Minimal Example
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
+const receiverID = "UID";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+
 const interactiveData = {
-title: "Survey",
-formFields: [
-  {
-    elementType: "textInput",
-    elementId: "name",
-    optional: false,
-    label: "Name",
-    placeholder: {
-      text: "Enter text here"
+  title: "Quick Survey",
+  formFields: [
+    {
+      elementType: "textInput",
+      elementId: "feedback",
+      label: "Your Feedback",
+      placeholder: { text: "Enter your feedback here" }
     }
-  },
-  {
-    elementType: "textInput",
-    elementId: "age",
-    optional: true,
-    label: "Age",
-    maxLines: 1,
-    placeholder: {
-      text: "Enter text here"
-    }
-  },
-  {
-    elementType: "Select",
-    elementId: "checkBox1",
-    optional: true,
-    label: "Check box element",
-    defaultValue: ["chk_option_2"],
-    options: [
-      {
-        label: "Option 1",
-        value: "chk_option_1"
-      },
-      {
-        label: "Option 2",
-        value: "chk_option_2"
-      }
-    ]
-  },
-  {
-    elementType: "dropdown",
-    elementId: "gender",
-    optional: false,
-    label: "Gender",
-    defaultValue: "male",
-    options: [
-      {
-        label: "Male",
-        value: "male"
-      },
-      {
-        label: "Female",
-        value: "female"
-      }
-    ]
+  ],
+  submitElement: {
+    elementType: "button",
+    elementId: "submitBtn",
+    buttonText: "Submit"
   }
-],
-submitElement: {
-  elementType: "button",
-  elementId: "submitButton",
-  buttonText: "Submit",
-  disableAfterInteracted: false,
-  action: {
-    actionType: "urlNavigation",
-    url: "https://www.cometchat.com/"
-  }
-}
 };
 
+const interactiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  "form",
+  interactiveData
+);
 
-
-const interactiveMessage = new CometChat.InteractiveMessage(receiverId,receiverType,"form", interactiveData);
-
-
-CometChat.sendInteractiveMessage(interactiveMessage)
-          .then((message: CometChat.InteractiveMessage) => {
-             // This block is executed when the InteractiveMessage is sent successfully.
-          })
-          .catch((error: CometChat.CometChatException) => {
-              // This block is executed if an error occurs while sending the InteractiveMessage.
-          });
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message) => {
+    console.log("Interactive message sent:", message);
+  },
+  (error) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
 
+const interactiveData: object = {
+  title: "Quick Survey",
+  formFields: [
+    {
+      elementType: "textInput",
+      elementId: "feedback",
+      label: "Your Feedback",
+      placeholder: { text: "Enter your feedback here" }
+    }
+  ],
+  submitElement: {
+    elementType: "button",
+    elementId: "submitBtn",
+    buttonText: "Submit"
+  }
+};
+
+const interactiveMessage: CometChat.InteractiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  "form",
+  interactiveData
+);
+
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message: CometChat.InteractiveMessage) => {
+    console.log("Interactive message sent:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
-## Event Listeners
+## Step-by-Step
 
-CometChat SDK provides event listeners to handle real-time events related to `InteractiveMessage`.
+### Step 1: Understand InteractiveMessage Structure
 
-## On InteractiveMessage Received
+An `InteractiveMessage` is a specialized chat message that encapsulates interactive content. It contains the following properties:
 
-The `onInteractiveMessageReceived` event listener is triggered when an `InteractiveMessage` is received.
+| Parameter              | Type    | Required | Default | Description                                                                                                                                                       |
+| ---------------------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| receiverId             | string  | Yes      | -       | The UID or GUID of the recipient                                                                                                                                  |
+| receiverType           | string  | Yes      | -       | The type of the receiver: `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP` |
+| messageType            | string  | Yes      | -       | The type of the interactive message (e.g., "form", "card")                                                                                                        |
+| interactiveData        | object  | Yes      | -       | A JSON object holding structured data for the interactive element                                                                                                 |
+| allowSenderInteraction | boolean | No       | false   | Whether the message sender can interact with the message                                                                                                          |
+| interactionGoal        | object  | No       | none    | An InteractionGoal object defining the intended outcome of interacting with the message                                                                           |
 
-Here is an example:
+### Step 2: Create Interactive Data
+
+Define the interactive content structure. Here's an example of a form with multiple field types:
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-CometChat.addMessageListener(
-  "UNIQUE_ID",
-  new CometChat.MessageListener({
-      onInteractiveMessageReceived: (message: CometChat.InteractiveMessage) => {
-        			// This block is executed when an InteractiveMessage is received.
-							// Here you can define logic to handle the received InteractiveMessage and display it in 										your chat interface.
-      },
-  })
-);
+```javascript
+const interactiveData = {
+  title: "Survey",
+  formFields: [
+    {
+      elementType: "textInput",
+      elementId: "name",
+      optional: false,
+      label: "Name",
+      placeholder: { text: "Enter your name" }
+    },
+    {
+      elementType: "textInput",
+      elementId: "age",
+      optional: true,
+      label: "Age",
+      maxLines: 1,
+      placeholder: { text: "Enter your age" }
+    },
+    {
+      elementType: "Select",
+      elementId: "checkBox1",
+      optional: true,
+      label: "Preferences",
+      defaultValue: ["option_2"],
+      options: [
+        { label: "Option 1", value: "option_1" },
+        { label: "Option 2", value: "option_2" }
+      ]
+    },
+    {
+      elementType: "dropdown",
+      elementId: "gender",
+      optional: false,
+      label: "Gender",
+      defaultValue: "male",
+      options: [
+        { label: "Male", value: "male" },
+        { label: "Female", value: "female" }
+      ]
+    }
+  ],
+  submitElement: {
+    elementType: "button",
+    elementId: "submitButton",
+    buttonText: "Submit",
+    disableAfterInteracted: false,
+    action: {
+      actionType: "urlNavigation",
+      url: "https://www.cometchat.com/"
+    }
+  }
+};
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+interface FormField {
+  elementType: string;
+  elementId: string;
+  optional?: boolean;
+  label: string;
+  placeholder?: { text: string };
+  maxLines?: number;
+  defaultValue?: string | string[];
+  options?: Array<{ label: string; value: string }>;
+}
 
+interface SubmitElement {
+  elementType: string;
+  elementId: string;
+  buttonText: string;
+  disableAfterInteracted?: boolean;
+  action?: {
+    actionType: string;
+    url?: string;
+  };
+}
+
+interface InteractiveData {
+  title: string;
+  formFields: FormField[];
+  submitElement: SubmitElement;
+}
+
+const interactiveData: InteractiveData = {
+  title: "Survey",
+  formFields: [
+    {
+      elementType: "textInput",
+      elementId: "name",
+      optional: false,
+      label: "Name",
+      placeholder: { text: "Enter your name" }
+    },
+    {
+      elementType: "textInput",
+      elementId: "age",
+      optional: true,
+      label: "Age",
+      maxLines: 1,
+      placeholder: { text: "Enter your age" }
+    },
+    {
+      elementType: "Select",
+      elementId: "checkBox1",
+      optional: true,
+      label: "Preferences",
+      defaultValue: ["option_2"],
+      options: [
+        { label: "Option 1", value: "option_1" },
+        { label: "Option 2", value: "option_2" }
+      ]
+    },
+    {
+      elementType: "dropdown",
+      elementId: "gender",
+      optional: false,
+      label: "Gender",
+      defaultValue: "male",
+      options: [
+        { label: "Male", value: "male" },
+        { label: "Female", value: "female" }
+      ]
+    }
+  ],
+  submitElement: {
+    elementType: "button",
+    elementId: "submitButton",
+    buttonText: "Submit",
+    disableAfterInteracted: false,
+    action: {
+      actionType: "urlNavigation",
+      url: "https://www.cometchat.com/"
+    }
+  }
+};
+```
+</Tab>
 </Tabs>
 
-On Interaction Goal Completed
-
-The `onInteractionGoalCompleted` event listener is invoked when an interaction goal is achieved.
-
-Here is an example:
+### Step 3: Create and Send the InteractiveMessage
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
+const receiverID = "UID";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+const messageType = "form";
+
+const interactiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  messageType,
+  interactiveData
+);
+
+// Optional: Allow sender to interact with their own message
+interactiveMessage.setAllowSenderInteraction(true);
+
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message) => {
+    console.log("Interactive message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+const messageType: string = "form";
+
+const interactiveMessage: CometChat.InteractiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  messageType,
+  interactiveData
+);
+
+// Optional: Allow sender to interact with their own message
+interactiveMessage.setAllowSenderInteraction(true);
+
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message: CometChat.InteractiveMessage) => {
+    console.log("Interactive message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Send to a Group
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverID = "GUID";
+const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+const messageType = "form";
+
+const interactiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  messageType,
+  interactiveData
+);
+
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message) => {
+    console.log("Interactive message sent to group:", message);
+  },
+  (error) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "GUID";
+const receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+const messageType: string = "form";
+
+const interactiveMessage: CometChat.InteractiveMessage = new CometChat.InteractiveMessage(
+  receiverID,
+  receiverType,
+  messageType,
+  interactiveData
+);
+
+CometChat.sendInteractiveMessage(interactiveMessage).then(
+  (message: CometChat.InteractiveMessage) => {
+    console.log("Interactive message sent to group:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error sending interactive message:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Set Interaction Goals
+
+Define goals to track when users complete specific interactions:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Goal: Any interaction completes the goal
+const anyInteractionGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ANY,
+  []
+);
+
+// Goal: Any of specific interactions completes the goal
+const anyOfGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ANY_OF,
+  ["submitButton", "cancelButton"]
+);
+
+// Goal: All specified interactions must occur
+const allOfGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ALL_OF,
+  ["name", "gender", "submitButton"]
+);
+
+// Goal: Never completed (for informational messages)
+const noneGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_NONE,
+  []
+);
+
+// Apply goal to message
+interactiveMessage.setInteractionGoal(anyOfGoal);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Goal: Any interaction completes the goal
+const anyInteractionGoal: CometChat.InteractionGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ANY,
+  []
+);
+
+// Goal: Any of specific interactions completes the goal
+const anyOfGoal: CometChat.InteractionGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ANY_OF,
+  ["submitButton", "cancelButton"]
+);
+
+// Goal: All specified interactions must occur
+const allOfGoal: CometChat.InteractionGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_ALL_OF,
+  ["name", "gender", "submitButton"]
+);
+
+// Goal: Never completed (for informational messages)
+const noneGoal: CometChat.InteractionGoal = new CometChat.InteractionGoal(
+  CometChat.CometChatConstants.INTERACTION_TYPE_NONE,
+  []
+);
+
+// Apply goal to message
+interactiveMessage.setInteractionGoal(anyOfGoal);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Method Signature
+
+```
+CometChat.sendInteractiveMessage(interactiveMessage: InteractiveMessage): Promise<InteractiveMessage>
+```
+
+### InteractiveMessage Constructor
+
+```
+new CometChat.InteractiveMessage(receiverId, receiverType, messageType, interactiveData)
+```
+
+### Parameters
+
+| Parameter       | Type   | Required | Description                                                                 |
+| --------------- | ------ | -------- | --------------------------------------------------------------------------- |
+| receiverId      | string | Yes      | The UID of the user or GUID of the group receiving the message              |
+| receiverType    | string | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`           |
+| messageType     | string | Yes      | The type of interactive message (e.g., "form", "card", custom types)        |
+| interactiveData | object | Yes      | JSON object containing the interactive element structure                    |
+
+### InteractiveMessage Methods
+
+| Method                        | Parameters           | Description                                           |
+| ----------------------------- | -------------------- | ----------------------------------------------------- |
+| setAllowSenderInteraction     | boolean              | Enable/disable sender interaction with their message  |
+| setInteractionGoal            | InteractionGoal      | Set the goal for tracking interaction completion      |
+| getInteractiveData            | -                    | Returns the interactive data object                   |
+| getAllowSenderInteraction     | -                    | Returns whether sender interaction is allowed         |
+| getInteractionGoal            | -                    | Returns the interaction goal                          |
+
+### InteractionGoal Constructor
+
+```
+new CometChat.InteractionGoal(type, elementIds)
+```
+
+| Parameter  | Type     | Description                                                    |
+| ---------- | -------- | -------------------------------------------------------------- |
+| type       | string   | Goal type from CometChatConstants (ANY, ANY_OF, ALL_OF, NONE)  |
+| elementIds | string[] | Array of element IDs to track for goal completion              |
+
+### Interaction Goal Types
+
+| Goal Type                                        | Description                                              |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `CometChatConstants.INTERACTION_TYPE_ANY`        | Goal completes with any interaction                      |
+| `CometChatConstants.INTERACTION_TYPE_ANY_OF`     | Goal completes when any specified interaction occurs     |
+| `CometChatConstants.INTERACTION_TYPE_ALL_OF`     | Goal completes when all specified interactions occur     |
+| `CometChatConstants.INTERACTION_TYPE_NONE`       | Goal never completes                                     |
+
+### Return Value
+
+Returns a `Promise<CometChat.InteractiveMessage>` that resolves to the sent interactive message object containing:
+- Message ID
+- Sender information
+- Receiver information
+- Interactive data
+- Interaction goal
+- Timestamps
+
+### Errors
+
+| Error Code                  | Description                                    | Resolution                                      |
+| --------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_NOT_LOGGED_IN           | User is not logged in                          | Call `CometChat.login()` before sending         |
+| ERR_INVALID_RECEIVER        | Invalid receiver ID or type                    | Verify UID/GUID exists and type is correct      |
+| ERR_INVALID_MESSAGE_TYPE    | Invalid message type provided                  | Use valid message type string                   |
+| ERR_EMPTY_INTERACTIVE_DATA  | Interactive data is empty or invalid           | Provide valid interactive data object           |
+
+## Events & Real-time Behavior
+
+### Registering Listeners
+
+Register a message listener to receive interactive messages and track goal completions:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "interactive-message-listener";
+
 CometChat.addMessageListener(
-  "UNIQUE_ID",
+  listenerId,
   new CometChat.MessageListener({
-      onInteractionGoalCompleted: (receipt: CometChat.InteractionReceipt) => {
-          // This block is executed when an interaction goal is completed.
-          // Here you can specify the actions your application should take once an interaction goal is 								achieved, such as updating the UI or notifying the user.
-      },
+    onInteractiveMessageReceived: (message) => {
+      console.log("Interactive message received:", message);
+      // Handle the interactive message display
+      const interactiveData = message.getInteractiveData();
+      console.log("Interactive data:", interactiveData);
+    },
+    onInteractionGoalCompleted: (receipt) => {
+      console.log("Interaction goal completed:", receipt);
+      // Handle goal completion (e.g., update UI, trigger workflow)
+      const messageId = receipt.getMessageId();
+      const interactions = receipt.getInteractions();
+      console.log("Completed for message:", messageId);
+    }
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "interactive-message-listener";
 
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onInteractiveMessageReceived: (message: CometChat.InteractiveMessage) => {
+      console.log("Interactive message received:", message);
+      // Handle the interactive message display
+      const interactiveData: object = message.getInteractiveData();
+      console.log("Interactive data:", interactiveData);
+    },
+    onInteractionGoalCompleted: (receipt: CometChat.InteractionReceipt) => {
+      console.log("Interaction goal completed:", receipt);
+      // Handle goal completion (e.g., update UI, trigger workflow)
+      const messageId: number = receipt.getMessageId();
+      const interactions: CometChat.Interaction[] = receipt.getInteractions();
+      console.log("Completed for message:", messageId);
+    }
+  })
+);
+```
+</Tab>
 </Tabs>
 
-These event listeners offer your application a way to provide real-time updates in response to incoming interactive messages and goal completions, contributing to a more dynamic and responsive user chat experience.
+### Removing Listeners
 
-## Usage
+Always remove listeners when they are no longer needed to prevent memory leaks:
 
-An InteractiveMessage is constructed with the receiver's UID, the receiver type, the interactive type, and interactive data as a JSONObject. Once created, the InteractiveMessage can be sent using CometChat's sendInteractiveMessage() method. Incoming InteractiveMessages can be received and processed via CometChat's message listener framework.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "interactive-message-listener";
+
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "interactive-message-listener";
+
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Interaction Object
+
+When users interact with an interactive message, an `Interaction` object is created:
+
+| Property     | Type   | Description                                        |
+| ------------ | ------ | -------------------------------------------------- |
+| elementId    | string | Identifier of the interacted element               |
+| interactedAt | number | Unix timestamp of when the interaction occurred    |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Pitfall 1: Missing Listener Cleanup**
+
+Failing to remove message listeners when components unmount or pages navigate away can cause memory leaks and duplicate event handling. Always call `CometChat.removeMessageListener(listenerId)` in cleanup logic.
+</Warning>
+
+<Warning>
+**Pitfall 2: Duplicate Listener IDs**
+
+Using the same `listenerId` for multiple listeners will overwrite previous listeners. Always use unique listener IDs (e.g., include component instance ID or UUID) to avoid losing event handlers.
+</Warning>
+
+<Warning>
+**Pitfall 3: Sender Interaction Disabled by Default**
+
+By default, `allowSenderInteraction` is `false`, meaning the sender cannot interact with their own interactive message. If you need senders to test or interact with their messages, explicitly call `setAllowSenderInteraction(true)`.
+</Warning>
+
+<Warning>
+**Pitfall 4: Invalid Element IDs in Interaction Goals**
+
+When setting interaction goals with `INTERACTION_TYPE_ANY_OF` or `INTERACTION_TYPE_ALL_OF`, ensure the element IDs match exactly with those defined in your `interactiveData`. Mismatched IDs will prevent goal completion from being detected.
+</Warning>
+
+<Warning>
+**Pitfall 5: Large Interactive Data Objects**
+
+Very large `interactiveData` objects may impact message delivery performance. Keep interactive data concise and avoid embedding large base64 images or excessive form fields. Consider pagination for complex forms.
+</Warning>
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+- Validate interactive data on your server before processing user submissions
+- Sanitize any user input from interactive forms to prevent XSS attacks
+- Use HTTPS URLs in action configurations to ensure secure navigation
+- Consider rate limiting interactive message submissions to prevent abuse
+
+## Next Steps
+
+- [Send a Message](/sdk/javascript/send-message) - Learn about sending text and media messages
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages including interactive ones
+- [Message Receipts](/sdk/javascript/delivery-read-receipts) - Track delivery and read status
+- [Custom Messages](/sdk/javascript/send-message#custom-message) - Create other custom message types
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Overview of all available listeners

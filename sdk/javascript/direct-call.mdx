@@ -2,6 +2,26 @@
 title: "Call Session"
 ---
 
+## Summary
+
+The Call Session feature (previously known as Direct Calling) enables you to start and manage audio/video call sessions using the Calls SDK. This guide covers generating call tokens, configuring call settings, handling call events via listeners, and properly ending sessions with resource cleanup.
+
+## When to Use This
+
+- Start a call session after a call is accepted in the [Ringing](/sdk/javascript/default-call) flow
+- Implement standalone calling without the ringing workflow (session-only mode)
+- Build custom call UI with programmatic control over audio, video, and screen sharing
+- Handle call session events like user join/leave, mute state changes, and screen sharing
+- Properly clean up WebRTC resources when calls end
+
+## Prerequisites
+
+1. **Chat SDK initialized**: Ensure `CometChat.init()` has completed successfully. See [Setup SDK](/sdk/javascript/setup-sdk).
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User logged in**: A user must be logged in via `CometChat.login()`. See [Authentication](/sdk/javascript/authentication-overview).
+4. **Call container element**: An HTML element must exist in the DOM to render the call UI (e.g., `<div id="call-container"></div>`).
+5. **Session ID**: Either generate a random session ID for standalone calls, or use the session ID from a `Call` object in the ringing flow.
+
 ## Overview
 
 This section demonstrates how to start a call session in a web application. Previously known as **Direct Calling**.
@@ -9,9 +29,7 @@ This section demonstrates how to start a call session in a web application. Prev
 Before you begin, we strongly recommend you read the [calling setup guide](/sdk/javascript/calling-setup).
 
 <Note>
-
 If you want to implement a complete calling experience with ringing functionality (incoming/outgoing call UI), follow the [Ringing](/sdk/javascript/default-call) guide first. Once the call is accepted, return here to start the call session.
-
 </Note>
 
 ## Generate Call Token
@@ -706,3 +724,265 @@ CometChatCalls.endSession();
 ```
 </Tab>
 </Tabs>
+
+## Session Cleanup
+
+Proper session cleanup is critical to prevent memory leaks, release hardware resources (camera, microphone), and ensure users can start new calls. Always clean up when a call ends, whether normally or due to an error.
+
+### Complete Cleanup Pattern
+
+The cleanup process involves three steps:
+1. **End the call via Chat SDK** (Ringing flow only): Call `CometChat.endCall()` to notify other participants
+2. **Clear active call state**: Call `CometChat.clearActiveCall()` to reset the Chat SDK's call state
+3. **End the session**: Call `CometChatCalls.endSession()` to release WebRTC resources
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Complete cleanup function for ringing flow
+async function cleanupCallSession(sessionId) {
+  try {
+    // Step 1: End call via Chat SDK (notifies other participants)
+    await CometChat.endCall(sessionId);
+    console.log("Call ended successfully");
+  } catch (error) {
+    console.log("End call failed:", error);
+    // Continue cleanup even if endCall fails
+  }
+  
+  // Step 2: Clear active call state
+  CometChat.clearActiveCall();
+  
+  // Step 3: Release WebRTC resources
+  CometChatCalls.endSession();
+  
+  // Step 4: Close your call UI
+  // closeCallScreen();
+}
+
+// Cleanup for session-only flow (no ringing)
+function cleanupSessionOnly() {
+  CometChatCalls.endSession();
+  // closeCallScreen();
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Complete cleanup function for ringing flow
+async function cleanupCallSession(sessionId: string): Promise<void> {
+  try {
+    // Step 1: End call via Chat SDK (notifies other participants)
+    await CometChat.endCall(sessionId);
+    console.log("Call ended successfully");
+  } catch (error) {
+    console.log("End call failed:", error);
+    // Continue cleanup even if endCall fails
+  }
+  
+  // Step 2: Clear active call state
+  CometChat.clearActiveCall();
+  
+  // Step 3: Release WebRTC resources
+  CometChatCalls.endSession();
+  
+  // Step 4: Close your call UI
+  // closeCallScreen();
+}
+
+// Cleanup for session-only flow (no ringing)
+function cleanupSessionOnly(): void {
+  CometChatCalls.endSession();
+  // closeCallScreen();
+}
+```
+</Tab>
+</Tabs>
+
+### Cleanup in Event Handlers
+
+Always implement cleanup in your call event handlers:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onCallEnded: () => {
+    // Remote participant ended the call
+    CometChat.clearActiveCall();
+    CometChatCalls.endSession();
+    // Close call UI
+  },
+  onCallEndButtonPressed: () => {
+    // Local user clicked end call button
+    CometChat.endCall(sessionId).then(
+      () => {
+        CometChat.clearActiveCall();
+        CometChatCalls.endSession();
+        // Close call UI
+      },
+      (error) => {
+        console.log("End call failed:", error);
+        // Still cleanup local resources
+        CometChat.clearActiveCall();
+        CometChatCalls.endSession();
+      }
+    );
+  },
+  onSessionTimeout: () => {
+    // Call auto-terminated due to inactivity
+    CometChat.clearActiveCall();
+    CometChatCalls.endSession();
+    // Close call UI and show timeout message
+  },
+  onError: (error) => {
+    console.log("Call error:", error);
+    // Cleanup on critical errors
+    if (error.code === "SESSION_TERMINATED") {
+      CometChat.clearActiveCall();
+      CometChatCalls.endSession();
+    }
+  }
+});
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onCallEnded: () => {
+    // Remote participant ended the call
+    CometChat.clearActiveCall();
+    CometChatCalls.endSession();
+    // Close call UI
+  },
+  onCallEndButtonPressed: () => {
+    // Local user clicked end call button
+    CometChat.endCall(sessionId).then(
+      () => {
+        CometChat.clearActiveCall();
+        CometChatCalls.endSession();
+        // Close call UI
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("End call failed:", error);
+        // Still cleanup local resources
+        CometChat.clearActiveCall();
+        CometChatCalls.endSession();
+      }
+    );
+  },
+  onSessionTimeout: () => {
+    // Call auto-terminated due to inactivity
+    CometChat.clearActiveCall();
+    CometChatCalls.endSession();
+    // Close call UI and show timeout message
+  },
+  onError: (error: any) => {
+    console.log("Call error:", error);
+    // Cleanup on critical errors
+    if (error.code === "SESSION_TERMINATED") {
+      CometChat.clearActiveCall();
+      CometChatCalls.endSession();
+    }
+  }
+});
+```
+</Tab>
+</Tabs>
+
+### Listener Cleanup
+
+Remove call event listeners when they are no longer needed to prevent memory leaks:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "UNIQUE_LISTENER_ID";
+
+// Add listener
+CometChatCalls.addCallEventListener(listenerId, {
+  onUserJoined: (user) => console.log("User joined:", user),
+  onUserLeft: (user) => console.log("User left:", user),
+  onCallEnded: () => console.log("Call ended")
+});
+
+// Remove listener when done (e.g., component unmount)
+function cleanup() {
+  CometChatCalls.removeCallEventListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "UNIQUE_LISTENER_ID";
+
+// Add listener
+CometChatCalls.addCallEventListener(listenerId, {
+  onUserJoined: (user: any) => console.log("User joined:", user),
+  onUserLeft: (user: any) => console.log("User left:", user),
+  onCallEnded: () => console.log("Call ended")
+});
+
+// Remove listener when done (e.g., component unmount)
+function cleanup(): void {
+  CometChatCalls.removeCallEventListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Missing endSession() Call**: Failing to call `CometChatCalls.endSession()` when a call ends leaves WebRTC resources (camera, microphone, network connections) active. This causes memory leaks, battery drain, and may prevent starting new calls. Always call `endSession()` in all call termination paths.
+</Warning>
+
+<Warning>
+**Forgetting clearActiveCall()**: Always call `CometChat.clearActiveCall()` when a call ends in the ringing flow. Failing to do so can prevent initiating new calls and cause inconsistent call state in the Chat SDK.
+</Warning>
+
+<Warning>
+**Call Container Not in DOM**: Calling `startSession()` before the HTML container element exists in the DOM will fail silently. Ensure the element is rendered before starting the session, especially in frameworks with async rendering (React, Vue, Angular).
+</Warning>
+
+<Warning>
+**Duplicate Listener Registration**: Using the same `listenerId` for multiple listeners will overwrite the previous listener. Always use unique listener IDs (e.g., include component instance ID or UUID) to prevent losing event handlers.
+</Warning>
+
+<Warning>
+**Token Reuse Attempts**: Call tokens are single-use and session-specific. Attempting to reuse a token for a new session will fail. Always generate a fresh token using `generateToken()` for each call session.
+</Warning>
+
+<Warning>
+**switchCamera() on Desktop**: The `switchCamera()` method only works on mobile browsers. Calling it on desktop browsers has no effect. Check the user agent or use feature detection before showing camera switch UI on desktop.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Resource cleanup**: Always call `CometChatCalls.endSession()` and `CometChat.clearActiveCall()` when calls end to release WebRTC resources (camera, microphone, network connections) and prevent memory leaks.
+- **Listener efficiency**: Register call event listeners once at component mount, not on every user action. Multiple redundant listeners degrade performance and cause duplicate event handling.
+- **Call token generation**: Generate tokens just before starting the session. Tokens are single-use and session-specific—do not cache or reuse them.
+- **Idle timeout**: Configure `setIdleTimeoutPeriod()` appropriately for your use case. The default 180 seconds may be too short for some applications. A warning appears 60 seconds before auto-termination.
+- **Group call limits**: Group calls support up to 50 participants by default. Contact CometChat support for higher limits.
+- **Network handling**: The Calls SDK handles network reconnection automatically, but implement UI feedback for poor network conditions using the `onError` callback.
+- **Device enumeration**: Call `getAudioInputDevices()`, `getAudioOutputDevices()`, and `getVideoInputDevices()` only when needed (e.g., when showing device selection UI), not continuously.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC and development only. For production applications, use **Auth Token** created server-side via the CometChat REST API. Never expose your Auth Key in client-side production code.
+</Note>
+
+- The `authToken` used in `generateToken()` is the user's auth token from `getLoggedinUser().getAuthToken()`, not your app's Auth Key.
+- Call tokens are cryptographically signed and tied to a specific session ID and user. They cannot be forged or reused.
+- Call sessions are authenticated and encrypted. Only authenticated users can join calls they have valid tokens for.
+- Session IDs should be unpredictable (use UUIDs) for standalone calls to prevent unauthorized access.
+
+## Next Steps
+
+- [Ringing](/sdk/javascript/default-call) - Implement complete calling with incoming/outgoing call UI
+- [Call Logs](/sdk/javascript/call-logs) - Retrieve call history and missed calls
+- [Recording](/sdk/javascript/recording) - Enable call recording
+- [Virtual Background](/sdk/javascript/virtual-background) - Add background effects to video calls
+- [Video View Customisation](/sdk/javascript/video-view-customisation) - Customize the call UI layout
+- [Session Timeout](/sdk/javascript/session-timeout) - Configure automatic call timeout

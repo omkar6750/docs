@@ -2,82 +2,278 @@
 title: "Custom CSS"
 ---
 
+## Summary
 
+Custom CSS allows you to personalize and enhance the user interface of the CometChat call screen by applying your own styles to call components. This guide covers the available CSS classes, how to apply custom styles to different call modes, and best practices for maintaining a consistent and stable UI.
 
-Passing custom CSS allows you to personalize and enhance the user interface of the call screen.
+## When to Use This
 
-## Common CSS Classes
+- Customize the appearance of call buttons (mute, video, end call, screen share)
+- Apply brand colors and styling to the call interface
+- Modify the layout and appearance of participant video containers
+- Style user name labels to match your application's design
+- Create a consistent visual experience across different call modes (Default, Tile, Spotlight)
 
-There are a few common classes used for different modes in the call screen
+## Prerequisites
 
-1. **cc-main-container** - The outermost component of the calling component is represented by a white border in the screenshots above, indicating that it acts as a container for other components.
+1. **Chat SDK initialized**: Ensure `CometChat.init()` has completed successfully. See [Setup SDK](/sdk/javascript/setup-sdk).
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User logged in**: A user must be logged in via `CometChat.login()`. See [Authentication](/sdk/javascript/authentication-overview).
+4. **Active call session**: Custom CSS applies to an active call session. See [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
+5. **CSS knowledge**: Basic understanding of CSS selectors and properties.
 
-2. **cc-bottom-buttons-container** - The container located at the very bottom of the interface houses various action buttons, such as the mute/unmute audio and video, end call, settings icon, and participants icon, among others. It is represented by the red border in above screenshot.
+## Minimal Example
 
-3. **cc-name-label** - This class is passed in user name text container in all modes. It is represented by green border in the above screenshots.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Start a call session with default settings
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .build();
 
-4. **cc-video-container** - This class is passed to the video container in all modes. It is represented by orange border in the above screenshots.
+const htmlElement = document.getElementById("call-container");
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
 
-## Bottom Buttons
+// Apply custom CSS to style the call UI
+// Add this CSS to your stylesheet or inject it dynamically
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Start a call session with default settings
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .build();
 
-1. **cc-bottom-buttons-container** - This is the container of all the buttons in calling.
-2. **cc-bottom-buttons-icon-container** - This is the div of every button in the button bar.
+const htmlElement = document.getElementById("call-container") as HTMLElement;
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
 
-### Individual bottom buttons CSS classes
-
-* `cc-audio-icon-container`
-* `cc-audio-icon-container-muted`
-* `cc-video-icon-container`
-* `cc-video-icon-container-muted`
-* `cc-screen-share-icon-container`
-* `cc-switch-video-icon-container`
-* `cc-end-call-icon-container`
-
-### **Example**
+// Apply custom CSS to style the call UI
+// Add this CSS to your stylesheet or inject it dynamically
+```
+</Tab>
+</Tabs>
 
 <Tabs>
 <Tab title="CSS">
 ```css
+/* Custom CSS for call UI */
+.cc-main-container {
+  border: 2px solid #0073ff;
+}
+
+.cc-bottom-buttons-container {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
 .cc-end-call-icon-container {
-  background-color: green;
+  background-color: #ff4444 !important;
+  border-radius: 50% !important;
 }
+
+.cc-name-label {
+  background-color: #0073ff !important;
+  color: white !important;
+}
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Understand the CSS Class Structure
+
+The Calls SDK provides specific CSS classes for different components of the call UI. These classes are consistent across all call modes (Default, Tile, Spotlight).
+
+**Main Container Classes:**
+
+| CSS Class | Description |
+| --------- | ----------- |
+| `cc-main-container` | The outermost container wrapping the entire call component |
+| `cc-bottom-buttons-container` | Container for all action buttons at the bottom of the call screen |
+| `cc-name-label` | User name text container displayed on video tiles |
+| `cc-video-container` | Container wrapping each participant's video element |
+
+### Step 2: Style the Bottom Action Buttons
+
+The bottom button bar contains all call action buttons. You can style the container and individual buttons.
+
+**Button Container Classes:**
+
+| CSS Class | Description |
+| --------- | ----------- |
+| `cc-bottom-buttons-container` | Main container for all bottom buttons |
+| `cc-bottom-buttons-icon-container` | Individual button wrapper (applies to all buttons) |
+
+**Individual Button Classes:**
+
+| CSS Class | Description |
+| --------- | ----------- |
+| `cc-audio-icon-container` | Audio/microphone button (unmuted state) |
+| `cc-audio-icon-container-muted` | Audio/microphone button (muted state) |
+| `cc-video-icon-container` | Video/camera button (enabled state) |
+| `cc-video-icon-container-muted` | Video/camera button (disabled state) |
+| `cc-screen-share-icon-container` | Screen share button |
+| `cc-switch-video-icon-container` | Switch camera button |
+| `cc-end-call-icon-container` | End call button |
+
+<Tabs>
+<Tab title="CSS">
+```css
+/* Style all bottom buttons */
+.cc-bottom-buttons-icon-container {
+  height: 50px !important;
+  width: 50px !important;
+}
+
+/* Style audio button */
 .cc-audio-icon-container {
-  background-color: blue;
+  background-color: #0073ff !important;
+  border-radius: 50% !important;
 }
-.cc-video-icon-container {
-  background-color: blue;
-}
+
+/* Style muted audio button differently */
 .cc-audio-icon-container-muted {
-  background-color: orange;
+  background-color: #ff6b6b !important;
+  border-radius: 50% !important;
 }
+
+/* Style video button */
+.cc-video-icon-container {
+  background-color: #0073ff !important;
+  border-radius: 50% !important;
+}
+
+/* Style muted video button differently */
 .cc-video-icon-container-muted {
-  background-color: orange;
+  background-color: #ff6b6b !important;
+  border-radius: 50% !important;
 }
-.cc-switch-video-icon-container {
-  background-color: blue;
+
+/* Style end call button */
+.cc-end-call-icon-container {
+  background-color: #ff4444 !important;
+  border-radius: 50% !important;
+  margin-left: 20px !important;
 }
+
+/* Style screen share button */
 .cc-screen-share-icon-container {
-  background-color: blue;
+  background-color: #0073ff !important;
+  border-radius: 50% !important;
 }
+
+/* Style switch camera button */
+.cc-switch-video-icon-container {
+  background-color: #0073ff !important;
+  border-radius: 50% !important;
+}
+```
+</Tab>
+</Tabs>
+
+### Step 3: Style Video Containers and Name Labels
+
+Customize the appearance of video tiles and participant name labels.
+
+<Tabs>
+<Tab title="CSS">
+```css
+/* Style the main call container */
+.cc-main-container {
+  border: 2px solid #333;
+  border-radius: 8px;
+}
+
+/* Style video containers */
+.cc-video-container {
+  border: 2px solid #0073ff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Style participant name labels */
+.cc-name-label {
+  background-color: rgba(0, 115, 255, 0.8) !important;
+  color: white !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-weight: bold !important;
+}
+
+/* Style the bottom buttons container */
+.cc-bottom-buttons-container {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+}
+```
+</Tab>
+</Tabs>
+
+### Step 4: Apply Styles for Different Call Modes
+
+The CSS classes work consistently across all call modes. Here's a complete example that styles the call UI:
+
+<Tabs>
+<Tab title="CSS">
+```css
+/* Complete custom styling example */
+
+/* Main container styling */
 .cc-main-container {
   border: 2px dotted white;
 }
+
+/* Video container styling */
 .cc-video-container {
   border: 2px dotted orange;
 }
+
+/* Bottom buttons container */
 .cc-bottom-buttons-container {
   border: 2px dotted red;
 }
+
+/* Name label styling */
 .cc-name-label {
   border: 2px dotted green;
 }
+
+/* Button styling */
+.cc-end-call-icon-container {
+  background-color: green;
+}
+
+.cc-audio-icon-container {
+  background-color: blue;
+}
+
+.cc-video-icon-container {
+  background-color: blue;
+}
+
+.cc-audio-icon-container-muted {
+  background-color: orange;
+}
+
+.cc-video-icon-container-muted {
+  background-color: orange;
+}
+
+.cc-switch-video-icon-container {
+  background-color: blue;
+}
+
+.cc-screen-share-icon-container {
+  background-color: blue;
+}
 ```
-
 </Tab>
-
 </Tabs>
-
-The above example results in the below output:-
 
 **Mode: `DEFAULT`**
 
@@ -97,9 +293,14 @@ The above example results in the below output:-
   <img src="/images/0ccea4cb-ivplmg27823qlaxthfhug5ihcebjfzif5dobx2pdl3x07x9qu18ai3fu98tz0t6u-82de98478427a58dcb9441afdd54f1a7.png" />
 </Frame>
 
+### Step 5: Advanced Styling Example
+
+Here's a more polished example with professional styling:
+
 <Tabs>
 <Tab title="CSS">
 ```css
+/* Professional call UI styling */
 .cc-bottom-buttons-icon-container {
   height: 50px !important;
   width: 50px !important;
@@ -148,25 +349,86 @@ The above example results in the below output:-
   gap: 20px !important;
 }
 ```
-
 </Tab>
-
 </Tabs>
-
-The above example results in the below output:-
 
 <Frame>
   <img src="/images/97410b02-98nyrur1z95e78wy4t0k4pz8c9zcbyhyimrv0db07w4g2eqmf8haza2lb2kyfnb1-458156083bf242abfa2ee89a0cf795fb.png" />
 </Frame>
 
-### Guidelines for Customizing the Grid Layout
+## API Details
 
-* **CSS Classes:**
+### Available CSS Classes
 
-  * Please ensure that you only apply CSS classes specified in this documentation. Introducing CSS classes not covered here may cause unexpected UI issues.
+#### Container Classes
 
-* **Grid Container Resizing:**
+| CSS Class | Description | Applies To |
+| --------- | ----------- | ---------- |
+| `cc-main-container` | Outermost container for the call component | All modes |
+| `cc-bottom-buttons-container` | Container for action buttons at the bottom | All modes |
+| `cc-video-container` | Container for participant video elements | All modes |
+| `cc-name-label` | User name text container | All modes |
 
-  * Avoid resizing the grid container. Altering the grid container’s dimensions can negatively impact the grid layout, leading to undesirable visual distortions.
+#### Button Classes
 
-By following these recommendations, you can maintain a stable and visually consistent grid layout.
+| CSS Class | Description | State |
+| --------- | ----------- | ----- |
+| `cc-bottom-buttons-icon-container` | Generic button wrapper | All buttons |
+| `cc-audio-icon-container` | Audio/microphone button | Unmuted |
+| `cc-audio-icon-container-muted` | Audio/microphone button | Muted |
+| `cc-video-icon-container` | Video/camera button | Enabled |
+| `cc-video-icon-container-muted` | Video/camera button | Disabled |
+| `cc-screen-share-icon-container` | Screen share button | - |
+| `cc-switch-video-icon-container` | Switch camera button | - |
+| `cc-end-call-icon-container` | End call button | - |
+
+### CSS Specificity
+
+When overriding default styles, you may need to use `!important` to ensure your styles take precedence over the SDK's default styles.
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Use Only Documented Classes**: Only apply CSS to the classes specified in this documentation. Using undocumented CSS classes may cause unexpected UI issues or break with SDK updates.
+</Warning>
+
+<Warning>
+**Avoid Resizing Grid Container**: Do not resize the `cc-main-container` or grid container dimensions. Altering these can negatively impact the grid layout and cause visual distortions across different call modes.
+</Warning>
+
+<Warning>
+**CSS Specificity Issues**: The SDK applies default styles that may override your custom CSS. Use `!important` when necessary, but use it sparingly to maintain maintainable stylesheets.
+</Warning>
+
+<Warning>
+**Mode-Specific Styling**: While CSS classes are consistent across modes, the layout differs. Test your custom styles in all call modes (Default, Tile, Spotlight) to ensure they work correctly.
+</Warning>
+
+<Warning>
+**Dynamic Class Changes**: Button classes change dynamically based on state (e.g., `cc-audio-icon-container` vs `cc-audio-icon-container-muted`). Ensure you style both states for a consistent experience.
+</Warning>
+
+## Performance & Scale Notes
+
+- **CSS Complexity**: Keep CSS selectors simple and avoid deeply nested selectors. Complex selectors can impact rendering performance during calls.
+- **Avoid Animations on Video Elements**: Heavy CSS animations on video containers can cause performance issues, especially on lower-end devices.
+- **Test Across Devices**: Custom styles may render differently across browsers and devices. Test on target platforms before deployment.
+- **Minimize !important Usage**: While sometimes necessary, excessive use of `!important` makes styles harder to maintain and debug.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Note>
+**CSS Injection**: If allowing user-provided CSS or dynamic styles, sanitize inputs to prevent CSS injection attacks that could alter the UI maliciously.
+</Note>
+
+## Next Steps
+
+- [Video View Customization](/sdk/javascript/video-view-customisation) - Customize video layout and display modes
+- [Default Calling](/sdk/javascript/default-call) - Implement the complete calling flow with UI
+- [Direct Calling](/sdk/javascript/direct-call) - Start direct call sessions
+- [Virtual Background](/sdk/javascript/virtual-background) - Add virtual background support to calls
+- [Recording](/sdk/javascript/recording) - Record calls for later playback

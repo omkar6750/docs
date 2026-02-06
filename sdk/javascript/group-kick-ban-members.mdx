@@ -2,38 +2,86 @@
 title: "Ban Or Kick Member From A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to manage group membership by kicking, banning, and unbanning members. Admins and moderators can remove disruptive users temporarily (kick) or permanently (ban), and restore access to previously banned users (unban). This is essential for building moderation tools, enforcing community guidelines, and maintaining healthy group environments.
 
-There are certain actions that can be performed on the group members:
+## When to Use This
 
-1. Kick a member from the group
-2. Ban a member from the group
-3. Unban a member from the group
-4. Update the scope of the member of the group
+- When implementing moderation tools for group admins and moderators
+- When building a "Remove Member" feature in group settings
+- When enforcing community guidelines by banning rule violators
+- When restoring access to previously banned users after appeals
+- When creating admin dashboards for group management
+- When implementing automated moderation based on user behavior
 
-All the above actions can only be performed by the **Admin** or the **Moderator** of the group.
+## Prerequisites
 
-## Kick a Group Member
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Group**: The group must exist and the logged-in user must be an admin or moderator
+- **Permissions**: Only admins and moderators can kick, ban, or unban members
 
-The Admin or Moderator of a group can kick a member out of the group using the `kickGroupMember()` method.
+## Minimal Example
 
 <Tabs>
-<Tab title="Kick Group Member">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var UID = "UID";
+let GUID = "GUID";
+let UID = "UID";
+
+// Kick a member from the group
+CometChat.kickGroupMember(GUID, UID).then(
+  (response) => {
+    console.log("Member kicked successfully:", response);
+  },
+  (error) => {
+    console.log("Failed to kick member:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let UID: string = "UID";
+
+// Kick a member from the group
+CometChat.kickGroupMember(GUID, UID).then(
+  (response: Object) => {
+    console.log("Member kicked successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to kick member:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Kick a Group Member
+
+The Admin or Moderator of a group can kick a member out of the group using the `kickGroupMember()` method. A kicked user is removed from the group but can rejoin later.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
 
 CometChat.kickGroupMember(GUID, UID).then(
-response => {
-  console.log("Group member kicked successfully", response);
-}, error => {
-  console.log("Group member kicking failed with error", error);
-}
+  (response) => {
+    console.log("Group member kicked successfully:", response);
+  },
+  (error) => {
+    console.log("Group member kicking failed with error:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -41,47 +89,36 @@ let UID: string = "UID";
 
 CometChat.kickGroupMember(GUID, UID).then(
   (response: Object) => {
-      console.log("Group member kicked successfully", response);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group member kicking failed with error", error);
+    console.log("Group member kicked successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group member kicking failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-The `kickGroupMember()` takes following parameters
+### Step 2: Ban a Group Member
 
-| Parameter | Description                                           |
-| --------- | ----------------------------------------------------- |
-| `UID`     | The UID of the user to be kicked.                     |
-| `GUID`    | The GUID of the group from which user is to be kicked |
-
-The kicked user will be no longer part of the group and can not perform any actions in the group, but the kicked user can rejoin the group.
-
-## Ban a Group Member
-
-The Admin or Moderator of the group can ban a member from the group using the `banGroupMember()` method.
+The Admin or Moderator of the group can ban a member using the `banGroupMember()` method. A banned user cannot rejoin the group until they are unbanned.
 
 <Tabs>
-<Tab title="Ban Group Member">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var UID = "UID";
+let GUID = "GUID";
+let UID = "UID";
 
 CometChat.banGroupMember(GUID, UID).then(
-response => {
-  console.log("Group member banned successfully", response);
-}, error => {
-  console.log("Group member banning failed with error", error);
-}
-);   
+  (response) => {
+    console.log("Group member banned successfully:", response);
+  },
+  (error) => {
+    console.log("Group member banning failed with error:", error);
+  }
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -89,47 +126,36 @@ let UID: string = "UID";
 
 CometChat.banGroupMember(GUID, UID).then(
   (response: Object) => {
-      console.log("Group member banned successfully", response);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group member banning failed with error", error);
+    console.log("Group member banned successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group member banning failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-The `banGroupMember()` method takes the following parameters:
+### Step 3: Unban a Banned Group Member
 
-| Parameter | Description                                            |
-| --------- | ------------------------------------------------------ |
-| `UID`     | The UID of the user to be banned.                      |
-| `GUID`    | The GUID of the group from which user is to be banned. |
-
-The banned user will be no longer part of the group and can not perform any actions in the group. A banned user cannot rejoin the same group without being unbanned.
-
-## Unban a Banned Group Member from a Group
-
-Only Admin or Moderators of the group can unban a previously banned member from the group using the `unbanGroupMember()` method.
+Only Admin or Moderators of the group can unban a previously banned member using the `unbanGroupMember()` method. Once unbanned, the user can rejoin the group.
 
 <Tabs>
-<Tab title="Unban Group Member">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var UID = "UID";
+let GUID = "GUID";
+let UID = "UID";
 
 CometChat.unbanGroupMember(GUID, UID).then(
-response => {
-  console.log("Group member unbanned successfully", response);
-}, error => {
-  console.log("Group member unbanning failed with error", error);
-}
-);  
+  (response) => {
+    console.log("Group member unbanned successfully:", response);
+  },
+  (error) => {
+    console.log("Group member unbanning failed with error:", error);
+  }
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -137,221 +163,401 @@ let UID: string = "UID";
 
 CometChat.unbanGroupMember(GUID, UID).then(
   (response: Object) => {
-      console.log("Group member unbanned successfully", response);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group member unbanning failed with error", error);
+    console.log("Group member unbanned successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group member unbanning failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-The `unbanGroupMember()` method takes the following parameters
+### Step 4: Fetch Banned Members List
 
-| Parameter | Description                                          |
-| --------- | ---------------------------------------------------- |
-| `UID`     | The UID of the user to be unbanned.                  |
-| `GUID`    | The UID of the group from which user is to be banned |
-
-The unbanned user can now rejoin the group.
-
-## Get List of Banned Members for a Group
-
-In order to fetch the list of banned groups members for a group, you can use the `BannedGroupMembersRequest` class. To use this class i.e to create an object of the BannedGroupMembersRequest class, you need to use the `BannedGroupMembersRequestBuilder` class. The `BannedGroupMembersRequestBuilder` class allows you to set the parameters based on which the banned group members are to be fetched.
-
-The `BannedGroupMembersRequestBuilder` class allows you to set the below parameters:
-
-The `GUID` of the group for which the banned members are to be fetched must be specified in the constructor of the `GroupMembersRequestBuilder` class.
-
-### Set Limit
-
-This method sets the limit i.e. the number of banned members that should be fetched in a single iteration.
+To retrieve the list of banned members for a group, use the `BannedMembersRequestBuilder` class.
 
 <Tabs>
-<Tab title="Set Limit">
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
-let bannedGroupMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
-  																.setLimit(limit)
-  																.build();
-```
 
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let bannedGroupMembersRequest: CometChat.BannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
+let bannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
   .setLimit(limit)
   .build();
+
+bannedMembersRequest.fetchNext().then(
+  (bannedMembers) => {
+    console.log("Banned members list fetched successfully:", bannedMembers);
+  },
+  (error) => {
+    console.log("Banned members list fetching failed with error:", error);
+  }
+);
 ```
-
 </Tab>
-
-</Tabs>
-
-### Set Search Keyword
-
-This method allows you to set the search string based on which the banned group members are to be fetched.
-
-<Tabs>
-<Tab title="Set Search Keyword">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let searchKeyword = "super";
-let bannedGroupMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
-  																.setLimit(limit)
-  																.setSearchKeyword(searchKeyword)
-  																.build();
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
 let limit: number = 30;
-let searchKeyword: string = "super";
-let bannedGroupMembersRequest: CometChat.BannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
+
+let bannedMembersRequest: CometChat.BannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+bannedMembersRequest.fetchNext().then(
+  (bannedMembers: CometChat.GroupMember[]) => {
+    console.log("Banned members list fetched successfully:", bannedMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Banned members list fetching failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Search Banned Members
+
+You can search for specific banned members using the `setSearchKeyword()` method.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let searchKeyword = "john";
+
+let bannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
   .setLimit(limit)
   .setSearchKeyword(searchKeyword)
   .build();
-```
-
-</Tab>
-
-</Tabs>
-
-Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the `BannedGroupMembersRequest` class.
-
-Once you have the object of the `BannedGroupMembersRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `GroupMember` objects containing n number of banned members where n is the limit set in the builder class.
-
-<Tabs>
-<Tab title="Banned Group Members Request">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let bannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
-  													.setLimit(limit)
-  													.build();
 
 bannedMembersRequest.fetchNext().then(
-bannedMembers => {
-  console.log("Banned Group Member list fetched successfully:", bannedMembers);
-}, error => {
-  console.log("Banned Group Member list fetching failed with exception:", error);
-}
+  (bannedMembers) => {
+    console.log("Banned members matching search:", bannedMembers);
+  },
+  (error) => {
+    console.log("Search failed with error:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
 let limit: number = 30;
-let bannedGroupMembersRequest: CometChat.BannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
+let searchKeyword: string = "john";
+
+let bannedMembersRequest: CometChat.BannedMembersRequest = new CometChat.BannedMembersRequestBuilder(GUID)
   .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
   .build();
 
-bannedGroupMembersRequest.fetchNext().then(
+bannedMembersRequest.fetchNext().then(
   (bannedMembers: CometChat.GroupMember[]) => {
-      console.log("Banned Group Member list fetched successfully:", bannedMembers);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Banned Group Member list fetching failed with exception:", error);
+    console.log("Banned members matching search:", bannedMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Search failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-## Real-Time Group Member Kicked/Banned Events
+## Events & Real-time Behavior
 
-*In other words, as a member of a group, how do I know when someone is banned/kicked when my app is running?*
+### Registering GroupListener
 
-In order to get real-time events for the kick/ban/unban group members you need to override the following methods of the `GroupListener` class.
-
-1. `onGroupMemberKicked()` - triggered when any group member has been kicked.
-2. `onGroupMemberBanned()` - triggered when any group member has been banned.
-3. `onGroupMemberUnbanned()` - triggered when any group member has been unbanned.
+To receive real-time events when members are kicked, banned, or unbanned, register a `GroupListener`.
 
 <Tabs>
-<Tab title="Group Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
+let listenerId = "unique-kick-ban-listener";
 
 CometChat.addGroupListener(
-listenerID,
-new CometChat.GroupListener({
-  onGroupMemberKicked: (message, kickedUser, kickedBy, kickedFrom) => {
-    console.log("User kicked", { message, kickedUser, kickedBy, kickedFrom });
-  },
-  onGroupMemberBanned: (message, bannedUser, bannedBy, bannedFrom) => {
-    console.log("User banned", { message, bannedUser, bannedBy, bannedFrom });
-  },
-  onGroupMemberUnbanned: (message, unbannedUser, unbannedBy,unbannedFrom) => {
-    console.log("User unbanned", {message, unbannedUser, unbannedBy, unbannedFrom});
-  }
-})
-);  
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
-
-CometChat.addGroupListener(
-  listenerID,
+  listenerId,
   new CometChat.GroupListener({
-      onGroupMemberKicked: (message: CometChat.Action, kickedUser: CometChat.User, kickedBy: CometChat.User, kickedFrom: CometChat.Group) => {
-          console.log("User kicked", { message, kickedUser, kickedBy, kickedFrom });
-      },
-      onGroupMemberBanned: (message: CometChat.Action, bannedUser: CometChat.User, bannedBy: CometChat.User, bannedFrom: CometChat.Group) => {
-          console.log("User banned", { message, bannedUser, bannedBy, bannedFrom });
-      },
-      onGroupMemberUnbanned: (message: CometChat.Action, unbannedUser: CometChat.User, unbannedBy: CometChat.User, unbannedFrom: CometChat.Group) => {
-          console.log("User unbanned", { message, unbannedUser, unbannedBy, unbannedFrom });
-      }
+    onGroupMemberKicked: (message, kickedUser, kickedBy, kickedFrom) => {
+      console.log("User kicked:", { message, kickedUser, kickedBy, kickedFrom });
+    },
+    onGroupMemberBanned: (message, bannedUser, bannedBy, bannedFrom) => {
+      console.log("User banned:", { message, bannedUser, bannedBy, bannedFrom });
+    },
+    onGroupMemberUnbanned: (message, unbannedUser, unbannedBy, unbannedFrom) => {
+      console.log("User unbanned:", { message, unbannedUser, unbannedBy, unbannedFrom });
+    },
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-kick-ban-listener";
 
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberKicked: (
+      message: CometChat.Action,
+      kickedUser: CometChat.User,
+      kickedBy: CometChat.User,
+      kickedFrom: CometChat.Group
+    ) => {
+      console.log("User kicked:", { message, kickedUser, kickedBy, kickedFrom });
+    },
+    onGroupMemberBanned: (
+      message: CometChat.Action,
+      bannedUser: CometChat.User,
+      bannedBy: CometChat.User,
+      bannedFrom: CometChat.Group
+    ) => {
+      console.log("User banned:", { message, bannedUser, bannedBy, bannedFrom });
+    },
+    onGroupMemberUnbanned: (
+      message: CometChat.Action,
+      unbannedUser: CometChat.User,
+      unbannedBy: CometChat.User,
+      unbannedFrom: CometChat.Group
+    ) => {
+      console.log("User unbanned:", { message, unbannedUser, unbannedBy, unbannedFrom });
+    },
+  })
+);
+```
+</Tab>
 </Tabs>
 
-## Missed Group Member Kicked/Banned Events
+### Removing GroupListener
 
-*In other words, as a member of a group, how do I know when someone is banned/kicked when my app is not running?*
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
 
-When you retrieve the list of previous messages if a member has been kicked/banned/unbanned from any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-kick-ban-listener";
 
-For group member kicked event, the details can be obtained using the below fields of the `Action` class-
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-kick-ban-listener";
 
-1. `action` - `kicked`
-2. `actionBy` - User object containing the details of the user who has kicked the member
-3. `actionOn` - User object containing the details of the member that has been kicked
-4. `actionFor` - Group object containing the details of the Group from which the member was kicked
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
 
-For group member banned event, the details can be obtained using the below fields of the `Action` class-
+### Complete Listener Lifecycle Example
 
-1. `action` - `banned`
-2. `actionBy` - User object containing the details of the user who has banned the member
-3. `actionOn` - User object containing the details of the member that has been banned
-4. `actionFor` - Group object containing the details of the Group from which the member was banned
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Use a unique listener ID
+let listenerId = "kick-ban-listener-" + Date.now();
 
-For group member unbanned event, the details can be obtained using the below fields of the `Action` class-
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberKicked: (message, kickedUser, kickedBy, kickedFrom) => {
+      console.log(`${kickedUser.getName()} was kicked from ${kickedFrom.getName()} by ${kickedBy.getName()}`);
+    },
+    onGroupMemberBanned: (message, bannedUser, bannedBy, bannedFrom) => {
+      console.log(`${bannedUser.getName()} was banned from ${bannedFrom.getName()} by ${bannedBy.getName()}`);
+    },
+    onGroupMemberUnbanned: (message, unbannedUser, unbannedBy, unbannedFrom) => {
+      console.log(`${unbannedUser.getName()} was unbanned from ${unbannedFrom.getName()} by ${unbannedBy.getName()}`);
+    },
+  })
+);
 
-1. `action` - `unbanned`
-2. `actionBy` - User object containing the details of the user who has unbanned the member
-3. `actionOn` - User object containing the details of the member that has been unbanned
-4. `actionFor` - Group object containing the details of the Group from which the member was unbanned
+// Later, when cleaning up (e.g., component unmount)
+function cleanup() {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Use a unique listener ID
+let listenerId: string = "kick-ban-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberKicked: (
+      message: CometChat.Action,
+      kickedUser: CometChat.User,
+      kickedBy: CometChat.User,
+      kickedFrom: CometChat.Group
+    ) => {
+      console.log(`${kickedUser.getName()} was kicked from ${kickedFrom.getName()} by ${kickedBy.getName()}`);
+    },
+    onGroupMemberBanned: (
+      message: CometChat.Action,
+      bannedUser: CometChat.User,
+      bannedBy: CometChat.User,
+      bannedFrom: CometChat.Group
+    ) => {
+      console.log(`${bannedUser.getName()} was banned from ${bannedFrom.getName()} by ${bannedBy.getName()}`);
+    },
+    onGroupMemberUnbanned: (
+      message: CometChat.Action,
+      unbannedUser: CometChat.User,
+      unbannedBy: CometChat.User,
+      unbannedFrom: CometChat.Group
+    ) => {
+      console.log(`${unbannedUser.getName()} was unbanned from ${unbannedFrom.getName()} by ${unbannedBy.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup(): void {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+### Kick/Ban/Unban Events in Message History
+
+When retrieving previous messages, if a member was kicked, banned, or unbanned, the message list will contain an `Action` message. The `Action` object provides the following information:
+
+| Action Type | action Value | Description                                      |
+| ----------- | ------------ | ------------------------------------------------ |
+| Kicked      | `"kicked"`   | A member was kicked from the group               |
+| Banned      | `"banned"`   | A member was banned from the group               |
+| Unbanned    | `"unbanned"` | A previously banned member was unbanned          |
+
+**Action Object Properties:**
+
+| Property  | Description                                                |
+| --------- | ---------------------------------------------------------- |
+| action    | The action type: `"kicked"`, `"banned"`, or `"unbanned"`   |
+| actionOn  | User object of the user who was kicked/banned/unbanned     |
+| actionBy  | User object of the user who performed the action           |
+| actionFor | Group object of the group where the action occurred        |
+
+## API Details
+
+### kickGroupMember()
+
+```javascript
+CometChat.kickGroupMember(GUID: string, UID: string): Promise<Object>
+```
+
+| Parameter | Type   | Required | Description                                    |
+| --------- | ------ | -------- | ---------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group             |
+| UID       | string | Yes      | The unique identifier of the user to kick      |
+
+### banGroupMember()
+
+```javascript
+CometChat.banGroupMember(GUID: string, UID: string): Promise<Object>
+```
+
+| Parameter | Type   | Required | Description                                    |
+| --------- | ------ | -------- | ---------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group             |
+| UID       | string | Yes      | The unique identifier of the user to ban       |
+
+### unbanGroupMember()
+
+```javascript
+CometChat.unbanGroupMember(GUID: string, UID: string): Promise<Object>
+```
+
+| Parameter | Type   | Required | Description                                    |
+| --------- | ------ | -------- | ---------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group             |
+| UID       | string | Yes      | The unique identifier of the user to unban     |
+
+### BannedMembersRequestBuilder
+
+```javascript
+new CometChat.BannedMembersRequestBuilder(GUID: string)
+  .setLimit(limit: number)
+  .setSearchKeyword(searchKeyword: string)
+  .build(): BannedMembersRequest
+```
+
+| Method            | Parameter     | Type   | Description                                    |
+| ----------------- | ------------- | ------ | ---------------------------------------------- |
+| constructor       | GUID          | string | The unique identifier of the group             |
+| setLimit          | limit         | number | Maximum number of results per page (max 100)   |
+| setSearchKeyword  | searchKeyword | string | Search string to filter banned members         |
+
+### Return Values
+
+All kick/ban/unban methods return a `Promise<Object>` that resolves to a success response object.
+
+The `fetchNext()` method on `BannedMembersRequest` returns a `Promise<GroupMember[]>` containing the list of banned members.
+
+### Errors
+
+| Error Code              | Description                                    | Resolution                                      |
+| ----------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN  | No user is currently logged in                 | Ensure user is logged in before performing action |
+| ERR_INVALID_GUID        | The provided GUID is invalid                   | Verify the GUID format and existence            |
+| ERR_GROUP_NOT_FOUND     | Group with the specified GUID not found        | Check if the group exists                       |
+| ERR_NOT_A_MEMBER        | User is not a member of the group              | User must be a member to perform moderation     |
+| ERR_PERMISSION_DENIED   | User doesn't have permission                   | Only admins and moderators can kick/ban/unban   |
+| ERR_USER_NOT_FOUND      | The specified UID doesn't exist                | Verify the UID exists in your CometChat app     |
+| ERR_ALREADY_BANNED      | User is already banned from the group          | Check ban status before banning                 |
+| ERR_NOT_BANNED          | User is not banned (for unban operation)       | Verify user is banned before unbanning          |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Kick vs Ban Behavior**: A kicked user can rejoin the group immediately, while a banned user cannot rejoin until they are explicitly unbanned. Choose the appropriate action based on your moderation needs. For temporary removals, use kick. For permanent or serious violations, use ban.
+</Warning>
+
+<Warning>
+**Permission Hierarchy**: Admins can kick/ban moderators and participants, but moderators can only kick/ban participants. Neither can kick/ban the group owner. Always verify the target user's scope before attempting moderation actions to avoid permission errors.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: If you register a GroupListener with the same `listenerId` as an existing listener, the new listener will replace the old one. Use unique listener IDs (e.g., include timestamps or UUIDs) to avoid accidentally overwriting listeners, especially in applications with multiple components listening for group events.
+</Warning>
+
+<Warning>
+**Unbanning Non-Banned Users**: Attempting to unban a user who is not banned will result in an error. Always check the banned members list or handle the error gracefully when implementing unban functionality.
+</Warning>
+
+## Performance & Scale Notes
+
+- The `BannedMembersRequestBuilder` supports pagination with a maximum of 100 results per page. Use `fetchNext()` repeatedly to retrieve all banned members.
+- For groups with many banned members, implement lazy loading in your UI to avoid fetching all banned members at once.
+- Kick, ban, and unban operations are individual API calls. If you need to moderate multiple users, consider batching the operations with appropriate error handling for partial failures.
+- Real-time events are delivered to all group members, so large groups may generate significant event traffic during moderation activities.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Warning>
+**Server-Side Moderation**: For production applications, consider implementing server-side moderation workflows. This allows you to log moderation actions, implement appeals processes, and enforce business rules before the CometChat API is called.
+</Warning>
+
+<Warning>
+**Audit Trail**: CometChat stores moderation actions as Action messages in the group history. However, for compliance requirements, consider maintaining your own audit log of moderation actions with additional context like reason for action.
+</Warning>
+
+## Next Steps
+
+- [Add Members to Group](/sdk/javascript/group-add-members) - Add new members to a group
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get a list of members in a group
+- [Change Member Scope](/sdk/javascript/group-change-member-scope) - Promote or demote members
+- [Leave Group](/sdk/javascript/leave-group) - Allow users to leave groups
+- [Delete Group](/sdk/javascript/delete-group) - Delete a group entirely
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for all group events

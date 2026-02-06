@@ -2,188 +2,45 @@
 title: "Retrieve Groups"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to retrieve groups in your application. You can fetch a list of all available groups, filter groups by various criteria, retrieve details of a specific group, or get the online member count for groups. This is essential for displaying group lists, implementing group search, and showing group information.
 
-## Retrieve List of Groups
+## When to Use This
 
-*In other words, as a logged-in user, how do I retrieve the list of groups I've joined and groups that are available?*
+- When displaying a list of available groups to users
+- When implementing group search functionality
+- When showing only groups the user has joined
+- When filtering groups by tags or other criteria
+- When retrieving detailed information about a specific group
+- When showing online member counts for groups
 
-In order to fetch the list of groups, you can use the `GroupsRequest` class. To use this class i.e to create an object of the `GroupsRequest` class, you need to use the `GroupsRequestBuilder` class. The `GroupsRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
+## Prerequisites
 
-The `GroupsRequestBuilder` class allows you to set the below parameters:
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
 
-### Set Limit
-
-This method sets the limit i.e. the number of groups that should be fetched in a single iteration.
+## Minimal Example
 
 <Tabs>
-<Tab title="Set Limit">
+<Tab title="JavaScript">
 ```javascript
 let limit = 30;
 let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let limit = 30;
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.build();
-```
-
-</Tab>
-
-</Tabs>
-
-### Set Search Keyword
-
-This method allows you to set the search string based on which the groups are to be fetched.
-
-<Tabs>
-<Tab title="Set Search Keyword">
-```javascript
-let limit = 30;
-let searchKeyword = "group";
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.setSearchKeyword(searchKeyword)
-                  	.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let limit: number = 30;
-let searchKeyword: string = "group";
-let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
   .setLimit(limit)
-  .setSearchKeyword(searchKeyword)
   .build();
-```
-
-</Tab>
-
-</Tabs>
-
-### Joined Only
-
-This method when used, will ask the SDK to only return the groups that the user has joined or is a part of.
-
-<Tabs>
-<Tab title="Joined Only">
-```javascript
-let limit = 30;
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.joinedOnly(true)
-                  	.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let limit: number = 30;
-let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
-  .setLimit(limit)
-  .joinedOnly(true)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-### Set Tags
-
-This method accepts a list of tags based on which the list of groups is to be fetched. The list fetched will only contain the groups that have been tagged with the specified tags.
-
-<Tabs>
-<Tab title="Set Tags">
-```javascript
-let limit = 30;
-let tags = ["tag1", "tag2"];
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.setTags(tags)
-                  	.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let limit: number = 30;
-let tags: Array<String> = ["tag1", "tag2"];
-let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
-  .setLimit(limit)
-  .setTags(tags)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-### With Tags
-
-This property when set to true will fetch tags data along with the list of groups.
-
-<Tabs>
-<Tab title="With Tags">
-```javascript
-let limit = 30;
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.withTags(true)
-                  	.build(); 
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let limit: number = 30;
-let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
-  .setLimit(limit)
-  .withTags(true)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the `GroupsRequest` class.
-
-Once you have the object of the `GroupsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `Group` objects containing n number of groups where n is the limit set in the builder class.
-
-The list of groups fetched will only have the public and password type groups. The private groups will only be available if the user is a member of the group.
-
-<Tabs>
-<Tab title="Groups Request">
-```javascript
-let limit = 30;
-let groupsRequest = new CometChat.GroupsRequestBuilder()
-                  	.setLimit(limit)
-                  	.build();
 
 groupsRequest.fetchNext().then(
-groupList => {
-  console.log("Groups list fetched successfully", groupList);
-}, error => {
-  console.log("Groups list fetching failed with error", error);
-}
+  (groupList) => {
+    console.log("Groups list fetched successfully", groupList);
+  },
+  (error) => {
+    console.log("Groups list fetching failed with error", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30;
@@ -193,93 +50,440 @@ let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder(
 
 groupsRequest.fetchNext().then(
   (groupList: CometChat.Group[]) => {
-      console.log("Groups list fetched successfully", groupList);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Groups list fetching failed with error", error);
+    console.log("Groups list fetched successfully", groupList);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Groups list fetching failed with error", error);
   }
 );
 ```
-
 </Tab>
+</Tabs>
 
+## Step-by-Step
+
+### Step 1: Create a GroupsRequestBuilder
+
+To fetch groups, you need to create a `GroupsRequest` object using the `GroupsRequestBuilder` class. The builder allows you to configure various parameters for filtering and pagination.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let groupsRequestBuilder = new CometChat.GroupsRequestBuilder();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let groupsRequestBuilder: CometChat.GroupsRequestBuilder = new CometChat.GroupsRequestBuilder();
+```
+</Tab>
+</Tabs>
+
+### Step 2: Set the Limit
+
+Use `setLimit()` to specify the number of groups to fetch in a single request. This is important for pagination.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 3: Add Search Filters (Optional)
+
+You can filter groups using various methods on the builder:
+
+#### Search by Keyword
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let searchKeyword = "group";
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let searchKeyword: string = "group";
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
+```
+</Tab>
+</Tabs>
+
+#### Fetch Only Joined Groups
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .joinedOnly(true)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .joinedOnly(true)
+  .build();
+```
+</Tab>
+</Tabs>
+
+#### Filter by Tags
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let tags = ["tag1", "tag2"];
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .setTags(tags)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let tags: Array<String> = ["tag1", "tag2"];
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .setTags(tags)
+  .build();
+```
+</Tab>
+</Tabs>
+
+#### Include Tags Data in Response
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .withTags(true)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .withTags(true)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 4: Fetch Groups
+
+Call `fetchNext()` on the `GroupsRequest` object to retrieve the groups. This method returns a Promise that resolves to an array of `Group` objects.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+
+groupsRequest.fetchNext().then(
+  (groupList) => {
+    console.log("Groups list fetched successfully", groupList);
+  },
+  (error) => {
+    console.log("Groups list fetching failed with error", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+
+groupsRequest.fetchNext().then(
+  (groupList: CometChat.Group[]) => {
+    console.log("Groups list fetched successfully", groupList);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Groups list fetching failed with error", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Implement Pagination
+
+To fetch the next set of groups, call `fetchNext()` again on the same `GroupsRequest` object. The SDK maintains the pagination state internally.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+
+// First page
+groupsRequest.fetchNext().then(
+  (groupList) => {
+    console.log("First page of groups:", groupList);
+    
+    // Fetch next page when needed
+    return groupsRequest.fetchNext();
+  }
+).then(
+  (nextGroupList) => {
+    console.log("Second page of groups:", nextGroupList);
+  },
+  (error) => {
+    console.log("Error fetching groups:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let limit: number = 30;
+let groupsRequest: CometChat.GroupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(limit)
+  .build();
+
+// First page
+groupsRequest.fetchNext().then(
+  (groupList: CometChat.Group[]) => {
+    console.log("First page of groups:", groupList);
+    
+    // Fetch next page when needed
+    return groupsRequest.fetchNext();
+  }
+).then(
+  (nextGroupList: CometChat.Group[]) => {
+    console.log("Second page of groups:", nextGroupList);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error fetching groups:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
 ## Retrieve Particular Group Details
 
-*In other words, as a logged-in user, how do I retrieve information for a specific group?*
-
-To get the information of a group, you can use the `getGroup()` method.
+To get detailed information about a specific group, use the `getGroup()` method with the group's GUID.
 
 <Tabs>
-<Tab title="Retrieve Particular Group's Details">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
+let GUID = "GUID";
 CometChat.getGroup(GUID).then(
-group => {
-  console.log("Group details fetched successfully:", group);
-}, error => {
-  console.log("Group details fetching failed with exception:", error);
-}
-);   
+  (group) => {
+    console.log("Group details fetched successfully:", group);
+  },
+  (error) => {
+    console.log("Group details fetching failed with exception:", error);
+  }
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
+let GUID: string = "GUID";
 CometChat.getGroup(GUID).then(
   (group: CometChat.Group) => {
-      console.log("Group details fetched successfully:", group);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group details fetching failed with exception:", error);
+    console.log("Group details fetched successfully:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group details fetching failed with exception:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-| Parameter | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| `GUID`    | The GUID of the group for whom the details are to be fetched |
+## Get Online Group Member Count
 
-It returns `Group` object containing the details of the group.
-
-## Get online group member count
-
-To get the total count of online users in particular groups, you can use the `getOnlineGroupMemberCount()` method.
+To get the count of online members in specific groups, use the `getOnlineGroupMemberCount()` method.
 
 <Tabs>
-<Tab title="Get Online Group Member Count">
+<Tab title="JavaScript">
 ```javascript
-let guids = ["cometchat-guid-1"];
+let guids = ["GUID"];
 CometChat.getOnlineGroupMemberCount(guids).then(
-groupMemberCount => {
-  console.log("Total online user for specified groups:", groupMemberCount);
-}, error => {
-  console.log("Online group member count fetching failed with error:", error);
-}
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let guids: String[] = ["cometchat-guid-1"];
-CometChat.getOnlineGroupMemberCount(guids).then(
-  (groupMemberCount: number) => {
-      console.log("Total online user for specified groups:", groupMemberCount);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Online group member count fetching failed with error:", error);
+  (groupMemberCount) => {
+    console.log("Total online users for specified groups:", groupMemberCount);
+  },
+  (error) => {
+    console.log("Online group member count fetching failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
+<Tab title="TypeScript">
+```typescript
+let guids: string[] = ["GUID"];
+CometChat.getOnlineGroupMemberCount(guids).then(
+  (groupMemberCount: Object) => {
+    console.log("Total online users for specified groups:", groupMemberCount);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Online group member count fetching failed with error:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
-This method returns a JSON Object with the GUID as the key and the online member count for that group as the value.
+## API Details
+
+### Method Signatures
+
+```javascript
+// Fetch groups list
+new CometChat.GroupsRequestBuilder().setLimit(limit).build(): GroupsRequest
+groupsRequest.fetchNext(): Promise<Group[]>
+
+// Get specific group
+CometChat.getGroup(GUID: string): Promise<Group>
+
+// Get online member count
+CometChat.getOnlineGroupMemberCount(guids: string[]): Promise<Object>
+```
+
+### GroupsRequestBuilder Methods
+
+| Method             | Type                  | Description                                                    |
+| ------------------ | --------------------- | -------------------------------------------------------------- |
+| setLimit           | number                | Sets the number of groups to fetch per request (max 100)       |
+| setSearchKeyword   | string                | Filters groups by name matching the search keyword             |
+| joinedOnly         | boolean               | When true, returns only groups the user has joined             |
+| setTags            | string[]              | Filters groups that have any of the specified tags             |
+| withTags           | boolean               | When true, includes tags data in the returned Group objects    |
+| build              | -                     | Builds and returns the GroupsRequest object                    |
+
+### Parameters
+
+#### getGroup
+
+| Parameter | Type   | Required | Description                                      |
+| --------- | ------ | -------- | ------------------------------------------------ |
+| GUID      | string | Yes      | The unique identifier of the group to retrieve   |
+
+#### getOnlineGroupMemberCount
+
+| Parameter | Type     | Required | Description                                      |
+| --------- | -------- | -------- | ------------------------------------------------ |
+| guids     | string[] | Yes      | Array of GUIDs to get online member counts for   |
+
+### Return Values
+
+- `fetchNext()`: Returns a `Promise<Group[]>` that resolves to an array of Group objects
+- `getGroup()`: Returns a `Promise<Group>` that resolves to a single Group object
+- `getOnlineGroupMemberCount()`: Returns a `Promise<Object>` with GUIDs as keys and online counts as values
+
+### Group Object Properties
+
+| Property     | Type    | Description                                                    |
+| ------------ | ------- | -------------------------------------------------------------- |
+| guid         | string  | Unique identifier for the group                                |
+| name         | string  | Name of the group                                              |
+| type         | string  | Group type: public, password, or private                       |
+| icon         | string  | URL to the group's icon                                        |
+| description  | string  | Description of the group                                       |
+| owner        | string  | UID of the group owner                                         |
+| membersCount | number  | Total number of members in the group                           |
+| hasJoined    | boolean | Whether the logged-in user is a member of the group            |
+| joinedAt     | number  | Unix timestamp when the user joined (if member)                |
+| scope        | string  | User's scope in the group (admin, moderator, participant)      |
+| tags         | string[]| Tags associated with the group (when withTags is true)         |
+| createdAt    | number  | Unix timestamp when the group was created                      |
+| updatedAt    | number  | Unix timestamp when the group was last updated                 |
+
+### Errors
+
+| Error Code              | Description                              | Resolution                                    |
+| ----------------------- | ---------------------------------------- | --------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN  | No user is currently logged in           | Ensure user is logged in before fetching      |
+| ERR_INVALID_GUID        | The provided GUID is invalid             | Verify the GUID format and existence          |
+| ERR_GROUP_NOT_FOUND     | Group with the specified GUID not found  | Check if the group exists                     |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Private Groups Visibility**: Private groups are only returned in the groups list if the logged-in user is a member. Non-members cannot see or search for private groups. If you expect to see a private group but don't, verify the user's membership status.
+</Warning>
+
+<Warning>
+**Pagination State**: The `GroupsRequest` object maintains internal pagination state. If you need to restart from the beginning, create a new `GroupsRequestBuilder` and build a fresh `GroupsRequest` object. Reusing the same object will continue from where it left off.
+</Warning>
+
+<Warning>
+**Empty Results Don't Mean End**: When `fetchNext()` returns an empty array, it means there are no more groups to fetch. However, if you're using filters like `joinedOnly(true)` or `setTags()`, an empty result might also mean no groups match your criteria. Always handle both scenarios appropriately.
+</Warning>
+
+<Warning>
+**Search Keyword Case Sensitivity**: The `setSearchKeyword()` method performs a case-insensitive search on group names. However, it only matches from the beginning of words, not substrings within words.
+</Warning>
+
+## Performance & Scale Notes
+
+- The maximum limit per request is 100 groups. Setting a higher value will be capped at 100.
+- Use pagination to handle large numbers of groups efficiently rather than fetching all at once.
+- The `joinedOnly(true)` filter is more efficient than fetching all groups and filtering client-side.
+- `getOnlineGroupMemberCount()` accepts multiple GUIDs to batch requests and reduce API calls.
+- Consider caching group lists locally and refreshing periodically rather than fetching on every view.
+
+## Security Notes
+
+<Note>
+Group retrieval operations use the logged-in user's authentication. No additional Auth Key is required for these operations.
+</Note>
+
+<Warning>
+**Password-Protected Groups**: Password-protected groups appear in search results, but users must provide the correct password to join. The password itself is never exposed through the API.
+</Warning>
+
+<Warning>
+**Group Metadata**: If your groups contain sensitive information in metadata, be aware that metadata is returned with group objects. Design your metadata schema with this visibility in mind.
+</Warning>
+
+## Next Steps
+
+- [Create Group](/sdk/javascript/create-group) - Create new groups in your application
+- [Join Group](/sdk/javascript/join-group) - Allow users to join public or password-protected groups
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get the list of members in a group
+- [Update Group](/sdk/javascript/update-group) - Modify group details
+- [Leave Group](/sdk/javascript/leave-group) - Allow users to leave groups
+- [Delete Group](/sdk/javascript/delete-group) - Remove groups from your application

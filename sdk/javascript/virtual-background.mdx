@@ -2,115 +2,343 @@
 title: "Virtual Background"
 ---
 
+## Summary
 
+Virtual background enables users to replace or blur their video background during calls, providing privacy and a professional appearance. This guide covers configuring virtual background settings, applying background blur or custom images programmatically, and customizing the virtual background options available to end users.
 
-This section will guide you to implement virtual background feature in video calls.
+## When to Use This
 
-## Implementation
+- Provide privacy by hiding the user's actual surroundings during video calls
+- Create a professional appearance for business meetings or interviews
+- Allow users to express creativity with custom background images
+- Enforce consistent branding by setting company-approved backgrounds
+- Blur backgrounds to reduce distractions while maintaining some context
 
-Once you have decided to implement [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call) calling and followed the steps to implement them. Just few additional methods will help you quickly implement virtual background.
+## Prerequisites
 
-Please make sure your callSettings is configured accordingly for [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
+1. **Chat SDK initialized**: Ensure `CometChat.init()` has completed successfully. See [Setup SDK](/sdk/javascript/setup-sdk).
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User logged in**: A user must be logged in via `CometChat.login()`. See [Authentication](/sdk/javascript/authentication-overview).
+4. **Video call configured**: Virtual background requires a video call session. See [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
+5. **Browser support**: Virtual background requires a modern browser with WebGL support for optimal performance.
 
-## Settings
-
-The `CallSettings`class allows you to customise the overall calling experience. The properties for the call/conference can be set using the `CallSettingsBuilder` class. This will eventually give you and object of the `CallSettings` class which you can pass to the `startCall()` method to start the call.
-
-The **mandatory** parameters that are required to be present for any call/conference to work are:
-
-1. sessionId - The unique session Id for the call/conference session.
-
-The options available for virtual background are:
-
-| Setting                                                                | Description                                                                                                    |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `showVirtualBackgroundSetting(showVBSettings: boolean)`                | This method shows/hides the virtual background settings in the menu bar. **Default value = true**              |
-| `setVirtualBackground(virtualBackground: CometChat.VirtualBackground)` | This method will set the virtual background setting. This methods takes an Object of Virtual Background Class. |
-
-For the use case where you wish to align your own custom buttons and not use the default layout provided by CometChat, you can embed the buttons in your layout and use the below methods to perform the corresponding operations:
-
-### Open Virtual Background Setting
-
-You can use the `openVirtualBackground()` method to open the virtual background settings pop-up.
+## Minimal Example
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let callController = CometChat.CallController.getInstance();
-callController.openVirtualBackground();
+```javascript
+// Configure virtual background settings
+const virtualBackground = new CometChat.VirtualBackground();
+virtualBackground.allowBackgroundBlur(true);
+virtualBackground.allowUserImages(true);
+virtualBackground.showDefaultImages(true);
+
+// Build call settings with virtual background
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showVirtualBackgroundSetting(true)
+  .setVirtualBackground(virtualBackground)
+  .build();
+
+// Start the call session
+const htmlElement = document.getElementById("call-container");
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let callController: CometChat.CallController = CometChat.CallController.getInstance();
-callController.openVirtualBackground();
+// Configure virtual background settings
+const virtualBackground = new CometChat.VirtualBackground();
+virtualBackground.allowBackgroundBlur(true);
+virtualBackground.allowUserImages(true);
+virtualBackground.showDefaultImages(true);
+
+// Build call settings with virtual background
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showVirtualBackgroundSetting(true)
+  .setVirtualBackground(virtualBackground)
+  .build();
+
+// Start the call session
+const htmlElement = document.getElementById("call-container") as HTMLElement;
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
 ```
-
 </Tab>
-
 </Tabs>
 
-### Set Background Blur
+## Step-by-Step
 
-You can use the `setBackgroundBlur()` method to apply background blur on the video stream. This method accepts a number which decides the level of blur to be applied.
+### Step 1: Configure Virtual Background Settings
+
+Create a `VirtualBackground` object to customize what virtual background options are available to users. You can control whether users can blur backgrounds, upload custom images, or choose from default images.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let callController = CometChat.CallController.getInstance();
-let blurLevel = 1;
-callController.setBackgroundBlur(blurLevel);
+```javascript
+const virtualBackground = new CometChat.VirtualBackground();
+
+// Allow users to blur their background
+virtualBackground.allowBackgroundBlur(true);
+
+// Allow users to upload their own images
+virtualBackground.allowUserImages(true);
+
+// Show default background images provided by CometChat
+virtualBackground.showDefaultImages(true);
+
+// Add custom background images for users to choose from
+const customImages = [
+  "https://example.com/backgrounds/office.jpg",
+  "https://example.com/backgrounds/nature.jpg",
+  "https://example.com/backgrounds/abstract.jpg"
+];
+virtualBackground.setImages(customImages);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let callController: CometChat.CallController = CometChat.CallController.getInstance();
-let blurLevel: number = 1;
-callController.setBackgroundBlur(blurLevel);
+const virtualBackground = new CometChat.VirtualBackground();
+
+// Allow users to blur their background
+virtualBackground.allowBackgroundBlur(true);
+
+// Allow users to upload their own images
+virtualBackground.allowUserImages(true);
+
+// Show default background images provided by CometChat
+virtualBackground.showDefaultImages(true);
+
+// Add custom background images for users to choose from
+const customImages: string[] = [
+  "https://example.com/backgrounds/office.jpg",
+  "https://example.com/backgrounds/nature.jpg",
+  "https://example.com/backgrounds/abstract.jpg"
+];
+virtualBackground.setImages(customImages);
 ```
-
 </Tab>
-
 </Tabs>
 
-### Set Background Image
+### Step 2: Build Call Settings with Virtual Background
 
-You can use the `setBackgroundImage()`method to set the background image. This method takes either a URL or file Object & sets that image as the background.
+Include the virtual background configuration in your `CallSettings` when starting a call session.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let callController = CometChat.CallController.getInstance();
-let imageURL = "URL_OF_BACKGROUND_IMAGE";
+```javascript
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showVirtualBackgroundSetting(true)           // Show VB button in menu
+  .setVirtualBackground(virtualBackground)       // Apply VB configuration
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showVirtualBackgroundSetting(true)           // Show VB button in menu
+  .setVirtualBackground(virtualBackground)       // Apply VB configuration
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 3: Start the Call Session
+
+Start the call session with your configured settings. The virtual background button will appear in the call menu bar.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const htmlElement = document.getElementById("call-container");
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const htmlElement = document.getElementById("call-container") as HTMLElement;
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Enforce Virtual Background on Call Start (Optional)
+
+You can automatically apply a virtual background when the call starts, ensuring all participants have a consistent appearance.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const virtualBackground = new CometChat.VirtualBackground();
+
+// Start call with background blur (level 1-99)
+virtualBackground.enforceBackgroundBlur(50);
+
+// OR start call with a specific background image
+virtualBackground.enforceBackgroundImage("https://example.com/backgrounds/company-logo.jpg");
+
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .setVirtualBackground(virtualBackground)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const virtualBackground = new CometChat.VirtualBackground();
+
+// Start call with background blur (level 1-99)
+virtualBackground.enforceBackgroundBlur(50);
+
+// OR start call with a specific background image
+virtualBackground.enforceBackgroundImage("https://example.com/backgrounds/company-logo.jpg");
+
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .setVirtualBackground(virtualBackground)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 5: Control Virtual Background Programmatically (Optional)
+
+If you're building a custom UI without the default layout, use the `CallController` methods to control virtual background:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Get the call controller instance
+const callController = CometChat.CallController.getInstance();
+
+// Open the virtual background settings popup
+callController.openVirtualBackground();
+
+// Apply background blur (level 1-99)
+const blurLevel = 50;
+callController.setBackgroundBlur(blurLevel);
+
+// Set a background image (URL or File object)
+const imageURL = "https://example.com/backgrounds/office.jpg";
 callController.setBackgroundImage(imageURL);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let callController: CometChat.CallController = CometChat.CallController.getInstance();
-let imageURL: string = "URL_OF_BACKGROUND_IMAGE";
+// Get the call controller instance
+const callController: CometChat.CallController = CometChat.CallController.getInstance();
+
+// Open the virtual background settings popup
+callController.openVirtualBackground();
+
+// Apply background blur (level 1-99)
+const blurLevel: number = 50;
+callController.setBackgroundBlur(blurLevel);
+
+// Set a background image (URL or File object)
+const imageURL: string = "https://example.com/backgrounds/office.jpg";
 callController.setBackgroundImage(imageURL);
 ```
-
 </Tab>
-
 </Tabs>
 
-## Virtual Background Settings
+## API Details
 
-The `VirtualBackground` Class is the required in case you want to change how the end user can use virtual background features in a video call. You need to pass the Object of the `VirtualBackground` Class in the `setVirtualBackground()` method of the `CallSettingsBuilder`.
+### CallSettingsBuilder Methods
 
-| Setting                                                  | Description                                                                                                                                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `allowBackgroundBlur(allowBackgroundBlur: boolean)`      | This method shows/hides the ability to allow end user to blur background. **Default = true**                                                                             |
-| `allowUserImages(allowUserImages: boolean)`              | This method shows/hides the ability to allow end user to add their own custom background image. **Default = true**                                                       |
-| `showDefaultImages(showDefaultImages: boolean)`          | This method shows/hides the ability to allow end user to choose from default background images. **Default = true**                                                       |
-| `setImages(images: Array<String>)`                       | This method allows developer to add their custom background image which the end user can choose.                                                                         |
-| `enforceBackgroundBlur(enforceBackgroundBlur: number)`   | This method starts the call with background blurred. To blur the background you need to pass an integer value between 1-99 which decides the blur level. **Default = 0** |
-| `enforceBackgroundImage(enforceBackgroundImage: string)` | This methods starts the call with the provided background image.                                                                                                         |
+| Method | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `showVirtualBackgroundSetting(show)` | `boolean` | `true` | Shows or hides the virtual background settings button in the menu bar. |
+| `setVirtualBackground(virtualBackground)` | `CometChat.VirtualBackground` | - | Sets the virtual background configuration object. |
+
+### VirtualBackground Class Methods
+
+| Method | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `allowBackgroundBlur(allow)` | `boolean` | `true` | Shows or hides the ability for users to blur their background. |
+| `allowUserImages(allow)` | `boolean` | `true` | Shows or hides the ability for users to upload custom background images. |
+| `showDefaultImages(show)` | `boolean` | `true` | Shows or hides the default background images provided by CometChat. |
+| `setImages(images)` | `Array<string>` | `[]` | Sets custom background images that users can choose from. |
+| `enforceBackgroundBlur(level)` | `number` | `0` | Starts the call with background blur applied. Value must be between 1-99. |
+| `enforceBackgroundImage(url)` | `string` | - | Starts the call with the specified background image applied. |
+
+### CallController Methods
+
+| Method | Description |
+| ------ | ----------- |
+| `CallController.getInstance()` | Returns the singleton instance of the CallController for the current call session. |
+| `openVirtualBackground()` | Opens the virtual background settings popup in the call UI. |
+| `setBackgroundBlur(level)` | Applies background blur with the specified level (1-99). |
+| `setBackgroundImage(urlOrFile)` | Sets the background image using a URL string or File object. |
+
+### Return Values
+
+The `CallController` methods do not return values. Changes are applied immediately to the video stream.
+
+### Errors
+
+| Error | Description | Resolution |
+| ----- | ----------- | ---------- |
+| No active session | Attempted to use CallController without an active call | Ensure a call session is active before calling CallController methods |
+| Invalid blur level | Blur level outside valid range | Use a blur level between 1 and 99 |
+| Invalid image URL | Background image URL is invalid or inaccessible | Verify the image URL is correct and publicly accessible |
+| WebGL not supported | Browser does not support WebGL | Use a modern browser with WebGL support |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Audio-Only Calls**: Virtual background settings have no effect on audio-only calls. Ensure `setIsAudioOnlyCall(false)` is set when configuring call settings for video calls.
+</Warning>
+
+<Warning>
+**Browser Compatibility**: Virtual background requires WebGL support. Older browsers or devices with limited GPU capabilities may experience performance issues or may not support virtual backgrounds at all. Test on target devices before deployment.
+</Warning>
+
+<Warning>
+**Image Loading Delays**: When using custom background images, ensure images are hosted on a fast CDN. Large images or slow-loading URLs can cause delays when users select a background. Consider using optimized images (recommended: 1920x1080, under 500KB).
+</Warning>
+
+<Warning>
+**Enforced Settings Override User Choice**: When using `enforceBackgroundBlur()` or `enforceBackgroundImage()`, the setting is applied automatically when the call starts. Users can still change their background during the call unless you also disable the corresponding options.
+</Warning>
+
+<Warning>
+**CallController Requires Active Session**: The `CallController.getInstance()` method only works during an active call session. Calling it before starting a session or after ending one will fail.
+</Warning>
+
+## Performance & Scale Notes
+
+- **GPU Usage**: Virtual background processing uses the device's GPU. Users on older devices or those with integrated graphics may experience higher CPU usage and reduced frame rates.
+- **Image Optimization**: Use optimized background images (1920x1080 resolution, JPEG format, under 500KB) for best performance. Larger images increase memory usage and loading time.
+- **Blur Level Impact**: Higher blur levels (closer to 99) require more processing power. For devices with limited resources, consider using moderate blur levels (30-50).
+- **Network Considerations**: Custom background images are loaded from their URLs when selected. Ensure images are hosted on reliable, fast servers to avoid delays.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Note>
+**Custom Image URLs**: When allowing users to upload custom images or providing custom image URLs, ensure the images are hosted on secure (HTTPS) servers. Avoid loading images from untrusted sources.
+</Note>
+
+<Note>
+**Privacy Considerations**: Virtual backgrounds help protect user privacy by hiding their actual surroundings. Consider enabling virtual backgrounds by default for applications where privacy is important.
+</Note>
+
+## Next Steps
+
+- [Default Calling](/sdk/javascript/default-call) - Implement the complete calling flow with incoming/outgoing call UI
+- [Direct Calling](/sdk/javascript/direct-call) - Start direct call sessions without the ringing flow
+- [Video View Customization](/sdk/javascript/video-view-customisation) - Customize the call UI appearance
+- [Recording](/sdk/javascript/recording) - Record calls for later playback
+- [Calling Setup](/sdk/javascript/calling-setup) - Review Calls SDK initialization and configuration

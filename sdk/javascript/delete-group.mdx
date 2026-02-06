@@ -2,47 +2,422 @@
 title: "Delete A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to permanently delete groups from your application. This operation removes the group and all associated data, including messages, members, and metadata. Only group admins have the authority to delete a group, ensuring proper access control over this irreversible action.
 
-## Delete a Group
+## When to Use This
 
-To delete a group you need to use the `deleteGroup()` method. The user must be an `Admin` of the group they are trying to delete.
+- When a group is no longer needed and should be permanently removed
+- When cleaning up test or temporary groups during development
+- When a group owner decides to dissolve a community or team
+- When implementing group lifecycle management in your application
+- When removing inactive or abandoned groups as part of maintenance
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Permissions**: User must be an admin of the group they are trying to delete
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Delete Group">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
+let GUID = "GUID";
 
 CometChat.deleteGroup(GUID).then(
-response => {
-  console.log("Groups deleted successfully:", response);
-}, error => {
-  console.log("Group delete failed with exception:", error);
-}
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var GUID: string = "GUID";
-
-CometChat.deleteGroup(GUID).then(
-  (response: boolean) => {
-      console.log("Group deleted successfully:", response);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group delete failed with exception:", error);
+  (response) => {
+    console.log("Group deleted successfully:", response);
+  },
+  (error) => {
+    console.log("Group delete failed with exception:", error);
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
 
+CometChat.deleteGroup(GUID).then(
+  (response: boolean) => {
+    console.log("Group deleted successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group delete failed with exception:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
-The `deleteGroup()` method takes the following parameters:
+## Step-by-Step
 
-| Parameter | Description                                    |
-| --------- | ---------------------------------------------- |
-| `GUID`    | The GUID of the group you would like to delete |
+### Step 1: Verify User Permissions
+
+Before attempting to delete a group, verify that the current user has admin permissions. You can check the user's scope in the group:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group) => {
+    console.log("Group retrieved:", group);
+    // Check if user has admin scope
+    if (group.getScope() === CometChat.GROUP_MEMBER_SCOPE.ADMIN) {
+      console.log("User has permission to delete this group");
+    } else {
+      console.log("User does not have permission to delete this group");
+    }
+  },
+  (error) => {
+    console.log("Failed to retrieve group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group: CometChat.Group) => {
+    console.log("Group retrieved:", group);
+    // Check if user has admin scope
+    if (group.getScope() === CometChat.GROUP_MEMBER_SCOPE.ADMIN) {
+      console.log("User has permission to delete this group");
+    } else {
+      console.log("User does not have permission to delete this group");
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to retrieve group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Confirm Deletion with User
+
+Since group deletion is irreversible, it's recommended to confirm the action with the user before proceeding:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+function confirmAndDeleteGroup(GUID) {
+  // Show confirmation dialog to user
+  let confirmed = confirm("Are you sure you want to delete this group? This action cannot be undone.");
+  
+  if (confirmed) {
+    return CometChat.deleteGroup(GUID);
+  } else {
+    return Promise.reject(new Error("Deletion cancelled by user"));
+  }
+}
+
+confirmAndDeleteGroup("GUID").then(
+  (response) => {
+    console.log("Group deleted successfully:", response);
+  },
+  (error) => {
+    console.log("Group deletion failed or cancelled:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+function confirmAndDeleteGroup(GUID: string): Promise<boolean> {
+  // Show confirmation dialog to user
+  let confirmed: boolean = confirm("Are you sure you want to delete this group? This action cannot be undone.");
+  
+  if (confirmed) {
+    return CometChat.deleteGroup(GUID);
+  } else {
+    return Promise.reject(new Error("Deletion cancelled by user"));
+  }
+}
+
+confirmAndDeleteGroup("GUID").then(
+  (response: boolean) => {
+    console.log("Group deleted successfully:", response);
+  },
+  (error: CometChat.CometChatException | Error) => {
+    console.log("Group deletion failed or cancelled:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Delete the Group
+
+Use the `deleteGroup()` method with the group's GUID to permanently remove the group:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.deleteGroup(GUID).then(
+  (response) => {
+    console.log("Group deleted successfully:", response);
+    // Update your UI to reflect the deletion
+    // Navigate away from the group view
+  },
+  (error) => {
+    console.log("Group delete failed with exception:", error);
+    // Handle the error appropriately
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.deleteGroup(GUID).then(
+  (response: boolean) => {
+    console.log("Group deleted successfully:", response);
+    // Update your UI to reflect the deletion
+    // Navigate away from the group view
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group delete failed with exception:", error);
+    // Handle the error appropriately
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Handle Post-Deletion Cleanup
+
+After successfully deleting a group, update your application state and UI accordingly:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.deleteGroup(GUID).then(
+  (response) => {
+    console.log("Group deleted successfully:", response);
+    
+    // Remove group from local cache/state
+    removeGroupFromLocalState(GUID);
+    
+    // Navigate to groups list or home
+    navigateToGroupsList();
+    
+    // Show success notification
+    showNotification("Group has been deleted successfully");
+  },
+  (error) => {
+    console.log("Group delete failed:", error);
+    showNotification("Failed to delete group: " + error.message);
+  }
+);
+
+function removeGroupFromLocalState(guid) {
+  // Your implementation to update local state
+}
+
+function navigateToGroupsList() {
+  // Your implementation to navigate
+}
+
+function showNotification(message) {
+  // Your implementation to show notification
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.deleteGroup(GUID).then(
+  (response: boolean) => {
+    console.log("Group deleted successfully:", response);
+    
+    // Remove group from local cache/state
+    removeGroupFromLocalState(GUID);
+    
+    // Navigate to groups list or home
+    navigateToGroupsList();
+    
+    // Show success notification
+    showNotification("Group has been deleted successfully");
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group delete failed:", error);
+    showNotification("Failed to delete group: " + error.message);
+  }
+);
+
+function removeGroupFromLocalState(guid: string): void {
+  // Your implementation to update local state
+}
+
+function navigateToGroupsList(): void {
+  // Your implementation to navigate
+}
+
+function showNotification(message: string): void {
+  // Your implementation to show notification
+}
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Method Signature
+
+```javascript
+CometChat.deleteGroup(GUID: string): Promise<boolean>
+```
+
+### Parameters
+
+| Parameter | Type   | Required | Description                                    |
+| --------- | ------ | -------- | ---------------------------------------------- |
+| GUID      | string | Yes      | The GUID of the group you would like to delete |
+
+### Return Value
+
+Returns a `Promise<boolean>` that resolves to `true` when the group is successfully deleted.
+
+### Errors
+
+| Error Code             | Description                                | Resolution                                      |
+| ---------------------- | ------------------------------------------ | ----------------------------------------------- |
+| ERR_GROUP_NOT_FOUND    | The specified group does not exist         | Verify the GUID is correct                      |
+| ERR_NOT_A_MEMBER       | User is not a member of the group          | User must be a member to delete the group       |
+| ERR_PERMISSION_DENIED  | User lacks permission to delete the group  | Only admins can delete groups                   |
+| ERR_USER_NOT_LOGGED_IN | No user is currently logged in             | Ensure user is logged in before deleting        |
+| ERR_INVALID_GUID       | The provided GUID is empty or invalid      | Provide a valid non-empty GUID                  |
+
+## Events & Real-time Behavior
+
+When a group is deleted, all members of the group receive a real-time notification through the group listener. This allows your application to update the UI for all connected users.
+
+### Registering Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-listener-id";
+
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupDeleted: (group) => {
+      console.log("Group deleted:", group);
+      // Remove group from UI
+      // Navigate away if currently viewing this group
+    }
+  })
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-listener-id";
+
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupDeleted: (group: CometChat.Group) => {
+      console.log("Group deleted:", group);
+      // Remove group from UI
+      // Navigate away if currently viewing this group
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+### Removing Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-listener-id";
+
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-listener-id";
+
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Event Ordering
+
+- The `onGroupDeleted` event is triggered for all group members except the admin who performed the deletion
+- The event is delivered in real-time to all connected users
+- Offline users will not receive this event; they will discover the group is deleted when they attempt to access it
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Irreversible Action**: Group deletion is permanent and cannot be undone. All group messages, members, and metadata are permanently removed. Always implement a confirmation dialog before calling `deleteGroup()` to prevent accidental deletions.
+</Warning>
+
+<Warning>
+**Admin-Only Permission**: Only users with admin scope can delete a group. Regular members, moderators, and participants will receive a permission denied error. Verify the user's role before showing delete options in your UI.
+</Warning>
+
+<Warning>
+**Active Members Not Notified Automatically**: When a group is deleted, members who are currently viewing the group may not be automatically notified. Implement group listeners to handle the `onGroupDeleted` event and update your UI accordingly for all connected users.
+</Warning>
+
+<Warning>
+**Cached Data May Persist**: After deletion, locally cached group data in your application may still exist. Ensure you clear any local caches, state management stores, or UI references to the deleted group to prevent displaying stale data.
+</Warning>
+
+<Warning>
+**Concurrent Operations**: If multiple admins attempt to delete the same group simultaneously, only the first request will succeed. Subsequent requests will fail with a "group not found" error. Handle this gracefully in your error handling logic.
+</Warning>
+
+## Performance & Scale Notes
+
+- Group deletion is a single atomic operation that removes all associated data
+- Large groups with many messages may take slightly longer to delete due to cascading data removal
+- After deletion, any cached group data should be invalidated to prevent stale references
+- Consider implementing soft-delete patterns in your application if you need recovery capabilities
+
+## Security Notes
+
+<Note>
+Group deletion does not require an Auth Key when performed by a logged-in user with admin permissions. The logged-in user's authentication and group role are sufficient for authorization.
+</Note>
+
+<Warning>
+**Audit Trail**: Consider logging group deletions in your application for audit purposes. CometChat does not maintain a history of deleted groups, so implement your own logging if compliance requires it.
+</Warning>
+
+<Warning>
+**Validate GUID Source**: When accepting a GUID for deletion from user input or URL parameters, validate that it corresponds to a group the user actually has permission to delete. Never trust client-side data without server-side validation.
+</Warning>
+
+## Next Steps
+
+- [Create Group](/sdk/javascript/create-group) - Create a new group to replace a deleted one
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Fetch the updated list of groups
+- [Leave Group](/sdk/javascript/leave-group) - Alternative to deletion for non-admin users
+- [Update Group](/sdk/javascript/update-group) - Modify group details instead of deleting
+- [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership) - Transfer ownership before leaving
+- [Group Change Member Scope](/sdk/javascript/group-change-member-scope) - Manage member permissions

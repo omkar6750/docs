@@ -2,18 +2,31 @@
 title: "Add Members To A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to add members to a group programmatically. You can add one or multiple users to a group with specific roles (admin, moderator, or participant), and optionally ban users from the group in the same operation. This is essential for building group management features, invite systems, and admin tools.
 
-## Add Members to Group
+## When to Use This
 
-You can add members to the group using the `addMembersToGroup()` method. This method takes the below parameters:
+- When implementing an "Add Members" feature in group settings
+- When building an invite system that adds users to groups
+- When creating admin tools for bulk member management
+- When automatically adding users to groups based on business logic
+- When migrating users from one group to another
+- When implementing team or organization group membership
 
-1. `GUID` - GUID of the group the members are to be added to.
-2. `members` - This is a list of `GroupMember` objects. In order to add members, you need to create an object of the `GroupMember` class. The UID and the scope of the `GroupMember` are mandatory.
-3. `bannedMembers` - This is the list of `UID's` that need to be banned from the Group. This can be set to `null` if there are no members to be banned.
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Group**: The group must exist and the logged-in user must have permission to add members (admin or moderator)
+- **Users**: The users being added must exist in your CometChat app
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Add Members to Group">
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let UID = "UID";
@@ -23,16 +36,14 @@ let membersList = [
 
 CometChat.addMembersToGroup(GUID, membersList, []).then(
   (response) => {
-    console.log("response", response);
+    console.log("Members added successfully:", response);
   },
   (error) => {
-    console.log("Something went wrong", error);
+    console.log("Failed to add members:", error);
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -43,44 +54,259 @@ let membersList: CometChat.GroupMember[] = [
 
 CometChat.addMembersToGroup(GUID, membersList, []).then(
   (response: Object) => {
-    console.log("response", response);
+    console.log("Members added successfully:", response);
   },
   (error: CometChat.CometChatException) => {
-    console.log("Something went wrong", error);
+    console.log("Failed to add members:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-It will return a Array which will contain the `UID` of the users and the value will either be `success` or an error message describing why the operation to add the user to the group.
+## Step-by-Step
 
-## Real-Time Group Member Added Events
+### Step 1: Create GroupMember Objects
 
-*In other words, as a member of a group, how do I know when someone is added to the group when my app is running?*
-
-<Note>
-
-When a group member is added by another member, this event is triggered. When a user joins a group on their own, the joined event is triggered.
-
-</Note>
-
-To receive real-time events whenever a new member is added to a group, you need to implement the `onMemberAddedToGroup()` methods of the `GroupListener` class.
-
-`onMemberAddedToGroup()` - This method is triggered when any user is added to the group so that the logged in user is informed of the other members added to the group.
+To add members to a group, you first need to create `GroupMember` objects for each user you want to add. Each `GroupMember` requires a UID and a scope (role).
 
 <Tabs>
-<Tab title="Group Listener">
+<Tab title="JavaScript">
 ```javascript
-var listenerID = "UNIQUE_LISTENER_ID";
+let UID = "UID";
+
+// Create a participant member
+let participantMember = new CometChat.GroupMember(
+  UID,
+  CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT
+);
+
+// Create an admin member
+let adminMember = new CometChat.GroupMember(
+  "admin-uid",
+  CometChat.GROUP_MEMBER_SCOPE.ADMIN
+);
+
+// Create a moderator member
+let moderatorMember = new CometChat.GroupMember(
+  "moderator-uid",
+  CometChat.GROUP_MEMBER_SCOPE.MODERATOR
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let UID: string = "UID";
+
+// Create a participant member
+let participantMember: CometChat.GroupMember = new CometChat.GroupMember(
+  UID,
+  CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT
+);
+
+// Create an admin member
+let adminMember: CometChat.GroupMember = new CometChat.GroupMember(
+  "admin-uid",
+  CometChat.GROUP_MEMBER_SCOPE.ADMIN
+);
+
+// Create a moderator member
+let moderatorMember: CometChat.GroupMember = new CometChat.GroupMember(
+  "moderator-uid",
+  CometChat.GROUP_MEMBER_SCOPE.MODERATOR
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Build the Members List
+
+Create an array of `GroupMember` objects to add multiple members at once.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let membersList = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user3", CometChat.GROUP_MEMBER_SCOPE.MODERATOR),
+];
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let membersList: CometChat.GroupMember[] = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user3", CometChat.GROUP_MEMBER_SCOPE.MODERATOR),
+];
+```
+</Tab>
+</Tabs>
+
+### Step 3: Add Members to the Group
+
+Use the `addMembersToGroup()` method to add the members. The method takes the group GUID, the list of members to add, and an optional list of UIDs to ban.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let membersList = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+let bannedMembers = []; // Optional: UIDs to ban
+
+CometChat.addMembersToGroup(GUID, membersList, bannedMembers).then(
+  (response) => {
+    console.log("Members added successfully:", response);
+    // response contains status for each UID
+  },
+  (error) => {
+    console.log("Failed to add members:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let membersList: CometChat.GroupMember[] = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+let bannedMembers: string[] = []; // Optional: UIDs to ban
+
+CometChat.addMembersToGroup(GUID, membersList, bannedMembers).then(
+  (response: Object) => {
+    console.log("Members added successfully:", response);
+    // response contains status for each UID
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to add members:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Handle the Response
+
+The response is an object where each key is a UID and the value is either `"success"` or an error message describing why the operation failed for that user.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let membersList = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+
+CometChat.addMembersToGroup(GUID, membersList, []).then(
+  (response) => {
+    // Check status for each user
+    for (let uid in response) {
+      if (response[uid] === "success") {
+        console.log(`${uid} added successfully`);
+      } else {
+        console.log(`Failed to add ${uid}: ${response[uid]}`);
+      }
+    }
+  },
+  (error) => {
+    console.log("Failed to add members:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let membersList: CometChat.GroupMember[] = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+
+CometChat.addMembersToGroup(GUID, membersList, []).then(
+  (response: { [key: string]: string }) => {
+    // Check status for each user
+    for (let uid in response) {
+      if (response[uid] === "success") {
+        console.log(`${uid} added successfully`);
+      } else {
+        console.log(`Failed to add ${uid}: ${response[uid]}`);
+      }
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to add members:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Add Members and Ban Users Simultaneously
+
+You can add members and ban users in a single operation by providing UIDs in the third parameter.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let membersList = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+let bannedMembers = ["banned-user1", "banned-user2"];
+
+CometChat.addMembersToGroup(GUID, membersList, bannedMembers).then(
+  (response) => {
+    console.log("Operation completed:", response);
+  },
+  (error) => {
+    console.log("Operation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let membersList: CometChat.GroupMember[] = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+];
+let bannedMembers: string[] = ["banned-user1", "banned-user2"];
+
+CometChat.addMembersToGroup(GUID, membersList, bannedMembers).then(
+  (response: Object) => {
+    console.log("Operation completed:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Operation failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Events & Real-time Behavior
+
+### Registering GroupListener
+
+To receive real-time events when members are added to a group, register a `GroupListener`. The `onMemberAddedToGroup()` callback is triggered when any user is added to a group you're a member of.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-group-member-listener";
 
 CometChat.addGroupListener(
-  listenerID,
+  listenerId,
   new CometChat.GroupListener({
     onMemberAddedToGroup: (message, userAdded, userAddedBy, userAddedIn) => {
-      console.log("User joined", {
+      console.log("Member added to group:", {
         message,
         userAdded,
         userAddedBy,
@@ -90,15 +316,13 @@ CometChat.addGroupListener(
   })
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-var listenerID: string = "UNIQUE_LISTENER_ID";
+let listenerId: string = "unique-group-member-listener";
 
 CometChat.addGroupListener(
-  listenerID,
+  listenerId,
   new CometChat.GroupListener({
     onMemberAddedToGroup: (
       message: CometChat.Action,
@@ -106,7 +330,7 @@ CometChat.addGroupListener(
       userAddedBy: CometChat.User,
       userAddedIn: CometChat.Group
     ) => {
-      console.log("User joined", {
+      console.log("Member added to group:", {
         message,
         userAdded,
         userAddedBy,
@@ -116,20 +340,194 @@ CometChat.addGroupListener(
   })
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-## Member Added to Group event in Message History
+### Removing GroupListener
 
-*In other words, as a member of a group, how do I know when someone is added to the group when my app is not running?*
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
 
-When you retrieve the list of previous messages if a member has been added to any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-group-member-listener";
 
-For the group member added event, in the `Action` object received, the following fields can help you get the relevant information-
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-group-member-listener";
 
-1. `action` - `added`
-2. `actionOn` - User object containing the details of the user who was added to the group
-3. `actionBy` - User object containing the details of the user who added the member to the group
-4. `actionFor` - Group object containing the details of the group to which the member was added
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Complete Listener Lifecycle Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Use a unique listener ID
+let listenerId = "group-member-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onMemberAddedToGroup: (message, userAdded, userAddedBy, userAddedIn) => {
+      console.log(`${userAdded.getName()} was added to ${userAddedIn.getName()} by ${userAddedBy.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup() {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Use a unique listener ID
+let listenerId: string = "group-member-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onMemberAddedToGroup: (
+      message: CometChat.Action,
+      userAdded: CometChat.User,
+      userAddedBy: CometChat.User,
+      userAddedIn: CometChat.Group
+    ) => {
+      console.log(`${userAdded.getName()} was added to ${userAddedIn.getName()} by ${userAddedBy.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup(): void {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+<Note>
+When a group member is added by another member, the `onMemberAddedToGroup` event is triggered. When a user joins a group on their own (via `joinGroup()`), the `onGroupMemberJoined` event is triggered instead.
+</Note>
+
+### Member Added Events in Message History
+
+When retrieving previous messages, if a member was added to a group, the message list will contain an `Action` message. The `Action` object provides the following information:
+
+| Property    | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| action      | `"added"` - indicates a member was added                   |
+| actionOn    | User object of the user who was added to the group         |
+| actionBy    | User object of the user who added the member               |
+| actionFor   | Group object of the group to which the member was added    |
+
+## API Details
+
+### Method Signature
+
+```javascript
+CometChat.addMembersToGroup(
+  GUID: string,
+  membersList: GroupMember[],
+  bannedMembers: string[]
+): Promise<Object>
+```
+
+### Parameters
+
+| Parameter     | Type           | Required | Description                                                    |
+| ------------- | -------------- | -------- | -------------------------------------------------------------- |
+| GUID          | string         | Yes      | The unique identifier of the group                             |
+| membersList   | GroupMember[]  | Yes      | Array of GroupMember objects to add to the group               |
+| bannedMembers | string[]       | No       | Array of UIDs to ban from the group (can be empty array)       |
+
+### GroupMember Constructor
+
+| Parameter | Type   | Required | Description                                                    |
+| --------- | ------ | -------- | -------------------------------------------------------------- |
+| UID       | string | Yes      | The unique identifier of the user to add                       |
+| scope     | string | Yes      | The role of the member (ADMIN, MODERATOR, or PARTICIPANT)      |
+
+### Scope Constants
+
+| Constant                                  | Value         | Description                              |
+| ----------------------------------------- | ------------- | ---------------------------------------- |
+| CometChat.GROUP_MEMBER_SCOPE.ADMIN        | "admin"       | Full group management permissions        |
+| CometChat.GROUP_MEMBER_SCOPE.MODERATOR    | "moderator"   | Can manage members and messages          |
+| CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT  | "participant" | Standard member with basic permissions   |
+
+### Return Value
+
+Returns a `Promise<Object>` that resolves to an object where:
+- Each key is a UID from the membersList or bannedMembers
+- Each value is either `"success"` or an error message string
+
+### Errors
+
+| Error Code                  | Description                                    | Resolution                                      |
+| --------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN      | No user is currently logged in                 | Ensure user is logged in before adding members  |
+| ERR_INVALID_GUID            | The provided GUID is invalid                   | Verify the GUID format and existence            |
+| ERR_GROUP_NOT_FOUND         | Group with the specified GUID not found        | Check if the group exists                       |
+| ERR_NOT_A_MEMBER            | User is not a member of the group              | User must be a member to add others             |
+| ERR_PERMISSION_DENIED       | User doesn't have permission to add members    | Only admins and moderators can add members      |
+| ERR_USER_NOT_FOUND          | One or more UIDs in the list don't exist       | Verify all UIDs exist in your CometChat app     |
+| ERR_ALREADY_MEMBER          | User is already a member of the group          | Check membership before adding                  |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Permission Requirements**: Only group admins and moderators can add members to a group. Participants cannot add members. If a participant attempts to add members, the operation will fail with a permission error. Always verify the logged-in user's scope before showing the "Add Members" UI.
+</Warning>
+
+<Warning>
+**Partial Success Handling**: When adding multiple members, some may succeed while others fail (e.g., if a user is already a member or doesn't exist). Always iterate through the response object to check the status of each UID rather than assuming all operations succeeded.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: If you register a GroupListener with the same `listenerId` as an existing listener, the new listener will replace the old one. Use unique listener IDs (e.g., include timestamps or UUIDs) to avoid accidentally overwriting listeners, especially in applications with multiple components listening for group events.
+</Warning>
+
+<Warning>
+**Banned User Conflicts**: If you try to add a user who is currently banned from the group, the operation will fail for that user. You must unban the user first using `unbanGroupMember()` before adding them back to the group.
+</Warning>
+
+## Performance & Scale Notes
+
+- You can add multiple members in a single API call, which is more efficient than making individual calls for each member.
+- The maximum number of members that can be added in a single call depends on your CometChat plan. Check your plan limits in the Dashboard.
+- For large-scale member additions (e.g., migrating hundreds of users), consider batching the operations and implementing retry logic for failed additions.
+- The response object size scales with the number of members being added, so parse it efficiently for large batches.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Warning>
+**Server-Side Validation**: For production applications, consider implementing server-side validation before adding members. This allows you to enforce business rules (e.g., subscription limits, organization membership) before the CometChat API is called.
+</Warning>
+
+<Warning>
+**Scope Assignment**: Be careful when assigning admin or moderator scopes. These roles have elevated permissions including the ability to kick, ban, and manage other members. Only assign elevated scopes to trusted users.
+</Warning>
+
+## Next Steps
+
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get a list of members in a group
+- [Kick/Ban Members](/sdk/javascript/group-kick-ban-members) - Remove or ban members from a group
+- [Change Member Scope](/sdk/javascript/group-change-member-scope) - Promote or demote members
+- [Join Group](/sdk/javascript/join-group) - Allow users to join groups themselves
+- [Create Group](/sdk/javascript/create-group) - Create new groups
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for all group events

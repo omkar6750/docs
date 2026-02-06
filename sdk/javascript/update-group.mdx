@@ -2,60 +2,319 @@
 title: "Update A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to update existing group details programmatically. Group owners and admins can modify properties such as the group name, icon, description, and metadata. This allows you to keep group information current and relevant as your community evolves.
 
-## Update Group
+## When to Use This
 
-*In other words, as a group owner, how can I update the group details?*
+- When a group owner or admin needs to change the group name
+- When updating the group icon or avatar image
+- When modifying the group description
+- When adding or updating custom metadata for a group
+- When changing group tags for categorization or filtering
 
-You can update the existing details of the group using the `updateGroup()` method.
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Permissions**: User must be the group owner or an admin of the group
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Update Group">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var groupName = "Hello Group";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
-var group = new CometChat.Group(GUID, groupName, groupType);
+let GUID = "GUID";
+let groupName = "Updated Group Name";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+let group = new CometChat.Group(GUID, groupName, groupType);
 
 CometChat.updateGroup(group).then(
-group => {
-  console.log("Groups details updated successfully:", group);
-}, error => {
-  console.log("Group details update failed with exception:", error);
-}
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var GUID: string = "GUID";
-var groupName: string = "Hello Group!";
-var groupType: string = CometChat.GROUP_TYPE.PUBLIC;
-
-var group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
-
-CometChat.updateGroup(group).then(
-  (group: CometChat.Group) => {
-      console.log("Group details updated successfully:", group);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group details update failed with exception:", error);
+  (group) => {
+    console.log("Group details updated successfully:", group);
+  },
+  (error) => {
+    console.log("Group details update failed with exception:", error);
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "Updated Group Name";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
 
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
+
+CometChat.updateGroup(group).then(
+  (group: CometChat.Group) => {
+    console.log("Group details updated successfully:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group details update failed with exception:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
-This method takes an instance of the `Group` class as a parameter which should contain the data that you wish to update.
+## Step-by-Step
 
-| Parameter | Description                  |
-| --------- | ---------------------------- |
-| `group`   | an instance of class `Group` |
+### Step 1: Retrieve the Existing Group
 
-After a successful update of the group, you will receive an instance of `Group` class containing update information of the group.
+Before updating a group, you should first retrieve the current group details to ensure you have the latest information:
 
-For more information on the `Group` class, please check [here](/sdk/javascript/create-group#create-a-group).
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group) => {
+    console.log("Group retrieved successfully:", group);
+    // Now you can modify and update the group
+  },
+  (error) => {
+    console.log("Group retrieval failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group: CometChat.Group) => {
+    console.log("Group retrieved successfully:", group);
+    // Now you can modify and update the group
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group retrieval failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Create a Group Object with Updated Details
+
+Create a new `Group` object with the GUID of the existing group and the updated properties. You must include the GUID, name, and group type:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupName = "New Group Name";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+let group = new CometChat.Group(GUID, groupName, groupType);
+
+// Optionally set additional properties
+group.setIcon("https://example.com/new-icon.png");
+group.setDescription("Updated group description");
+group.setMetadata({ customKey: "customValue" });
+group.setTags(["updated", "active"]);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "New Group Name";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
+
+// Optionally set additional properties
+group.setIcon("https://example.com/new-icon.png");
+group.setDescription("Updated group description");
+group.setMetadata({ customKey: "customValue" });
+group.setTags(["updated", "active"]);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Update the Group
+
+Use the `updateGroup()` method to apply the changes. This method takes a `Group` object as input and returns a `Promise` that resolves to the updated `Group` object:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+CometChat.updateGroup(group).then(
+  (updatedGroup) => {
+    console.log("Group updated successfully:", updatedGroup);
+  },
+  (error) => {
+    console.log("Group update failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+CometChat.updateGroup(group).then(
+  (updatedGroup: CometChat.Group) => {
+    console.log("Group updated successfully:", updatedGroup);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group update failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Update Group with Icon and Description
+
+For a complete update including icon and description, use the extended constructor:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupName = "Community Chat";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+let password = "";
+let icon = "https://example.com/community-icon.png";
+let description = "A place for our community to connect and share ideas";
+
+let group = new CometChat.Group(GUID, groupName, groupType, password, icon, description);
+
+CometChat.updateGroup(group).then(
+  (updatedGroup) => {
+    console.log("Group updated with icon and description:", updatedGroup);
+  },
+  (error) => {
+    console.log("Group update failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "Community Chat";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+let password: string = "";
+let icon: string = "https://example.com/community-icon.png";
+let description: string = "A place for our community to connect and share ideas";
+
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password, icon, description);
+
+CometChat.updateGroup(group).then(
+  (updatedGroup: CometChat.Group) => {
+    console.log("Group updated with icon and description:", updatedGroup);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group update failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Method Signature
+
+```javascript
+CometChat.updateGroup(group: Group): Promise<Group>
+```
+
+### Parameters
+
+| Parameter | Type  | Required | Description                                          |
+| --------- | ----- | -------- | ---------------------------------------------------- |
+| group     | Group | Yes      | An instance of `Group` class with updated properties |
+
+### Editable Group Properties
+
+| Property    | Type     | Description                                      |
+| ----------- | -------- | ------------------------------------------------ |
+| name        | string   | The display name of the group                    |
+| icon        | string   | URL to the group's icon/avatar image             |
+| description | string   | A description of the group's purpose             |
+| metadata    | object   | Custom JSON data associated with the group       |
+| tags        | string[] | Array of tags for categorization and filtering   |
+| owner       | string   | UID of the group owner (use transferOwnership)   |
+
+### Non-Editable Properties
+
+| Property     | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| guid         | The unique identifier cannot be changed after creation |
+| type         | Group type (public/private/password) cannot be changed |
+| password     | Password cannot be updated via updateGroup()          |
+| createdAt    | Timestamp of group creation                           |
+| membersCount | Automatically managed by the system                   |
+
+### Return Value
+
+Returns a `Promise<Group>` that resolves to the updated Group object containing all current group information.
+
+### Errors
+
+| Error Code               | Description                                    | Resolution                                          |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------------- |
+| ERR_GROUP_NOT_FOUND      | The specified group does not exist             | Verify the GUID is correct                          |
+| ERR_NOT_A_MEMBER         | User is not a member of the group              | User must be a member to update the group           |
+| ERR_PERMISSION_DENIED    | User lacks permission to update the group      | Only owners and admins can update group details     |
+| ERR_USER_NOT_LOGGED_IN   | No user is currently logged in                 | Ensure user is logged in before updating            |
+| ERR_INVALID_GROUP_NAME   | Group name is empty or invalid                 | Provide a valid non-empty group name                |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Group Type Cannot Be Changed**: The `updateGroup()` method cannot change the group type (public, private, or password-protected). If you need to change the group type, you must delete the group and create a new one with the desired type.
+</Warning>
+
+<Warning>
+**Password Updates Not Supported**: You cannot update a password-protected group's password using `updateGroup()`. Password changes require a different approach or recreating the group.
+</Warning>
+
+<Warning>
+**Permission Requirements**: Only group owners and admins can update group details. Participants and moderators will receive a permission denied error. Always verify the user's role before attempting updates.
+</Warning>
+
+<Warning>
+**GUID Must Match Existing Group**: The GUID in the Group object must match an existing group. If the GUID doesn't exist, the update will fail with a "group not found" error.
+</Warning>
+
+<Warning>
+**Metadata Size Limits**: While you can store custom metadata with the group, there are size limits. Keep metadata payloads reasonable to avoid update failures. Large binary data should be stored externally with only references in metadata.
+</Warning>
+
+## Performance & Scale Notes
+
+- Group updates are individual operations; batch multiple property changes into a single `updateGroup()` call rather than making multiple calls
+- Icon URLs should point to optimized images; large images may impact loading performance for group members
+- Metadata updates replace the entire metadata object; merge with existing metadata if you only want to update specific keys
+- Consider caching group details locally and updating only when necessary to reduce API calls
+
+## Security Notes
+
+<Note>
+Group updates do not require an Auth Key when performed by a logged-in user with appropriate permissions. The logged-in user's authentication and group role are sufficient.
+</Note>
+
+<Warning>
+**Validate User Input**: When allowing users to update group names or descriptions, sanitize input to prevent injection of malicious content or inappropriate material.
+</Warning>
+
+<Warning>
+**Icon URL Security**: When accepting user-provided icon URLs, validate that they point to legitimate image resources. Consider using a whitelist of allowed domains or hosting images on your own infrastructure.
+</Warning>
+
+## Next Steps
+
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Fetch groups to verify updates
+- [Delete Group](/sdk/javascript/delete-group) - Remove a group permanently
+- [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership) - Change the group owner
+- [Group Add Members](/sdk/javascript/group-add-members) - Add new members to the group
+- [Group Change Member Scope](/sdk/javascript/group-change-member-scope) - Promote or demote members
+- [Create Group](/sdk/javascript/create-group) - Learn about group creation and the Group class

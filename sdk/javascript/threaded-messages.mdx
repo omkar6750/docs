@@ -2,272 +2,512 @@
 title: "Threaded Messages"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables threaded conversations by allowing messages to be sent as replies to a parent message. This page covers how to send messages in threads, receive real-time thread messages, fetch thread history, and filter out threaded messages from main conversations.
 
-Messages that are started from a particular message are called Threaded messages or simply threads. Each Thread is attached to a message which is the Parent message for that thread.
+## When to Use This
 
-## Send Message in a Thread
+- When implementing reply-to-message functionality in your chat UI
+- When building discussion threads within a conversation
+- When organizing related messages under a parent message
+- When allowing users to have focused sub-conversations without cluttering the main chat
+- When building features like comment threads on specific messages
 
-As mentioned in the [Send a Message](/sdk/javascript/send-message) section. You can either send a message to a User or a Group based on the `receiverType` and the UID/GUID specified for the message. A message can belong to either of the below types:
+## Prerequisites
 
-1. Text Message
-2. Media Message
-3. Custom Message.
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before sending or fetching threaded messages
+- **Parent Message**: A valid parent message ID is required to create or fetch thread messages
+- **Conversation**: An existing user or group conversation where the parent message exists
 
-Any of the above messages can be sent in a thread. As mentioned, a thread is identified based on the Parent message. So while sending a message the `parentMessageId` must be set for the message to indicate that the message to be sent needs to be a part of the thread with the specified `parentMessageId`.
-
-This can be achieved using the `setParentMessageId()` method provided by the object of the `TextMessage`, `MediaMessage` and `CustomMessage` class. The id specified in the `setParentMessageId()` method maps the message sent to the particular thread.
-
-**Example to Send a Text Message in a thread in a user conversation.**
+## Minimal Example
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
-let textMessage = new CometChat.TextMessage(UID, "Hello", CometChat.RECEIVER_TYPE.USER);
-textMessage.setParentMessageId(100);
+const receiverID = "UID";
+const messageText = "This is a reply in the thread";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+const parentMessageId = MESSAGE_ID;
+
+const textMessage = new CometChat.TextMessage(receiverID, messageText, receiverType);
+textMessage.setParentMessageId(parentMessageId);
 
 CometChat.sendMessage(textMessage).then(
-  message => {
-      console.log('Message sent successfully', message);
-  }, err => {
-      console.log('err', err);
+  (message) => {
+    console.log("Thread message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Thread message sending failed:", error);
   }
-) 
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let receiverId = "UID",
-  receiverType: string = CometChat.RECEIVER_TYPE.USER,
-  textMessage: CometChat.TextMessage = new CometChat.TextMessage(receiverId, "Hello", receiverType),
-  messageId: number = 100;
+const receiverID: string = "UID";
+const messageText: string = "This is a reply in the thread";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+const parentMessageId: number = MESSAGE_ID;
 
-textMessage.setParentMessageId(messageId);
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+textMessage.setParentMessageId(parentMessageId);
 
 CometChat.sendMessage(textMessage).then(
   (message: CometChat.TextMessage) => {
-      console.log('Message sent successfully', message);
-  }, (error: CometChat.CometChatException) => {
-      console.log('Message sending failed', error);
+    console.log("Thread message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Thread message sending failed:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-The above snippet shows how a message with the text "Hello" can be sent in the thread with `parentMessageId` 100.
+## Step-by-Step
+
+### Send a Message in a Thread
+
+*In other words, how do I reply to a specific message and create a thread?*
+
+Messages that are started from a particular message are called threaded messages or simply threads. Each thread is attached to a message which is the parent message for that thread.
+
+To send a message in a thread, use the `setParentMessageId()` method on your message object before sending. This method is available on `TextMessage`, `MediaMessage`, and `CustomMessage` classes.
+
+#### Send Text Message in a Thread (User Conversation)
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverID = "UID";
+const parentMessageId = MESSAGE_ID;
+
+const textMessage = new CometChat.TextMessage(
+  receiverID,
+  "Hello, this is a thread reply!",
+  CometChat.RECEIVER_TYPE.USER
+);
+textMessage.setParentMessageId(parentMessageId);
+
+CometChat.sendMessage(textMessage).then(
+  (message) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const parentMessageId: number = MESSAGE_ID;
+
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  "Hello, this is a thread reply!",
+  CometChat.RECEIVER_TYPE.USER
+);
+textMessage.setParentMessageId(parentMessageId);
+
+CometChat.sendMessage(textMessage).then(
+  (message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+#### Send Text Message in a Thread (Group Conversation)
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const groupID = "GUID";
+const parentMessageId = MESSAGE_ID;
+
+const textMessage = new CometChat.TextMessage(
+  groupID,
+  "Hello, this is a thread reply in the group!",
+  CometChat.RECEIVER_TYPE.GROUP
+);
+textMessage.setParentMessageId(parentMessageId);
+
+CometChat.sendMessage(textMessage).then(
+  (message) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const groupID: string = "GUID";
+const parentMessageId: number = MESSAGE_ID;
+
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  groupID,
+  "Hello, this is a thread reply in the group!",
+  CometChat.RECEIVER_TYPE.GROUP
+);
+textMessage.setParentMessageId(parentMessageId);
+
+CometChat.sendMessage(textMessage).then(
+  (message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
 
 Similarly, using the `setParentMessageId()` method, Media and Custom Messages can be sent in threads too.
 
-### Receiving Real-Time Messages
+### Receive Real-Time Thread Messages
 
-The procedure to receive real-time messages is exactly the same as mentioned in the [Receive Messages](/sdk/javascript/receive-message). This can be achieved using the `MessageListener` class provided by the SDK.
+*In other words, how do I know when someone sends a message in a thread I'm viewing?*
 
-To add a MessageListener, you can use the `addMessageListener()` method of the SDK. The only thing that needs to be checked is if the received message belongs to the active thread. This can be done using the `parentMessageId` field of the message object.
+The procedure to receive real-time messages is exactly the same as receiving regular messages. Use the `MessageListener` class to listen for incoming messages and check the `parentMessageId` field to determine if the message belongs to the active thread.
+
+#### Registering the Listener
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
-var listenerID = "UNIQUE_LISTENER_ID";
-var activeThreadId = 100;
-
-CometChat.addMessageListener(
-listenerID,
-new CometChat.MessageListener({
-  onTextMessageReceived: textMessage => {
-      if(textMessage.getParentMessageId() == activeThreadId) {
-          console.log("Text message received for active thread.", textMessage);
-      }
-  },
-  onMediaMessageReceived: mediaMessage => {
-      if(mediaMessage.getParentMessageId() == activeThreadId) {
-          console.log("Media message received for active thread.", mediaMessage);
-      }
-  },
-  onCustomMessageReceived: customMessage => {
-      if(customMessage.getParentMessageId() == activeThreadId) {
-          console.log("Custom message received for active thread.", customMessage);
-      }
-  }
-})
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var listenerID: string = "UNIQUE_LISTENER_ID",
-  activeThreadId: number = 100;
+const listenerID = "UNIQUE_LISTENER_ID";
+const activeThreadId = MESSAGE_ID;
 
 CometChat.addMessageListener(
   listenerID,
   new CometChat.MessageListener({
-      onTextMessageReceived: (textMessage: CometChat.TextMessage) => {
-          if (textMessage.getParentMessageId() == activeThreadId) {
-              console.log("Text message received for active thread.", textMessage);
-          }
-      },
-      onMediaMessageReceived: (mediaMessage: CometChat.MediaMessage) => {
-          if (mediaMessage.getParentMessageId() == activeThreadId) {
-              console.log("Media message received for active thread.", mediaMessage);
-          }
-      },
-      onCustomMessageReceived: (customMessage: CometChat.CustomMessage) => {
-          if (customMessage.getParentMessageId() == activeThreadId) {
-              console.log("Custom message received for active thread.", customMessage);
-          }
+    onTextMessageReceived: (textMessage) => {
+      if (textMessage.getParentMessageId() === activeThreadId) {
+        console.log("Text message received for active thread:", textMessage);
       }
+    },
+    onMediaMessageReceived: (mediaMessage) => {
+      if (mediaMessage.getParentMessageId() === activeThreadId) {
+        console.log("Media message received for active thread:", mediaMessage);
+      }
+    },
+    onCustomMessageReceived: (customMessage) => {
+      if (customMessage.getParentMessageId() === activeThreadId) {
+        console.log("Custom message received for active thread:", customMessage);
+      }
+    }
   })
 );
 ```
-
 </Tab>
-
-</Tabs>
-
-### Fetch all the messages for any particular thread.
-
-You can fetch all the messages belonging to a particular thread by using the `MessagesRequest` class. In order to get an object of the `MessagesRequest` class, you need to use the `MessagesRequestBuilder` class. and use the `setParentMessageId()` method of the `MessagesRequestBuilder` to inform the SDK that you only need the messages belonging to the thread with the specified parentMessageId.
-
-Once you have the object of the `MessagesRequest` class, you need to call the `fetchPrevious()` method to get the latest messages in the thread. In one integration, a maximum of 100 messages can be fetched. If you wish to fetch the next set of messages, you need to call the `fetchPrevious()` method again on the same object.
-
-<Tabs>
-<Tab title="Fetch all message for a thread">
-```javascript
-let limit = 30;
-let parentMessageId = 1;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-                      .setLimit(limit)
-                      .setParentMessageId(parentMessageId)
-                      .build();
-     
-messagesRequest.fetchPrevious().then(
-  messages => {
-      console.log("Messages for thread fetched successfully", messages);
-  }, error => {
-      console.log("Message fetching failed with error:", error);
-  }
-);  
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let limit: number = 30,
-  parentMessageId: number = 1,
-  messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
-      .setLimit(limit)
-      .setParentMessageId(parentMessageId)
-      .build();
+const listenerID: string = "UNIQUE_LISTENER_ID";
+const activeThreadId: number = MESSAGE_ID;
 
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-      console.log("Messages for thread fetched successfully", messages);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Message fetching failed with error:", error);
-  }
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage: CometChat.TextMessage) => {
+      if (textMessage.getParentMessageId() === activeThreadId) {
+        console.log("Text message received for active thread:", textMessage);
+      }
+    },
+    onMediaMessageReceived: (mediaMessage: CometChat.MediaMessage) => {
+      if (mediaMessage.getParentMessageId() === activeThreadId) {
+        console.log("Media message received for active thread:", mediaMessage);
+      }
+    },
+    onCustomMessageReceived: (customMessage: CometChat.CustomMessage) => {
+      if (customMessage.getParentMessageId() === activeThreadId) {
+        console.log("Custom message received for active thread:", customMessage);
+      }
+    }
+  })
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-## Avoid Threaded Messages in User/Group Conversations
+#### Removing the Listener
 
-While fetching messages for normal user/group conversations using the `MessagesRequest`, the threaded messages by default will be a part of the list of messages received. In order to exclude the threaded messages from the list of user/group messages, you need to use the `hideReplies()` method of the `MessagesRequestBuilder` class. This method takes a boolean argument which when set to true excludes the messages belonging to threads from the list of messages.
+Always remove listeners when they are no longer needed to prevent memory leaks:
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-                      .setUID(UID)
-                      .setLimit(limit)
-                      .hideReplies(true)
-                      .build();
-     
-messagesRequest.fetchPrevious().then(
-  messages => {
-      console.log("Messages fetched successfully", messages);
-  }, error => {
-      console.log("Message fetching failed with error:", error);
-  }
-);
+const listenerID = "UNIQUE_LISTENER_ID";
+
+CometChat.removeMessageListener(listenerID);
 ```
-
 </Tab>
-
-<Tab title="Group">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-                      .setGUID(GUID)
-                      .setLimit(limit)
-                      .hideReplies(true)
-                      .build();
-     
-messagesRequest.fetchPrevious().then(
-  messages => {
-      console.log("Messages fetched successfully", messages);
-  }, error => {
-      console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript (User)">
+<Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setLimit(limit)
-      .hideReplies(true)
-      .build();
+const listenerID: string = "UNIQUE_LISTENER_ID";
 
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-      console.log("Messages fetched successfully", messages);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Message fetching failed with error:", error);
-  }
-);
+CometChat.removeMessageListener(listenerID);
 ```
-
 </Tab>
-
-<Tab title="TypeScript (Group)">
-```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(limit)
-      .hideReplies(true)
-      .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-      console.log("Messages fetched successfully", messages);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 </Tabs>
 
-The above snippet will return messages between the logged in user and `cometchat-uid-1` excluding all the threaded messages belonging to the same conversation.
+### Fetch Messages for a Thread
+
+*In other words, how do I load the message history for a specific thread?*
+
+Use the `MessagesRequestBuilder` class with the `setParentMessageId()` method to fetch all messages belonging to a particular thread.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const limit = 30;
+const parentMessageId = MESSAGE_ID;
+
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setLimit(limit)
+  .setParentMessageId(parentMessageId)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Thread messages fetched successfully:", messages);
+  },
+  (error) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const limit: number = 30;
+const parentMessageId: number = MESSAGE_ID;
+
+const messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
+  .setLimit(limit)
+  .setParentMessageId(parentMessageId)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    console.log("Thread messages fetched successfully:", messages);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+In one request, a maximum of 100 messages can be fetched. To fetch the next set of messages, call `fetchPrevious()` again on the same `MessagesRequest` object.
+
+### Exclude Threaded Messages from Main Conversation
+
+*In other words, how do I hide thread replies from the main message list?*
+
+By default, threaded messages are included when fetching messages for a user/group conversation. To exclude them, use the `hideReplies()` method of the `MessagesRequestBuilder` class.
+
+#### User Conversation
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const UID = "UID";
+const limit = 30;
+
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setUID(UID)
+  .setLimit(limit)
+  .hideReplies(true)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Messages fetched (excluding thread replies):", messages);
+  },
+  (error) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const UID: string = "UID";
+const limit: number = 30;
+
+const messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
+  .setUID(UID)
+  .setLimit(limit)
+  .hideReplies(true)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    console.log("Messages fetched (excluding thread replies):", messages);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+#### Group Conversation
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const GUID = "GUID";
+const limit = 30;
+
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setLimit(limit)
+  .hideReplies(true)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Messages fetched (excluding thread replies):", messages);
+  },
+  (error) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const GUID: string = "GUID";
+const limit: number = 30;
+
+const messagesRequest: CometChat.MessagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setLimit(limit)
+  .hideReplies(true)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    console.log("Messages fetched (excluding thread replies):", messages);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### setParentMessageId Method
+
+Sets the parent message ID to associate a message with a thread.
+
+```
+message.setParentMessageId(parentMessageId: number): void
+```
+
+#### Parameters
+
+| Parameter       | Type   | Required | Description                                      |
+| --------------- | ------ | -------- | ------------------------------------------------ |
+| parentMessageId | number | Yes      | The ID of the parent message to create a thread  |
+
+### getParentMessageId Method
+
+Retrieves the parent message ID from a message object.
+
+```
+message.getParentMessageId(): number
+```
+
+#### Return Value
+
+Returns the parent message ID as a `number`. Returns `0` or `undefined` if the message is not part of a thread.
+
+### MessagesRequestBuilder.setParentMessageId
+
+Configures the request to fetch messages for a specific thread.
+
+```
+new CometChat.MessagesRequestBuilder().setParentMessageId(parentMessageId: number): MessagesRequestBuilder
+```
+
+#### Parameters
+
+| Parameter       | Type   | Required | Description                                    |
+| --------------- | ------ | -------- | ---------------------------------------------- |
+| parentMessageId | number | Yes      | The ID of the parent message for the thread    |
+
+### MessagesRequestBuilder.hideReplies
+
+Configures the request to exclude threaded messages from results.
+
+```
+new CometChat.MessagesRequestBuilder().hideReplies(hideReplies: boolean): MessagesRequestBuilder
+```
+
+#### Parameters
+
+| Parameter   | Type    | Required | Description                                           |
+| ----------- | ------- | -------- | ----------------------------------------------------- |
+| hideReplies | boolean | Yes      | Set to `true` to exclude thread replies from results  |
+
+### Errors
+
+| Error Code            | Description                                    | Resolution                                       |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------ |
+| ERR_NOT_LOGGED_IN     | User is not logged in                          | Call CometChat.login() before sending messages   |
+| ERR_INVALID_MESSAGE   | Invalid message object or missing parameters   | Ensure message object is properly constructed    |
+| ERR_MESSAGE_NOT_FOUND | Parent message with specified ID not found     | Verify the parent message ID exists              |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Parent Message Must Exist**: The `parentMessageId` must reference an existing message. If you pass an invalid or non-existent message ID, the message will still be sent but won't be properly associated with a thread. Always verify the parent message exists before creating thread replies.
+</Warning>
+
+<Warning>
+**Thread Messages in Main List**: By default, thread replies appear in the main conversation message list. If you want a cleaner main conversation view, always use `hideReplies(true)` when fetching messages for the main conversation, and fetch thread messages separately using `setParentMessageId()`.
+</Warning>
+
+<Warning>
+**Listener ID Uniqueness**: Each listener must have a unique `listenerID`. If you register multiple listeners with the same ID, only the last one will be active. Use descriptive, unique IDs like `"thread-view-listener"` to avoid conflicts.
+</Warning>
+
+<Warning>
+**Memory Leaks from Listeners**: Always remove message listeners when navigating away from the thread view or when the component unmounts. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+<Warning>
+**Pagination for Large Threads**: Threads can contain many messages. Always implement pagination by calling `fetchPrevious()` multiple times on the same `MessagesRequest` object. Each call returns up to 100 messages.
+</Warning>
+
+## Next Steps
+
+- [Send a Message](/sdk/javascript/send-message) - Learn about sending different message types
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages and events
+- [Retrieve Messages](/sdk/javascript/retrieve-messages) - Fetch message history with various filters
+- [Edit a Message](/sdk/javascript/edit-message) - Modify sent messages including thread messages
+- [Delete a Message](/sdk/javascript/delete-message) - Remove messages from threads
+- [Message Receipts](/sdk/javascript/delivery-read-receipts) - Track delivery and read status

@@ -2,6 +2,25 @@
 title: "Ringing"
 ---
 
+## Summary
+
+The Ringing feature (previously known as Default Calling) enables you to implement a complete calling workflow with incoming/outgoing call UI, call acceptance, rejection, and cancellation. This guide covers how to initiate calls, handle call events via listeners, and manage the full call lifecycle using the Calls SDK.
+
+## When to Use This
+
+- Implement VoIP-style calling with ringing notifications for incoming calls
+- Build a complete call flow with accept, reject, and cancel functionality
+- Create user-to-user or group video/audio calling experiences
+- Handle call state transitions (ringing → accepted → in-call → ended)
+- Manage busy call scenarios when users are already on another call
+
+## Prerequisites
+
+1. **Chat SDK initialized**: Ensure `CometChat.init()` has completed successfully. See [Setup SDK](/sdk/javascript/setup-sdk).
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User logged in**: A user must be logged in via `CometChat.login()`. See [Authentication](/sdk/javascript/authentication-overview).
+4. **Call container element**: An HTML element must exist in the DOM to render the call UI (e.g., `<div id="call-container"></div>`).
+
 ## Overview
 
 This section explains how to implement a complete calling workflow with ringing functionality, including incoming/outgoing call UI, call acceptance, rejection, and cancellation. Previously known as **Default Calling**.
@@ -518,3 +537,123 @@ CometChat.rejectCall(sessionId, status).then(
 ```
 </Tab>
 </Tabs>
+
+## Listener Cleanup
+
+Always remove call listeners when they are no longer needed to prevent memory leaks and duplicate event handling. This is especially important in single-page applications (SPAs) where components mount and unmount frequently.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Add listener when component mounts
+const listenerId = "UNIQUE_LISTENER_ID";
+
+CometChat.addCallListener(
+  listenerId,
+  new CometChat.CallListener({
+    onIncomingCallReceived: (call) => {
+      console.log("Incoming call:", call);
+    },
+    onOutgoingCallAccepted: (call) => {
+      console.log("Call accepted:", call);
+    },
+    onOutgoingCallRejected: (call) => {
+      console.log("Call rejected:", call);
+    },
+    onIncomingCallCancelled: (call) => {
+      console.log("Call cancelled:", call);
+    },
+    onCallEndedMessageReceived: (call) => {
+      console.log("Call ended:", call);
+    }
+  })
+);
+
+// Remove listener when component unmounts
+function cleanup() {
+  CometChat.removeCallListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Add listener when component mounts
+const listenerId: string = "UNIQUE_LISTENER_ID";
+
+CometChat.addCallListener(
+  listenerId,
+  new CometChat.CallListener({
+    onIncomingCallReceived: (call: CometChat.Call) => {
+      console.log("Incoming call:", call);
+    },
+    onOutgoingCallAccepted: (call: CometChat.Call) => {
+      console.log("Call accepted:", call);
+    },
+    onOutgoingCallRejected: (call: CometChat.Call) => {
+      console.log("Call rejected:", call);
+    },
+    onIncomingCallCancelled: (call: CometChat.Call) => {
+      console.log("Call cancelled:", call);
+    },
+    onCallEndedMessageReceived: (call: CometChat.Call) => {
+      console.log("Call ended:", call);
+    }
+  })
+);
+
+// Remove listener when component unmounts
+function cleanup(): void {
+  CometChat.removeCallListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Duplicate Listener Registration**: Using the same `listenerId` for multiple listeners will overwrite the previous listener. Always use unique listener IDs (e.g., include component instance ID or UUID) to prevent losing event handlers.
+</Warning>
+
+<Warning>
+**Missing Listener Cleanup**: Failing to call `removeCallListener()` when a component unmounts causes memory leaks and duplicate event handling. In React, use `useEffect` cleanup; in Vue, use `onUnmounted`; in Angular, use `ngOnDestroy`.
+</Warning>
+
+<Warning>
+**Session ID Not Stored**: The `sessionId` from `initiateCall()` or `onIncomingCallReceived()` is required for accepting, rejecting, cancelling, and starting the call. Store it immediately when received—losing it means you cannot complete the call flow.
+</Warning>
+
+<Warning>
+**Call Container Not Ready**: Calling `startSession()` before the HTML container element exists in the DOM will fail silently. Ensure the element is rendered before starting the session, especially in frameworks with async rendering.
+</Warning>
+
+<Warning>
+**Forgetting clearActiveCall()**: Always call `CometChat.clearActiveCall()` when a call ends (whether normally or due to error). Failing to do so can prevent initiating new calls and cause inconsistent call state.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Listener efficiency**: Register call listeners once at app initialization or component mount, not on every user action. Multiple redundant listeners degrade performance.
+- **Call token caching**: Call tokens are single-use and session-specific. Generate a new token for each call session—do not cache or reuse tokens.
+- **Resource cleanup**: Always call `CometChatCalls.endSession()` and `CometChat.clearActiveCall()` when calls end to release WebRTC resources and prevent memory leaks.
+- **Group call limits**: Group calls support up to 50 participants by default. Contact CometChat support for higher limits.
+- **Network handling**: The Calls SDK handles network reconnection automatically, but implement UI feedback for poor network conditions using the `onError` callback.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC and development only. For production applications, use **Auth Token** created server-side via the CometChat REST API. Never expose your Auth Key in client-side production code.
+</Note>
+
+- The `authToken` used in `generateToken()` is the user's auth token from `getLoggedinUser().getAuthToken()`, not your app's Auth Key.
+- Call sessions are authenticated and encrypted. Only authenticated users can join calls they are invited to.
+- Session IDs are unique per call and cannot be reused to join previous calls.
+
+## Next Steps
+
+- [Direct Call](/sdk/javascript/direct-call) - Start call sessions without ringing UI
+- [Call Logs](/sdk/javascript/call-logs) - Retrieve call history and missed calls
+- [Recording](/sdk/javascript/recording) - Enable call recording
+- [Virtual Background](/sdk/javascript/virtual-background) - Add background effects to video calls
+- [Video View Customisation](/sdk/javascript/video-view-customisation) - Customize the call UI layout
+- [Session Timeout](/sdk/javascript/session-timeout) - Configure automatic call timeout

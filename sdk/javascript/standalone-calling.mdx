@@ -2,13 +2,93 @@
 title: "Standalone Calling"
 ---
 
-## Overview
+## Summary
 
-This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
+Standalone Calling enables you to implement audio/video calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This approach is ideal for applications that need video/audio calling capabilities without the full chat infrastructure, such as telehealth apps, customer support tools, or any scenario where you manage user authentication independently.
 
-<Note>
-Before you begin, ensure you have completed the [Calls SDK setup](/sdk/javascript/calling-setup).
-</Note>
+## When to Use This
+
+- Build calling features without integrating the full Chat SDK
+- Implement video consultations in telehealth or telemedicine applications
+- Add customer support video calls to existing applications
+- Create standalone video conferencing rooms with custom user management
+- Integrate calling into applications that already have their own user authentication system
+
+## Prerequisites
+
+1. **Calls SDK installed**: Install `@cometchat/calls-sdk-javascript` via npm or CDN.
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed successfully. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User Auth Token**: Obtain a user auth token via the CometChat REST API (since Chat SDK is not used).
+4. **Call container element**: An HTML element must exist in the DOM to render the call UI (e.g., `<div id="call-container"></div>`).
+
+## Minimal Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const SESSION_ID = "SESSION_ID";
+const AUTH_TOKEN = "AUTH_TOKEN"; // Obtained from REST API
+
+// Step 1: Generate call token
+CometChatCalls.generateToken(SESSION_ID, AUTH_TOKEN).then(
+  (callToken) => {
+    // Step 2: Configure call settings
+    const callSettings = new CometChatCalls.CallSettingsBuilder()
+      .enableDefaultLayout(true)
+      .setIsAudioOnlyCall(false)
+      .setCallListener(new CometChatCalls.OngoingCallListener({
+        onCallEnded: () => {
+          CometChatCalls.endSession();
+        },
+        onCallEndButtonPressed: () => {
+          CometChatCalls.endSession();
+        }
+      }))
+      .build();
+
+    // Step 3: Start the call session
+    const htmlElement = document.getElementById("call-container");
+    CometChatCalls.startSession(callToken.token, callSettings, htmlElement);
+  },
+  (error) => {
+    console.log("Token generation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const SESSION_ID: string = "SESSION_ID";
+const AUTH_TOKEN: string = "AUTH_TOKEN"; // Obtained from REST API
+
+// Step 1: Generate call token
+CometChatCalls.generateToken(SESSION_ID, AUTH_TOKEN).then(
+  (callToken: any) => {
+    // Step 2: Configure call settings
+    const callSettings = new CometChatCalls.CallSettingsBuilder()
+      .enableDefaultLayout(true)
+      .setIsAudioOnlyCall(false)
+      .setCallListener(new CometChatCalls.OngoingCallListener({
+        onCallEnded: () => {
+          CometChatCalls.endSession();
+        },
+        onCallEndButtonPressed: () => {
+          CometChatCalls.endSession();
+        }
+      }))
+      .build();
+
+    // Step 3: Start the call session
+    const htmlElement = document.getElementById("call-container") as HTMLElement;
+    CometChatCalls.startSession(callToken.token, callSettings, htmlElement);
+  },
+  (error: any) => {
+    console.log("Token generation failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
 
 ## User Authentication
 
@@ -40,10 +120,10 @@ Use the `generateToken()` method to create a call token:
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
-const sessionId = "UNIQUE_SESSION_ID"; // Generate a unique session ID
-const userAuthToken = "USER_AUTH_TOKEN"; // Obtained from REST API
+const SESSION_ID = "SESSION_ID"; // Generate a unique session ID
+const AUTH_TOKEN = "AUTH_TOKEN"; // Obtained from REST API
 
-CometChatCalls.generateToken(sessionId, userAuthToken).then(
+CometChatCalls.generateToken(SESSION_ID, AUTH_TOKEN).then(
   (callToken) => {
     console.log("Call token generated:", callToken.token);
     // Use callToken to start the session
@@ -56,10 +136,10 @@ CometChatCalls.generateToken(sessionId, userAuthToken).then(
 </Tab>
 <Tab title="TypeScript">
 ```typescript
-const sessionId: string = "UNIQUE_SESSION_ID"; // Generate a unique session ID
-const userAuthToken: string = "USER_AUTH_TOKEN"; // Obtained from REST API
+const SESSION_ID: string = "SESSION_ID"; // Generate a unique session ID
+const AUTH_TOKEN: string = "AUTH_TOKEN"; // Obtained from REST API
 
-CometChatCalls.generateToken(sessionId, userAuthToken).then(
+CometChatCalls.generateToken(SESSION_ID, AUTH_TOKEN).then(
   (callToken: any) => {
     console.log("Call token generated:", callToken.token);
     // Use callToken to start the session
@@ -72,10 +152,10 @@ CometChatCalls.generateToken(sessionId, userAuthToken).then(
 </Tab>
 </Tabs>
 
-| Parameter       | Description                                                                |
-| --------------- | -------------------------------------------------------------------------- |
-| `sessionId`     | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
-| `userAuthToken` | The user auth token obtained from the CometChat REST API.                  |
+| Parameter    | Description                                                                |
+| ------------ | -------------------------------------------------------------------------- |
+| `SESSION_ID` | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
+| `AUTH_TOKEN` | The user auth token obtained from the CometChat REST API.                  |
 
 ## Start Call Session
 
@@ -237,6 +317,8 @@ Each listener requires a unique `listenerId` string. This ID is used to:
 - **Prevent duplicate registrations** — Re-registering with the same ID replaces the existing listener
 - **Enable targeted removal** — Remove specific listeners without affecting others
 
+### Registering Listeners
+
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
@@ -284,9 +366,6 @@ CometChatCalls.addCallEventListener(listenerId, {
     console.log("Session timed out");
   }
 });
-
-// Remove listener when done
-CometChatCalls.removeCallEventListener(listenerId);
 ```
 </Tab>
 <Tab title="TypeScript">
@@ -335,8 +414,22 @@ CometChatCalls.addCallEventListener(listenerId, {
     console.log("Session timed out");
   }
 });
+```
+</Tab>
+</Tabs>
 
-// Remove listener when done
+### Removing Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Remove listener when done (e.g., component unmount, page navigation)
+CometChatCalls.removeCallEventListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Remove listener when done (e.g., component unmount, page navigation)
 CometChatCalls.removeCallEventListener(listenerId);
 ```
 </Tab>
@@ -647,3 +740,60 @@ CometChatCalls.endSession();
 ```
 </Tab>
 </Tabs>
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Missing endSession() Call**: Failing to call `CometChatCalls.endSession()` when a call ends leaves WebRTC resources (camera, microphone, network connections) active. This causes memory leaks, battery drain, and may prevent starting new calls. Always call `endSession()` in all call termination paths including `onCallEnded()`, `onCallEndButtonPressed()`, and `onSessionTimeout()`.
+</Warning>
+
+<Warning>
+**Call Container Not in DOM**: Calling `startSession()` before the HTML container element exists in the DOM will fail silently. Ensure the element is rendered before starting the session, especially in frameworks with async rendering (React, Vue, Angular). Use lifecycle hooks like `componentDidMount` or `onMounted` to guarantee DOM readiness.
+</Warning>
+
+<Warning>
+**Duplicate Listener Registration**: Using the same `listenerId` for multiple listeners will overwrite the previous listener. Always use unique listener IDs (e.g., include component instance ID or UUID) to prevent losing event handlers. Remove listeners on component unmount to prevent memory leaks.
+</Warning>
+
+<Warning>
+**Token Reuse Attempts**: Call tokens are single-use and session-specific. Attempting to reuse a token for a new session will fail. Always generate a fresh token using `generateToken()` for each call session.
+</Warning>
+
+<Warning>
+**switchCamera() on Desktop**: The `switchCamera()` method only works on mobile browsers. Calling it on desktop browsers has no effect. Check the user agent or use feature detection before showing camera switch UI on desktop.
+</Warning>
+
+<Warning>
+**Auth Token Expiration**: User auth tokens obtained from the REST API have an expiration time. If the token expires before generating a call token, the `generateToken()` call will fail. Implement token refresh logic or generate tokens close to when they're needed.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Session ID sharing**: All participants must use the same `SESSION_ID` to join the same call. Generate a unique session ID and share it with all intended participants.
+- **Token generation timing**: Generate call tokens close to when they're needed rather than caching them, as tokens are session-specific and single-use.
+- **Idle timeout**: By default, calls auto-terminate after 180 seconds of inactivity. Adjust using `setIdleTimeoutPeriod()` if your use case requires longer idle periods.
+- **Device enumeration**: Call `getAudioInputDevices()`, `getAudioOutputDevices()`, and `getVideoInputDevices()` after the session starts to get accurate device lists.
+- **Bandwidth considerations**: Video calls consume significant bandwidth. Consider offering audio-only mode (`setIsAudioOnlyCall(true)`) for users on limited connections.
+
+## Security Notes
+
+<Note>
+**Auth Token** should be generated server-side via the CometChat REST API for production applications. Never expose your REST API credentials in client-side code. The auth token obtained from the REST API should be securely transmitted to your client application.
+</Note>
+
+<Note>
+For **POC/development only**, you can create auth tokens directly from the [CometChat Dashboard](https://app.cometchat.com) under **Users & Groups → Users**. This approach is not recommended for production as it requires manual token management.
+</Note>
+
+<Note>
+**Session IDs** should be unpredictable (use UUIDs or cryptographically random strings) to prevent unauthorized users from guessing and joining calls. Never use sequential or easily guessable session IDs.
+</Note>
+
+## Next Steps
+
+- [Calling Setup](/sdk/javascript/calling-setup) — Initialize the Calls SDK
+- [Call Session](/sdk/javascript/direct-call) — Learn about call sessions with the Chat SDK integration
+- [Ringing](/sdk/javascript/default-call) — Implement incoming/outgoing call UI with ringing
+- [Recording](/sdk/javascript/recording) — Record call sessions
+- [Video View Customization](/sdk/javascript/video-view-customisation) — Customize the call UI appearance
+- [Virtual Background](/sdk/javascript/virtual-background) — Add virtual backgrounds to video calls

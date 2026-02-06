@@ -3,15 +3,31 @@ title: "Setup"
 sidebarTitle: "Overview"
 ---
 
+## Summary
 
+This page guides you through setting up the CometChat JavaScript SDK in your application. You'll learn how to obtain your application credentials, install the SDK via NPM or CDN, and initialize CometChat to enable real-time messaging and calling features.
+
+## When to Use This
+
+- When starting a new project that requires real-time chat functionality
+- When integrating CometChat into an existing JavaScript or TypeScript application
+- When migrating from CometChat SDK v3 to v4
+- When setting up CometChat in a web application (React, Vue, Angular, or vanilla JS)
+- When configuring CometChat for a Node.js server-side application
+
+## Prerequisites
+
+- A CometChat account ([Sign up here](https://app.cometchat.com))
+- A CometChat app with App ID, Region, and Auth Key from the Dashboard
+- Node.js and npm (for NPM installation) or a web browser (for CDN installation)
+- Basic knowledge of JavaScript or TypeScript
 
 <Note>
-Migrating app version from v3 to v4 ?
+Migrating app version from v3 to v4?
 
 Skip the create new app step. Your existing v3 app can be migrated to v4.
 
-Follow steps mentioned in **Add the CometChat dependency** section below to upgrade to latest version of v4
-
+Follow steps mentioned in **Add the CometChat dependency** section below to upgrade to latest version of v4.
 </Note>
 
 ## Get your Application Keys
@@ -27,24 +43,30 @@ Follow steps mentioned in **Add the CometChat dependency** section below to upgr
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 npm install @cometchat/chat-sdk-javascript
 ```
-
 </Tab>
-
+<Tab title="TypeScript">
+```typescript
+npm install @cometchat/chat-sdk-javascript
+```
+</Tab>
 </Tabs>
 
 Then, import the `CometChat` object wherever you want to use CometChat.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 ```
-
 </Tab>
-
+<Tab title="TypeScript">
+```typescript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+```
+</Tab>
 </Tabs>
 
 ### HTML (via CDN)
@@ -52,46 +74,54 @@ import { CometChat } from "@cometchat/chat-sdk-javascript";
 Include the CometChat JavaScript library in your HTML code.
 
 <Tabs>
-<Tab title="HTML">
-```
+<Tab title="JavaScript">
+```html
 <script
   type="text/javascript"
   src="https://unpkg.com/@cometchat/chat-sdk-javascript/CometChat.js"
 ></script>
 ```
-
 </Tab>
-
+<Tab title="TypeScript">
+```html
+<script
+  type="text/javascript"
+  src="https://unpkg.com/@cometchat/chat-sdk-javascript/CometChat.js"
+></script>
+```
+</Tab>
 </Tabs>
 
 ## Initialize CometChat
 
-The `init()` method initialises the settings required for CometChat. The `init()` method takes the below parameters:
+The `init()` method initializes the settings required for CometChat. The `init()` method takes the below parameters:
 
-1. appID - You CometChat App ID
+1. appID - Your CometChat App ID
 2. appSettings - An object of the AppSettings class can be created using the AppSettingsBuilder class. The region field is mandatory and can be set using the `setRegion()` method.
 
-The `AppSettings` class allows you to configure two settings:
+The `AppSettings` class allows you to configure the following settings:
 
-* **Region**: The region where you app was created.
-* [Presence Subscription](/sdk/javascript/user-presence)**:** Represents the subscription type for user presence (real-time online/offline status)
-* **autoEstablishSocketConnection(boolean value)**: This property takes a boolean value which when set to `true` informs the SDK to manage the web-socket connection internally. If set to `false` , it informs the SDK that the web-socket connection will be managed manually. The default value for this parameter is true. For more information on this, please check the [Managing Web-Socket connections manually](/sdk/javascript/managing-web-sockets-connections-manually) section. The default value for this property is **true.**
-* **overrideAdminHost(adminHost: string)**: This method takes the admin URL as input and uses this admin URL instead of the default admin URL. This can be used in case of dedicated deployment of CometChat.
-* **overrideClientHost(clientHost: string)**: This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
+- **Region**: The region where your app was created.
+- **[Presence Subscription](/sdk/javascript/user-presence)**: Represents the subscription type for user presence (real-time online/offline status)
+- **autoEstablishSocketConnection(boolean value)**: This property takes a boolean value which when set to `true` informs the SDK to manage the web-socket connection internally. If set to `false`, it informs the SDK that the web-socket connection will be managed manually. The default value for this parameter is `true`. For more information on this, please check the [Managing Web-Socket connections manually](/sdk/javascript/managing-web-sockets-connections-manually) section.
+- **overrideAdminHost(adminHost: string)**: This method takes the admin URL as input and uses this admin URL instead of the default admin URL. This can be used in case of dedicated deployment of CometChat.
+- **overrideClientHost(clientHost: string)**: This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
 
 You need to call `init()` before calling any other method from CometChat. We suggest you call the `init()` method on app startup, preferably in the `index.js` file.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let appID = "APP_ID";
-let region = "APP_REGION";
-let appSetting = new CometChat.AppSettingsBuilder()
+```javascript
+const APP_ID = "APP_ID";
+const REGION = "REGION";
+
+const appSetting = new CometChat.AppSettingsBuilder()
   .subscribePresenceForAllUsers()
-  .setRegion(region)
+  .setRegion(REGION)
   .autoEstablishSocketConnection(true)
   .build();
-CometChat.init(appID, appSetting).then(
+
+CometChat.init(APP_ID, appSetting).then(
   () => {
     console.log("Initialization completed successfully");
   },
@@ -100,19 +130,19 @@ CometChat.init(appID, appSetting).then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let appID: string = "APP_ID",
-  region: string = "APP_REGION",
-  appSetting: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
-    .subscribePresenceForAllUsers()
-    .setRegion(region)
-    .autoEstablishSocketConnection(true)
-    .build();
-CometChat.init(appID, appSetting).then(
+const APP_ID: string = "APP_ID";
+const REGION: string = "REGION";
+
+const appSetting: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(REGION)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+CometChat.init(APP_ID, appSetting).then(
   (initialized: boolean) => {
     console.log("Initialization completed successfully", initialized);
   },
@@ -121,14 +151,63 @@ CometChat.init(appID, appSetting).then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
+Make sure you replace `APP_ID` with your CometChat **App ID** and `REGION` with your **App Region** in the above code.
 
-| Parameter  | Description                         |
-| ---------- | ----------------------------------- |
-| appID      | CometChat App ID                    |
-| appSetting | An object of the AppSettings class. |
+### Parameters
+
+| Parameter   | Type        | Required | Description                         |
+| ----------- | ----------- | -------- | ----------------------------------- |
+| appID       | string      | Yes      | Your CometChat App ID               |
+| appSetting  | AppSettings | Yes      | An object of the AppSettings class  |
+
+### Return Value
+
+Returns a `Promise<boolean>` that resolves to `true` when initialization is successful.
+
+### Errors
+
+| Error Code | Description | Resolution |
+| ---------- | ----------- | ---------- |
+| ERR_INVALID_APP_ID | Invalid or missing App ID | Verify your App ID from the CometChat Dashboard |
+| ERR_INVALID_REGION | Invalid or missing region | Ensure region matches your app's region (us, eu, in) |
+| ERR_NETWORK_ERROR | Network connectivity issue | Check internet connection and try again |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**SSR/Server-Side Rendering Issues**: CometChat SDK requires browser APIs (like `window` and `WebSocket`) that are not available in server-side environments. When using frameworks like Next.js, Nuxt, or SvelteKit, ensure you only initialize CometChat on the client side. Use dynamic imports or check for `typeof window !== 'undefined'` before calling `init()`.
+</Warning>
+
+<Warning>
+**Init Timing**: Always wait for the `init()` promise to resolve before calling any other CometChat methods like `login()` or `getLoggedinUser()`. Calling methods before initialization completes will result in errors. Consider using async/await or promise chaining to ensure proper sequencing.
+</Warning>
+
+<Warning>
+**Multiple Init Calls**: Calling `init()` multiple times (e.g., on component re-renders) can cause unexpected behavior. Initialize CometChat only once at the application entry point. Use a flag or singleton pattern to prevent duplicate initialization.
+</Warning>
+
+<Warning>
+**Region Mismatch**: Ensure the region you specify in `setRegion()` matches the region where your CometChat app was created. Using the wrong region will cause connection failures. Check your app's region in the CometChat Dashboard under App Settings.
+</Warning>
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production applications, use **Auth Token** created server-side via the [CometChat REST API](/reference/createauthtoken). Never expose your Auth Key in production client-side code as it can be used to impersonate any user.
+</Note>
+
+<Note>
+**REST API Key** should never be included in client-side code. Keep it secure on your server and use it only for server-to-server API calls.
+</Note>
+
+## Next Steps
+
+- [Authentication](/sdk/javascript/authentication-overview) - Learn how to log in users with Auth Key or Auth Token
+- [Send Messages](/sdk/javascript/send-message) - Start sending text and media messages
+- [Receive Messages](/sdk/javascript/receive-message) - Set up real-time message listeners
+- [User Presence](/sdk/javascript/user-presence) - Configure online/offline status tracking
+- [Key Concepts](/sdk/javascript/key-concepts) - Understand CometChat's core concepts
+- [Managing Web-Socket Connections](/sdk/javascript/managing-web-sockets-connections-manually) - Advanced connection management

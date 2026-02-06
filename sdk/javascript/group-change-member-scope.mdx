@@ -2,111 +2,411 @@
 title: "Change Member Scope"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to change the scope (role) of group members. Group admins can promote participants to moderators or admins, or demote members to lower roles. This is essential for building dynamic group hierarchies, delegating moderation responsibilities, and implementing role-based access control within groups.
 
-## Change Scope of a Group Member
+## When to Use This
 
-In order to change the scope of a group member, you can use the `changeGroupMemberScope()`.
+- When implementing role management features in group settings
+- When promoting active members to moderators or admins
+- When demoting members who no longer need elevated privileges
+- When building admin dashboards for group management
+- When implementing automated role assignment based on user activity
+- When creating tiered permission systems within groups
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Group**: The group must exist and the logged-in user must be an admin
+- **Permissions**: Only group admins can change member scopes
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Change Scope">
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let UID = "UID";
 let scope = CometChat.GROUP_MEMBER_SCOPE.ADMIN;
 
 CometChat.updateGroupMemberScope(GUID, UID, scope).then(
-response => {
-  console.log("Group member scopped changed", response);
-}, error => {
-  console.log("Group member scopped changed failed", error);
-}
+  (response) => {
+    console.log("Member scope changed successfully:", response);
+  },
+  (error) => {
+    console.log("Failed to change member scope:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
 let UID: string = "UID";
+let scope: string = CometChat.GROUP_MEMBER_SCOPE.ADMIN;
 
-
-CometChat.updateGroupMemberScope(GUID, UID, CometChat.GroupMemberScope.Admin).then(
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
   (response: boolean) => {
-      console.log("Group member scopped changed", response);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group member scopped changed failed", error);
+    console.log("Member scope changed successfully:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to change member scope:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-This method takes the below parameters:
+## Step-by-Step
 
-| Parameter | Description                                                                                                                                                 |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `UID`     | The UID of the member whose scope you would like to change                                                                                                  |
-| `GUID`    | The GUID of the group for which the member's scope needs to be changed                                                                                      |
-| `scope`   | The updated scope of the member. This can be either of the 3 values: 1.`CometChat.SCOPE.ADMIN`2.`CometChat.SCOPE.MODERATOR` 3.`CometChat.SCOPE.PARTICIPANT` |
+### Step 1: Understand Group Member Scopes
 
-The default scope of any member is `participant`. Only the **Admin** of the group can change the scope of any participant in the group.
+CometChat groups support three member scopes (roles):
 
-## Real-Time Group Member Scope Changed Events
+| Scope       | Constant                                | Description                                      |
+| ----------- | --------------------------------------- | ------------------------------------------------ |
+| Participant | `CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT` | Default role with basic messaging permissions    |
+| Moderator   | `CometChat.GROUP_MEMBER_SCOPE.MODERATOR`   | Can kick/ban participants                        |
+| Admin       | `CometChat.GROUP_MEMBER_SCOPE.ADMIN`       | Full control including promoting/demoting members |
 
-*In other words, as a member of a group, how do I know when someone's scope is changed when my app is running?*
+The default scope for any new member is `participant`. Only **Admins** can change the scope of other members.
 
-In order to receive real-time events for the change member scope event, you will need to override the `onGroupMemberScopeChanged()` method of the `GroupListener` class
+### Step 2: Promote a Member to Admin
+
+To promote a participant or moderator to admin, use the `updateGroupMemberScope()` method with the admin scope.
 
 <Tabs>
-<Tab title="Group Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
+let GUID = "GUID";
+let UID = "UID";
+let scope = CometChat.GROUP_MEMBER_SCOPE.ADMIN;
 
-CometChat.addGroupListener(
-listenerID,
-new CometChat.GroupListener({
-  onGroupMemberScopeChanged: (message, changedUser, newScope, oldScope, changedGroup) => {
-    console.log("User joined", {message, changedUser, newScope, oldScope, changedGroup});
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response) => {
+    console.log("Member promoted to admin:", response);
+  },
+  (error) => {
+    console.log("Failed to promote member:", error);
   }
-})
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
+let GUID: string = "GUID";
+let UID: string = "UID";
+let scope: string = CometChat.GROUP_MEMBER_SCOPE.ADMIN;
+
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response: boolean) => {
+    console.log("Member promoted to admin:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to promote member:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Promote a Member to Moderator
+
+To promote a participant to moderator, use the moderator scope.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
+let scope = CometChat.GROUP_MEMBER_SCOPE.MODERATOR;
+
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response) => {
+    console.log("Member promoted to moderator:", response);
+  },
+  (error) => {
+    console.log("Failed to promote member:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let UID: string = "UID";
+let scope: string = CometChat.GROUP_MEMBER_SCOPE.MODERATOR;
+
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response: boolean) => {
+    console.log("Member promoted to moderator:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to promote member:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Demote a Member to Participant
+
+To demote an admin or moderator back to participant, use the participant scope.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
+let scope = CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT;
+
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response) => {
+    console.log("Member demoted to participant:", response);
+  },
+  (error) => {
+    console.log("Failed to demote member:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let UID: string = "UID";
+let scope: string = CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT;
+
+CometChat.updateGroupMemberScope(GUID, UID, scope).then(
+  (response: boolean) => {
+    console.log("Member demoted to participant:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to demote member:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Events & Real-time Behavior
+
+### Registering GroupListener
+
+To receive real-time events when a member's scope is changed, register a `GroupListener` with the `onGroupMemberScopeChanged` callback.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-scope-change-listener";
 
 CometChat.addGroupListener(
-  listenerID,
+  listenerId,
   new CometChat.GroupListener({
-      onGroupMemberScopeChanged: (message: CometChat.Action, changedUser: CometChat.User, newScope: string, oldScope: string, changedGroup: CometChat.Group) => {
-          console.log("User joined", { message, changedUser, newScope, oldScope, changedGroup });
-      }
+    onGroupMemberScopeChanged: (message, changedUser, newScope, oldScope, changedGroup) => {
+      console.log("Member scope changed:", {
+        message,
+        changedUser,
+        newScope,
+        oldScope,
+        changedGroup,
+      });
+    },
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-scope-change-listener";
 
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberScopeChanged: (
+      message: CometChat.Action,
+      changedUser: CometChat.User,
+      newScope: string,
+      oldScope: string,
+      changedGroup: CometChat.Group
+    ) => {
+      console.log("Member scope changed:", {
+        message,
+        changedUser,
+        newScope,
+        oldScope,
+        changedGroup,
+      });
+    },
+  })
+);
+```
+</Tab>
 </Tabs>
 
-## Missed Group Member Scope Changed Events
+### Removing GroupListener
 
-*In other words, as a member of a group, how do I know when someone's scope is changed when my app is not running?*
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
 
-When you retrieve the list of previous messages if a member's scope has been changed for any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-scope-change-listener";
 
-For the group member scope changed event, in the `Action` object received, the following fields can help you get the relevant information-
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-scope-change-listener";
 
-1. `action` - `scopeChanged`
-2. `actionOn` - User object containing the details of the user whose scope has been changed
-3. `actionBy` - User object containing the details of the user who changed the scope of the member
-4. `actionFor` - Group object containing the details of the group in which the member scope was changed
-5. `oldScope` - The original scope of the member
-6. `newScope` - The updated scope of the member
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Complete Listener Lifecycle Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Use a unique listener ID
+let listenerId = "scope-change-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberScopeChanged: (message, changedUser, newScope, oldScope, changedGroup) => {
+      console.log(`${changedUser.getName()}'s scope changed from ${oldScope} to ${newScope} in ${changedGroup.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup() {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Use a unique listener ID
+let listenerId: string = "scope-change-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberScopeChanged: (
+      message: CometChat.Action,
+      changedUser: CometChat.User,
+      newScope: string,
+      oldScope: string,
+      changedGroup: CometChat.Group
+    ) => {
+      console.log(`${changedUser.getName()}'s scope changed from ${oldScope} to ${newScope} in ${changedGroup.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup(): void {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+### Scope Change Events in Message History
+
+When retrieving previous messages, if a member's scope was changed in a group, the message list will contain an `Action` message. The `Action` object provides the following information:
+
+| Property  | Description                                                |
+| --------- | ---------------------------------------------------------- |
+| action    | The action type: `"scopeChanged"`                          |
+| actionOn  | User object of the user whose scope was changed            |
+| actionBy  | User object of the user who changed the scope              |
+| actionFor | Group object of the group where the scope was changed      |
+| oldScope  | The original scope of the member                           |
+| newScope  | The updated scope of the member                            |
+
+## API Details
+
+### updateGroupMemberScope()
+
+```javascript
+CometChat.updateGroupMemberScope(GUID: string, UID: string, scope: string): Promise<boolean>
+```
+
+| Parameter | Type   | Required | Description                                                                                                                                                 |
+| --------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group                                                                                                                          |
+| UID       | string | Yes      | The unique identifier of the member whose scope to change                                                                                                   |
+| scope     | string | Yes      | The new scope: `CometChat.GROUP_MEMBER_SCOPE.ADMIN`, `CometChat.GROUP_MEMBER_SCOPE.MODERATOR`, or `CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT` |
+
+### Return Value
+
+Returns a `Promise<boolean>` that resolves to `true` when the scope change is successful.
+
+### Errors
+
+| Error Code              | Description                                    | Resolution                                      |
+| ----------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN  | No user is currently logged in                 | Ensure user is logged in before performing action |
+| ERR_INVALID_GUID        | The provided GUID is invalid                   | Verify the GUID format and existence            |
+| ERR_GROUP_NOT_FOUND     | Group with the specified GUID not found        | Check if the group exists                       |
+| ERR_NOT_A_MEMBER        | Target user is not a member of the group       | Verify the user is a group member               |
+| ERR_PERMISSION_DENIED   | User doesn't have permission                   | Only admins can change member scopes            |
+| ERR_USER_NOT_FOUND      | The specified UID doesn't exist                | Verify the UID exists in your CometChat app     |
+| ERR_INVALID_SCOPE       | The provided scope value is invalid            | Use one of the valid scope constants            |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Admin-Only Permission**: Only group admins can change member scopes. Moderators and participants cannot promote or demote other members. Attempting to change scope without admin privileges will result in a permission error.
+</Warning>
+
+<Warning>
+**Cannot Change Owner Scope**: The group owner's scope cannot be changed. The owner always has the highest privileges. To transfer ownership, use the `transferGroupOwnership()` method instead.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: If you register a GroupListener with the same `listenerId` as an existing listener, the new listener will replace the old one. Use unique listener IDs (e.g., include timestamps or UUIDs) to avoid accidentally overwriting listeners.
+</Warning>
+
+<Warning>
+**Self-Demotion Risk**: An admin can demote themselves to participant or moderator. Once demoted, they cannot promote themselves back. Implement UI safeguards to prevent accidental self-demotion, especially for the last remaining admin.
+</Warning>
+
+## Performance & Scale Notes
+
+- Scope changes are individual API calls. If you need to change multiple members' scopes, batch the operations with appropriate error handling for partial failures.
+- Real-time scope change events are delivered to all group members, so large groups may generate significant event traffic.
+- Consider caching member scopes locally and updating the cache when scope change events are received to reduce API calls.
+- The scope change operation is atomic - it either succeeds completely or fails without partial changes.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Warning>
+**Server-Side Role Management**: For production applications, consider implementing server-side role management workflows. This allows you to enforce business rules, maintain audit logs, and implement approval processes before scope changes are made.
+</Warning>
+
+<Warning>
+**Audit Trail**: CometChat stores scope changes as Action messages in the group history. For compliance requirements, consider maintaining your own audit log of role changes with additional context like reason for promotion/demotion.
+</Warning>
+
+## Next Steps
+
+- [Kick or Ban Members](/sdk/javascript/group-kick-ban-members) - Remove or ban members from a group
+- [Add Members to Group](/sdk/javascript/group-add-members) - Add new members to a group
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get a list of members with their scopes
+- [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership) - Transfer ownership to another member
+- [Leave Group](/sdk/javascript/leave-group) - Allow users to leave groups
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for all group events

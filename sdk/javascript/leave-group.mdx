@@ -2,96 +2,393 @@
 title: "Leave A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables users to leave groups they have previously joined. When a user leaves a group, they stop receiving messages and updates from that group. This is essential for building applications where users need control over their group memberships, such as community platforms, team collaboration tools, and social applications.
 
-## Leave a Group
+## When to Use This
 
-In order to stop receiving updates and messages for any particular joined group, you will have to leave the group using the `leaveGroup()` method.
+- When allowing users to exit groups they no longer want to participate in
+- When implementing group membership management features
+- When building community or social features where users can opt-out of groups
+- When creating team collaboration spaces users can leave voluntarily
+- When implementing cleanup flows for user account management
+- When building group settings screens with leave functionality
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Membership**: User must be a member of the group they want to leave
+- **Role**: Group owners cannot leave their own group (must transfer ownership first or delete the group)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Leave Group">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
+let GUID = "GUID";
 
 CometChat.leaveGroup(GUID).then(
-hasLeft => {
-  console.log("Group left successfully:", hasLeft);
-}, error => {
-  console.log("Group leaving failed with exception:", error);
-}
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var GUID: string = "GUID";
-
-CometChat.leaveGroup(GUID).then(
-  (hasLeft: boolean) => {
-      console.log("Group left successfully:", hasLeft);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group leaving failed with exception:", error);
+  (hasLeft) => {
+    console.log("Group left successfully:", hasLeft);
+  },
+  (error) => {
+    console.log("Group leaving failed:", error);
   }
 );
 ```
-
 </Tab>
-
-</Tabs>
-
-| Parameter | Description                                  |
-| --------- | -------------------------------------------- |
-| `GUID`    | The UID of the group you would like to leave |
-
-Once a group is left, the user will no longer receive any updates or messages pertaining to the group.
-
-## Real-time Group Member Left Events
-
-*In other words, as a member of a group, how do I know if someone has left it?*
-
-If a user leaves any group, The members of the group receive a real-time event in the `onGroupMemberLeft()` method of the `GroupListener` class.
-
-<Tabs>
-<Tab title="Group Listener">
-```javascript
-CometChat.addGroupListener(
-  "UNIQUE_LISTENER_ID",
-  new CometChat.GroupListener({
-      onGroupMemberLeft: (message, leavingUser, group) => {
-          console.log("User left", { message, leavingUser, group });
-      }
-  })
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
+let GUID: string = "GUID";
+
+CometChat.leaveGroup(GUID).then(
+  (hasLeft: boolean) => {
+    console.log("Group left successfully:", hasLeft);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group leaving failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Verify Group Membership
+
+Before attempting to leave a group, verify that the user is actually a member of the group.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group) => {
+    if (group.getHasJoined()) {
+      console.log("User is a member, can proceed to leave");
+    } else {
+      console.log("User is not a member of this group");
+    }
+  },
+  (error) => {
+    console.log("Failed to get group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group: CometChat.Group) => {
+    if (group.getHasJoined()) {
+      console.log("User is a member, can proceed to leave");
+    } else {
+      console.log("User is not a member of this group");
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to get group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Leave the Group
+
+Use the `leaveGroup()` method with the group's GUID to leave the group.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.leaveGroup(GUID).then(
+  (hasLeft) => {
+    console.log("Successfully left the group:", hasLeft);
+    // Update UI to reflect the user is no longer a member
+  },
+  (error) => {
+    console.log("Failed to leave group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.leaveGroup(GUID).then(
+  (hasLeft: boolean) => {
+    console.log("Successfully left the group:", hasLeft);
+    // Update UI to reflect the user is no longer a member
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to leave group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Handle Post-Leave Cleanup
+
+After leaving a group, update your application state and UI accordingly.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.leaveGroup(GUID).then(
+  (hasLeft) => {
+    if (hasLeft) {
+      // Remove group from local state
+      console.log("Group left successfully");
+      
+      // Navigate away from group chat if currently viewing it
+      // Remove group from cached group list
+      // Update UI to show user is no longer a member
+    }
+  },
+  (error) => {
+    console.log("Failed to leave group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.leaveGroup(GUID).then(
+  (hasLeft: boolean) => {
+    if (hasLeft) {
+      // Remove group from local state
+      console.log("Group left successfully");
+      
+      // Navigate away from group chat if currently viewing it
+      // Remove group from cached group list
+      // Update UI to show user is no longer a member
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to leave group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Events & Real-time Behavior
+
+### Registering GroupListener
+
+To receive real-time events when a user leaves a group, register a `GroupListener` with the `onGroupMemberLeft` callback.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-leave-listener";
+
 CometChat.addGroupListener(
-  "UNIQUE_LISTENER_ID",
+  listenerId,
   new CometChat.GroupListener({
-      onGroupMemberLeft: (message: CometChat.Action, leavingUser: CometChat.User, group: CometChat.Group) => {
-          console.log("User left", { message, leavingUser, group });
-      }
+    onGroupMemberLeft: (message, leavingUser, group) => {
+      console.log("User left:", {
+        message,
+        leavingUser,
+        group,
+      });
+    },
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-leave-listener";
 
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberLeft: (
+      message: CometChat.Action,
+      leavingUser: CometChat.User,
+      group: CometChat.Group
+    ) => {
+      console.log("User left:", {
+        message,
+        leavingUser,
+        group,
+      });
+    },
+  })
+);
+```
+</Tab>
 </Tabs>
 
-## Missed Group Member Left Events
+### Removing GroupListener
 
-*In other words, as a member of a group, how do I know if someone has left it when my app is not running?*
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
 
-When you retrieve the list of previous messages if a member has left any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-leave-listener";
 
-For the group member left event, in the `Action` object received, the following fields can help you get the relevant information-
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-leave-listener";
 
-1. `action` - `left`
-2. `actionBy` - User object containing the details of the user who left the group
-3. `actionFor` - Group object containing the details of the group the user has left
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Complete Listener Lifecycle Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Use a unique listener ID
+let listenerId = "leave-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberLeft: (message, leavingUser, group) => {
+      console.log(`${leavingUser.getName()} left ${group.getName()}`);
+      // Update member count in UI
+      // Remove user from local member list
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup() {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Use a unique listener ID
+let listenerId: string = "leave-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberLeft: (
+      message: CometChat.Action,
+      leavingUser: CometChat.User,
+      group: CometChat.Group
+    ) => {
+      console.log(`${leavingUser.getName()} left ${group.getName()}`);
+      // Update member count in UI
+      // Remove user from local member list
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup(): void {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+### Leave Events in Message History
+
+When retrieving previous messages, if a member has left a group, the message list will contain an `Action` message. The `Action` object provides the following information:
+
+| Property  | Description                                           |
+| --------- | ----------------------------------------------------- |
+| action    | The action type: `"left"`                             |
+| actionBy  | User object of the user who left the group            |
+| actionFor | Group object of the group the user left               |
+
+## API Details
+
+### leaveGroup()
+
+```javascript
+CometChat.leaveGroup(GUID: string): Promise<boolean>
+```
+
+| Parameter | Type   | Required | Description                                    |
+| --------- | ------ | -------- | ---------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group to leave    |
+
+### Return Value
+
+Returns a `Promise<boolean>` that resolves to `true` when the user successfully leaves the group.
+
+### Errors
+
+| Error Code                | Description                                    | Resolution                                        |
+| ------------------------- | ---------------------------------------------- | ------------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN    | No user is currently logged in                 | Ensure user is logged in before leaving           |
+| ERR_INVALID_GUID          | The provided GUID is invalid                   | Verify the GUID format and existence              |
+| ERR_GROUP_NOT_FOUND       | Group with the specified GUID not found        | Check if the group exists                         |
+| ERR_NOT_A_MEMBER          | User is not a member of the group              | Verify user has joined the group                  |
+| ERR_OWNER_CANNOT_LEAVE    | Group owner cannot leave the group             | Transfer ownership first or delete the group      |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Owner Cannot Leave**: The owner of a group cannot leave their own group. If the owner wants to exit, they must first transfer ownership to another member using `transferGroupOwnership()` or delete the group entirely.
+</Warning>
+
+<Warning>
+**Duplicate Leave Attempts**: Attempting to leave a group you're not a member of will result in an error. Always check membership status using `getHasJoined()` before calling `leaveGroup()` to provide better user feedback.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: If you register a GroupListener with the same `listenerId` as an existing listener, the new listener will replace the old one. Use unique listener IDs (e.g., include timestamps or UUIDs) to avoid accidentally overwriting listeners.
+</Warning>
+
+<Warning>
+**No Rejoin for Private Groups**: After leaving a private group, the user cannot rejoin without being invited again. Warn users before they leave private groups that they will need a new invitation to return.
+</Warning>
+
+## Performance & Scale Notes
+
+- Once a user leaves a group, they immediately stop receiving messages and updates for that group.
+- The leave operation is atomic - the user is removed from the group in a single operation.
+- Real-time leave events are delivered to all remaining group members, so large groups may generate significant event traffic.
+- Consider implementing a confirmation dialog before leaving to prevent accidental exits.
+- For applications with many groups, update your local cache immediately after a successful leave to keep the UI responsive.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Warning>
+**Irreversible for Private Groups**: Leaving a private group is effectively irreversible without admin intervention. Ensure users understand the implications before confirming the leave action.
+</Warning>
+
+## Next Steps
+
+- [Join Group](/sdk/javascript/join-group) - Allow users to join groups
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Fetch groups the user is a member of
+- [Delete Group](/sdk/javascript/delete-group) - Delete groups (for owners/admins)
+- [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership) - Transfer ownership before leaving
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get list of members in a group
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for all group events

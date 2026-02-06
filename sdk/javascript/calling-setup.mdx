@@ -1,77 +1,92 @@
 ---
 title: "Setup"
+sidebarTitle: "Setup"
 ---
 
+## Summary
 
+This page guides you through setting up the CometChat Calls SDK in your JavaScript application. You'll learn how to obtain your application credentials, install the Calls SDK via NPM, and initialize CometChatCalls to enable voice and video calling features.
+
+## When to Use This
+
+- When adding voice and video calling capabilities to your application
+- When setting up the Calls SDK alongside the Chat SDK for a complete communication solution
+- When configuring the Calls SDK for standalone calling without the Chat SDK
+- When integrating CometChat calling into React, Vue, Angular, or vanilla JavaScript applications
+- When migrating from an older version of the Calls SDK
+
+## Prerequisites
+
+1. A CometChat account ([Sign up here](https://app.cometchat.com))
+2. A CometChat app with **App ID** and **Region** from the [CometChat Dashboard](https://app.cometchat.com)
+3. Node.js and npm installed in your development environment
+4. Basic knowledge of JavaScript or TypeScript
+5. (Optional) The [Chat SDK](/sdk/javascript/setup-sdk) installed if using calling with chat features
+
+<Note>
+The Calls SDK can be used standalone or alongside the Chat SDK. For ringing flows and call notifications, you'll need both SDKs. For direct call sessions, the Calls SDK alone is sufficient.
+</Note>
 
 ## Get your Application Keys
 
 [Signup for CometChat](https://app.cometchat.com) and then:
 
 1. Create a new app
-2. Head over to the **Credentials** section and note the **App ID, Auth Key** & **Region**
+2. Head over to the **Credentials** section and note the **App ID** & **Region**
 
 ## Add the CometChatCalls Dependency
 
-Install the package as NPM module:
+Install the package as an NPM module:
 
 <Tabs>
 <Tab title="npm">
 ```bash
 npm install @cometchat/calls-sdk-javascript
 ```
-
 </Tab>
-
 <Tab title="yarn">
 ```bash
 yarn add @cometchat/calls-sdk-javascript
 ```
-
 </Tab>
-
 </Tabs>
 
-Then, import the `CometChatCalls` class wherever you want to use `CometChatCalls`.
+Then, import the `CometChatCalls` class wherever you want to use CometChatCalls.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
 ```
-
 </Tab>
-
 </Tabs>
 
-### Initialize CometChatCalls
+## Initialize CometChatCalls
 
-The `init()` method initialises the settings required for `CometChatCalls`. The `init()` method takes a single paramater, that is the instance of `CallAppSettings` class.
+The `init()` method initializes the settings required for CometChatCalls. The `init()` method takes a single parameter—an instance of the `CallAppSettings` class.
 
-The `CallAppSettingsBuilder` class allows you to configure three settings:
+The `CallAppSettingsBuilder` class allows you to configure the following settings:
 
-1. **appID:** You CometChat App ID
-2. **region**: The region where your app was created
-3. **host:** This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
+1. **appID**: Your CometChat App ID
+2. **region**: The region where your app was created (e.g., `us`, `eu`, `in`)
+3. **host**: (Optional) Custom client URL for dedicated CometChat deployments
 
-You need to call init() before calling any other method from `CometChatCalls`. We suggest you call the init() method on app startup, preferably in the index.js file.
+You need to call `init()` before calling any other method from CometChatCalls. We suggest you call the `init()` method on app startup, preferably in the `index.js` file.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let appID = "APP_ID";
-let region = "REGION";
+```javascript
+const APP_ID = "APP_ID";
+const REGION = "REGION";
 
 const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
-  .setAppId(appID)
-  .setRegion(region)
+  .setAppId(APP_ID)
+  .setRegion(REGION)
   .build();
 
 CometChatCalls.init(callAppSetting).then(
@@ -83,35 +98,186 @@ CometChatCalls.init(callAppSetting).then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let appID = "APP_ID";
-let region = "REGION";
+const APP_ID: string = "APP_ID";
+const REGION: string = "REGION";
 
 const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
-  .setAppId(appID)
-  .setRegion(region)
+  .setAppId(APP_ID)
+  .setRegion(REGION)
   .build();
 
 CometChatCalls.init(callAppSetting).then(
   () => {
     console.log("CometChatCalls initialization completed successfully");
   },
-  (error) => {
+  (error: unknown) => {
     console.log("CometChatCalls initialization failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-Make sure you replace the `APP_ID` with your CometChat **App ID** and `REGION` with your **App Region** in the above code.
+Make sure you replace `APP_ID` with your CometChat **App ID** and `REGION` with your **App Region** in the above code.
 
-| Parameter         | Description                              |
-| ----------------- | ---------------------------------------- |
-| `callAppSettings` | An object of the `CallAppSettings` class |
+### Parameters
+
+| Parameter         | Type              | Required | Description                              |
+| ----------------- | ----------------- | -------- | ---------------------------------------- |
+| `callAppSettings` | `CallAppSettings` | Yes      | An object of the `CallAppSettings` class |
+
+### CallAppSettingsBuilder Methods
+
+| Method        | Type   | Required | Description                                                                 |
+| ------------- | ------ | -------- | --------------------------------------------------------------------------- |
+| `setAppId`    | string | Yes      | Your CometChat App ID                                                       |
+| `setRegion`   | string | Yes      | The region where your app was created (`us`, `eu`, `in`)                    |
+| `setHost`     | string | No       | Custom client URL for dedicated CometChat deployments                       |
+
+### Return Value
+
+Returns a `Promise<void>` that resolves when initialization is successful.
+
+### Errors
+
+| Error Code          | Description                    | Resolution                                              |
+| ------------------- | ------------------------------ | ------------------------------------------------------- |
+| ERR_INVALID_APP_ID  | Invalid or missing App ID      | Verify your App ID from the CometChat Dashboard         |
+| ERR_INVALID_REGION  | Invalid or missing region      | Ensure region matches your app's region (us, eu, in)    |
+| ERR_NETWORK_ERROR   | Network connectivity issue     | Check internet connection and try again                 |
+
+## Using with Chat SDK
+
+When using the Calls SDK alongside the Chat SDK, initialize both SDKs at application startup. The Chat SDK should be initialized first, followed by the Calls SDK.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
+
+const APP_ID = "APP_ID";
+const REGION = "REGION";
+
+// Initialize Chat SDK first
+const appSetting = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(REGION)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+CometChat.init(APP_ID, appSetting).then(
+  () => {
+    console.log("CometChat initialization completed successfully");
+    
+    // Then initialize Calls SDK
+    const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
+      .setAppId(APP_ID)
+      .setRegion(REGION)
+      .build();
+
+    return CometChatCalls.init(callAppSetting);
+  }
+).then(
+  () => {
+    console.log("CometChatCalls initialization completed successfully");
+  },
+  (error) => {
+    console.log("Initialization failed with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
+
+const APP_ID: string = "APP_ID";
+const REGION: string = "REGION";
+
+// Initialize Chat SDK first
+const appSetting: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(REGION)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+CometChat.init(APP_ID, appSetting).then(
+  () => {
+    console.log("CometChat initialization completed successfully");
+    
+    // Then initialize Calls SDK
+    const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
+      .setAppId(APP_ID)
+      .setRegion(REGION)
+      .build();
+
+    return CometChatCalls.init(callAppSetting);
+  }
+).then(
+  () => {
+    console.log("CometChatCalls initialization completed successfully");
+  },
+  (error: unknown) => {
+    console.log("Initialization failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**SSR/Server-Side Rendering Issues**: The Calls SDK requires browser APIs (like `window`, `navigator.mediaDevices`, and `WebRTC`) that are not available in server-side environments. When using frameworks like Next.js, Nuxt, or SvelteKit, ensure you only initialize CometChatCalls on the client side. Use dynamic imports or check for `typeof window !== 'undefined'` before calling `init()`.
+</Warning>
+
+<Warning>
+**Init Timing**: Always wait for the `init()` promise to resolve before calling any other CometChatCalls methods. Calling methods before initialization completes will result in errors. If using both Chat SDK and Calls SDK, initialize the Chat SDK first, then the Calls SDK.
+</Warning>
+
+<Warning>
+**Multiple Init Calls**: Calling `init()` multiple times (e.g., on component re-renders) can cause unexpected behavior. Initialize CometChatCalls only once at the application entry point. Use a flag or singleton pattern to prevent duplicate initialization.
+</Warning>
+
+<Warning>
+**Region Mismatch**: Ensure the region you specify in `setRegion()` matches the region where your CometChat app was created. Using the wrong region will cause connection failures. Check your app's region in the CometChat Dashboard under App Settings.
+</Warning>
+
+<Warning>
+**Browser Permissions**: Voice and video calls require microphone and camera permissions. Browsers will prompt users for these permissions when a call starts. Ensure your application handles permission denial gracefully and provides clear instructions to users on how to enable permissions.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Initialization**: The `init()` method is lightweight and should complete quickly. However, avoid calling it repeatedly as each call creates new internal resources.
+- **Memory Management**: The Calls SDK manages WebRTC connections internally. Ensure you properly end call sessions to release resources.
+- **Concurrent Calls**: The SDK supports one active call at a time per user. Attempting to start a new call while one is active will fail.
+- **Network Requirements**: Voice and video calls require stable network connections. Consider implementing network quality indicators for better user experience.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production applications, use **Auth Token** created server-side via the [CometChat REST API](/reference/createauthtoken). Never expose your Auth Key in production client-side code as it can be used to impersonate any user.
+</Note>
+
+<Note>
+**REST API Key** should never be included in client-side code. Keep it secure on your server and use it only for server-to-server API calls.
+</Note>
+
+<Note>
+**Media Permissions**: Always request camera and microphone permissions explicitly before starting calls. This provides a better user experience and allows you to handle permission denials gracefully.
+</Note>
+
+## Next Steps
+
+- [Ringing Flow](/sdk/javascript/default-call) - Implement complete calling with incoming/outgoing call notifications
+- [Call Session](/sdk/javascript/direct-call) - Manage direct call sessions without ringing
+- [Standalone Calling](/sdk/javascript/standalone-calling) - Use the Calls SDK without the Chat SDK
+- [Recording](/sdk/javascript/recording) - Record calls for playback or compliance
+- [Virtual Background](/sdk/javascript/virtual-background) - Add virtual backgrounds to video calls
+- [Call Logs](/sdk/javascript/call-logs) - Retrieve and display call history

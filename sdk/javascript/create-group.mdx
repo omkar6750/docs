@@ -2,172 +2,377 @@
 title: "Create A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to create group conversations programmatically. Groups can be public (open to all), private (invite-only), or password-protected. You can create a basic group or create a group with initial members and banned users in a single operation.
 
-## Create a Group
+## When to Use This
 
-*In other words, as a logged-in user, how do I create a public, private or password-protected group?*
+- When users need to create new group conversations in your application
+- When setting up public chat rooms that anyone can join
+- When creating private groups for invite-only discussions
+- When implementing password-protected groups for controlled access
+- When you need to create a group and add initial members simultaneously
 
-You can create a group using `createGroup()` method. This method takes a `Group` object as input.
+## Prerequisites
 
-To create an object of `Group` class, you can use either of the below two constructors:
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
 
-1. `new Group(String GUID, String name, String groupType, String password)`
-2. `new Group(String GUID, String name, String groupType, String password, String icon, String description)`
-
-The `groupType` needs to be either of the below 3 values:
-
-1.`CometChat.GROUP_TYPE.PUBLIC`
-
-2.`CometChat.GROUP_TYPE.PASSWORD`
-
-3.`CometChat.GROUP_TYPE.PRIVATE`
-
-<Tabs>
-<Tab title="Create Group">
-```javascript
-var GUID = "GUID";
-var groupName = "Hello Group!";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
-var password = "";
-
-var group = new CometChat.Group(GUID, groupName, groupType, password);
-
-CometChat.createGroup(group).then(
-  group => {
-  	console.log("Group created successfully:", group);
-  }, error => {
-  	console.log("Group creation failed with exception:", error);
-  }
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var GUID: string = "GUID";
-var groupName: string = "Hello Group!";
-var groupType: string = CometChat.GROUP_TYPE.PUBLIC;
-var password: string = "";
-
-var group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
-
-CometChat.createGroup(group).then(
-  (group: CometChat.Group) => {
-      console.log("Group created successfully:", group);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group creation failed with exception:", error);
-  }
-);
-```
-
-</Tab>
-
-</Tabs>
-
-The createGroup() method takes the following parameters:
-
-| Parameter | Description                  |
-| --------- | ---------------------------- |
-| `group`   | An instance of `Group` class |
-
-After successful creation of the group, you will receive an instance of `Group` class which contains all the information about the particular group.
-
-<Warning>
-
-GUID can be alphanumeric with underscore and hyphen. Spaces, punctuation and other special characters are not allowed.
-
-</Warning>
-
-## Add members while creating a group
-
-You can create a group and add members at the same time using the `createGroupWithMembers()` method. This method takes the `Group` Object, Array of `Group Member` Object to be added & Array of `UIDs` to be banned.
-
-To create an object of `Group` class, you can use either of the below two constructors:
-
-1. `new Group(String GUID, String name, String groupType, String password)`
-2. `new Group(String GUID, String name, String groupType, String password, String icon, String description)`
-
-The `groupType` needs to be either of the below 3 values:
-
-1. `CometChat.GROUP_TYPE.PUBLIC`
-2. `CometChat.GROUP_TYPE.PASSWORD`
-3. `CometChat.GROUP_TYPE.PRIVATE`
-
-To create an object of `Group Member` class, you can use the below constructor:
-
-* new CometChat.GroupMember(String UID, String scope)
+## Minimal Example
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-let GUID = "cometchat-guid-11";
-let UID = "cometchat-uid-1";
+```javascript
+let GUID = "GUID";
+let groupName = "Hello Group!";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+let password = "";
+
+let group = new CometChat.Group(GUID, groupName, groupType, password);
+
+CometChat.createGroup(group).then(
+  (group) => {
+    console.log("Group created successfully:", group);
+  },
+  (error) => {
+    console.log("Group creation failed with exception:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "Hello Group!";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+let password: string = "";
+
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
+
+CometChat.createGroup(group).then(
+  (group: CometChat.Group) => {
+    console.log("Group created successfully:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group creation failed with exception:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Create a Group Object
+
+To create a group, you first need to create a `Group` object. You can use either of the two constructors:
+
+1. `new CometChat.Group(GUID, name, groupType, password)` - Basic constructor
+2. `new CometChat.Group(GUID, name, groupType, password, icon, description)` - Extended constructor with icon and description
+
+The `groupType` must be one of the following values:
+
+- `CometChat.GROUP_TYPE.PUBLIC` - Anyone can join
+- `CometChat.GROUP_TYPE.PASSWORD` - Requires password to join
+- `CometChat.GROUP_TYPE.PRIVATE` - Invite-only, users cannot request to join
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupName = "Hello Group!";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+let password = "";
+
+// Basic group
+let group = new CometChat.Group(GUID, groupName, groupType, password);
+
+// Or with icon and description
+let groupWithDetails = new CometChat.Group(
+  GUID,
+  groupName,
+  groupType,
+  password,
+  "https://example.com/icon.png",
+  "This is a sample group description"
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "Hello Group!";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+let password: string = "";
+
+// Basic group
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
+
+// Or with icon and description
+let groupWithDetails: CometChat.Group = new CometChat.Group(
+  GUID,
+  groupName,
+  groupType,
+  password,
+  "https://example.com/icon.png",
+  "This is a sample group description"
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Create the Group
+
+Use the `createGroup()` method to create the group. This method takes a `Group` object as input and returns a `Promise` that resolves to the created `Group` object.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+CometChat.createGroup(group).then(
+  (group) => {
+    console.log("Group created successfully:", group);
+  },
+  (error) => {
+    console.log("Group creation failed with exception:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+CometChat.createGroup(group).then(
+  (group: CometChat.Group) => {
+    console.log("Group created successfully:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group creation failed with exception:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Create a Password-Protected Group
+
+For password-protected groups, provide the password in the Group constructor:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupName = "Secret Group";
+let groupType = CometChat.GROUP_TYPE.PASSWORD;
+let password = "secretPassword123";
+
+let group = new CometChat.Group(GUID, groupName, groupType, password);
+
+CometChat.createGroup(group).then(
+  (group) => {
+    console.log("Password-protected group created:", group);
+  },
+  (error) => {
+    console.log("Group creation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupName: string = "Secret Group";
+let groupType: string = CometChat.GROUP_TYPE.PASSWORD;
+let password: string = "secretPassword123";
+
+let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
+
+CometChat.createGroup(group).then(
+  (group: CometChat.Group) => {
+    console.log("Password-protected group created:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group creation failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Add Members While Creating a Group
+
+You can create a group and add members at the same time using the `createGroupWithMembers()` method. This method takes the `Group` object, an array of `GroupMember` objects to be added, and an array of UIDs to be banned.
+
+To create a `GroupMember` object, use the constructor:
+
+`new CometChat.GroupMember(UID, scope)`
+
+The scope can be one of:
+- `CometChat.GROUP_MEMBER_SCOPE.ADMIN`
+- `CometChat.GROUP_MEMBER_SCOPE.MODERATOR`
+- `CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT`
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
 let groupName = "Hello Group!";
 let groupType = CometChat.GROUP_TYPE.PUBLIC;
 
 let group = new CometChat.Group(GUID, groupName, groupType);
 let members = [
-new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+  new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
 ];
-let banMembers = ["cometchat-uid-2"];
+let banMembers = ["banned-user-uid"];
 
 CometChat.createGroupWithMembers(group, members, banMembers).then(
-  response => {
-  	console.log("Group created successfully", response);
-  }, error => {
-  	console.log("Some error occured while creating group", error)
+  (response) => {
+    console.log("Group created successfully", response);
+  },
+  (error) => {
+    console.log("Some error occurred while creating group", error);
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "cometchat-guid-11";
-let UID: string = "cometchat-uid-1";
+let GUID: string = "GUID";
+let UID: string = "UID";
 let groupName: string = "Hello Group!";
 let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
 
 let group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
 let members: Array<CometChat.GroupMember> = [
-new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+  new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
 ];
-let banMembers: Array<String> = ["cometchat-uid-2"];
+let banMembers: Array<string> = ["banned-user-uid"];
 
 CometChat.createGroupWithMembers(group, members, banMembers).then(
   (response: Object) => {
-  	console.log("Group created successfully", response);
-  }, (error: CometChat.CometChatException) => {
-  	console.log("Some error occured while creating group", error)
+    console.log("Group created successfully", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Some error occurred while creating group", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-This method returns an Object which has two keys: `group` & `members` . The group key has the Group Object which contains all the information of the group which is created. The members key has the `UID` of the users and the value will either be `success` or an `error` message describing why the operation to add/ban the user failed.
+The `createGroupWithMembers()` method returns an object with two keys:
+- `group`: The created Group object with all group information
+- `members`: An object where keys are UIDs and values are either `"success"` or an error message describing why the operation failed
 
-## Group Class
+## API Details
+
+### Method Signatures
+
+```javascript
+CometChat.createGroup(group: Group): Promise<Group>
+CometChat.createGroupWithMembers(group: Group, members: GroupMember[], banMembers: string[]): Promise<Object>
+```
+
+### Parameters
+
+#### createGroup
+
+| Parameter | Type  | Required | Description                  |
+| --------- | ----- | -------- | ---------------------------- |
+| group     | Group | Yes      | An instance of `Group` class |
+
+#### createGroupWithMembers
+
+| Parameter  | Type          | Required | Description                                |
+| ---------- | ------------- | -------- | ------------------------------------------ |
+| group      | Group         | Yes      | An instance of `Group` class               |
+| members    | GroupMember[] | Yes      | Array of GroupMember objects to add        |
+| banMembers | string[]      | Yes      | Array of UIDs to ban from the group        |
+
+### Group Class
 
 | Field        | Editable                                                        | Information                                                               |
 | ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | guid         | Needs to be specified at group creation. Cannot be edited later | A unique identifier for a group                                           |
 | name         | Yes                                                             | Name of the group                                                         |
 | type         | No                                                              | Type of the group: Can be 1. Public 2. Password 3. Private                |
-| password     | No                                                              | Password for the group in case the group is of type password.             |
+| password     | No                                                              | Password for the group in case the group is of type password              |
 | icon         | Yes                                                             | An URL to group icon                                                      |
 | description  | Yes                                                             | Description about the group                                               |
-| owner        | Yes                                                             | UID of the owner of the group.                                            |
+| owner        | Yes                                                             | UID of the owner of the group                                             |
 | metadata     | Yes                                                             | Additional data for the group as JSON                                     |
 | createdAt    | No                                                              | The unix timestamp of the time the group was created                      |
 | updatedAt    | No                                                              | The unix timestamp of the time the group was last updated                 |
-| hasJoined    | No                                                              | A boolean to determine if the logged in user is a member of the group.    |
-| joinedAt     | No                                                              | The unix timestamp of the time the logged in user joined the group.       |
+| hasJoined    | No                                                              | A boolean to determine if the logged in user is a member of the group     |
+| joinedAt     | No                                                              | The unix timestamp of the time the logged in user joined the group        |
 | scope        | Yes                                                             | Scope of the logged in user. Can be: 1. Admin 2. Moderator 3. Participant |
 | membersCount | No                                                              | The number of members in the groups                                       |
-| tags         | Yes                                                             | A list of tags to identify specific groups.                               |
+| tags         | Yes                                                             | A list of tags to identify specific groups                                |
+
+### Return Value
+
+- `createGroup()`: Returns a `Promise<Group>` that resolves to the created Group object
+- `createGroupWithMembers()`: Returns a `Promise<Object>` with `group` and `members` keys
+
+### Errors
+
+| Error Code                  | Description                                | Resolution                                        |
+| --------------------------- | ------------------------------------------ | ------------------------------------------------- |
+| ERR_GUID_ALREADY_EXISTS     | A group with this GUID already exists      | Use a unique GUID for the new group               |
+| ERR_INVALID_GUID            | GUID contains invalid characters           | Use only alphanumeric, underscore, and hyphen     |
+| ERR_EMPTY_GROUP_NAME        | Group name is empty or not provided        | Provide a valid group name                        |
+| ERR_USER_NOT_LOGGED_IN      | No user is currently logged in             | Ensure user is logged in before creating a group  |
+| ERR_PASSWORD_REQUIRED       | Password group type requires a password    | Provide a password for password-protected groups  |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**GUID Format Restrictions**: GUIDs can only contain alphanumeric characters, underscores, and hyphens. Spaces, punctuation, and other special characters will cause group creation to fail. Always validate GUIDs before calling `createGroup()`.
+</Warning>
+
+<Warning>
+**GUID Immutability**: Once a group is created, its GUID cannot be changed. Plan your GUID strategy carefully—consider using meaningful, unique identifiers that won't need to change over time.
+</Warning>
+
+<Warning>
+**Password-Protected Group Password Storage**: When creating a password-protected group, the password is not returned in the Group object for security reasons. If users need to share the password, you must handle this separately in your application logic.
+</Warning>
+
+<Warning>
+**createGroupWithMembers Partial Failures**: When using `createGroupWithMembers()`, some member additions may fail while others succeed. Always check the `members` object in the response to verify which operations succeeded and handle any failures appropriately.
+</Warning>
+
+<Warning>
+**Group Creator Becomes Owner**: The user who creates a group automatically becomes the owner with admin privileges. This cannot be changed during creation—use `transferOwnership()` after creation if needed.
+</Warning>
+
+## Performance & Scale Notes
+
+- Group creation is an individual operation; for bulk group creation, consider batching requests with appropriate delays
+- The `createGroupWithMembers()` method is more efficient than creating a group and then adding members separately
+- There is no hard limit on the number of members you can add during group creation, but very large member lists may impact performance
+- Group metadata has a size limit; keep metadata payloads reasonable for optimal performance
+
+## Security Notes
+
+<Note>
+Group creation does not require an Auth Key when performed by a logged-in user. The logged-in user's authentication is sufficient to create groups.
+</Note>
+
+<Warning>
+**Private Groups**: Private groups are invite-only and do not appear in group search results for non-members. Use private groups for sensitive conversations where membership should be controlled.
+</Warning>
+
+<Warning>
+**Password Security**: For password-protected groups, ensure passwords are communicated securely to intended members. CometChat does not provide a built-in mechanism for password distribution.
+</Warning>
+
+## Next Steps
+
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Fetch and search groups with filtering options
+- [Join Group](/sdk/javascript/join-group) - Allow users to join public or password-protected groups
+- [Group Add Members](/sdk/javascript/group-add-members) - Add members to existing groups
+- [Update Group](/sdk/javascript/update-group) - Modify group details after creation
+- [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership) - Transfer ownership to another member
+- [Delete Group](/sdk/javascript/delete-group) - Remove a group permanently

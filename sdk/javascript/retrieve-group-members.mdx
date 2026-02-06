@@ -2,171 +2,47 @@
 title: "Retrieve Group Members"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to retrieve members of a group in your application. You can fetch a list of all members in a group, filter members by scope (admin, moderator, participant), search members by name, and filter by online/offline status. This is essential for displaying member lists, implementing member search, and managing group membership.
 
-## Retrieve the List of Group Members
+## When to Use This
 
-In order to fetch the list of groups members for a group, you can use the `GroupMembersRequest` class. To use this class i.e to create an object of the GroupMembersRequest class, you need to use the `GroupMembersRequestBuilder` class. The `GroupMembersRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
+- When displaying a list of members in a group
+- When implementing member search functionality within a group
+- When filtering members by their role (admin, moderator, participant)
+- When showing only online or offline members
+- When building member management interfaces
+- When implementing @mention autocomplete for group members
 
-The `GroupMembersRequestBuilder` class allows you to set the below parameters:
+## Prerequisites
 
-The GUID of the group for which the members are to be fetched must be specified in the constructor of the `GroupMembersRequestBuilder` class.
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Group**: The group must exist and the user should have access to it
 
-### Set Limit
-
-This method sets the limit i.e. the number of members that should be fetched in a single iteration.
+## Minimal Example
 
 <Tabs>
-<Tab title="Set Limit">
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
 let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  												.setLimit(limit)
-  												.build();   
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
   .setLimit(limit)
   .build();
+
+groupMembersRequest.fetchNext().then(
+  (groupMembers) => {
+    console.log("Group members fetched successfully:", groupMembers);
+  },
+  (error) => {
+    console.log("Group members fetching failed with error:", error);
+  }
+);
 ```
-
 </Tab>
-
-</Tabs>
-
-### Set Search Keyword
-
-This method allows you to set the search string based on which the group members are to be fetched.
-
-<Tabs>
-<Tab title="Set Search Keyword">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let searchKeyword = "super";
-let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  												.setLimit(limit)
-  												.setSearchKeyword(searchKeyword)
-  												.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let searchKeyword: string = "super";
-let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  .setLimit(limit)
-  .setSearchKeyword(searchKeyword)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-### Set Scopes
-
-This method allows you to fetch group members based on multiple scopes.
-
-<Tabs>
-<Tab title="Set Scopes">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let scopes = ["admin", "moderator"];
-let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  												.setLimit(limit)
-  												.setScopes(scopes)
-  												.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let scopes: Array<String> = ["admin", "moderator"];
-let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  .setLimit(limit)
-  .setScopes(scopes)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-### Set Status
-
-The status based on which the group members are to be fetched. The status parameter can contain one of the below two values:
-
-* CometChat.USER_STATUS.ONLINE - will return the list of only online group members.
-* CometChat.USER_STATUS.OFFLINE - will return the list of only offline group members.
-
-If this parameter is not set, will return all the group members regardless of their status.
-
-<Tabs>
-<Tab title="Set Status">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  												.setLimit(limit)
-  												.setStatus(CometChat.USER_STATUS.ONLINE)
-  												.build();
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  .setLimit(limit)
-  .setStatus(CometChat.USER_STATUS.ONLINE)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the `GroupMembersRequest` class.
-
-Once you have the object of the `GroupMembersRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `GroupMember` objects containing n number of members where n is the limit set in the builder class.
-
-<Tabs>
-<Tab title="Group Members Request">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let groupMemberRequest = new CometChat.GroupMembersRequestBuilder(GUID)
-  												.setLimit(limit)
-  												.build();
-
-groupMemberRequest.fetchNext().then(
-groupMembers => {
-  console.log("Group Member list fetched successfully:", groupMembers);
-}, error => {
-  console.log("Group Member list fetching failed with exception:", error);
-}
-);  
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -177,13 +53,361 @@ let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMemb
 
 groupMembersRequest.fetchNext().then(
   (groupMembers: CometChat.GroupMember[]) => {
-      console.log("Group Member list fetched successfully:", groupMembers);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group Member list fetching failed with exception:", error);
+    console.log("Group members fetched successfully:", groupMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group members fetching failed with error:", error);
   }
-);   
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Create a GroupMembersRequestBuilder
+
+To fetch group members, you need to create a `GroupMembersRequest` object using the `GroupMembersRequestBuilder` class. The GUID of the group must be specified in the constructor.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupMembersRequestBuilder = new CometChat.GroupMembersRequestBuilder(GUID);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupMembersRequestBuilder: CometChat.GroupMembersRequestBuilder = new CometChat.GroupMembersRequestBuilder(GUID);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Set the Limit
+
+Use `setLimit()` to specify the number of members to fetch in a single request. This is important for pagination.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 3: Add Filters (Optional)
+
+You can filter group members using various methods on the builder:
+
+#### Search by Keyword
+
+Search for members by name using `setSearchKeyword()`:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let searchKeyword = "john";
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let searchKeyword: string = "john";
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
+```
+</Tab>
+</Tabs>
+
+#### Filter by Scopes
+
+Fetch members with specific roles using `setScopes()`:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let scopes = ["admin", "moderator"];
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setScopes(scopes)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let scopes: Array<String> = ["admin", "moderator"];
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setScopes(scopes)
+  .build();
+```
+</Tab>
+</Tabs>
+
+#### Filter by Online/Offline Status
+
+Fetch only online or offline members using `setStatus()`:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setStatus(CometChat.USER_STATUS.ONLINE)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .setStatus(CometChat.USER_STATUS.ONLINE)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Step 4: Fetch Group Members
+
+Call `fetchNext()` on the `GroupMembersRequest` object to retrieve the members. This method returns a Promise that resolves to an array of `GroupMember` objects.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+groupMembersRequest.fetchNext().then(
+  (groupMembers) => {
+    console.log("Group members fetched successfully:", groupMembers);
+  },
+  (error) => {
+    console.log("Group members fetching failed with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+groupMembersRequest.fetchNext().then(
+  (groupMembers: CometChat.GroupMember[]) => {
+    console.log("Group members fetched successfully:", groupMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group members fetching failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Implement Pagination
+
+To fetch the next set of members, call `fetchNext()` again on the same `GroupMembersRequest` object. The SDK maintains the pagination state internally.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+// First page
+groupMembersRequest.fetchNext().then(
+  (groupMembers) => {
+    console.log("First page of members:", groupMembers);
+    
+    // Fetch next page when needed
+    return groupMembersRequest.fetchNext();
+  }
+).then(
+  (nextGroupMembers) => {
+    console.log("Second page of members:", nextGroupMembers);
+  },
+  (error) => {
+    console.log("Error fetching members:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+// First page
+groupMembersRequest.fetchNext().then(
+  (groupMembers: CometChat.GroupMember[]) => {
+    console.log("First page of members:", groupMembers);
+    
+    // Fetch next page when needed
+    return groupMembersRequest.fetchNext();
+  }
+).then(
+  (nextGroupMembers: CometChat.GroupMember[]) => {
+    console.log("Second page of members:", nextGroupMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error fetching members:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Method Signatures
+
+```javascript
+// Create group members request
+new CometChat.GroupMembersRequestBuilder(GUID: string).setLimit(limit).build(): GroupMembersRequest
+
+// Fetch group members
+groupMembersRequest.fetchNext(): Promise<GroupMember[]>
 ```
 
-</Tab>
+### GroupMembersRequestBuilder Methods
 
-</Tabs>
+| Method           | Type     | Description                                                      |
+| ---------------- | -------- | ---------------------------------------------------------------- |
+| constructor      | string   | Takes the GUID of the group whose members are to be fetched      |
+| setLimit         | number   | Sets the number of members to fetch per request (max 100)        |
+| setSearchKeyword | string   | Filters members by name matching the search keyword              |
+| setScopes        | string[] | Filters members by scope (admin, moderator, participant)         |
+| setStatus        | string   | Filters by online/offline status using CometChat.USER_STATUS     |
+| build            | -        | Builds and returns the GroupMembersRequest object                |
+
+### Parameters
+
+#### GroupMembersRequestBuilder Constructor
+
+| Parameter | Type   | Required | Description                                      |
+| --------- | ------ | -------- | ------------------------------------------------ |
+| GUID      | string | Yes      | The unique identifier of the group               |
+
+#### setStatus Values
+
+| Value                          | Description                              |
+| ------------------------------ | ---------------------------------------- |
+| CometChat.USER_STATUS.ONLINE   | Returns only online group members        |
+| CometChat.USER_STATUS.OFFLINE  | Returns only offline group members       |
+
+### Return Values
+
+- `fetchNext()`: Returns a `Promise<GroupMember[]>` that resolves to an array of GroupMember objects
+
+### GroupMember Object Properties
+
+| Property   | Type   | Description                                                    |
+| ---------- | ------ | -------------------------------------------------------------- |
+| uid        | string | Unique identifier of the member                                |
+| name       | string | Display name of the member                                     |
+| avatar     | string | URL to the member's avatar image                               |
+| status     | string | Online status of the member (online/offline)                   |
+| scope      | string | Member's role in the group (admin, moderator, participant)     |
+| joinedAt   | number | Unix timestamp when the member joined the group                |
+| guid       | string | GUID of the group the member belongs to                        |
+
+### Errors
+
+| Error Code              | Description                              | Resolution                                    |
+| ----------------------- | ---------------------------------------- | --------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN  | No user is currently logged in           | Ensure user is logged in before fetching      |
+| ERR_INVALID_GUID        | The provided GUID is invalid             | Verify the GUID format and existence          |
+| ERR_GROUP_NOT_FOUND     | Group with the specified GUID not found  | Check if the group exists                     |
+| ERR_NOT_A_MEMBER        | User is not a member of the group        | User must be a member to fetch member list    |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Private Group Access**: For private groups, only members can retrieve the member list. If a non-member tries to fetch members of a private group, the request will fail. Ensure the user has joined the group before attempting to fetch members.
+</Warning>
+
+<Warning>
+**Pagination State**: The `GroupMembersRequest` object maintains internal pagination state. If you need to restart from the beginning (e.g., after a member is added or removed), create a new `GroupMembersRequestBuilder` and build a fresh `GroupMembersRequest` object. Reusing the same object will continue from where it left off.
+</Warning>
+
+<Warning>
+**Scope Filter Behavior**: When using `setScopes()`, you must pass an array of scope strings. Valid values are "admin", "moderator", and "participant". Passing invalid scope values will not throw an error but will return no results. Always use the exact lowercase strings.
+</Warning>
+
+<Warning>
+**Real-time Updates**: The member list fetched is a snapshot at the time of the request. If members join, leave, or have their scope changed while you're viewing the list, you won't see those changes automatically. Consider implementing GroupListener to handle real-time member updates.
+</Warning>
+
+## Performance & Scale Notes
+
+- The maximum limit per request is 100 members. Setting a higher value will be capped at 100.
+- Use pagination to handle groups with large numbers of members efficiently.
+- The `setStatus()` filter is processed server-side, making it more efficient than fetching all members and filtering client-side.
+- For groups with many members, consider implementing infinite scroll or "load more" patterns rather than loading all members at once.
+- Cache member lists locally and refresh periodically or on specific events rather than fetching on every view.
+
+## Security Notes
+
+<Note>
+Group member retrieval operations use the logged-in user's authentication. No additional Auth Key is required for these operations.
+</Note>
+
+<Warning>
+**Member Privacy**: Member information including UID, name, and avatar is visible to all group members. Design your application with this visibility in mind, especially for groups where member anonymity might be expected.
+</Warning>
+
+<Warning>
+**Scope Visibility**: All members can see the scope (role) of other members in the group. This is by design to help users identify admins and moderators.
+</Warning>
+
+## Next Steps
+
+- [Add Members to Group](/sdk/javascript/group-add-members) - Add new members to a group
+- [Kick/Ban Members](/sdk/javascript/group-kick-ban-members) - Remove or ban members from a group
+- [Change Member Scope](/sdk/javascript/group-change-member-scope) - Promote or demote members
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Get a list of groups
+- [Leave Group](/sdk/javascript/leave-group) - Allow users to leave groups
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for member changes in real-time

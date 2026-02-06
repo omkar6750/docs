@@ -2,18 +2,82 @@
 title: "Mentions"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to mention specific users within messages using the `<@uid:UID>` format. Mentions allow users to directly reference and notify other participants in a conversation, making it easier to engage specific individuals in group discussions or direct messages.
 
-Mentions in messages enable users to refer to specific individual within a conversation. This is done by using the `<@uid:UID>` format, where `UID` represents the user’s unique identification.
+## When to Use This
 
-Mentions are a powerful tool for enhancing communication in messaging platforms. They streamline interaction by allowing users to easily engage and collaborate with particular individuals, especially in group conversations.
+- When building @mention functionality to tag specific users in messages
+- When implementing notification systems that alert users when they are mentioned
+- When creating group chat features where users need to direct messages to specific participants
+- When building search or filter functionality to find messages where specific users are mentioned
+- When displaying mentioned user information like tags or blocked status
 
-## Send Mentioned Messages
+## Prerequisites
 
-To send a message with a mentioned user, you must follow a specific format: `<@uid:UID>`. For example, to mention the user with UID `cometchat-uid-1` with the message "`Hello`," your text would be `"Hello, <@uid:cometchat-uid-1>"`
+1. **SDK**: `@cometchat/chat-sdk-javascript` v4.x installed and configured
+2. **State**: User must be logged in via `CometChat.login()` before sending or fetching mentioned messages
+3. **Receiver**: The recipient user (UID) or group (GUID) must exist in CometChat
+4. **Mentioned User**: The user being mentioned must exist in CometChat with a valid UID
+
+## Minimal Example
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
+```javascript
+const receiverID = "UID";
+const messageText = "Hello, <@uid:cometchat-uid-1>";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+
+const textMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+
+CometChat.sendMessage(textMessage).then(
+  (message) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const messageText: string = "Hello, <@uid:cometchat-uid-1>";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+
+CometChat.sendMessage(textMessage).then(
+  (message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Send a Message with Mentions
+
+To send a message with a mentioned user, use the `<@uid:UID>` format within your message text. Replace `UID` with the actual user ID you want to mention.
+
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 let receiverID = "UID";
 let messageText = "Hello, <@uid:cometchat-uid-1>";
@@ -33,10 +97,34 @@ CometChat.sendMessage(textMessage).then(
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverID: string = "UID";
+let messageText: string = "Hello, <@uid:cometchat-uid-1>";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+let textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
 
-<Tab title="Group">
+CometChat.sendMessage(textMessage).then(
+  (message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message sending failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+For group messages, change the receiver type:
+
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 let receiverID = "GUID";
 let messageText = "Hello <@uid:cometchat-uid-1>";
@@ -56,37 +144,17 @@ CometChat.sendMessage(textMessage).then(
   }
 );
 ```
-
 </Tab>
-
-<Tab title="TypeScript (User)">
+<Tab title="TypeScript">
 ```typescript
-let receiverID: string = "UID",
-  messageText: string = "Hello <@uid:cometchat-uid-1>";
-  receiverType: string = CometChat.RECEIVER_TYPE.USER,
-  textMessage: CometChat.TextMessage = new CometChat.TextMessage(receiverID, messageText, receiverType);
-
-CometChat.sendMessage(textMessage).then(
-  (message: CometChat.TextMessage) => {
-      console.log("Message sent successfully:", message);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Message sending failed with error:", error);
-  }
+let receiverID: string = "GUID";
+let messageText: string = "Hello <@uid:cometchat-uid-1>";
+let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+let textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
 );
-```
-
-</Tab>
-
-<Tab title="TypeScript (Group)">
-```typescript
-let receiverID: string = "GUID",
-  messageText: string = "Hello world!",
-  receiverType: string = CometChat.RECEIVER_TYPE.GROUP,
-  textMessage: CometChat.TextMessage = new CometChat.TextMessage(
-    receiverID,
-    messageText,
-    receiverType
-  );
 
 CometChat.sendMessage(textMessage).then(
   (message: CometChat.TextMessage) => {
@@ -97,32 +165,23 @@ CometChat.sendMessage(textMessage).then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 <Note>
-
-You can mention user in text message and media messages captions
-
+You can mention users in text messages and media message captions.
 </Note>
 
-## Mentioned Messages
+### Step 2: Fetch Messages with Mention Tag Info
 
-By default, the SDK will fetch all the messages irrespective of the fact that the logged-in user is mentioned or not in the message. The SDK has other optional filters such as tags and blocked relationships.
+To retrieve messages where users are mentioned along with the tags of the mentioned users, use the `mentionsWithTagInfo(true)` method on the `MessagesRequestBuilder`.
 
-| Setting                                | Description                                                                                                                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| mentionsWithTagInfo(boolean value)     | If set to `true`, SDK will fetch a list of messages where users are mentioned & will also fetch the tags of the mentioned users. **Default value = false.**                    |
-| mentionsWithBlockedInfo(boolean value) | If set to `true`, SDK will fetch a list of messages where users are mentioned & will also fetch their blocked relationship with the logged-in user. **Default value = false.** |
-
-## Mentions With Tag Info
-
-To get a list of messages in a conversation where users are mentioned along with the user tags of the mentioned users.
+<Note>
+Advanced mention filtering options like `mentionsWithTagInfo` and `mentionsWithBlockedInfo` are available on specific plans. Check your plan details in the [CometChat Dashboard](https://app.cometchat.com).
+</Note>
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -146,10 +205,40 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let UID: string = "UID";
+let limit: number = 30;
+let messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setLimit(limit)
+    .mentionsWithTagInfo(true)
+    .build();
 
-<Tab title="Group">
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    messages.forEach((eachMessage: CometChat.BaseMessage) => {
+      eachMessage
+        .getMentionedUsers()
+        .forEach((eachMentionedUser: CometChat.User) => {
+          console.log(eachMentionedUser.getTags());
+        });
+    });
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+For group conversations, use `setGUID()` instead:
+
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
@@ -173,19 +262,17 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
-<Tab title="TypeScript (User)">
+<Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setLimit(limit)
-      .mentionsWithTagInfo(true)
-      .build();
+let GUID: string = "GUID";
+let limit: number = 30;
+let messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setLimit(limit)
+    .mentionsWithTagInfo(true)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -197,51 +284,20 @@ messagesRequest.fetchPrevious().then(
         });
     });
   },
-  (error) => {
+  (error: CometChat.CometChatException) => {
     console.log("Message fetching failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
-<Tab title="TypeScript (Group)">
-```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(limit)
-      .mentionsWithTagInfo(true)
-      .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-    messages.forEach((eachMessage: CometChat.BaseMessage) => {
-      eachMessage
-        .getMentionedUsers()
-        .forEach((eachMentionedUser: CometChat.User) => {
-          console.log(eachMentionedUser.getTags());
-        });
-    });
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 </Tabs>
 
-## Mentions With Blocked Info
+### Step 3: Fetch Messages with Blocked Relationship Info
 
-To get a list of messages in a conversation where users are mentioned along with the blocked relationship of the mentioned users with the logged-in user.
+To retrieve messages where users are mentioned along with their blocked relationship status with the logged-in user, use the `mentionsWithBlockedInfo(true)` method.
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -266,10 +322,41 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let UID: string = "UID";
+let limit: number = 30;
+let messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setLimit(limit)
+    .mentionsWithBlockedInfo(true)
+    .build();
 
-<Tab title="Group">
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    messages.forEach((eachMessage: CometChat.BaseMessage) => {
+      eachMessage
+        .getMentionedUsers()
+        .forEach((eachMentionedUser: CometChat.User) => {
+          console.log("blockedByMe: " + eachMentionedUser.getBlockedByMe());
+          console.log("hasBlockedMe: " + eachMentionedUser.getHasBlockedMe());
+        });
+    });
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+For group conversations:
+
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
@@ -294,19 +381,17 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
-<Tab title="TypeScript (User)">
+<Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setLimit(limit)
-      .mentionsWithBlockedInfo(true)
-      .build();
+let GUID: string = "GUID";
+let limit: number = 30;
+let messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setLimit(limit)
+    .mentionsWithBlockedInfo(true)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -319,50 +404,105 @@ messagesRequest.fetchPrevious().then(
         });
     });
   },
-  (error) => {
+  (error: CometChat.CometChatException) => {
     console.log("Message fetching failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
-<Tab title="TypeScript (Group)">
-```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(limit)
-      .mentionsWithBlockedInfo(true)
-      .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-    messages.forEach((eachMessage: CometChat.BaseMessage) => {
-      eachMessage
-        .getMentionedUsers()
-        .forEach((eachMentionedUser: CometChat.User) => {
-          console.log("blockedByMe: " + eachMentionedUser.getBlockedByMe());
-          console.log("hasBlockedMe: " + eachMentionedUser.getHasBlockedMe());
-        });
-    });
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 </Tabs>
 
-## Get Users Mentioned In a Particular Message
+### Step 4: Get Mentioned Users from a Message
 
-To retrieve the list of users mentioned in the particular message, you can use the message.getMentionedUsers() method. This method will return an array containing the mentioned users, or an empty array if no users were mentioned in the message.
+To retrieve the list of users mentioned in a particular message, use the `getMentionedUsers()` method on the message object.
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
-message.getMentionedUsers()
+// After receiving or fetching a message
+const mentionedUsers = message.getMentionedUsers();
+console.log("Mentioned users:", mentionedUsers);
 ```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// After receiving or fetching a message
+const mentionedUsers: CometChat.User[] = message.getMentionedUsers();
+console.log("Mentioned users:", mentionedUsers);
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Mention Format
+
+Use the `<@uid:UID>` format to mention users in message text.
+
+| Format | Description | Example |
+|--------|-------------|---------|
+| `<@uid:UID>` | Mention a specific user by their UID | `<@uid:cometchat-uid-1>` |
+
+### MessagesRequestBuilder Methods
+
+| Method | Type | Default | Description |
+|--------|------|---------|-------------|
+| `mentionsWithTagInfo(value)` | `boolean` | `false` | When `true`, fetches messages with mentioned users and their tags |
+| `mentionsWithBlockedInfo(value)` | `boolean` | `false` | When `true`, fetches messages with mentioned users and their blocked relationship status |
+
+### Message Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `getMentionedUsers()` | `User[]` | Returns an array of users mentioned in the message, or empty array if none |
+
+### User Methods (for mentioned users)
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `getTags()` | `string[]` | Returns the tags associated with the user (requires `mentionsWithTagInfo(true)`) |
+| `getBlockedByMe()` | `boolean` | Returns `true` if the logged-in user has blocked this user (requires `mentionsWithBlockedInfo(true)`) |
+| `getHasBlockedMe()` | `boolean` | Returns `true` if this user has blocked the logged-in user (requires `mentionsWithBlockedInfo(true)`) |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Invalid UID Format**: Ensure the UID in the mention format `<@uid:UID>` matches an existing user. Mentioning a non-existent UID will not throw an error but the mention will not resolve to a user.
+</Warning>
+
+<Warning>
+**Missing Tag/Blocked Info**: By default, `getMentionedUsers()` returns basic user information. To get tags or blocked status, you must explicitly set `mentionsWithTagInfo(true)` or `mentionsWithBlockedInfo(true)` when building the messages request.
+</Warning>
+
+<Warning>
+**Empty Mentioned Users Array**: If no users are mentioned in a message, `getMentionedUsers()` returns an empty array, not `null`. Always check the array length before iterating.
+</Warning>
+
+<Warning>
+**Plan Restrictions**: Advanced mention filtering options (`mentionsWithTagInfo`, `mentionsWithBlockedInfo`) may require specific CometChat plans. Check your plan details in the dashboard if these features don't work as expected.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Pagination**: Use `setLimit()` to control the number of messages fetched per request. The default and maximum limit is typically 100 messages.
+- **Fetch Direction**: Use `fetchPrevious()` to load older messages (for scrolling up) or `fetchNext()` for newer messages.
+- **Batching**: When processing many messages with mentions, consider batching your UI updates to avoid performance issues.
+- **Caching**: Cache mentioned user information locally to reduce redundant API calls when displaying the same users across multiple messages.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production applications, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+- Mentioned users can only be resolved if they exist in your CometChat app
+- Blocked relationship information respects user privacy settings
+- User tags are only visible if the requesting user has appropriate permissions
+
+## Next Steps
+
+- [Send a Message](/sdk/javascript/send-message) - Learn how to send different types of messages
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages with mentions in real-time
+- [Retrieve Messages](/sdk/javascript/retrieve-messages) - Fetch message history with various filters
+- [Block Users](/sdk/javascript/block-users) - Manage blocked user relationships
+- [User Management](/sdk/javascript/user-management) - Learn about user tags and metadata

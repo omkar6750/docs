@@ -2,43 +2,521 @@
 title: "Transfer Group Ownership"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables group owners to transfer ownership of their groups to other members. This operation is essential because group owners cannot leave a group without first transferring ownership to another member. The transfer is immediate and grants the new owner full administrative control over the group.
 
-*In other words, as a logged-in user, how do I transfer the ownership of any group if I am the owner of the group?*
+## When to Use This
 
-In order to transfer the ownership of any group, the first condition is that you must be the owner of the group. In case you are the owner of the group, you can use the `transferGroupOwnership()` method provided by the `CometChat` class.
+- When a group owner wants to leave the group but needs to maintain group continuity
+- When transitioning leadership responsibilities to another trusted member
+- When the current owner is stepping down from their administrative role
+- When implementing succession planning for community or team groups
+- When the original owner is no longer active and ownership needs to be reassigned
 
-This will be helpful as the owner is not allowed to leave the group. In case, you as the owner would like to leave the group, you will have to use this method and transfer your ownership first to any other member of the group and only then you will be allowed to leave the group.
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Permissions**: User must be the current owner of the group
+- **Target User**: The new owner must be an existing member of the group
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Transfer Ownership">
+<Tab title="JavaScript">
 ```javascript
 let GUID = "GUID";
 let UID = "UID";
+
 CometChat.transferGroupOwnership(GUID, UID).then(
-  () => {
-      console.log("Successfully transferred ownership of the group.");
-  }, error => {
-      console.log("Could not transfer ownership of the group: ", error);
+  (response) => {
+    console.log("Successfully transferred ownership of the group:", response);
+  },
+  (error) => {
+    console.log("Could not transfer ownership of the group:", error);
   }
-)
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
 let UID: string = "UID";
+
 CometChat.transferGroupOwnership(GUID, UID).then(
-  (ownershipTransferred: string) => {
-      console.log("Successfully transferred ownership of the group.");
-  }, error => {
-      console.log("Could not transfer ownership of the group: ", error);
+  (response: string) => {
+    console.log("Successfully transferred ownership of the group:", response);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Could not transfer ownership of the group:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
+
+## Step-by-Step
+
+### Step 1: Verify Current User is Owner
+
+Before attempting to transfer ownership, verify that the current user is the owner of the group:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group) => {
+    console.log("Group retrieved:", group);
+    // Check if user is the owner
+    if (group.getOwner() === CometChat.getLoggedinUser().getUid()) {
+      console.log("User is the owner and can transfer ownership");
+    } else {
+      console.log("User is not the owner and cannot transfer ownership");
+    }
+  },
+  (error) => {
+    console.log("Failed to retrieve group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group: CometChat.Group) => {
+    console.log("Group retrieved:", group);
+    // Check if user is the owner
+    const loggedInUser = CometChat.getLoggedinUser();
+    if (loggedInUser && group.getOwner() === loggedInUser.getUid()) {
+      console.log("User is the owner and can transfer ownership");
+    } else {
+      console.log("User is not the owner and cannot transfer ownership");
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to retrieve group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Retrieve Group Members to Select New Owner
+
+Fetch the list of group members to allow the owner to select a new owner:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+
+let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+groupMembersRequest.fetchNext().then(
+  (groupMembers) => {
+    console.log("Group members retrieved:", groupMembers);
+    // Filter out the current owner and display eligible members
+    let eligibleMembers = groupMembers.filter(
+      (member) => member.getScope() !== CometChat.GROUP_MEMBER_SCOPE.OWNER
+    );
+    console.log("Eligible members for ownership transfer:", eligibleMembers);
+  },
+  (error) => {
+    console.log("Failed to retrieve group members:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let limit: number = 30;
+
+let groupMembersRequest: CometChat.GroupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+  .setLimit(limit)
+  .build();
+
+groupMembersRequest.fetchNext().then(
+  (groupMembers: CometChat.GroupMember[]) => {
+    console.log("Group members retrieved:", groupMembers);
+    // Filter out the current owner and display eligible members
+    let eligibleMembers: CometChat.GroupMember[] = groupMembers.filter(
+      (member: CometChat.GroupMember) => member.getScope() !== CometChat.GROUP_MEMBER_SCOPE.OWNER
+    );
+    console.log("Eligible members for ownership transfer:", eligibleMembers);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to retrieve group members:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Confirm Transfer with User
+
+Since ownership transfer is a significant action, confirm with the user before proceeding:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+function confirmAndTransferOwnership(GUID, newOwnerUID, newOwnerName) {
+  let confirmed = confirm(
+    `Are you sure you want to transfer ownership to ${newOwnerName}? You will lose owner privileges.`
+  );
+
+  if (confirmed) {
+    return CometChat.transferGroupOwnership(GUID, newOwnerUID);
+  } else {
+    return Promise.reject(new Error("Transfer cancelled by user"));
+  }
+}
+
+confirmAndTransferOwnership("GUID", "UID", "John Doe").then(
+  (response) => {
+    console.log("Ownership transferred successfully:", response);
+  },
+  (error) => {
+    console.log("Ownership transfer failed or cancelled:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+function confirmAndTransferOwnership(
+  GUID: string,
+  newOwnerUID: string,
+  newOwnerName: string
+): Promise<string> {
+  let confirmed: boolean = confirm(
+    `Are you sure you want to transfer ownership to ${newOwnerName}? You will lose owner privileges.`
+  );
+
+  if (confirmed) {
+    return CometChat.transferGroupOwnership(GUID, newOwnerUID);
+  } else {
+    return Promise.reject(new Error("Transfer cancelled by user"));
+  }
+}
+
+confirmAndTransferOwnership("GUID", "UID", "John Doe").then(
+  (response: string) => {
+    console.log("Ownership transferred successfully:", response);
+  },
+  (error: CometChat.CometChatException | Error) => {
+    console.log("Ownership transfer failed or cancelled:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Transfer Ownership
+
+Execute the ownership transfer using the `transferGroupOwnership()` method:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
+
+CometChat.transferGroupOwnership(GUID, UID).then(
+  (response) => {
+    console.log("Successfully transferred ownership:", response);
+    // Update UI to reflect new ownership
+    // Current user's scope changes from owner to admin
+  },
+  (error) => {
+    console.log("Could not transfer ownership:", error);
+    // Handle the error appropriately
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let UID: string = "UID";
+
+CometChat.transferGroupOwnership(GUID, UID).then(
+  (response: string) => {
+    console.log("Successfully transferred ownership:", response);
+    // Update UI to reflect new ownership
+    // Current user's scope changes from owner to admin
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Could not transfer ownership:", error);
+    // Handle the error appropriately
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 5: Handle Post-Transfer Updates
+
+After successfully transferring ownership, update your application state and UI:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let UID = "UID";
+
+CometChat.transferGroupOwnership(GUID, UID).then(
+  (response) => {
+    console.log("Ownership transferred successfully:", response);
+
+    // Update local state to reflect role change
+    updateUserRoleInGroup(GUID, "admin");
+
+    // Refresh group details to get updated ownership info
+    CometChat.getGroup(GUID).then(
+      (group) => {
+        console.log("Updated group details:", group);
+        updateGroupInUI(group);
+      }
+    );
+
+    // Show success notification
+    showNotification("Ownership has been transferred successfully");
+  },
+  (error) => {
+    console.log("Ownership transfer failed:", error);
+    showNotification("Failed to transfer ownership: " + error.message);
+  }
+);
+
+function updateUserRoleInGroup(guid, newRole) {
+  // Your implementation to update local state
+}
+
+function updateGroupInUI(group) {
+  // Your implementation to update UI
+}
+
+function showNotification(message) {
+  // Your implementation to show notification
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let UID: string = "UID";
+
+CometChat.transferGroupOwnership(GUID, UID).then(
+  (response: string) => {
+    console.log("Ownership transferred successfully:", response);
+
+    // Update local state to reflect role change
+    updateUserRoleInGroup(GUID, "admin");
+
+    // Refresh group details to get updated ownership info
+    CometChat.getGroup(GUID).then(
+      (group: CometChat.Group) => {
+        console.log("Updated group details:", group);
+        updateGroupInUI(group);
+      }
+    );
+
+    // Show success notification
+    showNotification("Ownership has been transferred successfully");
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Ownership transfer failed:", error);
+    showNotification("Failed to transfer ownership: " + error.message);
+  }
+);
+
+function updateUserRoleInGroup(guid: string, newRole: string): void {
+  // Your implementation to update local state
+}
+
+function updateGroupInUI(group: CometChat.Group): void {
+  // Your implementation to update UI
+}
+
+function showNotification(message: string): void {
+  // Your implementation to show notification
+}
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Method Signature
+
+```javascript
+CometChat.transferGroupOwnership(GUID: string, UID: string): Promise<string>
+```
+
+### Parameters
+
+| Parameter | Type   | Required | Description                                           |
+| --------- | ------ | -------- | ----------------------------------------------------- |
+| GUID      | string | Yes      | The GUID of the group whose ownership is to be transferred |
+| UID       | string | Yes      | The UID of the member who will become the new owner   |
+
+### Return Value
+
+Returns a `Promise<string>` that resolves to a success message when ownership is successfully transferred.
+
+### Errors
+
+| Error Code             | Description                                      | Resolution                                           |
+| ---------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| ERR_GROUP_NOT_FOUND    | The specified group does not exist               | Verify the GUID is correct                           |
+| ERR_NOT_A_MEMBER       | Target user is not a member of the group         | Ensure the new owner is already a group member       |
+| ERR_PERMISSION_DENIED  | Current user is not the owner of the group       | Only the owner can transfer ownership                |
+| ERR_USER_NOT_LOGGED_IN | No user is currently logged in                   | Ensure user is logged in before transferring         |
+| ERR_INVALID_GUID       | The provided GUID is empty or invalid            | Provide a valid non-empty GUID                       |
+| ERR_INVALID_UID        | The provided UID is empty or invalid             | Provide a valid non-empty UID                        |
+| ERR_USER_NOT_FOUND     | The target user does not exist                   | Verify the UID is correct                            |
+
+## Events & Real-time Behavior
+
+When ownership is transferred, all group members receive a real-time notification through the group listener. This allows your application to update the UI for all connected users.
+
+### Registering Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-listener-id";
+
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onOwnershipChanged: (group, newOwner) => {
+      console.log("Group ownership changed:", group, newOwner);
+      // Update UI to reflect new ownership
+      // Refresh member list to show updated roles
+    },
+    onGroupMemberScopeChanged: (action, changedUser, changedBy, changedTo, changedFrom, group) => {
+      console.log("Member scope changed:", changedUser, changedTo);
+      // Handle scope changes for affected members
+    }
+  })
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-listener-id";
+
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onOwnershipChanged: (group: CometChat.Group, newOwner: CometChat.GroupMember) => {
+      console.log("Group ownership changed:", group, newOwner);
+      // Update UI to reflect new ownership
+      // Refresh member list to show updated roles
+    },
+    onGroupMemberScopeChanged: (
+      action: CometChat.Action,
+      changedUser: CometChat.GroupMember,
+      changedBy: CometChat.User,
+      changedTo: string,
+      changedFrom: string,
+      group: CometChat.Group
+    ) => {
+      console.log("Member scope changed:", changedUser, changedTo);
+      // Handle scope changes for affected members
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+### Removing Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-listener-id";
+
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-listener-id";
+
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Event Ordering
+
+- The `onOwnershipChanged` event is triggered for all group members when ownership is transferred
+- The previous owner's scope automatically changes from `owner` to `admin`
+- The new owner's scope changes to `owner`
+- Events are delivered in real-time to all connected users
+- Offline users will see the updated ownership when they next fetch group details
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Owner Cannot Leave Without Transfer**: A group owner cannot leave a group using `leaveGroup()`. They must first transfer ownership to another member. Attempting to leave as an owner will result in an error. Always check if the user is the owner before showing the leave option.
+</Warning>
+
+<Warning>
+**Target Must Be Existing Member**: The new owner must already be a member of the group. You cannot transfer ownership to a user who is not a member. Fetch the group members list first and only allow selection from existing members.
+</Warning>
+
+<Warning>
+**Previous Owner Becomes Admin**: After transferring ownership, the previous owner's scope automatically changes to `admin`, not `participant`. This means they retain administrative privileges but lose owner-specific capabilities like transferring ownership again.
+</Warning>
+
+<Warning>
+**Single Owner Constraint**: A group can only have one owner at a time. When ownership is transferred, the new owner immediately gains full control, and the previous owner loses owner privileges. There is no co-ownership model.
+</Warning>
+
+<Warning>
+**Irreversible Without New Owner's Consent**: Once ownership is transferred, the previous owner cannot reclaim it without the new owner's cooperation. The new owner must transfer ownership back. Implement confirmation dialogs to prevent accidental transfers.
+</Warning>
+
+## Performance & Scale Notes
+
+- Ownership transfer is a single atomic operation that updates member scopes
+- The operation is immediate and does not require additional API calls
+- After transfer, refresh group details to ensure your local cache reflects the new ownership
+- Consider caching group member lists to provide quick selection of potential new owners
+
+## Security Notes
+
+<Note>
+Ownership transfer does not require an Auth Key when performed by a logged-in user who is the current owner. The logged-in user's authentication and owner role are sufficient for authorization.
+</Note>
+
+<Warning>
+**Validate User Selection**: When accepting a UID for ownership transfer from user input, validate that it corresponds to an actual group member. Never trust client-side data without verification.
+</Warning>
+
+<Warning>
+**Audit Trail**: Consider logging ownership transfers in your application for audit purposes. This helps track leadership changes and can be important for compliance or dispute resolution.
+</Warning>
+
+## Next Steps
+
+- [Leave Group](/sdk/javascript/leave-group) - Leave the group after transferring ownership
+- [Group Change Member Scope](/sdk/javascript/group-change-member-scope) - Manage member permissions
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Fetch members to select new owner
+- [Update Group](/sdk/javascript/update-group) - Modify group details
+- [Delete Group](/sdk/javascript/delete-group) - Delete the group if no longer needed
+- [Create Group](/sdk/javascript/create-group) - Create a new group

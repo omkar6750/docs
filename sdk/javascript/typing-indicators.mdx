@@ -2,173 +2,472 @@
 title: "Typing Indicators"
 ---
 
+## Summary
 
+Typing Indicators in the CometChat JavaScript SDK enable real-time display of when users are actively composing messages. This feature enhances chat experiences by showing "User is typing..." notifications, helping users know when to expect a response and creating more engaging conversations.
 
-## Send a Typing Indicator
+## When to Use This
 
-*In other words, as a sender, how do I let the recipient(s) know that I'm typing?*
+- When you want to show "User is typing..." indicators in one-on-one chats
+- When displaying typing notifications in group conversations
+- When building real-time chat interfaces that need activity feedback
+- When you want to improve user engagement by showing conversation activity
+- When implementing chat UX patterns similar to popular messaging apps
 
-### Start Typing
+## Prerequisites
 
-You can use the `startTyping()` method to inform the receiver that the logged in user has started typing. The receiver will receive this information in the `onTypingStarted()` method of the `MessageListener` class. In order to send the typing indicator, you need to use the `TypingIndicator` class.
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Start Typing (User)">
+<Tab title="JavaScript">
 ```javascript
+// Send typing indicator to a user
 let receiverId = "UID";
 let receiverType = CometChat.RECEIVER_TYPE.USER;
 
 let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.startTyping(typingNotification);  
-```
-
-</Tab>
-
-<Tab title="Start Typing (Group)">
-```javascript
-let receiverId = "GUID";
-let receiverType = CometChat.RECEIVER_TYPE.GROUP;
-
-let typingNotification = new CometChat.TypingIndicator(receiverId,receiverType);
 CometChat.startTyping(typingNotification);
-```
 
-</Tab>
-
-<Tab title="Start User Typing (Typescript)">
-```typescript
-let receiverId: string = "UID";
-let receiverType: string = CometChat.RECEIVER_TYPE.USER;
-
-let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.startTyping(typingNotification);
-```
-
-</Tab>
-
-<Tab title="Start Group Typing (Typescript)">
-```typescript
-let receiverId: string = "GUID";
-let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
-
-let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.startTyping(typingNotification);
-```
-
-</Tab>
-
-</Tabs>
-
-### Stop Typing
-
-You can use the `endTyping()` method to inform the receiver that the logged in user has stopped typing. The receiver will receive this information in the `onTypingEnded()` method of the `MessageListener` class. In order to send the typing indicator, you need to use the `TypingIndicator` class.
-
-<Tabs>
-<Tab title="Stop Typing (User)">
-```javascript
-let receiverId = "UID";
-let receiverType = CometChat.RECEIVER_TYPE.USER;
-
-let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.endTyping(typingNotification);
-```
-
-</Tab>
-
-<Tab title="Stop Typing (Group)">
-```javascript
-let receiverId = "GUID";
-let receiverType = CometChat.RECEIVER_TYPE.GROUP;
-
-let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.endTyping(typingNotification);
-```
-
-</Tab>
-
-<Tab title="Stop User Typing (Typescript)">
-```typescript
-let receiverId: string = "UID";
-let receiverType: string = CometChat.RECEIVER_TYPE.USER;
-
-let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.endTyping(typingNotification);
-```
-
-</Tab>
-
-<Tab title="Stop Group Typing (Typescript)">
-```typescript
-let receiverId: string = "GUID";
-let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
-
-let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
-CometChat.endTyping(typingNotification);
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-Custom Data
-
-You can use the `metadata` field of the `TypingIndicator` class to pass additional data along with the typing indicators. The metadata field is a JSONObject and can be set using the `setMetadata()` method of the `TypingIndicator` class. This data will be received at the receiver end and can be obtained using the `getMetadata()` method.
-
-</Note>
-
-## Real-time Typing Indicators
-
-*In other words, as a recipient, how do I know when someone is typing?*
-
-You will receive the typing indicators in the `onTypingStarted()` and the `onTypingEnded()` method of the registered `MessageListener` class.
-
-<Tabs>
-<Tab title="Message Listener">
-```javascript
-let listenerId = "UNIQUE_LITENER_ID";
-
+// Listen for typing indicators
+let listenerId = "UNIQUE_LISTENER_ID";
 CometChat.addMessageListener(
-listenerId,
-new CometChat.MessageListener({
-  onTypingStarted: typingIndicator => {
-    console.log("Typing started :", typingIndicator);
-  },
-  onTypingEnded: typingIndicator => {
-    console.log("Typing ended :", typingIndicator);
-  }
-})
+  listenerId,
+  new CometChat.MessageListener({
+    onTypingStarted: (typingIndicator) => {
+      console.log("User is typing:", typingIndicator);
+    },
+    onTypingEnded: (typingIndicator) => {
+      console.log("User stopped typing:", typingIndicator);
+    }
+  })
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let listenerId: string = "UNIQUE_LITENER_ID";
+// Send typing indicator to a user
+let receiverId: string = "UID";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.startTyping(typingNotification);
+
+// Listen for typing indicators
+let listenerId: string = "UNIQUE_LISTENER_ID";
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
+      console.log("User is typing:", typingIndicator);
+    },
+    onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
+      console.log("User stopped typing:", typingIndicator);
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+
+## Step-by-Step
+
+### Step 1: Send Start Typing Indicator
+
+Use the `startTyping()` method to inform the receiver that the logged-in user has started typing. Create a `TypingIndicator` object with the receiver's ID and type.
+
+#### Send to User
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let receiverId = "UID";
+let receiverType = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverId: string = "UID";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+</Tabs>
+
+#### Send to Group
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let receiverId = "GUID";
+let receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverId: string = "GUID";
+let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+</Tabs>
+
+### Step 2: Send Stop Typing Indicator
+
+Use the `endTyping()` method to inform the receiver that the logged-in user has stopped typing. This should be called when the user clears the input field, sends the message, or after a period of inactivity.
+
+#### Send to User
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let receiverId = "UID";
+let receiverType = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.endTyping(typingNotification);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverId: string = "UID";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.endTyping(typingNotification);
+```
+</Tab>
+</Tabs>
+
+#### Send to Group
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let receiverId = "GUID";
+let receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.endTyping(typingNotification);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverId: string = "GUID";
+let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+CometChat.endTyping(typingNotification);
+```
+</Tab>
+</Tabs>
+
+
+### Step 3: Add Custom Metadata (Optional)
+
+You can attach custom data to typing indicators using the `metadata` field. This is useful for sending additional context like which message is being replied to or the type of content being composed.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let receiverId = "UID";
+let receiverType = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification = new CometChat.TypingIndicator(receiverId, receiverType);
+
+// Add custom metadata
+let metadata = {
+  replyingTo: "MESSAGE_ID",
+  contentType: "image"
+};
+typingNotification.setMetadata(metadata);
+
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let receiverId: string = "UID";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+let typingNotification: CometChat.TypingIndicator = new CometChat.TypingIndicator(receiverId, receiverType);
+
+// Add custom metadata
+let metadata: object = {
+  replyingTo: "MESSAGE_ID",
+  contentType: "image"
+};
+typingNotification.setMetadata(metadata);
+
+CometChat.startTyping(typingNotification);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Register Typing Indicator Listener
+
+To receive typing indicators from other users, register a `MessageListener` with `onTypingStarted` and `onTypingEnded` callbacks.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "UNIQUE_LISTENER_ID";
 
 CometChat.addMessageListener(
   listenerId,
   new CometChat.MessageListener({
-      onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
-          console.log("Typing started :", typingIndicator);
-      },
-      onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
-          console.log("Typing ended :", typingIndicator);
+    onTypingStarted: (typingIndicator) => {
+      let sender = typingIndicator.getSender();
+      let receiverType = typingIndicator.getReceiverType();
+      
+      if (receiverType === CometChat.RECEIVER_TYPE.USER) {
+        console.log(`${sender.getName()} is typing...`);
+      } else {
+        console.log(`${sender.getName()} is typing in group...`);
       }
+    },
+    onTypingEnded: (typingIndicator) => {
+      let sender = typingIndicator.getSender();
+      console.log(`${sender.getName()} stopped typing`);
+    }
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "UNIQUE_LISTENER_ID";
 
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
+      let sender: CometChat.User = typingIndicator.getSender();
+      let receiverType: string = typingIndicator.getReceiverType();
+      
+      if (receiverType === CometChat.RECEIVER_TYPE.USER) {
+        console.log(`${sender.getName()} is typing...`);
+      } else {
+        console.log(`${sender.getName()} is typing in group...`);
+      }
+    },
+    onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
+      let sender: CometChat.User = typingIndicator.getSender();
+      console.log(`${sender.getName()} stopped typing`);
+    }
+  })
+);
+```
+</Tab>
 </Tabs>
 
-The `TypingIndicator` class consists of the below parameters:
+### Step 5: Remove Typing Indicator Listener
 
-| Parameter        | Information                                                                                                                                                                        |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **sender**       | An object of the `User` class holding all the information. related to the sender of the typing indicator.                                                                          |
-| **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the typing indicator is sent to.                                                                            |
-| **receiverType** | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChat.RECEIVER_TYPE.USER` 2. `CometChat.RECEIVER_TYPE.GROUP` |
-| **metadata**     | A JSONObject to provider additional data.                                                                                                                                          |
+Always remove the listener when it's no longer needed to prevent memory leaks and duplicate event handling.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "UNIQUE_LISTENER_ID";
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "UNIQUE_LISTENER_ID";
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+
+## API Details
+
+### Method Signatures
+
+```javascript
+// TypingIndicator constructor
+new CometChat.TypingIndicator(receiverId: string, receiverType: string)
+
+// Send typing indicators
+CometChat.startTyping(typingIndicator: TypingIndicator): void
+CometChat.endTyping(typingIndicator: TypingIndicator): void
+
+// TypingIndicator methods
+TypingIndicator.setMetadata(metadata: object): void
+TypingIndicator.getMetadata(): object
+TypingIndicator.getSender(): User
+TypingIndicator.getReceiverId(): string
+TypingIndicator.getReceiverType(): string
+
+// Listener methods
+CometChat.addMessageListener(listenerId: string, listener: MessageListener): void
+CometChat.removeMessageListener(listenerId: string): void
+```
+
+### Parameters
+
+#### TypingIndicator Constructor
+
+| Parameter    | Type   | Required | Description                                                                 |
+| ------------ | ------ | -------- | --------------------------------------------------------------------------- |
+| receiverId   | string | Yes      | UID of the user or GUID of the group to send the typing indicator to        |
+| receiverType | string | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`           |
+
+#### addMessageListener
+
+| Parameter  | Type            | Required | Description                                      |
+| ---------- | --------------- | -------- | ------------------------------------------------ |
+| listenerId | string          | Yes      | Unique identifier for the listener               |
+| listener   | MessageListener | Yes      | MessageListener instance with callback methods   |
+
+### Return Values
+
+The `startTyping()` and `endTyping()` methods do not return values. They send typing indicators asynchronously.
+
+### TypingIndicator Object Properties
+
+| Property       | Type   | Description                                                                                                    |
+| -------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| sender         | User   | User object of the person who is typing                                                                        |
+| receiverId     | string | UID of the user or GUID of the group the typing indicator was sent to                                          |
+| receiverType   | string | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`                                              |
+| metadata       | object | Custom JSON data attached to the typing indicator                                                              |
+
+### Errors
+
+| Error Code        | Description                       | Resolution                                     |
+| ----------------- | --------------------------------- | ---------------------------------------------- |
+| ERR_NOT_LOGGED_IN | User is not logged in             | Ensure user is logged in via CometChat.login() |
+| ERR_INVALID_UID   | Invalid user ID provided          | Verify the UID exists in your CometChat app    |
+| ERR_INVALID_GUID  | Invalid group ID provided         | Verify the GUID exists in your CometChat app   |
+
+
+## Events & Real-time Behavior
+
+### Registering Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "typing_listener_" + Date.now();
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTypingStarted: (typingIndicator) => {
+      console.log("Typing started:", typingIndicator.getSender().getName());
+    },
+    onTypingEnded: (typingIndicator) => {
+      console.log("Typing ended:", typingIndicator.getSender().getName());
+    }
+  })
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "typing_listener_" + Date.now();
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
+      console.log("Typing started:", typingIndicator.getSender().getName());
+    },
+    onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
+      console.log("Typing ended:", typingIndicator.getSender().getName());
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+### Removing Listeners
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Remove specific listener
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Remove specific listener
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Event Ordering
+
+- `onTypingStarted` is triggered when a user begins typing in a conversation
+- `onTypingEnded` is triggered when a user stops typing or sends a message
+- Typing indicators are transient and not persisted—they are only delivered to currently connected users
+- If the sender disconnects without calling `endTyping()`, the receiver may not receive an `onTypingEnded` event
+- In group chats, all online members receive typing indicators from any member who is typing
+
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Missing endTyping() Calls**: If you call `startTyping()` but forget to call `endTyping()`, the recipient may see a perpetual "typing..." indicator. Always call `endTyping()` when the user sends a message, clears the input, or navigates away from the chat.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: Using the same `listenerId` for multiple listeners will overwrite the previous listener. Always use unique listener IDs, especially when registering listeners in multiple components. Consider using component-specific prefixes or timestamps like `"chat_screen_typing_" + Date.now()`.
+</Warning>
+
+<Warning>
+**Memory Leaks from Unremoved Listeners**: Failing to remove listeners when components unmount can cause memory leaks and duplicate event handling. Always call `removeMessageListener()` in cleanup code (e.g., React's `useEffect` cleanup, Vue's `onUnmounted`, or Angular's `ngOnDestroy`).
+</Warning>
+
+<Warning>
+**Throttling startTyping() Calls**: Calling `startTyping()` on every keystroke can generate excessive network traffic. Implement debouncing or throttling—for example, only send a typing indicator once every 2-3 seconds while the user is actively typing.
+</Warning>
+
+<Warning>
+**No Automatic Timeout**: CometChat does not automatically send `endTyping()` after a period of inactivity. Your application should implement a timeout (e.g., 5 seconds of no keystrokes) to automatically call `endTyping()` and clear the typing indicator.
+</Warning>
+
+## Performance & Scale Notes
+
+- Typing indicators are delivered via WebSocket for real-time performance
+- Typing indicators are transient and not stored—they are only delivered to currently connected users
+- In large group chats, typing indicators from multiple users may arrive frequently; consider UI strategies like "3 people are typing..." instead of listing all names
+- Implement client-side debouncing to avoid sending excessive `startTyping()` calls on every keystroke
+- Typing indicators do not count against message rate limits
+
+## Security Notes
+
+<Note>
+Typing indicators are visible to all participants in a conversation. In one-on-one chats, only the recipient sees the indicator. In group chats, all group members see typing indicators from any member.
+</Note>
+
+<Note>
+Custom metadata attached to typing indicators is visible to recipients. Do not include sensitive information in the metadata field.
+</Note>
+
+## Next Steps
+
+- [Send Messages](/sdk/javascript/send-message) - Send text and media messages
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages in real-time
+- [User Presence](/sdk/javascript/user-presence) - Track user online/offline status
+- [Delivery & Read Receipts](/sdk/javascript/delivery-read-receipts) - Track message delivery and read status
+- [All Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Complete listener reference

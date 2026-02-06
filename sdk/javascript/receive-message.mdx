@@ -2,12 +2,83 @@
 title: "Receive A Message"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to receive real-time messages when your app is running and retrieve missed messages when your app was offline. This page covers setting up message listeners, fetching missed and unread messages, retrieving message history, searching messages, and getting unread message counts.
+
+## When to Use This
+
+- When implementing real-time chat to receive incoming messages instantly
+- When loading missed messages after the app comes back online
+- When fetching unread messages to show notification badges
+- When implementing message history with infinite scroll
+- When building search functionality to find specific messages
+- When displaying unread message counts in conversation lists
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before receiving messages
+- **Init**: `CometChat.init()` must be called successfully before adding listeners
+- **For Missed Messages**: Store the last delivered message ID to fetch messages since that point
+
+## Minimal Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "unique-listener-id";
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage) => {
+      console.log("Text message received:", textMessage);
+    },
+    onMediaMessageReceived: (mediaMessage) => {
+      console.log("Media message received:", mediaMessage);
+    },
+    onCustomMessageReceived: (customMessage) => {
+      console.log("Custom message received:", customMessage);
+    },
+  })
+);
+
+// Always remove listener when no longer needed
+// CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "unique-listener-id";
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage: CometChat.TextMessage) => {
+      console.log("Text message received:", textMessage);
+    },
+    onMediaMessageReceived: (mediaMessage: CometChat.MediaMessage) => {
+      console.log("Media message received:", mediaMessage);
+    },
+    onCustomMessageReceived: (customMessage: CometChat.CustomMessage) => {
+      console.log("Custom message received:", customMessage);
+    },
+  })
+);
+
+// Always remove listener when no longer needed
+// CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
 
 Receiving messages with CometChat has two parts:
 
-1. Adding a listener to receive [real-time messages](/sdk/javascript/receive-message#real-time-messages) when your app is running
-2. Calling a method to retrieve [missed messages](/sdk/javascript/receive-message#missed-messages) when your app was not running
+1. Adding a listener to receive [real-time messages](#real-time-messages) when your app is running
+2. Calling a method to retrieve [missed messages](#missed-messages) when your app was not running
 
 ## Real-Time Messages
 
@@ -16,12 +87,12 @@ Receiving messages with CometChat has two parts:
 To receive real-time incoming messages, you need to register the `MessageListener` wherever you wish to receive the incoming messages. You can use the `addMessageListener()` method to do so.
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
+const listenerId = "unique-listener-id";
 
 CometChat.addMessageListener(
-  listenerID,
+  listenerId,
   new CometChat.MessageListener({
     onTextMessageReceived: (textMessage) => {
       console.log("Text message received successfully", textMessage);
@@ -35,15 +106,13 @@ CometChat.addMessageListener(
   })
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
+const listenerId: string = "unique-listener-id";
 
 CometChat.addMessageListener(
-  listenerID,
+  listenerId,
   new CometChat.MessageListener({
     onTextMessageReceived: (textMessage: CometChat.TextMessage) => {
       console.log("Text message received successfully", textMessage);
@@ -57,42 +126,35 @@ CometChat.addMessageListener(
   })
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 | Parameter      | Description                                   |
 | -------------- | --------------------------------------------- |
 | **listenerId** | An ID that uniquely identifies that listener. |
 
-We recommend you remove the listener once you don't want to receive a message for particular listener.
+We recommend you remove the listener once you don't want to receive messages for a particular listener.
 
 <Tabs>
-<Tab title="Remove Message Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
+const listenerId = "unique-listener-id";
 
-CometChat.removeMessageListener(listenerID);
+CometChat.removeMessageListener(listenerId);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
+const listenerId: string = "unique-listener-id";
 
-CometChat.removeMessageListener(listenerID);
+CometChat.removeMessageListener(listenerId);
 ```
-
 </Tab>
-
 </Tabs>
 
+
 <Warning>
-
 As a sender, you will not receive your own message in a real-time message event. However, if a user is logged-in using multiple devices, they will receive an event for their own message in other devices.
-
 </Warning>
 
 ## Missed Messages
@@ -101,22 +163,22 @@ As a sender, you will not receive your own message in a real-time message event.
 
 For most use cases, you will need to add functionality to load missed messages. If you're building an on-demand or live streaming app, you may choose to skip this and fetch message history instead.
 
-Using the same `MessagesRequest` class and the filters provided by the `MessagesRequestBuilder` class, you can fetch the message that were sent to the logged-in user but were not delivered to him as he was offline. For this, you will require the id of the last message received. You can either maintain it at your end or use the `getLastDeliveredMessageId()` method provided by the CometChat class. This id needs to be passed to the `setMessageId()` method of the builder class.
+Using the same `MessagesRequest` class and the filters provided by the `MessagesRequestBuilder` class, you can fetch the messages that were sent to the logged-in user but were not delivered to them as they were offline. For this, you will require the ID of the last message received. You can either maintain it at your end or use the `getLastDeliveredMessageId()` method provided by the CometChat class. This ID needs to be passed to the `setMessageId()` method of the builder class.
 
-Now using the `fetchNext()` method, you can fetch all the messages that were sent to the user when he/she was offline.
+Now using the `fetchNext()` method, you can fetch all the messages that were sent to the user when they were offline.
 
-Calling the `fetchNext()` method on the same object repeatedly allows you to fetch all the offline messages for the logged in user.
+Calling the `fetchNext()` method on the same object repeatedly allows you to fetch all the offline messages for the logged-in user.
 
 ### Fetch Missed Messages of a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let limit = 30;
-let latestId = await CometChat.getLastDeliveredMessageId();
+const UID = "UID";
+const limit = 30;
+const latestId = await CometChat.getLastDeliveredMessageId();
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setMessageId(latestId)
   .setLimit(limit)
@@ -131,20 +193,19 @@ messagesRequest.fetchNext().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  latestId: number = await CometChat.getLastDeliveredMessageId(),
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setMessageId(latestId)
-      .setLimit(limit)
-      .build();
+const UID: string = "UID";
+const limit: number = 30;
+const latestId: number = await CometChat.getLastDeliveredMessageId();
+
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setMessageId(latestId)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchNext().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -155,21 +216,20 @@ messagesRequest.fetchNext().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
+
 
 ### Fetch Missed Messages of a particular group conversation
 
 <Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
-let limit = 30;
-let latestId = await CometChat.getLastDeliveredMessageId();
+const GUID = "GUID";
+const limit = 30;
+const latestId = await CometChat.getLastDeliveredMessageId();
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setMessageId(latestId)
   .setLimit(limit)
@@ -184,20 +244,19 @@ messagesRequest.fetchNext().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  latestId: number = await CometChat.getLastDeliveredMessageId(),
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setMessageId(latestId)
-      .setLimit(limit)
-      .build();
+const GUID: string = "GUID";
+const limit: number = 30;
+const latestId: number = await CometChat.getLastDeliveredMessageId();
+
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setMessageId(latestId)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchNext().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -208,25 +267,23 @@ messagesRequest.fetchNext().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 ## Unread Messages
 
 *In other words, as a logged-in user, how do I fetch the messages I've not read?*
 
-Using the `MessagesRequest` class described above, you can fetch the unread messages for the logged in user. In order to achieve this, you need to set the `unread` variable in the builder to true using the `setUnread()` method so that only the unread messages are fetched.
+Using the `MessagesRequest` class described above, you can fetch the unread messages for the logged-in user. In order to achieve this, you need to set the `unread` variable in the builder to true using the `setUnread()` method so that only the unread messages are fetched.
 
 ### Fetch Unread Messages of a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const UID = "UID";
+const limit = 30;
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setUnread(true)
   .setLimit(limit)
@@ -241,19 +298,17 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setUnread(true)
-      .setLimit(limit)
-      .build();
+const UID: string = "UID";
+const limit: number = 30;
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setUnread(true)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -264,19 +319,18 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
+
 
 ### Fetch Unread Messages of a particular group conversation
 
 <Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const GUID = "GUID";
+const limit = 30;
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setUnread(true)
   .setLimit(limit)
@@ -291,19 +345,17 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setUnread(true)
-      .setLimit(limit)
-      .build();
+const GUID: string = "GUID";
+const limit: number = 30;
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setUnread(true)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -314,16 +366,13 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 <Note>
-Base Message
+**Base Message**
 
-The list of messages received is in the form of objects of `BaseMessage` class. A BaseMessage can either be an object of the `TextMessage`, `MediaMessage`, `CustomMessage`, `Action` or `Call` class. You can use the `instanceOf` operator to check the type of object.
-
+The list of messages received is in the form of objects of `BaseMessage` class. A BaseMessage can either be an object of the `TextMessage`, `MediaMessage`, `CustomMessage`, `Action` or `Call` class. You can use the `instanceof` operator to check the type of object.
 </Note>
 
 ## Message History
@@ -332,14 +381,14 @@ The list of messages received is in the form of objects of `BaseMessage` class. 
 
 ### Fetch Message History of a particular one-on-one conversation
 
-Using the `MessagesRequest` class and the filters for the `MessagesRequestBuilder` class as shown in the below code snippet, you can fetch the entire conversation between the logged in user and any particular user. For this use case, it is mandatory to set the UID parameter using the `setUID()` method of the builder. This UID is the unique id of the user for which the conversation needs to be fetched.
+Using the `MessagesRequest` class and the filters for the `MessagesRequestBuilder` class as shown in the below code snippet, you can fetch the entire conversation between the logged-in user and any particular user. For this use case, it is mandatory to set the UID parameter using the `setUID()` method of the builder. This UID is the unique ID of the user for which the conversation needs to be fetched.
 
 <Tabs>
-<Tab title="One-on-One Conversation">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const UID = "UID";
+const limit = 30;
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setLimit(limit)
   .build();
@@ -353,15 +402,16 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder().setUID(UID).setLimit(limit).build();
+const UID: string = "UID";
+const limit: number = 30;
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -372,23 +422,22 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-Calling the `fetchPrevious()` method on the same object repeatedly allows you to fetch the entire conversation between the logged in user and the specified user. This can be implemented with upward scrolling to display the entire conversation.
+Calling the `fetchPrevious()` method on the same object repeatedly allows you to fetch the entire conversation between the logged-in user and the specified user. This can be implemented with upward scrolling to display the entire conversation.
+
 
 ### Fetch Message History of a particular group conversation
 
 Using the `MessagesRequest` class and the filters for the `MessagesRequestBuilder` class as shown in the below code snippet, you can fetch the entire conversation for any group provided you have joined the group. For this use case, it is mandatory to set the GUID parameter using the `setGUID()` method of the builder. This GUID is the unique identifier of the Group for which the messages are to be fetched.
 
 <Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const GUID = "GUID";
+const limit = 30;
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setLimit(limit)
   .build();
@@ -402,18 +451,16 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(limit)
-      .build();
+const GUID: string = "GUID";
+const limit: number = 30;
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setLimit(limit)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -424,43 +471,40 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 Calling the `fetchPrevious()` method on the same object repeatedly allows you to fetch the entire conversation for the group. This can be implemented with upward scrolling to display the entire conversation.
 
 ## Search Messages
 
-In other words, as a logged-in user, how do I search a message?
+*In other words, as a logged-in user, how do I search for a message?*
 
-In order to do this, you can use the `setSearchKeyword()` method. This method accepts string as input. When set, the SDK will fetch messages which match the `searchKeyword`.
+In order to do this, you can use the `setSearchKeyword()` method. This method accepts a string as input. When set, the SDK will fetch messages which match the `searchKeyword`.
 
 <Note>
-
 By default, the searchKey is searched only in message text. However, if you enable `Conversation & Advanced Search`, the searchKey will be searched in message text, file name, mentions & mime type of the file.
 
-The `Conversation & Advanced Search` is only available in `Advanced` & `Custom` [plans](https://www.cometchat.com/pricing). If you're already on one of these plans, please enable the `Conversation & Advanced Search` from [CometChat Dashboard](https://app.cometchat.com) (Open your app, navigate to Chats -> Settings -> General Configuration)
-
+The `Conversation & Advanced Search` is only available in `Advanced` & `Custom` [plans](https://www.cometchat.com/pricing). If you're already on one of these plans, please enable the `Conversation & Advanced Search` from [CometChat Dashboard](https://app.cometchat.com) (Open your app, navigate to Chats → Settings → General Configuration)
 </Note>
 
-| Feature          | Basic Search | Advance Search |
-| ---------------- | ------------ | -------------- |
-| Text search      | ✅            | ✅              |
-| File name search | ❌            | ✅              |
-| Mentions search  | ❌            | ✅              |
-| Mime type search | ❌            | ✅              |
+| Feature          | Basic Search | Advanced Search |
+| ---------------- | ------------ | --------------- |
+| Text search      | ✅            | ✅               |
+| File name search | ❌            | ✅               |
+| Mentions search  | ❌            | ✅               |
+| Mime type search | ❌            | ✅               |
+
 
 ### Search Messages in a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let limit = 30;
-let searchKeyword = "Hello";
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const UID = "UID";
+const limit = 30;
+const searchKeyword = "Hello";
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setLimit(limit)
   .setSearchKeyword(searchKeyword)
@@ -475,20 +519,18 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  searchKeyword: string = "Hello",
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setUID(UID)
-      .setLimit(limit)
-      .setSearchKeyword(searchKeyword)
-      .build();
+const UID: string = "UID";
+const limit: number = 30;
+const searchKeyword: string = "Hello";
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setLimit(limit)
+    .setSearchKeyword(searchKeyword)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -499,20 +541,18 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 ### Search Messages in a particular group conversation
 
 <Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
-let limit = 30;
-let searchKeyword = "Hello";
-let messagesRequest = new CometChat.MessagesRequestBuilder()
+const GUID = "GUID";
+const limit = 30;
+const searchKeyword = "Hello";
+const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setLimit(limit)
   .setSearchKeyword(searchKeyword)
@@ -527,20 +567,18 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID",
-  limit: number = 30,
-  searchKeyword: string = "Hello",
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(limit)
-      .setSearchKeyword(searchKeyword)
-      .build();
+const GUID: string = "GUID";
+const limit: number = 30;
+const searchKeyword: string = "Hello";
+const messagesRequest: CometChat.MessagesRequest =
+  new CometChat.MessagesRequestBuilder()
+    .setGUID(GUID)
+    .setLimit(limit)
+    .setSearchKeyword(searchKeyword)
+    .build();
 
 messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => {
@@ -551,10 +589,9 @@ messagesRequest.fetchPrevious().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
+
 
 ## Unread Message Count
 
@@ -564,53 +601,48 @@ messagesRequest.fetchPrevious().then(
 
 *In other words, how do I find out the number of unread messages I have from a particular user?*
 
-In order to get the unread message count for a particular user, you can use the `getUnreadMessageCountForUser()`.
+In order to get the unread message count for a particular user, you can use the `getUnreadMessageCountForUser()` method.
 
 This method has the below two variants:
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
+const UID = "UID";
 CometChat.getUnreadMessageCountForUser(UID);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID";
+const UID: string = "UID";
 CometChat.getUnreadMessageCountForUser(UID);
 ```
-
 </Tab>
-
 </Tabs>
 
 If you wish to ignore the messages from blocked users you can use the below syntax setting the boolean parameter to true:
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
+const UID = "UID";
+const hideMessagesFromBlockedUsers = true;
 CometChat.getUnreadMessageCountForUser(UID, hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID",
-  hideMessagesFromBlockedUsers: boolean = true;
+const UID: string = "UID";
+const hideMessagesFromBlockedUsers: boolean = true;
 CometChat.getUnreadMessageCountForUser(UID, hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Tabs>
-<Tab title="Get Unread Count For User">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
+const UID = "UID";
 
 CometChat.getUnreadMessageCountForUser(UID).then(
   (unreadMessageCountObject) => {
@@ -621,12 +653,10 @@ CometChat.getUnreadMessageCountForUser(UID).then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let UID: string = "UID";
+const UID: string = "UID";
 
 CometChat.getUnreadMessageCountForUser(UID).then(
   (unreadMessageCount: Object) => {
@@ -637,64 +667,58 @@ CometChat.getUnreadMessageCountForUser(UID).then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 It will return an object which will contain the UID as the key and the unread message count as the value.
+
 
 ### Fetch Unread Message Count of a particular group conversation
 
 *In other words, how do I find out the number of unread messages I have in a single group?*
 
-In order to get the unread message count for a particular group, you can use the `getUnreadMessageCountForGroup()`.
+In order to get the unread message count for a particular group, you can use the `getUnreadMessageCountForGroup()` method.
 
 This method has the below two variants:
 
 <Tabs>
-<Tab title="Group">
+<Tab title="JavaScript">
 ```javascript
+const GUID = "GUID";
 CometChat.getUnreadMessageCountForGroup(GUID);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID";
+const GUID: string = "GUID";
 CometChat.getUnreadMessageCountForGroup(GUID);
 ```
-
 </Tab>
-
 </Tabs>
 
 If you wish to ignore the messages from blocked users you can use the below syntax setting the boolean parameter to true:
 
 <Tabs>
-<Tab title="Group">
+<Tab title="JavaScript">
 ```javascript
+const GUID = "GUID";
+const hideMessagesFromBlockedUsers = true;
 CometChat.getUnreadMessageCountForGroup(GUID, hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID",
-  hideMessagesFromBlockedUsers: boolean = true;
+const GUID: string = "GUID";
+const hideMessagesFromBlockedUsers: boolean = true;
 CometChat.getUnreadMessageCountForGroup(GUID, hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Tabs>
-<Tab title="Get Unread Count For Group">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
+const GUID = "GUID";
 
 CometChat.getUnreadMessageCountForGroup(GUID).then(
   (unreadMessageCountObject) => {
@@ -705,12 +729,10 @@ CometChat.getUnreadMessageCountForGroup(GUID).then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let GUID: string = "GUID";
+const GUID: string = "GUID";
 
 CometChat.getUnreadMessageCountForGroup(GUID).then(
   (unreadMessageCount: Object) => {
@@ -721,12 +743,11 @@ CometChat.getUnreadMessageCountForGroup(GUID).then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 It will return an object which will contain the GUID as the key and the unread message count as the value.
+
 
 ### Fetch Unread Message Count of all one-on-one & group conversations
 
@@ -737,44 +758,37 @@ In order to get all the unread message count combined i.e unread message counts 
 This method has two variants:
 
 <Tabs>
-<Tab title="All Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCount();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCount();
 ```
-
 </Tab>
-
 </Tabs>
 
 If you wish to ignore the messages from blocked users you can use the below syntax setting the boolean parameter to true:
 
 <Tabs>
-<Tab title="All Conversation">
+<Tab title="JavaScript">
 ```javascript
+const hideMessagesFromBlockedUsers = true;
 CometChat.getUnreadMessageCount(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let hideMessagesFromBlockedUsers: boolean = true;
+const hideMessagesFromBlockedUsers: boolean = true;
 CometChat.getUnreadMessageCount(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Tabs>
-<Tab title="Get Unread Count For All Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCount().then(
   (unreadMessageCountObject) => {
@@ -785,9 +799,7 @@ CometChat.getUnreadMessageCount().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCount().then(
@@ -799,59 +811,51 @@ CometChat.getUnreadMessageCount().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 It returns an object having two keys:
 
-1. users - The value for this key holds another object that holds the UID as key and their corresponding unread message count as value.
-2. groups - The value for this key holds another object that holds the GUID as key and their corresponding unread message count as value.
+1. **users** - The value for this key holds another object that holds the UID as key and their corresponding unread message count as value.
+2. **groups** - The value for this key holds another object that holds the GUID as key and their corresponding unread message count as value.
+
 
 ### Fetch Unread Message Count of all one-on-one conversations
 
 In order to fetch the unread message counts for just the users, you can use the `getUnreadMessageCountForAllUsers()` method. This method just like others has two variants:
 
 <Tabs>
-<Tab title="For All User Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCountForAllUsers();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllUsers();
 ```
-
 </Tab>
-
 </Tabs>
 
 If you wish to ignore the messages from blocked users you can use the below syntax setting the boolean parameter to true:
 
 <Tabs>
-<Tab title="For All User Conversation">
+<Tab title="JavaScript">
 ```javascript
+const hideMessagesFromBlockedUsers = true;
 CometChat.getUnreadMessageCountForAllUsers(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let hideMessagesFromBlockedUsers: boolean = true;
+const hideMessagesFromBlockedUsers: boolean = true;
 CometChat.getUnreadMessageCountForAllUsers(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Tabs>
-<Tab title="Get Unread Count For All User Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCountForAllUsers().then(
   (unreadMessageCountObject) => {
@@ -862,9 +866,7 @@ CometChat.getUnreadMessageCountForAllUsers().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllUsers().then(
@@ -876,56 +878,48 @@ CometChat.getUnreadMessageCountForAllUsers().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 It returns an object which will contain the UID as the key and the unread message count as the value.
+
 
 ### Fetch Unread Message Count of all group conversations
 
 In order to fetch the unread message counts for just the groups, you can use the `getUnreadMessageCountForAllGroups()` method. This method just like others has two variants:
 
 <Tabs>
-<Tab title="For All Group Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCountForAllGroups();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllGroups();
 ```
-
 </Tab>
-
 </Tabs>
 
 If you wish to ignore the messages from blocked users you can use the below syntax setting the boolean parameter to true:
 
 <Tabs>
-<Tab title="For All Group Conversation">
+<Tab title="JavaScript">
 ```javascript
+const hideMessagesFromBlockedUsers = true;
 CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-let hideMessagesFromBlockedUsers: boolean = true;
+const hideMessagesFromBlockedUsers: boolean = true;
 CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Tabs>
-<Tab title="Get Unread Count For All Group Conversation">
+<Tab title="JavaScript">
 ```javascript
 CometChat.getUnreadMessageCountForAllGroups().then(
   (unreadMessageCountObject) => {
@@ -936,9 +930,7 @@ CometChat.getUnreadMessageCountForAllGroups().then(
   }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllGroups().then(
@@ -950,9 +942,283 @@ CometChat.getUnreadMessageCountForAllGroups().then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 It returns an object which will contain the GUID as the key and the unread message count as the value.
+
+
+## API Details
+
+### addMessageListener
+
+#### Method Signature
+
+`CometChat.addMessageListener(listenerId: string, messageListener: MessageListener): void`
+
+#### Parameters
+
+| Parameter       | Type            | Required | Default | Description                                      |
+| --------------- | --------------- | -------- | ------- | ------------------------------------------------ |
+| listenerId      | string          | Yes      | -       | Unique identifier for the listener               |
+| messageListener | MessageListener | Yes      | -       | MessageListener object with callback methods     |
+
+#### MessageListener Callbacks
+
+| Callback                  | Parameter Type        | Description                              |
+| ------------------------- | --------------------- | ---------------------------------------- |
+| onTextMessageReceived     | CometChat.TextMessage | Called when a text message is received   |
+| onMediaMessageReceived    | CometChat.MediaMessage| Called when a media message is received  |
+| onCustomMessageReceived   | CometChat.CustomMessage| Called when a custom message is received |
+
+### removeMessageListener
+
+#### Method Signature
+
+`CometChat.removeMessageListener(listenerId: string): void`
+
+#### Parameters
+
+| Parameter  | Type   | Required | Default | Description                        |
+| ---------- | ------ | -------- | ------- | ---------------------------------- |
+| listenerId | string | Yes      | -       | The ID of the listener to remove   |
+
+### MessagesRequestBuilder
+
+#### Method Signature
+
+`new CometChat.MessagesRequestBuilder()`
+
+#### Builder Methods
+
+| Method            | Parameter Type | Description                                              |
+| ----------------- | -------------- | -------------------------------------------------------- |
+| setUID(uid)       | string         | Set user ID to fetch messages for one-on-one conversation|
+| setGUID(guid)     | string         | Set group ID to fetch messages for group conversation    |
+| setLimit(limit)   | number         | Set maximum number of messages to fetch (max 100)        |
+| setMessageId(id)  | number         | Set message ID to fetch messages after this ID           |
+| setUnread(unread) | boolean        | Set to true to fetch only unread messages                |
+| setSearchKeyword(keyword) | string | Set search keyword to filter messages                    |
+| build()           | -              | Build and return the MessagesRequest object              |
+
+### MessagesRequest Methods
+
+| Method          | Return Type                    | Description                                |
+| --------------- | ------------------------------ | ------------------------------------------ |
+| fetchNext()     | Promise\<CometChat.BaseMessage[]\> | Fetch next batch of messages (newer)       |
+| fetchPrevious() | Promise\<CometChat.BaseMessage[]\> | Fetch previous batch of messages (older)   |
+
+### Common Errors
+
+| Error Code           | Description                        | Resolution                                      |
+| -------------------- | ---------------------------------- | ----------------------------------------------- |
+| ERR_NOT_LOGGED_IN    | User not logged in                 | Call `CometChat.login()` before fetching messages |
+| ERR_UID_NOT_FOUND    | User UID doesn't exist             | Verify the user exists in CometChat             |
+| ERR_GUID_NOT_FOUND   | Group GUID doesn't exist           | Verify the group exists in CometChat            |
+| ERR_NOT_A_MEMBER     | User is not a member of the group  | Join the group before fetching messages         |
+
+
+## Events & Real-time Behavior
+
+### Registering Listeners
+
+Register a message listener to receive real-time messages. Use a unique `listenerId` to identify each listener.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "unique-listener-id";
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage) => {
+      console.log("Text message received:", textMessage);
+    },
+    onMediaMessageReceived: (mediaMessage) => {
+      console.log("Media message received:", mediaMessage);
+    },
+    onCustomMessageReceived: (customMessage) => {
+      console.log("Custom message received:", customMessage);
+    },
+  })
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "unique-listener-id";
+
+CometChat.addMessageListener(
+  listenerId,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage: CometChat.TextMessage) => {
+      console.log("Text message received:", textMessage);
+    },
+    onMediaMessageReceived: (mediaMessage: CometChat.MediaMessage) => {
+      console.log("Media message received:", mediaMessage);
+    },
+    onCustomMessageReceived: (customMessage: CometChat.CustomMessage) => {
+      console.log("Custom message received:", customMessage);
+    },
+  })
+);
+```
+</Tab>
+</Tabs>
+
+### Removing Listeners
+
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "unique-listener-id";
+
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "unique-listener-id";
+
+CometChat.removeMessageListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Cleanup on Component Unmount
+
+When using frameworks like React, Vue, or Angular, always clean up listeners when components unmount:
+
+<Tabs>
+<Tab title="JavaScript (React)">
+```javascript
+import { useEffect } from 'react';
+
+function ChatComponent() {
+  useEffect(() => {
+    const listenerId = "chat-component-listener";
+    
+    CometChat.addMessageListener(
+      listenerId,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message) => {
+          // Handle message
+        },
+      })
+    );
+
+    // Cleanup on unmount
+    return () => {
+      CometChat.removeMessageListener(listenerId);
+    };
+  }, []);
+
+  return <div>Chat Component</div>;
+}
+```
+</Tab>
+<Tab title="TypeScript (React)">
+```typescript
+import { useEffect } from 'react';
+
+function ChatComponent(): JSX.Element {
+  useEffect(() => {
+    const listenerId: string = "chat-component-listener";
+    
+    CometChat.addMessageListener(
+      listenerId,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message: CometChat.TextMessage) => {
+          // Handle message
+        },
+      })
+    );
+
+    // Cleanup on unmount
+    return () => {
+      CometChat.removeMessageListener(listenerId);
+    };
+  }, []);
+
+  return <div>Chat Component</div>;
+}
+```
+</Tab>
+</Tabs>
+
+### Event Ordering
+
+- Messages are delivered in the order they are received by the CometChat servers
+- For missed messages, use `fetchNext()` with `setMessageId()` to get messages in chronological order
+- For message history, use `fetchPrevious()` to get messages in reverse chronological order (newest first)
+
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Pitfall 1: Duplicate listener registration**
+
+Registering multiple listeners with the same `listenerId` will overwrite the previous listener. This can cause missed messages if you accidentally use the same ID. Always use unique listener IDs, especially when registering listeners in multiple components. Consider using component-specific prefixes like `"chat-screen-listener"` or `"notification-listener"`.
+</Warning>
+
+<Warning>
+**Pitfall 2: Not removing listeners on component unmount**
+
+Failing to remove message listeners when a component unmounts leads to memory leaks and duplicate event handling. In React, always use the cleanup function in `useEffect`. In Vue, use `onUnmounted`. In Angular, use `ngOnDestroy`. This is especially critical in single-page applications where components mount and unmount frequently.
+</Warning>
+
+<Warning>
+**Pitfall 3: Confusing fetchNext() and fetchPrevious()**
+
+`fetchNext()` fetches newer messages (use with `setMessageId()` for missed messages), while `fetchPrevious()` fetches older messages (use for message history with infinite scroll). Using the wrong method will return unexpected results or empty arrays.
+</Warning>
+
+<Warning>
+**Pitfall 4: Not handling all message types**
+
+The `MessageListener` has separate callbacks for text, media, and custom messages. If you only implement `onTextMessageReceived`, you'll miss media and custom messages. Always implement all relevant callbacks or use a base handler that checks the message type.
+</Warning>
+
+<Warning>
+**Pitfall 5: Expecting to receive your own messages**
+
+As a sender, you will NOT receive your own messages in real-time events. However, if the same user is logged in on multiple devices, other devices will receive the message. Design your UI to optimistically display sent messages without waiting for a listener callback.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Pagination limit**: Maximum 100 messages per request. Use pagination for large message histories.
+- **Listener efficiency**: Register listeners at the highest appropriate level in your component tree to avoid duplicate registrations.
+- **Unread count caching**: Cache unread counts locally and update them based on real-time events rather than fetching repeatedly.
+- **Message history**: Implement infinite scroll with `fetchPrevious()` to load messages on demand rather than fetching all at once.
+- **Search performance**: Advanced search features require the `Conversation & Advanced Search` add-on for optimal performance on large datasets.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Note>
+**Message Content**
+
+Messages received may contain user-generated content. Always sanitize message content before rendering in your UI to prevent XSS attacks. Never execute code or scripts from message content.
+</Note>
+
+<Warning>
+**Listener Security**
+
+Message listeners receive all messages for the logged-in user. Ensure your application properly handles message visibility and doesn't expose messages to unauthorized users in multi-user scenarios.
+</Warning>
+
+## Next Steps
+
+- [Send Messages](/sdk/javascript/send-message) - Learn how to send text, media, and custom messages
+- [Delivery & Read Receipts](/sdk/javascript/delivery-read-receipts) - Track when messages are delivered and read
+- [Edit Message](/sdk/javascript/edit-message) - Modify sent messages
+- [Delete Message](/sdk/javascript/delete-message) - Remove messages from conversations
+- [Additional Message Filtering](/sdk/javascript/additional-message-filtering) - Advanced filtering options for message requests
+- [All Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Complete reference for all CometChat listeners

@@ -2,80 +2,209 @@
 title: "Delete A Conversation"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK allows you to delete conversations from the logged-in user's conversation list. This page covers how to delete both one-on-one and group conversations using the `deleteConversation()` method.
 
-In case you want to delete a conversation, you can use the `deleteConversation()` method.
+## When to Use This
 
-This method takes two parameters. The unique id (UID/GUID) of the conversation to be deleted & the type (user/group) of conversation to be deleted.
+- When users want to remove a conversation from their chat list
+- When implementing a "clear conversation" or "delete chat" feature in your UI
+- When users want to declutter their conversation list without leaving a group
+- When building conversation management features for your chat application
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before deleting conversations
+- **Conversation**: The conversation must exist in the user's conversation list
+- **Identifier**: You need the UID (for user conversations) or GUID (for group conversations)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Delete User Conversation">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-let type = "user";
+const UID = "UID";
+const type = "user";
+
 CometChat.deleteConversation(UID, type).then(
-  deletedConversation => {
-      console.log(deletedConversation);
-  }, error => {
-      console.log('error while deleting a conversation', error);
-  }
-); 
-```
-
-</Tab>
-
-<Tab title="Delete Group Conversation">
-```javascript
-let GUID = "GUID";
-let type = "group";
-CometChat.deleteConversation(GUID, type).then(
-  deletedConversation => {
-      console.log(deletedConversation);
-  }, error => {
-      console.log('error while deleting a conversation', error);
+  (deletedConversation) => {
+    console.log("Conversation deleted successfully:", deletedConversation);
+  },
+  (error) => {
+    console.log("Error while deleting conversation:", error);
   }
 );
 ```
-
 </Tab>
-
-<Tab title="Delete User Conversation (Typescript">
+<Tab title="TypeScript">
 ```typescript
-let UID: string = "UID";
-let type: string = "user";
+const UID: string = "UID";
+const type: string = "user";
+
 CometChat.deleteConversation(UID, type).then(
   (deletedConversation: string) => {
-      console.log(deletedConversation);
-  }, (error: CometChat.CometChatException) => {
-      console.log('error while deleting a conversation', error);
-  }
-);    
-```
-
-</Tab>
-
-<Tab title="Delete Group Conversation (Typescript)">
-```typescript
-let GUID: string = "GUID";
-let type: string = "group";
-CometChat.deleteConversation(GUID, type).then(
-  (deletedConversation: string) => {
-      console.log(deletedConversation);
-  }, (error: CometChat.CometChatException) => {
-      console.log('error while deleting a conversation', error);
+    console.log("Conversation deleted successfully:", deletedConversation);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error while deleting conversation:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-This method deletes the conversation only for the logged-in user. To delete a conversation for all the users of the conversation, please refer to our REST API documentation [here](https://api-explorer.cometchat.com/reference/resets-user-conversation).
+## Step-by-Step
 
-The `deleteConversation()` method takes the following parameters:
+### Delete a User Conversation
 
-| Parameter        | Description                                                                       | Required |
-| ---------------- | --------------------------------------------------------------------------------- | -------- |
-| conversationWith | `UID` of the user or `GUID` of the group whose conversation you want to delete.   | YES      |
-| conversationType | The type of conversation you want to delete . It can be either `user` or `group`. | YES      |
+*In other words, how do I remove a one-on-one chat from my conversation list?*
+
+To delete a conversation with another user, use the `deleteConversation()` method with the user's UID and type set to `"user"`.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const UID = "UID";
+const type = "user";
+
+CometChat.deleteConversation(UID, type).then(
+  (deletedConversation) => {
+    console.log("User conversation deleted:", deletedConversation);
+  },
+  (error) => {
+    console.log("Error while deleting user conversation:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const UID: string = "UID";
+const type: string = "user";
+
+CometChat.deleteConversation(UID, type).then(
+  (deletedConversation: string) => {
+    console.log("User conversation deleted:", deletedConversation);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error while deleting user conversation:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Delete a Group Conversation
+
+*In other words, how do I remove a group chat from my conversation list?*
+
+To delete a group conversation, use the `deleteConversation()` method with the group's GUID and type set to `"group"`.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const GUID = "GUID";
+const type = "group";
+
+CometChat.deleteConversation(GUID, type).then(
+  (deletedConversation) => {
+    console.log("Group conversation deleted:", deletedConversation);
+  },
+  (error) => {
+    console.log("Error while deleting group conversation:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const GUID: string = "GUID";
+const type: string = "group";
+
+CometChat.deleteConversation(GUID, type).then(
+  (deletedConversation: string) => {
+    console.log("Group conversation deleted:", deletedConversation);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error while deleting group conversation:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+<Note>
+Deleting a group conversation only removes it from your conversation list. You remain a member of the group and can still receive messages. To leave a group entirely, use the [Leave a Group](/sdk/javascript/leave-group) functionality.
+</Note>
+
+## API Details
+
+### Method Signature
+
+```
+CometChat.deleteConversation(conversationWith: string, conversationType: string): Promise<string>
+```
+
+### Parameters
+
+| Parameter        | Type   | Required | Description                                                                     |
+| ---------------- | ------ | -------- | ------------------------------------------------------------------------------- |
+| conversationWith | string | Yes      | UID of the user or GUID of the group whose conversation you want to delete      |
+| conversationType | string | Yes      | The type of conversation to delete. Must be either `"user"` or `"group"`        |
+
+### Return Value
+
+Returns a `Promise<string>` that resolves to a success message confirming the conversation was deleted.
+
+### Errors
+
+| Error Code            | Description                                      | Resolution                                           |
+| --------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| ERR_NOT_LOGGED_IN     | User is not logged in                            | Call `CometChat.login()` before deleting             |
+| ERR_INVALID_TYPE      | Invalid conversation type provided               | Use either `"user"` or `"group"` as the type         |
+| ERR_CONVERSATION_NOT_FOUND | Conversation does not exist                 | Verify the UID/GUID is correct                       |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Conversation Deletion is User-Specific**: The `deleteConversation()` method only deletes the conversation for the logged-in user. Other participants in the conversation will still see it in their conversation list. To delete a conversation for all users, use the [REST API](https://api-explorer.cometchat.com/reference/resets-user-conversation).
+</Warning>
+
+<Warning>
+**Messages Are Not Deleted**: Deleting a conversation does not delete the underlying messages. If you start a new conversation with the same user or group, the message history will still be available. Use [Delete Message](/sdk/javascript/delete-message) to remove individual messages.
+</Warning>
+
+<Warning>
+**Type Parameter is Case-Sensitive**: The `conversationType` parameter must be lowercase `"user"` or `"group"`. Using uppercase or other variations like `"User"` or `"GROUP"` will result in an error.
+</Warning>
+
+<Warning>
+**Group Membership Unchanged**: Deleting a group conversation does not remove you from the group. You will continue to receive messages from the group. To leave a group, use `CometChat.leaveGroup()`.
+</Warning>
+
+## Performance & Scale Notes
+
+- Deleting a conversation is a lightweight operation that only affects the conversation list metadata
+- The operation does not delete messages, so there is no performance impact on message storage
+- Conversation deletion is immediate and does not require pagination or batching
+- After deletion, the conversation will reappear if new messages are received from that user or group
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the [REST API](/reference/createauthtoken).
+</Note>
+
+- Users can only delete conversations from their own conversation list
+- Deleting a conversation does not affect other users' access to the conversation or messages
+- No special permissions are required beyond being logged in
+
+## Next Steps
+
+- [Retrieve Conversations](/sdk/javascript/retrieve-conversations) - Fetch the list of conversations
+- [Leave a Group](/sdk/javascript/leave-group) - Leave a group entirely instead of just deleting the conversation
+- [Delete a Message](/sdk/javascript/delete-message) - Delete individual messages from a conversation
+- [Block Users](/sdk/javascript/block-users) - Block a user to prevent further messages
+- [Retrieve Messages](/sdk/javascript/retrieve-messages) - Fetch message history from conversations

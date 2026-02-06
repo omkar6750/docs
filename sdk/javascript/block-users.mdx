@@ -2,113 +2,152 @@
 title: "Block Users"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK allows users to block and unblock other users, preventing all communication between them. This page covers blocking users, unblocking users, and retrieving the list of blocked users. Blocking is essential for user safety and moderation in chat applications.
 
-## Block Users
+## When to Use This
 
-*In other words, as a logged-in user, how do I block a user from sending me messages?*
+- When a user wants to stop receiving messages from another user
+- When implementing user safety features in your chat application
+- When building moderation tools to manage user interactions
+- When you need to retrieve a list of users that have been blocked
+- When allowing users to unblock previously blocked users
 
-You can block users using the `blockUsers()` method. Once any user is blocked, all the communication to and from the respective user will be completely blocked. You can block multiple users in a single operation. The `blockUsers()` method takes a `Array` as a parameter which holds the list of `UID's` to be blocked.
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Block Users">
+<Tab title="JavaScript">
 ```javascript
-var usersList = ["UID1", "UID2", "UID3"];
+let usersList = ["UID1", "UID2", "UID3"];
 
 CometChat.blockUsers(usersList).then(
-list => {
-  console.log("users list blocked", { list });
-}, error => {
-  console.log("Blocking user fails with error", error);
-}
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var usersList: String[] = ["UID1", "UID2", "UID3"];
-
-CometChat.blockUsers(usersList).then(
-  (list: Object) => {
-      console.log("users list blocked", { list });
-  }, (error: CometChat.CometChatException) => {
-      console.log("Blocking user fails with error", error);
+  (list) => {
+    console.log("Users blocked successfully:", list);
+  },
+  (error) => {
+    console.log("Blocking users failed:", error);
   }
 );
 ```
-
 </Tab>
-
-</Tabs>
-
-It returns a Array which contains `UID's` as the keys and "success" or "fail" as the value based on if the block operation for the `UID` was successful or not.
-
-## Unblock Users
-
-*In other words, as a logged-in user, how do I unblock a user I previously blocked?*
-
-You can unblock the already blocked users using the `unblockUsers()` method. You can unblock multiple users in a single operation. The `unblockUsers()` method takes a `Array` as a parameter which holds the list of `UID's` to be unblocked.
-
-<Tabs>
-<Tab title="Unblock Users">
-```javascript
-var usersList = ["UID1", "UID2", "UID3"];
-
-CometChat.unblockUsers(usersList).then(
-list => {
-  console.log("users list unblocked", { list });
-}, error => {
-  console.log("unblocking user fails with error", error);
-}
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
-var usersList: String[] = ["UID1", "UID2", "UID3"];
+let usersList: string[] = ["UID1", "UID2", "UID3"];
+
+CometChat.blockUsers(usersList).then(
+  (list: Object) => {
+    console.log("Users blocked successfully:", list);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Blocking users failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
+
+### Step 1: Block Users
+
+You can block users using the `blockUsers()` method. Once a user is blocked, all communication to and from that user will be completely blocked. You can block multiple users in a single operation.
+
+The `blockUsers()` method takes an `Array` of UIDs as a parameter.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let usersList = ["UID1", "UID2", "UID3"];
+
+CometChat.blockUsers(usersList).then(
+  (list) => {
+    console.log("Users list blocked:", list);
+  },
+  (error) => {
+    console.log("Blocking user fails with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let usersList: string[] = ["UID1", "UID2", "UID3"];
+
+CometChat.blockUsers(usersList).then(
+  (list: Object) => {
+    console.log("Users list blocked:", list);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Blocking user fails with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+The method returns an Object with UIDs as keys and `"success"` or `"fail"` as values, indicating whether the block operation succeeded for each UID.
+
+### Step 2: Unblock Users
+
+You can unblock previously blocked users using the `unblockUsers()` method. You can unblock multiple users in a single operation.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let usersList = ["UID1", "UID2", "UID3"];
+
+CometChat.unblockUsers(usersList).then(
+  (list) => {
+    console.log("Users list unblocked:", list);
+  },
+  (error) => {
+    console.log("Unblocking user fails with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let usersList: string[] = ["UID1", "UID2", "UID3"];
 
 CometChat.unblockUsers(usersList).then(
   (list: Object) => {
-      console.log("users list blocked", { list });
-  }, (error: CometChat.CometChatException) => {
-      console.log("Blocking user fails with error", error);
+    console.log("Users list unblocked:", list);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Unblocking user fails with error:", error);
   }
-); 
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-It returns a Array which contains `UID's` as the keys and `success` or `fail` as the value based on if the unblock operation for the `UID` was successful or not.
+The method returns an Object with UIDs as keys and `"success"` or `"fail"` as values, indicating whether the unblock operation succeeded for each UID.
 
-## Get List of Blocked Users
+### Step 3: Retrieve Blocked Users
 
-*In other words, as a logged-in user, how do I get a list of all users I've blocked?*
+To fetch the list of blocked users, use the `BlockedUsersRequest` class. Create an instance using `BlockedUsersRequestBuilder` to configure the request parameters.
 
-In order to fetch the list of blocked users, you can use the `BlockedUsersRequest` class. To use this class i.e to create an object of the `BlockedUsersRequest class`, you need to use the `BlockedUsersRequestBuilder` class. The `BlockedUsersRequestBuilder` class allows you to set the parameters based on which the blocked users are to be fetched.
+#### Set Limit
 
-The `BlockedUsersRequestBuilder` class allows you to set the below parameters:
-
-### Set Limit
-
-This method sets the limit i.e. the number of blocked users that should be fetched in a single iteration.
+Set the maximum number of blocked users to fetch in a single request:
 
 <Tabs>
-<Tab title="Set Limit">
+<Tab title="JavaScript">
 ```javascript
 let limit = 30;
 let blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-                  				.setLimit(limit)
-                  				.build();
+  .setLimit(limit)
+  .build();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30;
@@ -116,28 +155,24 @@ let blockedUsersRequest: CometChat.BlockedUsersRequest = new CometChat.BlockedUs
   .setLimit(limit)
   .build();
 ```
-
 </Tab>
-
 </Tabs>
 
-### Set Search Keyword
+#### Set Search Keyword
 
-This method allows you to set the search string based on which the blocked users are to be fetched.
+Filter blocked users by a search string:
 
 <Tabs>
-<Tab title="Set Search Keyword">
+<Tab title="JavaScript">
 ```javascript
 let limit = 30;
 let searchKeyword = "super";
 let blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-                  				.setLimit(limit)
-                  				.setSearchKeyword(searchKeyword)
-                  				.build();
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30;
@@ -147,19 +182,19 @@ let blockedUsersRequest: CometChat.BlockedUsersRequest = new CometChat.BlockedUs
   .setSearchKeyword(searchKeyword)
   .build();
 ```
-
 </Tab>
-
 </Tabs>
 
-### Set Direction
+#### Set Direction
 
-* CometChat.BlockedUsersRequest.directions.BLOCKED\_BY\_ME - This will ensure that the list of blocked users only contains the users blocked by the logged in user.
-* CometChat.BlockedUsersRequest.directions.HAS\_BLOCKED\_ME - This will ensure that the list of blocked users only contains the users that have blocked the logged in user.
-* CometChat.BlockedUsersRequest.directions.BOTH - This will make sure the list of users includes both the above cases. This is the default value for the direction variable if it is not set.
+Filter by block direction:
+
+- `CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME` - Users blocked by the logged-in user
+- `CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME` - Users who have blocked the logged-in user
+- `CometChat.BlockedUsersRequest.directions.BOTH` - Both cases (default)
 
 <Tabs>
-<Tab title="Set Direction">
+<Tab title="JavaScript">
 ```javascript
 let limit = 30;
 let blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
@@ -167,9 +202,7 @@ let blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
   .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
   .build();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30;
@@ -178,33 +211,31 @@ let blockedUsersRequest: CometChat.BlockedUsersRequest = new CometChat.BlockedUs
   .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
   .build();
 ```
-
 </Tab>
-
 </Tabs>
 
-Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the `BlockedUsersRequest` class.
+#### Fetch Blocked Users
 
-Once you have the object of the `BlockedUsersRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `User` objects containing n number of blocked users where N is the limit set in the builder class.
+Once you have configured the request, call `fetchNext()` to retrieve the blocked users:
 
 <Tabs>
-<Tab title="Blocked Users Request">
+<Tab title="JavaScript">
 ```javascript
-var limit = 30;
-var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-                  				.setLimit(limit)
-                  				.build();
+let limit = 30;
+let blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
+  .setLimit(limit)
+  .build();
+
 blockedUsersRequest.fetchNext().then(
-userList => {
-  console.log("Blocked user list received:", userList);
-}, error => {
-  console.log("Blocked user list fetching failed with error:", error);
-}
+  (userList) => {
+    console.log("Blocked user list received:", userList);
+  },
+  (error) => {
+    console.log("Blocked user list fetching failed with error:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30;
@@ -214,13 +245,101 @@ let blockedUsersRequest: CometChat.BlockedUsersRequest = new CometChat.BlockedUs
 
 blockedUsersRequest.fetchNext().then(
   (userList: CometChat.User[]) => {
-      console.log("Blocked user list received:", userList);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Blocked user list fetching failed with error:", error);
+    console.log("Blocked user list received:", userList);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Blocked user list fetching failed with error:", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
+
+## API Details
+
+### Method Signatures
+
+```javascript
+CometChat.blockUsers(usersList: string[]): Promise<Object>
+CometChat.unblockUsers(usersList: string[]): Promise<Object>
+BlockedUsersRequest.fetchNext(): Promise<User[]>
+```
+
+### Parameters
+
+#### blockUsers / unblockUsers
+
+| Parameter  | Type     | Required | Description                              |
+| ---------- | -------- | -------- | ---------------------------------------- |
+| usersList  | string[] | Yes      | Array of UIDs to block or unblock        |
+
+#### BlockedUsersRequestBuilder
+
+| Method            | Parameter Type | Description                                           |
+| ----------------- | -------------- | ----------------------------------------------------- |
+| setLimit          | number         | Maximum number of users to fetch per request (max 100)|
+| setSearchKeyword  | string         | Filter users by name or UID                           |
+| setDirection      | string         | Filter by block direction (BLOCKED_BY_ME, HAS_BLOCKED_ME, BOTH) |
+
+### Return Values
+
+#### blockUsers / unblockUsers
+
+Returns a `Promise<Object>` where:
+- Keys are the UIDs from the input array
+- Values are `"success"` or `"fail"` indicating the operation result for each UID
+
+#### fetchNext
+
+Returns a `Promise<User[]>` containing an array of User objects representing blocked users.
+
+### Errors
+
+| Error Code                  | Description                                    | Resolution                                      |
+| --------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_UID_NOT_FOUND           | One or more UIDs do not exist                  | Verify UIDs exist before blocking               |
+| ERR_NOT_LOGGED_IN           | User is not logged in                          | Ensure user is logged in via CometChat.login()  |
+| ERR_INVALID_LIMIT           | Limit value is invalid                         | Use a positive number up to 100                 |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Blocking Yourself**: Attempting to block your own UID will fail. The SDK does not allow users to block themselves. Always filter out the logged-in user's UID from the block list.
+</Warning>
+
+<Warning>
+**Partial Failures**: When blocking multiple users, some operations may succeed while others fail. Always check the returned object for each UID's status (`"success"` or `"fail"`) rather than assuming all operations succeeded.
+</Warning>
+
+<Warning>
+**Pagination Required**: The `fetchNext()` method returns a limited number of users per call (up to the limit you set). For users with many blocked contacts, you must call `fetchNext()` repeatedly until it returns an empty array to get the complete list.
+</Warning>
+
+<Warning>
+**Block Status Not Real-Time**: Blocking a user does not immediately notify them. The blocked user will only notice when they attempt to send a message and it fails. Consider updating your UI to reflect block status changes.
+</Warning>
+
+## Performance & Scale Notes
+
+- The `blockUsers()` and `unblockUsers()` methods support batch operations—block or unblock multiple users in a single API call for better performance
+- The maximum limit for `BlockedUsersRequest` is 100 users per request
+- For applications with many blocked users, implement pagination by calling `fetchNext()` until an empty array is returned
+- Block status is cached; changes may take a moment to propagate across all active sessions
+
+## Security Notes
+
+<Note>
+Blocking is a user-initiated action that does not require Auth Key. The logged-in user can only block/unblock users on their own behalf—they cannot block users on behalf of other users.
+</Note>
+
+<Warning>
+**Moderation Considerations**: For admin-level blocking or moderation features, use the [REST API](https://api-explorer.cometchat.com/reference/block-users) from your server. This allows administrators to manage blocks without exposing moderation capabilities to end users.
+</Warning>
+
+## Next Steps
+
+- [User Presence](/sdk/javascript/user-presence) - Track when users are online or offline
+- [Retrieve Users](/sdk/javascript/retrieve-users) - Fetch user details and lists
+- [User Management](/sdk/javascript/user-management) - Create and update users
+- [Send Message](/sdk/javascript/send-message) - Learn about message delivery to non-blocked users
+- [REST API - Block Users](https://api-explorer.cometchat.com/reference/block-users) - Server-side blocking operations

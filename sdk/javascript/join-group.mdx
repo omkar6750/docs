@@ -2,106 +2,413 @@
 title: "Join A Group"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables users to join groups and participate in group conversations. Users can join public groups directly, password-protected groups with the correct password, and private groups only through invitations. This is essential for building community features, team collaboration, and social applications where users need to opt-in to group conversations.
 
-## Join a Group
+## When to Use This
 
-In order to start participating in group conversations, you will have to join a group. You can do so using the `joinGroup()` method.
+- When allowing users to discover and join public groups
+- When implementing group invitation acceptance flows
+- When building community or social features with joinable groups
+- When creating team collaboration spaces users can opt into
+- When implementing password-protected group access
+- When building group discovery and browsing features
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()`
+- **Dashboard**: Ensure your CometChat app is created in the [CometChat Dashboard](https://app.cometchat.com)
+- **Group**: The group must exist and be accessible to the user
+- **Group Type**: User must have appropriate access (public groups are open, password groups require password, private groups require invitation)
+
+## Minimal Example
 
 <Tabs>
-<Tab title="Join Group">
+<Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var password = "";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
+let GUID = "GUID";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+let password = "";
 
 CometChat.joinGroup(GUID, groupType, password).then(
-group => {
-  console.log("Group joined successfully:", group);
-}, error => {
-  console.log("Group joining failed with exception:", error);
-}
+  (group) => {
+    console.log("Group joined successfully:", group);
+  },
+  (error) => {
+    console.log("Group joining failed:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
+let GUID: string = "GUID";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+let password: string = "";
 
-CometChat.joinGroup(GUID, CometChat.GroupType.Public).then(
+CometChat.joinGroup(GUID, groupType, password).then(
   (group: CometChat.Group) => {
-      console.log("Group joined successfully:", group);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Group joining failed with exception:", error);
+    console.log("Group joined successfully:", group);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Group joining failed:", error);
   }
-); 
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-The `joinGroup()` method takes the below parameters
+## Step-by-Step
 
-| Parameter   | Description                                                                                                                                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GUID`      | The GUID of the group you would like to join.                                                                                                                    |
-| `groupType` | Type of the group. CometChat provides 3 types of groups viz. 1. CometChat.GROUP\_TYPE.PUBLIC 2. CometChat.GROUP\_TYPE.PASSWORD 3. CometChats.GROUP\_TYPE.PRIVATE |
-| `password`  | Password is mandatory in case of a password protected group.                                                                                                     |
+### Step 1: Understand Group Types
 
-Once you have joined a group successfully, you can send and receive messages in that group.
+CometChat supports three types of groups, each with different join requirements:
 
-CometChat keeps a track of the groups joined and you do not need to join the group every time you want to communicate in the group.
+| Group Type | Constant                          | Join Requirement                           |
+| ---------- | --------------------------------- | ------------------------------------------ |
+| Public     | `CometChat.GROUP_TYPE.PUBLIC`     | Anyone can join directly                   |
+| Password   | `CometChat.GROUP_TYPE.PASSWORD`   | Requires correct password to join          |
+| Private    | `CometChat.GROUP_TYPE.PRIVATE`    | Can only join via invitation from a member |
 
-You can identify if a group is joined using the `hasJoined` parameter in the `Group` object.
+### Step 2: Join a Public Group
 
-## Real-time Group Member Joined Events
-
-*In other words, as a member of a group, how do I know if someone joins the group when my app is running?*
-
-If a user joins any group, the members of the group receive a real-time event in the `onGroupMemberJoined()` method of the `GroupListener` class.
+Public groups allow any user to join without restrictions.
 
 <Tabs>
-<Tab title="Group Listener">
+<Tab title="JavaScript">
 ```javascript
-CometChat.addGroupListener(
-  "UNIQUE_LISTNER_ID",
-  new CometChat.GroupListener({
-      onGroupMemberJoined: (message, joinedUser, joinedGroup) => {
-          console.log("User joined", { message, joinedUser, joinedGroup });
-      }
-  })
+let GUID = "GUID";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+let password = "";
+
+CometChat.joinGroup(GUID, groupType, password).then(
+  (group) => {
+    console.log("Joined public group:", group.getName());
+  },
+  (error) => {
+    console.log("Failed to join group:", error);
+  }
 );
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
+let GUID: string = "GUID";
+let groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+let password: string = "";
+
+CometChat.joinGroup(GUID, groupType, password).then(
+  (group: CometChat.Group) => {
+    console.log("Joined public group:", group.getName());
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to join group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 3: Join a Password-Protected Group
+
+Password-protected groups require the correct password to join.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let groupType = CometChat.GROUP_TYPE.PASSWORD;
+let password = "group_password";
+
+CometChat.joinGroup(GUID, groupType, password).then(
+  (group) => {
+    console.log("Joined password-protected group:", group.getName());
+  },
+  (error) => {
+    console.log("Failed to join group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+let groupType: string = CometChat.GROUP_TYPE.PASSWORD;
+let password: string = "group_password";
+
+CometChat.joinGroup(GUID, groupType, password).then(
+  (group: CometChat.Group) => {
+    console.log("Joined password-protected group:", group.getName());
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to join group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Check if User Has Already Joined
+
+CometChat tracks group membership automatically. You can check if a user has already joined a group using the `hasJoined` property on the `Group` object.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group) => {
+    if (group.getHasJoined()) {
+      console.log("User is already a member of this group");
+    } else {
+      console.log("User has not joined this group yet");
+    }
+  },
+  (error) => {
+    console.log("Failed to get group:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
+
+CometChat.getGroup(GUID).then(
+  (group: CometChat.Group) => {
+    if (group.getHasJoined()) {
+      console.log("User is already a member of this group");
+    } else {
+      console.log("User has not joined this group yet");
+    }
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Failed to get group:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Events & Real-time Behavior
+
+### Registering GroupListener
+
+To receive real-time events when a user joins a group, register a `GroupListener` with the `onGroupMemberJoined` callback.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-join-listener";
+
 CometChat.addGroupListener(
-  "UNIQUE_LISTNER_ID",
+  listenerId,
   new CometChat.GroupListener({
-      onGroupMemberJoined: (message: CometChat.Action, joinedUser: CometChat.User, joinedGroup: CometChat.Group) => {
-          console.log("User joined", { message, joinedUser, joinedGroup });
-      }
+    onGroupMemberJoined: (message, joinedUser, joinedGroup) => {
+      console.log("User joined:", {
+        message,
+        joinedUser,
+        joinedGroup,
+      });
+    },
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-join-listener";
 
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberJoined: (
+      message: CometChat.Action,
+      joinedUser: CometChat.User,
+      joinedGroup: CometChat.Group
+    ) => {
+      console.log("User joined:", {
+        message,
+        joinedUser,
+        joinedGroup,
+      });
+    },
+  })
+);
+```
+</Tab>
 </Tabs>
 
-## Missed Group Member Joined Events
+### Removing GroupListener
 
-*In other words, as a member of a group, how do I know if someone joins the group when my app is not running?*
+Always remove listeners when they are no longer needed to prevent memory leaks and duplicate event handling.
 
-When you retrieve the list of previous messages if a member has joined any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let listenerId = "unique-join-listener";
 
-For the group member joined event, in the `Action` object received, the following fields can help you get the relevant information-
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+let listenerId: string = "unique-join-listener";
 
-1. `action` - `joined`
-2. `actionBy` - User object containing the details of the user who joined the group
-3. `actionFor`- Group object containing the details of the group the user has joined
+CometChat.removeGroupListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Complete Listener Lifecycle Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Use a unique listener ID
+let listenerId = "join-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberJoined: (message, joinedUser, joinedGroup) => {
+      console.log(`${joinedUser.getName()} joined ${joinedGroup.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup() {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Use a unique listener ID
+let listenerId: string = "join-listener-" + Date.now();
+
+// Add the listener
+CometChat.addGroupListener(
+  listenerId,
+  new CometChat.GroupListener({
+    onGroupMemberJoined: (
+      message: CometChat.Action,
+      joinedUser: CometChat.User,
+      joinedGroup: CometChat.Group
+    ) => {
+      console.log(`${joinedUser.getName()} joined ${joinedGroup.getName()}`);
+    },
+  })
+);
+
+// Later, when cleaning up (e.g., component unmount)
+function cleanup(): void {
+  CometChat.removeGroupListener(listenerId);
+}
+```
+</Tab>
+</Tabs>
+
+### Join Events in Message History
+
+When retrieving previous messages, if a member has joined a group, the message list will contain an `Action` message. The `Action` object provides the following information:
+
+| Property  | Description                                           |
+| --------- | ----------------------------------------------------- |
+| action    | The action type: `"joined"`                           |
+| actionBy  | User object of the user who joined the group          |
+| actionFor | Group object of the group the user joined             |
+
+## API Details
+
+### joinGroup()
+
+```javascript
+CometChat.joinGroup(GUID: string, groupType: string, password?: string): Promise<Group>
+```
+
+| Parameter | Type   | Required | Description                                                                                                                                                      |
+| --------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GUID      | string | Yes      | The unique identifier of the group to join                                                                                                                       |
+| groupType | string | Yes      | Type of the group: `CometChat.GROUP_TYPE.PUBLIC`, `CometChat.GROUP_TYPE.PASSWORD`, or `CometChat.GROUP_TYPE.PRIVATE`                                             |
+| password  | string | No       | Password for password-protected groups. Required when `groupType` is `CometChat.GROUP_TYPE.PASSWORD`                                                             |
+
+### Return Value
+
+Returns a `Promise<CometChat.Group>` that resolves to the `Group` object when the user successfully joins the group.
+
+### Group Object Properties
+
+| Property    | Type    | Description                                      |
+| ----------- | ------- | ------------------------------------------------ |
+| guid        | string  | Unique identifier of the group                   |
+| name        | string  | Display name of the group                        |
+| type        | string  | Group type (public, password, private)           |
+| hasJoined   | boolean | Whether the current user has joined the group    |
+| membersCount| number  | Total number of members in the group             |
+| owner       | string  | UID of the group owner                           |
+
+### Errors
+
+| Error Code                | Description                                    | Resolution                                        |
+| ------------------------- | ---------------------------------------------- | ------------------------------------------------- |
+| ERR_USER_NOT_LOGGED_IN    | No user is currently logged in                 | Ensure user is logged in before joining           |
+| ERR_INVALID_GUID          | The provided GUID is invalid                   | Verify the GUID format and existence              |
+| ERR_GROUP_NOT_FOUND       | Group with the specified GUID not found        | Check if the group exists                         |
+| ERR_ALREADY_JOINED        | User is already a member of the group          | Check `hasJoined` before attempting to join       |
+| ERR_WRONG_PASSWORD        | Incorrect password for password-protected group| Verify the password is correct                    |
+| ERR_GROUP_TYPE_MISMATCH   | Provided group type doesn't match actual type  | Fetch group details first to get correct type     |
+| ERR_PRIVATE_GROUP         | Cannot join private group without invitation   | User must be invited to join private groups       |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Group Type Mismatch**: The `groupType` parameter must match the actual type of the group. If you pass `PUBLIC` for a password-protected group, the join will fail. Always fetch group details first if you're unsure of the group type.
+</Warning>
+
+<Warning>
+**Duplicate Join Attempts**: Attempting to join a group you've already joined will result in an error. Use the `hasJoined` property on the Group object to check membership status before calling `joinGroup()`.
+</Warning>
+
+<Warning>
+**Private Group Restrictions**: Private groups cannot be joined directly using `joinGroup()`. Users must be invited by an existing member. Attempting to join a private group without an invitation will fail.
+</Warning>
+
+<Warning>
+**Duplicate Listener IDs**: If you register a GroupListener with the same `listenerId` as an existing listener, the new listener will replace the old one. Use unique listener IDs (e.g., include timestamps or UUIDs) to avoid accidentally overwriting listeners.
+</Warning>
+
+## Performance & Scale Notes
+
+- CometChat automatically tracks group membership. You don't need to call `joinGroup()` every time you want to communicate in a group you've already joined.
+- When building group discovery features, consider paginating group lists and checking `hasJoined` to show appropriate UI (Join button vs. Open button).
+- Real-time join events are delivered to all group members, so large groups may generate significant event traffic.
+- For applications with many groups, consider caching group membership status locally to reduce API calls.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Warning>
+**Password Security**: For password-protected groups, never hardcode passwords in client-side code. Implement a secure flow where users enter the password through your UI.
+</Warning>
+
+<Warning>
+**Private Group Access Control**: Private groups provide the highest level of access control. Use them for sensitive conversations where membership should be strictly controlled by existing members.
+</Warning>
+
+## Next Steps
+
+- [Leave Group](/sdk/javascript/leave-group) - Allow users to leave groups they've joined
+- [Retrieve Groups](/sdk/javascript/retrieve-groups) - Fetch available groups for users to join
+- [Create Group](/sdk/javascript/create-group) - Create new groups for users to join
+- [Send Messages](/sdk/javascript/send-message) - Send messages in joined groups
+- [Retrieve Group Members](/sdk/javascript/retrieve-group-members) - Get list of members in a group
+- [Real-time Listeners](/sdk/javascript/all-real-time-listeners) - Listen for all group events

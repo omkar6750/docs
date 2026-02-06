@@ -2,119 +2,258 @@
 title: "Delete A Message"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK allows you to delete previously sent messages. This page covers how to delete messages, receive real-time delete events, and handle missed delete events when your app was offline.
 
-While [deleting a message](/sdk/javascript/delete-message#delete-a-message) is straightforward, receiving events for deleted messages with CometChat has two parts:
+## When to Use This
 
-1. Adding a listener to receive [real-time message deletes](/sdk/javascript/delete-message#real-time-message-delete-events) when your app is running.
-2. Calling a method to retrieve [missed message deletes](/sdk/javascript/delete-message#missed-message-delete-events) when your app was not running.
+- When allowing users to remove messages they no longer want visible
+- When implementing message deletion functionality in your chat UI
+- When building moderation features that allow admins to remove inappropriate content
+- When users need to retract accidentally sent messages
+- When syncing deleted messages across multiple devices or sessions
 
-## Delete a Message
+## Prerequisites
 
-*In other words, as a sender, how do I delete a message?*
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x
+- **State**: User must be logged in via `CometChat.login()` before deleting messages
+- **Permissions**: User must be the message sender, or a group admin/moderator for group messages
+- **Message**: The message to delete must exist and have a valid message ID
 
-In case you have to delete a message, you can use the `deleteMessage()` method. This method takes the message ID of the message to be deleted.
+## Minimal Example
 
 <Tabs>
-<Tab title="Delete Message">
+<Tab title="JavaScript">
 ```javascript
-let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_DELETE";
+const messageId = MESSAGE_ID;
 
 CometChat.deleteMessage(messageId).then(
-message => {
-  console.log("Message deleted", message);
-}, error => {
-  console.log("Message delete failed with error:", error);
-}
-); 
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let messageId: number = 1;
-
-CometChat.deleteMessage(messageId).then(
-  (message: CometChat.BaseMessage) => {
-      console.log("Message deleted", message);
-  }, (error: CometChat.CometChatException) => {
-      console.log("Message delete failed with error:", error);
+  (message) => {
+    console.log("Message deleted successfully:", message);
+  },
+  (error) => {
+    console.log("Message deletion failed:", error);
   }
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+const messageId: number = MESSAGE_ID;
 
+CometChat.deleteMessage(messageId).then(
+  (message: CometChat.BaseMessage) => {
+    console.log("Message deleted successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message deletion failed:", error);
+  }
+);
+```
+</Tab>
 </Tabs>
 
-Once the message is deleted, In the `onSuccess()` callback, you get an object of the `BaseMessage` class, with the `deletedAt` field set with the timestamp of the time the message was deleted. Also, the `deletedBy` field is set. These two fields can be used to identify if the message is deleted while iterating through a list of messages.
+## Step-by-Step
 
-By default, CometChat allows certain roles to delete a message.
+### Delete a Message
+
+*In other words, as a sender, how do I delete a message?*
+
+To delete a message, use the `deleteMessage()` method. This method takes the message ID of the message to be deleted.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const messageId = MESSAGE_ID;
+
+CometChat.deleteMessage(messageId).then(
+  (message) => {
+    console.log("Message deleted:", message);
+    console.log("Deleted at:", message.getDeletedAt());
+    console.log("Deleted by:", message.getDeletedBy());
+  },
+  (error) => {
+    console.log("Message delete failed with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const messageId: number = MESSAGE_ID;
+
+CometChat.deleteMessage(messageId).then(
+  (message: CometChat.BaseMessage) => {
+    console.log("Message deleted:", message);
+    console.log("Deleted at:", message.getDeletedAt());
+    console.log("Deleted by:", message.getDeletedBy());
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message delete failed with error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+The deleted message object returned will contain:
+- `deletedAt` - Timestamp of when the message was deleted
+- `deletedBy` - UID of the user who deleted the message
+
+These two fields can be used to identify if a message is deleted while iterating through a list of messages.
+
+### Delete Permissions
+
+By default, CometChat allows certain roles to delete messages:
 
 | User Role       | Conversation Type       | Deletion Capabilities          |
 | --------------- | ----------------------- | ------------------------------ |
-| Message Sender  | One-on-One Conversation | Messages they have sent.       |
-| Message Sender  | Group Conversation      | Messages they have sent.       |
-| Group Admin     | Group Conversation      | All the messages in the group. |
-| Group Moderator | Group Conversation      | All the messages in the group. |
+| Message Sender  | One-on-One Conversation | Messages they have sent        |
+| Message Sender  | Group Conversation      | Messages they have sent        |
+| Group Admin     | Group Conversation      | All messages in the group      |
+| Group Moderator | Group Conversation      | All messages in the group      |
 
-## Real-time Message Delete Events
+### Real-time Message Delete Events
 
 *In other words, as a recipient, how do I know when someone deletes a message when my app is running?*
 
-In order to receive real-time events for a message being deleted, you need to override the `onMessageDeleted()` method of the `MessageListener` class.
+To receive real-time events for message deletions, override the `onMessageDeleted()` method of the `MessageListener` class.
+
+#### Registering the Listener
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
-
-CometChat.addMessageListener(
-listenerID,
-new CometChat.MessageListener({
-  onMessageDeleted: message => {
-    console.log("Deleted Message", message);
-  }
-})
-); 
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
+const listenerID = "UNIQUE_LISTENER_ID";
 
 CometChat.addMessageListener(
   listenerID,
   new CometChat.MessageListener({
-      onMessageDeleted: (message: CometChat.BaseMessage) => {
-          console.log("Deleted Message", message);
-      }
+    onMessageDeleted: (message) => {
+      console.log("Message deleted:", message);
+      console.log("Deleted at:", message.getDeletedAt());
+      console.log("Deleted by:", message.getDeletedBy());
+    }
   })
 );
 ```
-
 </Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerID: string = "UNIQUE_LISTENER_ID";
 
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onMessageDeleted: (message: CometChat.BaseMessage) => {
+      console.log("Message deleted:", message);
+      console.log("Deleted at:", message.getDeletedAt());
+      console.log("Deleted by:", message.getDeletedBy());
+    }
+  })
+);
+```
+</Tab>
 </Tabs>
 
-## Missed Message Delete Events
+#### Removing the Listener
+
+Always remove listeners when they are no longer needed to prevent memory leaks:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerID = "UNIQUE_LISTENER_ID";
+
+CometChat.removeMessageListener(listenerID);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerID: string = "UNIQUE_LISTENER_ID";
+
+CometChat.removeMessageListener(listenerID);
+```
+</Tab>
+</Tabs>
+
+### Missed Message Delete Events
 
 *In other words, as a recipient, how do I know if someone deleted a message when my app was not running?*
 
-When you retrieve the list of previous messages, for the messages that were deleted, the `deletedAt` and the `deletedBy` fields will be set. Also, for example, of the total number of messages for a conversation are 100, and the message with message ID 50 was deleted. Now the message with id 50 will have the `deletedAt` and the `deletedBy` fields set whenever it is pulled from the history. Also, the 101st message will be an Actionc message informing you that the message with id 50 has been deleted.
+When you retrieve the list of previous messages, any deleted messages will have the `deletedAt` and `deletedBy` fields set. Additionally, an `Action` message is created to inform you about the deletion.
 
-For the message deleted event, in the `Action` object received, the following fields can help you get the relevant information-
+For example, if a conversation has 100 messages and message ID 50 was deleted while your app was offline:
+- Message 50 will have `deletedAt` and `deletedBy` fields populated
+- Message 101 will be an `Action` message indicating the deletion
 
-1. `action` - `deleted`
-2. `actionOn` - Updated message object which was deleted.
-3. `actionBy` - User object containing the details of the user who has deleted the message.
-4. `actionFor` - User/group object having the details of the receiver to which the message was sent.
+#### Action Object Fields
+
+For message delete events, the `Action` object contains:
+
+| Field       | Value                                                    |
+| ----------- | -------------------------------------------------------- |
+| `action`    | `deleted`                                                |
+| `actionOn`  | Updated message object which was deleted                 |
+| `actionBy`  | User object of the user who deleted the message          |
+| `actionFor` | User/Group object of the conversation receiver           |
+
+## API Details
+
+### Method Signature
+
+```
+CometChat.deleteMessage(messageId: number): Promise<BaseMessage>
+```
+
+### Parameters
+
+| Parameter | Type   | Required | Description                           |
+| --------- | ------ | -------- | ------------------------------------- |
+| messageId | number | Yes      | The ID of the message to delete       |
+
+### Return Value
+
+Returns a `Promise<BaseMessage>` that resolves to the deleted message object containing:
+- All original message properties
+- `deletedAt` - Timestamp of the deletion
+- `deletedBy` - UID of the user who performed the deletion
+
+### Errors
+
+| Error Code                  | Description                                    | Resolution                                      |
+| --------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| ERR_MESSAGE_NOT_FOUND       | Message with specified ID does not exist       | Verify the message ID is correct                |
+| ERR_PERMISSION_DENIED       | User lacks permission to delete this message   | Ensure user is sender or group admin/moderator  |
+| ERR_NOT_LOGGED_IN           | User is not logged in                          | Call CometChat.login() before deleting messages |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Message ID Must Be Valid**: The `messageId` parameter must be a valid numeric ID of an existing message. Passing an invalid or non-existent message ID will result in an error. Always retrieve the message ID from the message object you want to delete.
+</Warning>
+
+<Warning>
+**Listener ID Uniqueness**: Each listener must have a unique `listenerID`. If you register multiple listeners with the same ID, only the last one will be active. Use descriptive, unique IDs like `"chat-screen-delete-listener"` to avoid conflicts.
+</Warning>
+
+<Warning>
+**Memory Leaks from Listeners**: Always remove message listeners when the component unmounts or when navigating away from the chat screen. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+<Warning>
+**Deleted Messages in History**: Deleted messages are not removed from message history. Instead, they remain with `deletedAt` and `deletedBy` fields populated. Your UI should check these fields and display an appropriate "message deleted" placeholder instead of the original content.
+</Warning>
 
 <Note>
-
-In order to edit or delete a message you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
-
+In order to delete a message, you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
 </Note>
+
+## Next Steps
+
+- [Edit a Message](/sdk/javascript/edit-message) - Learn how to edit messages instead of deleting
+- [Receive Messages](/sdk/javascript/receive-message) - Handle incoming messages and events
+- [Message Receipts](/sdk/javascript/delivery-read-receipts) - Track message delivery and read status
+- [Retrieve Messages](/sdk/javascript/retrieve-messages) - Fetch message history including deleted messages
+- [Send a Message](/sdk/javascript/send-message) - Send new text, media, and custom messages

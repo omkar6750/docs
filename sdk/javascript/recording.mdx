@@ -1,130 +1,369 @@
 ---
-title: "Recording (Beta)"
+title: "Recording"
 ---
 
+## Summary
 
+Call recording enables you to capture audio and video from voice and video calls for later playback, compliance, or training purposes. This guide covers configuring recording settings, starting and stopping recordings programmatically, handling recording events via listeners, and accessing recorded files from the CometChat Dashboard.
 
-This section will guide you to implement call recording feature for the voice and video calls.
+## When to Use This
 
-## Implementation
+- Record calls for compliance, legal, or regulatory requirements
+- Capture training sessions or customer support calls for quality assurance
+- Enable users to record important meetings or conversations for later review
+- Implement automatic recording that starts when a call begins
+- Build custom recording controls with your own UI buttons
 
-Once you have decided to implement [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call) calling and followed the steps to implement them. Just few additional listeners and methods will help you quickly implement call recording in your app.
+## Prerequisites
 
-You need to make changes in the CometChat.startCall method and add the required listeners for recording. Please make sure your callSettings is configured accordingly for [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
+1. **Chat SDK initialized**: Ensure `CometChat.init()` has completed successfully. See [Setup SDK](/sdk/javascript/setup-sdk).
+2. **Calls SDK initialized**: Ensure `CometChatCalls.init()` has completed. See [Calling Setup](/sdk/javascript/calling-setup).
+3. **User logged in**: A user must be logged in via `CometChat.login()`. See [Authentication](/sdk/javascript/authentication-overview).
+4. **Active call session**: Recording can only be started during an active call session. See [Call Session](/sdk/javascript/direct-call) or [Ringing](/sdk/javascript/default-call).
+5. **Recording enabled**: Ensure call recording is enabled in your [CometChat Dashboard](https://app.cometchat.com) under Calls settings.
 
-A basic example of how to make changes to implement recording for a direct call/ a default call:
+## Minimal Example
 
 <Tabs>
 <Tab title="JavaScript">
-```js
-// Add listeners onRecordingStarted and onRecordingStopped to the startCall method
-const defaultLayout = true;
-const audioOnly = false;
-
+```javascript
 const callListener = new CometChatCalls.OngoingCallListener({
-  onRecordingStarted: (event) =>
-    console.log("Listener => onRecordingStarted", event.user),
-  onRecordingStopped: (event) =>
-    console.log("Listener => onRecordingStopped", event.user),
+  onRecordingStarted: (event) => {
+    console.log("Recording started by:", event.user);
+  },
+  onRecordingStopped: (event) => {
+    console.log("Recording stopped by:", event.user);
+  }
 });
 
 const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .enableDefaultLayout(defaultLayout)
-  .setIsAudioOnlyCall(audioOnly)
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showRecordingButton(true)
   .setCallListener(callListener)
   .build();
 
-const htmlElement = document.getElementById("ELEMENT_ID");
+const htmlElement = document.getElementById("call-container");
 CometChatCalls.startSession(callToken, callSettings, htmlElement);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-// Add listeners onRecordingStarted and onRecordingStopped to the startCall method
-const defaultLayout = true;
-const audioOnly = false;
-
 const callListener = new CometChatCalls.OngoingCallListener({
-  onRecordingStarted: (event) =>
-    console.log("Listener => onRecordingStarted", event.user),
-  onRecordingStopped: (event) =>
-    console.log("Listener => onRecordingStopped", event.user),
+  onRecordingStarted: (event: { user: any }) => {
+    console.log("Recording started by:", event.user);
+  },
+  onRecordingStopped: (event: { user: any }) => {
+    console.log("Recording stopped by:", event.user);
+  }
 });
 
 const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .enableDefaultLayout(defaultLayout)
-  .setIsAudioOnlyCall(audioOnly)
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showRecordingButton(true)
   .setCallListener(callListener)
   .build();
 
-const htmlElement = document.getElementById("ELEMENT_ID");
+const htmlElement = document.getElementById("call-container") as HTMLElement;
 CometChatCalls.startSession(callToken, callSettings, htmlElement);
 ```
-
 </Tab>
-
 </Tabs>
 
-## Settings for call recording
+## Step-by-Step
 
-The `CallSettings`class allows you to customise the overall calling experience. The properties for the call/conference can be set using the `CallSettingsBuilder` class. This will eventually give you and object of the `CallSettings` class which you can pass to the `startSession()` method to start the call.
+### Step 1: Configure Call Settings for Recording
 
-The options available for recording of calls are:
-
-| Setting                                                         | Description                                                                                                                                                                          |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `showRecordingButton(showRecordingButton: boolean)`             | If set to `true` it displays the Recording button in the button Layout. if set to `false` it hides the Recording button in the button Layout. **Default value = false**              |
-| `startRecordingOnCallStart(startRecordingOnCallStart: boolean)` | If set to `true` call recording will start as soon as the call is started. if set to `false` call recording will not start as soon as the call is started. **Default value = false** |
-
-For the use case where you wish to align your own custom buttons and not use the default layout provided by CometChat, you can embed the buttons in your layout and use the below methods to perform the corresponding operations:
-
-### Start Recording
-
-You can use the startRecording() method to start call recording.
+Before starting a call session, configure the `CallSettings` to enable recording features. You can show the recording button in the default UI or enable automatic recording when the call starts.
 
 <Tabs>
-<Tab title="Start Recording">
+<Tab title="JavaScript">
 ```javascript
-CometChatCalls.startRecording();
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showRecordingButton(true)                    // Show recording button in UI
+  .startRecordingOnCallStart(false)             // Don't auto-record
+  .setCallListener(callListener)
+  .build();
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-CometChatCalls.startRecording();
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .showRecordingButton(true)                    // Show recording button in UI
+  .startRecordingOnCallStart(false)             // Don't auto-record
+  .setCallListener(callListener)
+  .build();
 ```
-
 </Tab>
-
 </Tabs>
 
-### Stop Recording
+### Step 2: Add Recording Event Listeners
 
-You can use the stopRecording() method to stop call recording.
+Register listeners to receive notifications when recording starts or stops. This allows you to update your UI or perform actions based on recording state changes.
 
 <Tabs>
-<Tab title="Stop Recording">
+<Tab title="JavaScript">
 ```javascript
-CometChatCalls.stopRecording();
+const listenerId = "UNIQUE_LISTENER_ID";
+
+const callListener = new CometChatCalls.OngoingCallListener({
+  onRecordingStarted: (event) => {
+    console.log("Recording started by:", event.user);
+    // Update UI to show recording indicator
+  },
+  onRecordingStopped: (event) => {
+    console.log("Recording stopped by:", event.user);
+    // Update UI to hide recording indicator
+  },
+  onUserJoined: (user) => {
+    console.log("User joined:", user);
+  },
+  onCallEnded: () => {
+    console.log("Call ended");
+  }
+});
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
-CometChatCalls.stopRecording();
+const listenerId: string = "UNIQUE_LISTENER_ID";
+
+const callListener = new CometChatCalls.OngoingCallListener({
+  onRecordingStarted: (event: { user: any }) => {
+    console.log("Recording started by:", event.user);
+    // Update UI to show recording indicator
+  },
+  onRecordingStopped: (event: { user: any }) => {
+    console.log("Recording stopped by:", event.user);
+    // Update UI to hide recording indicator
+  },
+  onUserJoined: (user: any) => {
+    console.log("User joined:", user);
+  },
+  onCallEnded: () => {
+    console.log("Call ended");
+  }
+});
 ```
-
 </Tab>
-
 </Tabs>
 
-## Downloading Recording
+### Step 3: Start the Call Session
 
-Currently, the call recordings are available on the [CometChat Dashboard](https://app.cometchat.com/signup) under the Calls Section. Recordings can be accessed after clicking on the three dots menu icon to expand the menu and then select "View Recordings". You can refer to the below screenshot. You can refer to the below screenshot.
+Start the call session with your configured settings. The recording button will appear in the default layout if enabled.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const htmlElement = document.getElementById("call-container");
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const htmlElement = document.getElementById("call-container") as HTMLElement;
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
+```
+</Tab>
+</Tabs>
+
+### Step 4: Control Recording Programmatically (Optional)
+
+If you're building a custom UI without the default layout, use these methods to control recording:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Start recording
+CometChatCalls.startRecording();
+
+// Stop recording
+CometChatCalls.stopRecording();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Start recording
+CometChatCalls.startRecording();
+
+// Stop recording
+CometChatCalls.stopRecording();
+```
+</Tab>
+</Tabs>
+
+## API Details
+
+### Recording Settings
+
+Configure recording behavior using the `CallSettingsBuilder` methods:
+
+| Method | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `showRecordingButton(show)` | `boolean` | `false` | Shows or hides the recording button in the default call UI layout. |
+| `startRecordingOnCallStart(start)` | `boolean` | `false` | When `true`, recording starts automatically when the call session begins. |
+
+### Recording Methods
+
+| Method | Description |
+| ------ | ----------- |
+| `CometChatCalls.startRecording()` | Starts recording the current call session. Can only be called during an active session. |
+| `CometChatCalls.stopRecording()` | Stops the current recording. The recording file will be processed and made available in the Dashboard. |
+
+### Recording Events
+
+| Event | Description |
+| ----- | ----------- |
+| `onRecordingStarted(event)` | Invoked when recording starts. The `event.user` contains information about who started the recording. |
+| `onRecordingStopped(event)` | Invoked when recording stops. The `event.user` contains information about who stopped the recording. |
+
+### Return Values
+
+The `startRecording()` and `stopRecording()` methods do not return values. Use the event listeners to track recording state changes.
+
+### Errors
+
+| Error | Description | Resolution |
+| ----- | ----------- | ---------- |
+| Recording not enabled | Recording feature is not enabled for your app | Enable recording in the CometChat Dashboard under Calls settings |
+| No active session | Attempted to start/stop recording without an active call | Ensure a call session is active before calling recording methods |
+| Recording already in progress | Attempted to start recording when already recording | Check recording state before calling `startRecording()` |
+
+## Events & Real-time Behavior
+
+### Registering Recording Listeners
+
+Add recording event listeners as part of your `OngoingCallListener` configuration:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "UNIQUE_LISTENER_ID";
+
+const callListener = new CometChatCalls.OngoingCallListener({
+  onRecordingStarted: (event) => {
+    console.log("Recording started by:", event.user);
+    // Show recording indicator in your UI
+    showRecordingIndicator(true);
+  },
+  onRecordingStopped: (event) => {
+    console.log("Recording stopped by:", event.user);
+    // Hide recording indicator
+    showRecordingIndicator(false);
+  }
+});
+
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setCallListener(callListener)
+  .build();
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerId: string = "UNIQUE_LISTENER_ID";
+
+const callListener = new CometChatCalls.OngoingCallListener({
+  onRecordingStarted: (event: { user: any }) => {
+    console.log("Recording started by:", event.user);
+    // Show recording indicator in your UI
+    showRecordingIndicator(true);
+  },
+  onRecordingStopped: (event: { user: any }) => {
+    console.log("Recording stopped by:", event.user);
+    // Hide recording indicator
+    showRecordingIndicator(false);
+  }
+});
+
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setCallListener(callListener)
+  .build();
+```
+</Tab>
+</Tabs>
+
+### Removing Listeners
+
+Listeners are automatically cleaned up when you call `CometChatCalls.endSession()`. If you registered additional listeners via `addCallEventListener()`, remove them explicitly:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Remove listener when done
+CometChatCalls.removeCallEventListener(listenerId);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Remove listener when done
+CometChatCalls.removeCallEventListener(listenerId);
+```
+</Tab>
+</Tabs>
+
+### Event Ordering
+
+1. When a user starts recording, `onRecordingStarted` fires for all participants
+2. Recording continues until explicitly stopped or the call ends
+3. When recording stops, `onRecordingStopped` fires for all participants
+4. If the call ends while recording, the recording is automatically stopped and saved
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Recording Without Active Session**: Calling `startRecording()` or `stopRecording()` without an active call session will fail silently. Always ensure a call session is active before attempting to control recording.
+</Warning>
+
+<Warning>
+**Multiple Recording Starts**: Calling `startRecording()` when recording is already in progress may cause unexpected behavior. Track the recording state in your application and disable the start button when recording is active.
+</Warning>
+
+<Warning>
+**Recording Not Enabled in Dashboard**: If call recording is not enabled in your CometChat Dashboard, the recording button will not appear and programmatic recording calls will fail. Verify your Dashboard settings before implementing recording features.
+</Warning>
+
+<Warning>
+**Recording Indicator for All Participants**: When one participant starts recording, all participants receive the `onRecordingStarted` event. Ensure your UI shows a recording indicator to all users for transparency and compliance with recording consent laws.
+</Warning>
+
+<Warning>
+**Large Recording Files**: Long calls produce large recording files. Consider implementing recording duration limits or warnings for extended recordings to manage storage costs and processing time.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Recording Processing**: Recordings are processed asynchronously after the call ends. Large recordings may take several minutes to become available in the Dashboard.
+- **Storage Considerations**: Recording files are stored in CometChat's cloud storage. Monitor your usage in the Dashboard to manage storage costs.
+- **Bandwidth Impact**: Recording adds minimal overhead to call bandwidth as it captures the media streams server-side.
+- **Concurrent Recordings**: Each call session can have one active recording at a time. Starting a new recording while one is in progress will not create multiple recordings.
+
+## Security Notes
+
+<Note>
+**Auth Key** is acceptable for POC/development only. For production, use **Auth Token** created server-side via the CometChat REST API.
+</Note>
+
+<Note>
+**Recording Consent**: Many jurisdictions require consent from all parties before recording a call. Implement appropriate consent mechanisms and display recording indicators to comply with local laws and regulations.
+</Note>
+
+<Note>
+**Recording Access**: Call recordings are accessible only through the CometChat Dashboard by authorized administrators. Implement appropriate access controls in your organization.
+</Note>
+
+## Downloading Recordings
+
+Call recordings are available in the [CometChat Dashboard](https://app.cometchat.com) under the Calls section. To access recordings:
+
+1. Navigate to the **Calls** section in your Dashboard
+2. Find the call you want to review
+3. Click the three-dot menu icon to expand options
+4. Select **View Recordings** to access the recording files
 
 <Frame>
   <img src="/images/f60b5e59-t4erpygunz9w2oxjn0nyfmez9d38l2ny8qauc33cpkgc9mz1udly2om321yf67wm-5b58e8c9377ee9bac1626a390525d975.png" />
@@ -137,3 +376,11 @@ Currently, the call recordings are available on the [CometChat Dashboard](https:
 <Frame>
   <img src="/images/31402cdd-fi6v16el19pe29q37izzqopz9k9ur8hz94ju2jxsh4avnmh33fcktwceouu7om2h-aad037f6953c6ba50729c8e00da500ef.png" />
 </Frame>
+
+## Next Steps
+
+- [Call Session](/sdk/javascript/direct-call) - Learn how to start and manage call sessions
+- [Ringing](/sdk/javascript/default-call) - Implement the complete calling flow with incoming/outgoing call UI
+- [Call Logs](/sdk/javascript/call-logs) - Retrieve and display call history
+- [Video View Customization](/sdk/javascript/video-view-customisation) - Customize the call UI appearance
+- [Calling Setup](/sdk/javascript/calling-setup) - Review Calls SDK initialization and configuration

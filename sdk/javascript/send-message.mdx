@@ -2,7 +2,75 @@
 title: "Send A Message"
 ---
 
+## Summary
 
+The CometChat JavaScript SDK enables you to send text messages, media messages (images, videos, audio, files), and custom messages (like location data) to individual users or groups. This page covers all message types, metadata attachment, message tagging, quoted replies, and multi-attachment support.
+
+## When to Use This
+
+- When implementing chat functionality to send text messages between users
+- When building file sharing features to send images, videos, audio, or documents
+- When creating custom message types like location sharing, polls, or interactive cards
+- When adding reply/quote functionality to reference previous messages
+- When attaching metadata (like user location) to messages for additional context
+
+## Prerequisites
+
+- **SDK**: `@cometchat/chat-sdk-javascript` v4.x (v3.0.9+ for multi-attachment support)
+- **State**: User must be logged in via `CometChat.login()` before sending messages
+- **Receiver**: The recipient user (UID) or group (GUID) must exist in CometChat
+- **For Media**: File object from input element or hosted URL for media messages
+
+## Minimal Example
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverID = "UID";
+const messageText = "Hello world!";
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+
+const textMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+
+CometChat.sendMessage(textMessage).then(
+  (message) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const messageText: string = "Hello world!";
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+
+CometChat.sendMessage(textMessage).then(
+  (message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message sending failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+## Step-by-Step
 
 Using CometChat, you can send three types of messages:
 
@@ -674,7 +742,7 @@ The `MediaMessage` class constructor takes the following parameters:
 <Tabs>
 <Tab title="User">
 ```javascript
-let receiverID = "cometchat-uid-2";
+let receiverID = "UID";
 let messageType = CometChat.MESSAGE_TYPE.IMAGE;
 let receiverType = CometChat.RECEIVER_TYPE.USER;
 let mediaMessage = new CometChat.MediaMessage(
@@ -709,7 +777,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="Group">
 ```javascript
-let receiverID = "cometchat-guid-1";
+let receiverID = "GUID";
 let messageType = CometChat.MESSAGE_TYPE.IMAGE;
 let receiverType = CometChat.RECEIVER_TYPE.GROUP;
 let mediaMessage = new CometChat.MediaMessage(
@@ -744,7 +812,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="TypeScript (User)">
 ```typescript
-let receiverID: string = "cometchat-uid-2",
+let receiverID: string = "UID",
   messageType: string = CometChat.MESSAGE_TYPE.IMAGE,
   receiverType: string = CometChat.RECEIVER_TYPE.USER,
   mediaMessage: CometChat.MediaMessage = new CometChat.MediaMessage(
@@ -779,7 +847,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="TypeScript (Group)">
 ```typescript
-let receiverID: string = "cometchat-guid-1",
+let receiverID: string = "GUID",
   messageType: string = CometChat.MESSAGE_TYPE.IMAGE,
   receiverType: string = CometChat.RECEIVER_TYPE.GROUP,
   mediaMessage: CometChat.MediaMessage = new CometChat.MediaMessage(
@@ -958,7 +1026,7 @@ The `MediaMessage` class constructor takes the following parameters:
 <Tabs>
 <Tab title="User">
 ```javascript
-let receiverID = "cometchat-uid-2";
+let receiverID = "UID";
 let messageType = CometChat.MESSAGE_TYPE.IMAGE;
 let receiverType = CometChat.RECEIVER_TYPE.USER;
 let mediaMessage = new CometChat.MediaMessage(
@@ -1002,7 +1070,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="TypeScript (User)">
 ```typescript
-let receiverID: string = "cometchat-uid-2",
+let receiverID: string = "UID",
   messageType: string = CometChat.MESSAGE_TYPE.IMAGE,
   receiverType: string = CometChat.RECEIVER_TYPE.USER,
   mediaMessage: CometChat.MediaMessage = new CometChat.MediaMessage(
@@ -1046,7 +1114,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="Group">
 ```javascript
-let receiverID = "cometchat-guid-1";
+let receiverID = "GUID";
 let messageType = CometChat.MESSAGE_TYPE.IMAGE;
 let receiverType = CometChat.RECEIVER_TYPE.GROUP;
 let mediaMessage = new CometChat.MediaMessage(
@@ -1090,7 +1158,7 @@ CometChat.sendMediaMessage(mediaMessage).then(
 
 <Tab title="TypeScript (Group)">
 ```typescript
-let receiverID: string = "cometchat-guid-1",
+let receiverID: string = "GUID",
   messageType: string = CometChat.MESSAGE_TYPE.IMAGE,
   receiverType: string = CometChat.RECEIVER_TYPE.GROUP,
   mediaMessage: CometChat.MediaMessage = new CometChat.MediaMessage(
@@ -1107,7 +1175,7 @@ let attachment1: Object = {
   url: "https://pngimg.com/uploads/mario/mario_PNG125.png",
 };
 
-let attachment1: Object = {
+let attachment2: Object = {
   name: "jaguar",
   extension: "png",
   mimeType: "image/png",
@@ -1725,3 +1793,159 @@ CometChat.sendCustomMessage(customMessage).then(
 It is also possible to send interactive messages from CometChat, to know more [click here](/sdk/javascript/interactive-messages)
 
 </Note>
+
+## API Details
+
+### sendMessage (Text Messages)
+
+#### Method Signature
+
+`CometChat.sendMessage(textMessage: TextMessage): Promise<TextMessage>`
+
+#### Parameters
+
+| Parameter   | Type        | Required | Default | Description                                |
+| ----------- | ----------- | -------- | ------- | ------------------------------------------ |
+| textMessage | TextMessage | Yes      | -       | TextMessage object containing message data |
+
+#### TextMessage Constructor Parameters
+
+| Parameter    | Type   | Required | Description                                                              |
+| ------------ | ------ | -------- | ------------------------------------------------------------------------ |
+| receiverID   | string | Yes      | UID of the user or GUID of the group receiving the message               |
+| messageText  | string | Yes      | The text content of the message                                          |
+| receiverType | string | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`        |
+
+#### Return Value
+
+Returns a `Promise<CometChat.TextMessage>` that resolves to the sent TextMessage object containing message ID, sent timestamp, and delivery status.
+
+### sendMediaMessage (Media Messages)
+
+#### Method Signature
+
+`CometChat.sendMediaMessage(mediaMessage: MediaMessage): Promise<MediaMessage>`
+
+#### Parameters
+
+| Parameter    | Type         | Required | Default | Description                                 |
+| ------------ | ------------ | -------- | ------- | ------------------------------------------- |
+| mediaMessage | MediaMessage | Yes      | -       | MediaMessage object containing file/URL data |
+
+#### MediaMessage Constructor Parameters
+
+| Parameter    | Type                | Required | Description                                                                                                                                     |
+| ------------ | ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| receiverID   | string              | Yes      | UID of the user or GUID of the group receiving the message                                                                                      |
+| file         | File \| File[] \| string | Yes      | File object, array of files, or empty string (when using Attachment)                                                                            |
+| messageType  | string              | Yes      | `CometChat.MESSAGE_TYPE.IMAGE`, `VIDEO`, `AUDIO`, or `FILE`                                                                                     |
+| receiverType | string              | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`                                                                               |
+
+#### Return Value
+
+Returns a `Promise<CometChat.MediaMessage>` that resolves to the sent MediaMessage object containing the uploaded file URL.
+
+### sendCustomMessage (Custom Messages)
+
+#### Method Signature
+
+`CometChat.sendCustomMessage(customMessage: CustomMessage): Promise<CustomMessage>`
+
+#### Parameters
+
+| Parameter     | Type          | Required | Default | Description                                  |
+| ------------- | ------------- | -------- | ------- | -------------------------------------------- |
+| customMessage | CustomMessage | Yes      | -       | CustomMessage object containing custom data  |
+
+#### CustomMessage Constructor Parameters
+
+| Parameter    | Type   | Required | Description                                                       |
+| ------------ | ------ | -------- | ----------------------------------------------------------------- |
+| receiverID   | string | Yes      | UID of the user or GUID of the group receiving the message        |
+| receiverType | string | Yes      | `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP` |
+| customType   | string | Yes      | Custom message type identifier (e.g., "location", "poll")         |
+| customData   | Object | Yes      | JSON object containing the custom message data                    |
+
+#### Return Value
+
+Returns a `Promise<CometChat.CustomMessage>` that resolves to the sent CustomMessage object.
+
+### Common Errors
+
+| Error Code                | Description                              | Resolution                                                    |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------------------- |
+| ERR_NOT_LOGGED_IN         | User not logged in                       | Call `CometChat.login()` before sending messages              |
+| ERR_UID_NOT_FOUND         | Receiver UID doesn't exist               | Verify the user exists in CometChat                           |
+| ERR_GUID_NOT_FOUND        | Receiver GUID doesn't exist              | Verify the group exists in CometChat                          |
+| ERR_NOT_A_MEMBER          | User is not a member of the group        | Join the group before sending messages                        |
+| ERR_FILE_SIZE_EXCEEDED    | Media file exceeds size limit            | Compress the file or use a smaller file                       |
+| ERR_INVALID_MESSAGE_TYPE  | Invalid message type specified           | Use valid MESSAGE_TYPE constants                              |
+
+## Edge Cases & Pitfalls
+
+<Warning>
+**Pitfall 1: Not handling send failures gracefully**
+
+Network issues or rate limits can cause message sends to fail. Always implement proper error handling and consider adding retry logic with exponential backoff. Store failed messages locally and provide users with a way to retry sending.
+</Warning>
+
+<Warning>
+**Pitfall 2: Sending messages before login completes**
+
+Attempting to send messages before `CometChat.login()` resolves will fail with `ERR_NOT_LOGGED_IN`. Always verify the user is logged in using `CometChat.getLoggedinUser()` before enabling send functionality.
+</Warning>
+
+<Warning>
+**Pitfall 3: Using wrong receiver type**
+
+Using `RECEIVER_TYPE.USER` with a GUID or `RECEIVER_TYPE.GROUP` with a UID will cause the message to fail. Always match the receiver type with the correct ID type (UID for users, GUID for groups).
+</Warning>
+
+<Warning>
+**Pitfall 4: Large file uploads without progress indication**
+
+Media message uploads can take time for large files. The `sendMediaMessage()` method doesn't provide upload progress. Consider showing a loading indicator and informing users that large files may take longer to send.
+</Warning>
+
+<Warning>
+**Pitfall 5: Not validating file types before upload**
+
+Sending unsupported file types may fail or cause issues. Validate file extensions and MIME types on the client side before calling `sendMediaMessage()`. Use the appropriate `MESSAGE_TYPE` constant for the file being sent.
+</Warning>
+
+## Performance & Scale Notes
+
+- **Message rate limits**: CometChat enforces rate limits on message sending. Check [Rate Limits](/sdk/javascript/rate-limits) for current limits.
+- **File size limits**: Media messages have file size limits based on your plan. Large files should be compressed or chunked before upload.
+- **Multi-attachment support**: Available in SDK v3.0.9+. Sending multiple attachments in one message is more efficient than sending multiple separate messages.
+- **Metadata size**: Keep metadata JSON objects small. Large metadata can impact message delivery performance.
+- **Batch operations**: For sending messages to multiple recipients, consider using server-side APIs for better performance.
+
+## Security Notes
+
+<Note>
+**Message Content Validation**
+
+Always validate and sanitize user input before sending messages. Never include sensitive data (passwords, API keys, personal information) in message metadata or custom data fields.
+</Note>
+
+<Note>
+**File Upload Security**
+
+When using URL-based attachments, ensure the URLs point to trusted sources. Validate file types and sizes on both client and server side. Consider implementing virus scanning for uploaded files in production applications.
+</Note>
+
+<Warning>
+**Custom Message Data**
+
+Custom message data is visible to all recipients. Never include sensitive information in custom messages. Use server-side encryption for sensitive data that must be transmitted.
+</Warning>
+
+## Next Steps
+
+- [Receive Messages](/sdk/javascript/receive-message) - Set up real-time message listeners to receive incoming messages
+- [Edit Message](/sdk/javascript/edit-message) - Learn how to edit sent messages
+- [Delete Message](/sdk/javascript/delete-message) - Remove messages from conversations
+- [Delivery & Read Receipts](/sdk/javascript/delivery-read-receipts) - Track message delivery and read status
+- [Interactive Messages](/sdk/javascript/interactive-messages) - Send rich interactive message types
+- [Threaded Messages](/sdk/javascript/threaded-messages) - Create message threads for organized conversations
