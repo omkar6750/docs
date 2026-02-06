@@ -1,0 +1,342 @@
+---
+title: "Mute Conversations"
+sidebarTitle: "Mute Conversations"
+description: "Mute and unmute conversations in the CometChat Android SDK. Control push notifications for specific users and groups."
+keywords: ["mute conversation", "unmute", "notifications", "do not disturb", "android", "kotlin"]
+---
+
+Muting a conversation prevents push notifications from being sent for messages in that conversation. The user can still see messages when they open the app, but won't receive push notifications.
+
+## Overview
+
+| Feature | Description |
+|---------|-------------|
+| **Mute** | Stop receiving push notifications for a conversation |
+| **Unmute** | Resume receiving push notifications |
+| **Duration** | Mute indefinitely or for a specific time period |
+| **Scope** | Mute individual users or groups |
+
+## Mute a Conversation
+
+Use `CometChatNotifications.muteConversations()` to mute one or more conversations:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// Mute a user conversation indefinitely
+val mutedConversation = MutedConversation(
+    "user_123",                    // ID of user/group
+    CometChatConstants.RECEIVER_TYPE_USER  // "user" or "group"
+)
+
+CometChatNotifications.muteConversations(
+    listOf(mutedConversation),
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(result: String) {
+            Log.d("Mute", "Conversation muted successfully")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Mute", "Failed to mute: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+// Mute a user conversation indefinitely
+MutedConversation mutedConversation = new MutedConversation(
+    "user_123",                    // ID of user/group
+    CometChatConstants.RECEIVER_TYPE_USER  // "user" or "group"
+);
+
+List<MutedConversation> conversations = new ArrayList<>();
+conversations.add(mutedConversation);
+
+CometChatNotifications.muteConversations(
+    conversations,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String result) {
+            Log.d("Mute", "Conversation muted successfully");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Mute", "Failed to mute: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Mute with Duration
+
+Mute a conversation for a specific time period:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// Mute for 1 hour (3600 seconds)
+val mutedConversation = MutedConversation(
+    "group_123",
+    CometChatConstants.RECEIVER_TYPE_GROUP,
+    3600  // Duration in seconds
+)
+
+CometChatNotifications.muteConversations(
+    listOf(mutedConversation),
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(result: String) {
+            Log.d("Mute", "Group muted for 1 hour")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Mute", "Failed: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+// Mute for 1 hour (3600 seconds)
+MutedConversation mutedConversation = new MutedConversation(
+    "group_123",
+    CometChatConstants.RECEIVER_TYPE_GROUP,
+    3600  // Duration in seconds
+);
+
+List<MutedConversation> conversations = new ArrayList<>();
+conversations.add(mutedConversation);
+
+CometChatNotifications.muteConversations(
+    conversations,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String result) {
+            Log.d("Mute", "Group muted for 1 hour");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Mute", "Failed: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Common Mute Durations
+
+| Duration | Seconds |
+|----------|---------|
+| 1 hour | `3600` |
+| 8 hours | `28800` |
+| 24 hours | `86400` |
+| 1 week | `604800` |
+| Indefinite | `null` or omit |
+
+## Mute Multiple Conversations
+
+Mute several conversations in a single call:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val mutedConversations = listOf(
+    MutedConversation("user_1", CometChatConstants.RECEIVER_TYPE_USER),
+    MutedConversation("user_2", CometChatConstants.RECEIVER_TYPE_USER, 3600),
+    MutedConversation("group_1", CometChatConstants.RECEIVER_TYPE_GROUP)
+)
+
+CometChatNotifications.muteConversations(
+    mutedConversations,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(result: String) {
+            Log.d("Mute", "All conversations muted")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Mute", "Failed: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+List<MutedConversation> mutedConversations = new ArrayList<>();
+mutedConversations.add(new MutedConversation("user_1", CometChatConstants.RECEIVER_TYPE_USER));
+mutedConversations.add(new MutedConversation("user_2", CometChatConstants.RECEIVER_TYPE_USER, 3600));
+mutedConversations.add(new MutedConversation("group_1", CometChatConstants.RECEIVER_TYPE_GROUP));
+
+CometChatNotifications.muteConversations(
+    mutedConversations,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String result) {
+            Log.d("Mute", "All conversations muted");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Mute", "Failed: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+## Unmute a Conversation
+
+Use `CometChatNotifications.unmuteConversations()` to resume notifications:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val unmutedConversation = UnmutedConversation(
+    "user_123",
+    CometChatConstants.RECEIVER_TYPE_USER
+)
+
+CometChatNotifications.unmuteConversations(
+    listOf(unmutedConversation),
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(result: String) {
+            Log.d("Unmute", "Conversation unmuted successfully")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Unmute", "Failed to unmute: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+UnmutedConversation unmutedConversation = new UnmutedConversation(
+    "user_123",
+    CometChatConstants.RECEIVER_TYPE_USER
+);
+
+List<UnmutedConversation> conversations = new ArrayList<>();
+conversations.add(unmutedConversation);
+
+CometChatNotifications.unmuteConversations(
+    conversations,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String result) {
+            Log.d("Unmute", "Conversation unmuted successfully");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Unmute", "Failed to unmute: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+## MutedConversation Model
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `String` | UID of user or GUID of group |
+| `type` | `String` | `"user"` or `"group"` |
+| `muteTill` | `Long?` | Unix timestamp when mute expires (null = indefinite) |
+
+## Check Mute Status
+
+Check if a conversation is muted by examining the `Conversation` object:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// When retrieving conversations
+conversationsRequest.fetchNext(object : CometChat.CallbackListener<List<Conversation>>() {
+    override fun onSuccess(conversations: List<Conversation>) {
+        conversations.forEach { conversation ->
+            val isMuted = conversation.isMuted
+            val mutedTill = conversation.mutedTill
+            
+            if (isMuted) {
+                if (mutedTill != null && mutedTill > 0) {
+                    Log.d("Mute", "${conversation.conversationId} muted until $mutedTill")
+                } else {
+                    Log.d("Mute", "${conversation.conversationId} muted indefinitely")
+                }
+            }
+        }
+    }
+
+    override fun onError(e: CometChatException) {
+        Log.e("Conversations", "Error: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+conversationsRequest.fetchNext(new CometChat.CallbackListener<List<Conversation>>() {
+    @Override
+    public void onSuccess(List<Conversation> conversations) {
+        for (Conversation conversation : conversations) {
+            boolean isMuted = conversation.isMuted();
+            Long mutedTill = conversation.getMutedTill();
+            
+            if (isMuted) {
+                if (mutedTill != null && mutedTill > 0) {
+                    Log.d("Mute", conversation.getConversationId() + " muted until " + mutedTill);
+                } else {
+                    Log.d("Mute", conversation.getConversationId() + " muted indefinitely");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("Conversations", "Error: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## How Muting Affects Notifications
+
+| Scenario | Push Notification | In-App Message |
+|----------|-------------------|----------------|
+| Conversation muted | ❌ Not sent | ✅ Received |
+| Conversation unmuted | ✅ Sent | ✅ Received |
+| Mute expired | ✅ Sent | ✅ Received |
+
+<Note>
+Muting only affects push notifications. Messages are still delivered and visible in the app.
+</Note>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Retrieve Conversations" href="/sdk/android/features/messaging/retrieve-conversations">
+    Get conversation list with mute status
+  </Card>
+  <Card title="Unread Counts" href="/sdk/android/features/messaging/unread-counts">
+    Get unread message counts
+  </Card>
+  <Card title="Block Users" href="/sdk/android/user-management/block-users">
+    Block users entirely
+  </Card>
+  <Card title="Receive Messages" href="/sdk/android/features/messaging/receive-messages">
+    Handle incoming messages
+  </Card>
+</CardGroup>

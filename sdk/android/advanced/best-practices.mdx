@@ -1,0 +1,338 @@
+---
+title: "Best Practices"
+sidebarTitle: "Best Practices"
+description: "Best practices for CometChat Android SDK. Listener cleanup, memory management, thread safety, and performance optimization."
+keywords: ["best practices", "performance", "memory", "listeners", "optimization", "patterns"]
+---
+
+Follow these best practices to build robust, performant applications with the CometChat Android SDK.
+
+## Listener Management
+
+### Always Remove Listeners
+
+Listeners that aren't removed cause memory leaks and duplicate event handling.
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class ChatActivity : AppCompatActivity() {
+    
+    companion object {
+        private const val MESSAGE_LISTENER = "chat_message_listener"
+        private const val USER_LISTENER = "chat_user_listener"
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        addListeners()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        removeListeners() // Always remove!
+    }
+    
+    private fun addListeners() {
+        CometChat.addMessageListener(MESSAGE_LISTENER, messageListener)
+        CometChat.addUserListener(USER_LISTENER, userListener)
+    }
+    
+    private fun removeListeners() {
+        CometChat.removeMessageListener(MESSAGE_LISTENER)
+        CometChat.removeUserListener(USER_LISTENER)
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class ChatActivity extends AppCompatActivity {
+    
+    private static final String MESSAGE_LISTENER = "chat_message_listener";
+    private static final String USER_LISTENER = "chat_user_listener";
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addListeners();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeListeners(); // Always remove!
+    }
+    
+    private void addListeners() {
+        CometChat.addMessageListener(MESSAGE_LISTENER, messageListener);
+        CometChat.addUserListener(USER_LISTENER, userListener);
+    }
+    
+    private void removeListeners() {
+        CometChat.removeMessageListener(MESSAGE_LISTENER);
+        CometChat.removeUserListener(USER_LISTENER);
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Use Unique Listener IDs
+
+```kotlin
+// ❌ Bad - Same ID causes conflicts
+CometChat.addMessageListener("listener", listener1)
+CometChat.addMessageListener("listener", listener2) // Overwrites listener1!
+
+// ✅ Good - Unique IDs
+CometChat.addMessageListener("chat_screen_listener", listener1)
+CometChat.addMessageListener("notification_listener", listener2)
+```
+
+## Session Management
+
+### Check Login State Before API Calls
+
+```kotlin
+// ✅ Good - Check before calling
+fun sendMessage(text: String) {
+    if (CometChat.getLoggedInUser() == null) {
+        navigateToLogin()
+        return
+    }
+    
+    // Proceed with sending
+    CometChat.sendMessage(message, callback)
+}
+```
+
+### Don't Call Login Multiple Times
+
+```kotlin
+// ❌ Bad - Calling login without checking
+fun onAppStart() {
+    CometChat.login(uid, authKey, callback) // May fail if already logged in
+}
+
+// ✅ Good - Check first
+fun onAppStart() {
+    if (CometChat.getLoggedInUser() == null) {
+        CometChat.login(uid, authKey, callback)
+    } else {
+        proceedToChat()
+    }
+}
+```
+
+## Thread Safety
+
+### Callbacks Are on Main Thread
+
+CometChat callbacks are delivered on the main thread. Don't block them:
+
+```kotlin
+// ❌ Bad - Blocking main thread
+override fun onSuccess(messages: List<BaseMessage>) {
+    val processed = messages.map { 
+        heavyProcessing(it) // Blocks UI!
+    }
+    updateUI(processed)
+}
+
+// ✅ Good - Offload heavy work
+override fun onSuccess(messages: List<BaseMessage>) {
+    lifecycleScope.launch(Dispatchers.Default) {
+        val processed = messages.map { heavyProcessing(it) }
+        withContext(Dispatchers.Main) {
+            updateUI(processed)
+        }
+    }
+}
+```
+
+## Pagination
+
+### Use Pagination for Large Lists
+
+```kotlin
+// ✅ Good - Paginated fetching
+class MessageRepository {
+    
+    private var messagesRequest: MessagesRequest? = null
+    
+    fun loadMessages(uid: String) {
+        if (messagesRequest == null) {
+            messagesRequest = MessagesRequest.MessagesRequestBuilder()
+                .setUID(uid)
+                .setLimit(30)
+                .build()
+        }
+        
+        messagesRequest?.fetchPrevious(object : CometChat.CallbackListener<List<BaseMessage>>() {
+            override fun onSuccess(messages: List<BaseMessage>) {
+                // Append to existing list
+                appendMessages(messages)
+            }
+            
+            override fun onError(e: CometChatException) {
+                handleError(e)
+            }
+        })
+    }
+    
+    fun resetPagination() {
+        messagesRequest = null
+    }
+}
+```
+
+### Reset Pagination When Context Changes
+
+```kotlin
+// When switching conversations
+fun switchConversation(newUid: String) {
+    messageRepository.resetPagination()
+    messageRepository.loadMessages(newUid)
+}
+```
+
+## Error Handling
+
+### Always Handle Errors
+
+```kotlin
+// ❌ Bad - Ignoring errors
+CometChat.sendMessage(message, object : CometChat.CallbackListener<TextMessage>() {
+    override fun onSuccess(msg: TextMessage) {
+        // Handle success
+    }
+    
+    override fun onError(e: CometChatException) {
+        // Empty - user has no idea what happened!
+    }
+})
+
+// ✅ Good - Proper error handling
+CometChat.sendMessage(message, object : CometChat.CallbackListener<TextMessage>() {
+    override fun onSuccess(msg: TextMessage) {
+        showMessageSent()
+    }
+    
+    override fun onError(e: CometChatException) {
+        Log.e("Message", "Send failed: ${e.code} - ${e.message}")
+        showError("Failed to send message. Please try again.")
+        
+        if (e.code == "ERR_USER_NOT_LOGGED_IN") {
+            navigateToLogin()
+        }
+    }
+})
+```
+
+## Memory Management
+
+### Avoid Holding References
+
+```kotlin
+// ❌ Bad - Activity reference in callback
+CometChat.addMessageListener("listener", object : MessageListener() {
+    override fun onTextMessageReceived(message: TextMessage) {
+        activity.updateUI(message) // Activity may be destroyed!
+    }
+})
+
+// ✅ Good - Use weak reference or check lifecycle
+CometChat.addMessageListener("listener", object : MessageListener() {
+    override fun onTextMessageReceived(message: TextMessage) {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            updateUI(message)
+        }
+    }
+})
+```
+
+## Common Anti-Patterns
+
+### ❌ Don't Do This
+
+```kotlin
+// 1. Multiple inits
+CometChat.init(context, appId, settings, callback)
+CometChat.init(context, appId, settings, callback) // Unnecessary!
+
+// 2. Login without checking
+CometChat.login(uid, key, callback) // May already be logged in
+
+// 3. Forgetting to remove listeners
+// Listeners in Activity without removal in onDestroy
+
+// 4. Blocking callbacks
+override fun onSuccess(data: Data) {
+    Thread.sleep(5000) // Blocks main thread!
+}
+
+// 5. Ignoring errors
+override fun onError(e: CometChatException) { }
+```
+
+### ✅ Do This Instead
+
+```kotlin
+// 1. Init once in Application class
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        initCometChat()
+    }
+}
+
+// 2. Check before login
+if (CometChat.getLoggedInUser() == null) {
+    CometChat.login(uid, key, callback)
+}
+
+// 3. Always remove listeners
+override fun onDestroy() {
+    super.onDestroy()
+    CometChat.removeMessageListener(LISTENER_ID)
+}
+
+// 4. Offload heavy work
+override fun onSuccess(data: Data) {
+    lifecycleScope.launch(Dispatchers.IO) {
+        processData(data)
+    }
+}
+
+// 5. Handle all errors
+override fun onError(e: CometChatException) {
+    Log.e(TAG, "Error: ${e.message}")
+    showUserFriendlyError(e)
+}
+```
+
+## Performance Tips
+
+1. **Limit message fetch size** - Use `setLimit(30)` instead of fetching all
+2. **Cache user/group data** - Don't fetch repeatedly
+3. **Use pagination** - Load data incrementally
+4. **Remove unused listeners** - Prevent memory leaks
+5. **Batch operations** - Group multiple updates when possible
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Error Handling" href="/sdk/android/concepts/error-handling">
+    Complete error handling guide
+  </Card>
+  <Card title="Real-time Listeners" href="/sdk/android/concepts/real-time-listeners">
+    Listener types and usage
+  </Card>
+  <Card title="Troubleshooting" href="/sdk/android/resources/troubleshooting">
+    Common issues and solutions
+  </Card>
+  <Card title="API Reference" href="/sdk/android/api-reference/overview">
+    Complete API documentation
+  </Card>
+</CardGroup>

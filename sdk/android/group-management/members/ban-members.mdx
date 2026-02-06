@@ -1,0 +1,280 @@
+---
+title: "Ban Group Members"
+sidebarTitle: "Ban Members"
+description: "Ban and unban members from groups in the CometChat Android SDK. Manage banned users and understand the difference between kick and ban."
+keywords: ["ban member", "unban member", "banned users", "group moderation", "android", "kotlin"]
+---
+
+Banning a member permanently removes them from a group and prevents them from rejoining until unbanned. This is different from kicking, which only removes the member temporarily.
+
+## Ban vs Kick
+
+| Action | Effect | Can Rejoin? |
+|--------|--------|-------------|
+| **Kick** | Removes member from group | Yes, immediately |
+| **Ban** | Removes member and blocks rejoining | No, until unbanned |
+
+## Prerequisites
+
+- User must be logged in
+- User must have admin or moderator scope in the group
+- Target user must be a member of the group
+
+## Ban a Group Member
+
+Use `banGroupMember()` to ban a user from a group:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val guid = "group_123"
+val uid = "user_to_ban"
+
+CometChat.banGroupMember(
+    guid,
+    uid,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(successMessage: String) {
+            Log.d("BanMember", "User $uid banned successfully")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("BanMember", "Ban failed: ${e.code} - ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String guid = "group_123";
+String uid = "user_to_ban";
+
+CometChat.banGroupMember(
+    guid,
+    uid,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String successMessage) {
+            Log.d("BanMember", "User " + uid + " banned successfully");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("BanMember", "Ban failed: " + e.getCode() + " - " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `guid` | `String` | The unique identifier of the group |
+| `uid` | `String` | The UID of the user to ban |
+| `callback` | `CallbackListener<String>` | Callback for success/error |
+
+## Unban a Group Member
+
+Use `unbanGroupMember()` to allow a banned user to rejoin:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val guid = "group_123"
+val uid = "user_to_unban"
+
+CometChat.unbanGroupMember(
+    guid,
+    uid,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(successMessage: String) {
+            Log.d("UnbanMember", "User $uid unbanned successfully")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("UnbanMember", "Unban failed: ${e.code} - ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String guid = "group_123";
+String uid = "user_to_unban";
+
+CometChat.unbanGroupMember(
+    guid,
+    uid,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String successMessage) {
+            Log.d("UnbanMember", "User " + uid + " unbanned successfully");
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("UnbanMember", "Unban failed: " + e.getCode() + " - " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+## Retrieve Banned Members
+
+Get a list of all banned members in a group using `BannedGroupMembersRequest`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val guid = "group_123"
+val limit = 30
+
+val bannedMembersRequest = BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid)
+    .setLimit(limit)
+    .build()
+
+bannedMembersRequest.fetchNext(object : CometChat.CallbackListener<List<GroupMember>>() {
+    override fun onSuccess(bannedMembers: List<GroupMember>) {
+        bannedMembers.forEach { member ->
+            Log.d("BannedMembers", "Banned: ${member.uid} - ${member.name}")
+        }
+    }
+
+    override fun onError(e: CometChatException) {
+        Log.e("BannedMembers", "Error: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+String guid = "group_123";
+int limit = 30;
+
+BannedGroupMembersRequest bannedMembersRequest = new BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid)
+    .setLimit(limit)
+    .build();
+
+bannedMembersRequest.fetchNext(new CometChat.CallbackListener<List<GroupMember>>() {
+    @Override
+    public void onSuccess(List<GroupMember> bannedMembers) {
+        for (GroupMember member : bannedMembers) {
+            Log.d("BannedMembers", "Banned: " + member.getUid() + " - " + member.getName());
+        }
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("BannedMembers", "Error: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+### BannedGroupMembersRequestBuilder Options
+
+| Method | Description |
+|--------|-------------|
+| `setLimit(limit)` | Number of results per page (max 100) |
+| `setSearchKeyword(keyword)` | Search banned members by name |
+
+## Listen for Ban/Unban Events
+
+Register a `GroupListener` to receive real-time ban/unban events:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val listenerID = "ban_listener"
+
+CometChat.addGroupListener(listenerID, object : CometChat.GroupListener() {
+    override fun onGroupMemberBanned(
+        action: Action,
+        bannedUser: User,
+        bannedBy: User,
+        bannedFrom: Group
+    ) {
+        Log.d("GroupListener", "${bannedUser.name} was banned by ${bannedBy.name}")
+    }
+
+    override fun onGroupMemberUnbanned(
+        action: Action,
+        unbannedUser: User,
+        unbannedBy: User,
+        unbannedFrom: Group
+    ) {
+        Log.d("GroupListener", "${unbannedUser.name} was unbanned by ${unbannedBy.name}")
+    }
+})
+
+// Remove listener when done
+// CometChat.removeGroupListener(listenerID)
+```
+</Tab>
+<Tab title="Java">
+```java
+String listenerID = "ban_listener";
+
+CometChat.addGroupListener(listenerID, new CometChat.GroupListener() {
+    @Override
+    public void onGroupMemberBanned(Action action, User bannedUser, User bannedBy, Group bannedFrom) {
+        Log.d("GroupListener", bannedUser.getName() + " was banned by " + bannedBy.getName());
+    }
+
+    @Override
+    public void onGroupMemberUnbanned(Action action, User unbannedUser, User unbannedBy, Group unbannedFrom) {
+        Log.d("GroupListener", unbannedUser.getName() + " was unbanned by " + unbannedBy.getName());
+    }
+});
+
+// Remove listener when done
+// CometChat.removeGroupListener(listenerID);
+```
+</Tab>
+</Tabs>
+
+## Permission Requirements
+
+| Action | Required Scope |
+|--------|---------------|
+| Ban participant | Admin or Moderator |
+| Ban moderator | Admin only |
+| Unban any user | Admin or Moderator |
+
+<Note>
+Admins cannot be banned. Attempting to ban an admin will result in an error.
+</Note>
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `ERR_GROUP_NOT_JOINED` | User is not a member of the group |
+| `ERR_NOT_A_MEMBER` | Target user is not a member |
+| `ERR_INVALID_SCOPE` | Insufficient permissions to ban |
+| `ERR_OWNER_CANNOT_BE_BANNED` | Cannot ban the group owner |
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Kick Members" href="/sdk/android/group-management/members/kick-member">
+    Remove members without banning
+  </Card>
+  <Card title="Change Member Scope" href="/sdk/android/group-management/members/change-member-scope">
+    Promote or demote members
+  </Card>
+  <Card title="Retrieve Members" href="/sdk/android/group-management/members/retrieve-members">
+    Get group member list
+  </Card>
+  <Card title="Group Overview" href="/sdk/android/group-management/overview">
+    Group management basics
+  </Card>
+</CardGroup>

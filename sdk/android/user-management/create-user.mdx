@@ -1,0 +1,342 @@
+---
+title: "Create User"
+sidebarTitle: "Create User"
+description: "Learn how to create users in CometChat Android SDK. Add new users programmatically or via REST API."
+keywords: ["create user", "add user", "user registration", "new user", "user creation"]
+---
+
+Before a user can log into CometChat, they must be created in the CometChat system.
+
+## When to Create Users
+
+| Event | Action |
+|-------|--------|
+| User registers in your app | Create user in CometChat |
+| User logs into your app | [Login to CometChat](/sdk/android/authentication/overview) |
+
+## Recommended Approach: Server-Side
+
+<Note>
+**Best Practice**: Create users from your backend server using the [REST API](https://api-explorer.cometchat.com/reference/creates-user). This keeps your API Key secure.
+</Note>
+
+## Client-Side Creation
+
+For development or specific use cases, you can create users directly from the Android app using `createUser()`.
+
+### Method Signature
+
+```kotlin
+fun createUser(
+    user: User,
+    apiKey: String,
+    callbackListener: CallbackListener<User>
+)
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `user` | `User` | Yes | User object with UID and name |
+| `apiKey` | `String` | Yes | Your CometChat API Key |
+| `callbackListener` | `CallbackListener<User>` | Yes | Success/error callback |
+
+### User Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `uid` | `String` | Yes | Unique identifier (alphanumeric, underscore, hyphen only) |
+| `name` | `String` | Yes | Display name |
+| `avatar` | `String` | No | Avatar URL |
+| `link` | `String` | No | Profile link |
+| `role` | `String` | No | User role for access control |
+| `metadata` | `JSONObject` | No | Custom data |
+| `tags` | `List<String>` | No | Tags for filtering |
+
+### Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+import org.json.JSONObject
+
+val apiKey = "YOUR_API_KEY" // Replace with your API Key
+
+// Create user object
+val user = User().apply {
+    uid = "user_123"
+    name = "John Doe"
+    avatar = "https://example.com/avatar.png"
+    
+    // Optional: Add custom metadata
+    metadata = JSONObject().apply {
+        put("department", "Engineering")
+        put("employee_id", "EMP001")
+    }
+    
+    // Optional: Add tags
+    tags = listOf("premium", "verified")
+}
+
+CometChat.createUser(user, apiKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(createdUser: User) {
+        Log.d("CreateUser", "User created successfully")
+        Log.d("CreateUser", "UID: ${createdUser.uid}")
+        Log.d("CreateUser", "Name: ${createdUser.name}")
+        
+        // Now you can login this user
+        loginUser(createdUser.uid)
+    }
+    
+    override fun onError(e: CometChatException) {
+        Log.e("CreateUser", "Error: ${e.code} - ${e.message}")
+        
+        when (e.code) {
+            "ERR_UID_ALREADY_EXISTS" -> {
+                // User already exists, proceed to login
+                loginUser(user.uid)
+            }
+            "ERR_INVALID_UID" -> {
+                showError("Invalid UID format")
+            }
+            else -> {
+                showError("Failed to create user: ${e.message}")
+            }
+        }
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+import org.json.JSONObject;
+import java.util.Arrays;
+
+String apiKey = "YOUR_API_KEY"; // Replace with your API Key
+
+// Create user object
+User user = new User();
+user.setUid("user_123");
+user.setName("John Doe");
+user.setAvatar("https://example.com/avatar.png");
+
+// Optional: Add custom metadata
+try {
+    JSONObject metadata = new JSONObject();
+    metadata.put("department", "Engineering");
+    metadata.put("employee_id", "EMP001");
+    user.setMetadata(metadata);
+} catch (JSONException e) {
+    e.printStackTrace();
+}
+
+// Optional: Add tags
+user.setTags(Arrays.asList("premium", "verified"));
+
+CometChat.createUser(user, apiKey, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User createdUser) {
+        Log.d("CreateUser", "User created successfully");
+        Log.d("CreateUser", "UID: " + createdUser.getUid());
+        Log.d("CreateUser", "Name: " + createdUser.getName());
+        
+        // Now you can login this user
+        loginUser(createdUser.getUid());
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CreateUser", "Error: " + e.getCode() + " - " + e.getMessage());
+        
+        if ("ERR_UID_ALREADY_EXISTS".equals(e.getCode())) {
+            // User already exists, proceed to login
+            loginUser(user.getUid());
+        } else if ("ERR_INVALID_UID".equals(e.getCode())) {
+            showError("Invalid UID format");
+        } else {
+            showError("Failed to create user: " + e.getMessage());
+        }
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## UID Requirements
+
+<Warning>
+**UID Rules:**
+- Alphanumeric characters only
+- Underscore (`_`) and hyphen (`-`) allowed
+- No spaces
+- No special characters
+- Case-sensitive
+- Cannot be changed after creation
+</Warning>
+
+Valid UIDs:
+- `user123`
+- `john_doe`
+- `user-001`
+- `JohnDoe_123`
+
+Invalid UIDs:
+- `user 123` (space)
+- `john.doe` (period)
+- `user@123` (special character)
+
+## Error Codes
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_UID_ALREADY_EXISTS` | User with this UID exists | Use different UID or login existing user |
+| `ERR_INVALID_UID` | UID format is invalid | Follow UID requirements |
+| `ERR_INVALID_API_KEY` | API Key is invalid | Check your API Key |
+| `ERR_NAME_REQUIRED` | Name is missing | Provide user name |
+
+## Complete Registration Flow
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class UserRegistrationManager {
+    
+    private val apiKey = "YOUR_API_KEY"
+    
+    fun registerAndLogin(
+        uid: String,
+        name: String,
+        email: String,
+        onSuccess: (User) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        // Step 1: Create user in CometChat
+        val user = User().apply {
+            this.uid = uid
+            this.name = name
+            metadata = JSONObject().apply {
+                put("email", email)
+            }
+        }
+        
+        CometChat.createUser(user, apiKey, object : CometChat.CallbackListener<User>() {
+            override fun onSuccess(createdUser: User) {
+                // Step 2: Login the created user
+                loginUser(uid, onSuccess, onError)
+            }
+            
+            override fun onError(e: CometChatException) {
+                if (e.code == "ERR_UID_ALREADY_EXISTS") {
+                    // User exists, just login
+                    loginUser(uid, onSuccess, onError)
+                } else {
+                    onError("Registration failed: ${e.message}")
+                }
+            }
+        })
+    }
+    
+    private fun loginUser(
+        uid: String,
+        onSuccess: (User) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        // Use Auth Token in production!
+        CometChat.login(uid, apiKey, object : CometChat.CallbackListener<User>() {
+            override fun onSuccess(user: User?) {
+                user?.let { onSuccess(it) }
+            }
+            
+            override fun onError(e: CometChatException?) {
+                onError("Login failed: ${e?.message}")
+            }
+        })
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class UserRegistrationManager {
+    
+    private static final String API_KEY = "YOUR_API_KEY";
+    
+    public interface RegistrationCallback {
+        void onSuccess(User user);
+        void onError(String error);
+    }
+    
+    public void registerAndLogin(String uid, String name, String email, RegistrationCallback callback) {
+        // Step 1: Create user in CometChat
+        User user = new User();
+        user.setUid(uid);
+        user.setName(name);
+        
+        try {
+            JSONObject metadata = new JSONObject();
+            metadata.put("email", email);
+            user.setMetadata(metadata);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        
+        CometChat.createUser(user, API_KEY, new CometChat.CallbackListener<User>() {
+            @Override
+            public void onSuccess(User createdUser) {
+                // Step 2: Login the created user
+                loginUser(uid, callback);
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                if ("ERR_UID_ALREADY_EXISTS".equals(e.getCode())) {
+                    // User exists, just login
+                    loginUser(uid, callback);
+                } else {
+                    callback.onError("Registration failed: " + e.getMessage());
+                }
+            }
+        });
+    }
+    
+    private void loginUser(String uid, RegistrationCallback callback) {
+        CometChat.login(uid, API_KEY, new CometChat.CallbackListener<User>() {
+            @Override
+            public void onSuccess(User user) {
+                callback.onSuccess(user);
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                callback.onError("Login failed: " + e.getMessage());
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Update User" href="/sdk/android/user-management/update-user">
+    Modify user properties
+  </Card>
+  <Card title="Authentication" href="/sdk/android/authentication/overview">
+    Login users after creation
+  </Card>
+  <Card title="Retrieve Users" href="/sdk/android/user-management/retrieve-users">
+    Fetch user lists
+  </Card>
+  <Card title="REST API" href="https://api-explorer.cometchat.com/reference/creates-user">
+    Server-side user creation
+  </Card>
+</CardGroup>

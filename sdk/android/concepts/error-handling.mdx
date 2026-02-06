@@ -1,0 +1,391 @@
+---
+title: "Error Handling"
+sidebarTitle: "Error Handling"
+description: "Complete guide to error handling in CometChat Android SDK. Understand error codes, exceptions, and best practices."
+keywords: ["error handling", "exceptions", "error codes", "cometchat exception", "debugging"]
+---
+
+All CometChat SDK errors are returned as `CometChatException` objects. This guide covers how to handle errors effectively.
+
+## CometChatException
+
+The `CometChatException` class contains:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `code` | `String` | Error code identifier |
+| `message` | `String` | Human-readable error message |
+| `details` | `String` | Additional error details |
+
+### Basic Error Handling
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.exceptions.CometChatException
+
+CometChat.login(uid, authKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(user: User?) {
+        // Handle success
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("CometChat", "Error Code: ${e?.code}")
+        Log.e("CometChat", "Error Message: ${e?.message}")
+        Log.e("CometChat", "Error Details: ${e?.details}")
+        
+        handleError(e)
+    }
+})
+
+fun handleError(e: CometChatException?) {
+    when (e?.code) {
+        "ERR_UID_NOT_FOUND" -> showError("User not found")
+        "ERR_INVALID_API_KEY" -> showError("Invalid credentials")
+        "ERR_INTERNET_UNAVAILABLE" -> showError("No internet connection")
+        else -> showError(e?.message ?: "Unknown error")
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.exceptions.CometChatException;
+
+CometChat.login(uid, authKey, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User user) {
+        // Handle success
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Error Code: " + e.getCode());
+        Log.e("CometChat", "Error Message: " + e.getMessage());
+        Log.e("CometChat", "Error Details: " + e.getDetails());
+        
+        handleError(e);
+    }
+});
+
+private void handleError(CometChatException e) {
+    switch (e.getCode()) {
+        case "ERR_UID_NOT_FOUND":
+            showError("User not found");
+            break;
+        case "ERR_INVALID_API_KEY":
+            showError("Invalid credentials");
+            break;
+        case "ERR_INTERNET_UNAVAILABLE":
+            showError("No internet connection");
+            break;
+        default:
+            showError(e.getMessage());
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Common Error Codes
+
+### Authentication Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_UID_NOT_FOUND` | User doesn't exist | Create user first |
+| `ERR_INVALID_API_KEY` | Invalid Auth Key | Check Dashboard |
+| `ERR_AUTH_TOKEN_NOT_FOUND` | Invalid Auth Token | Generate new token |
+| `ERR_AUTH_TOKEN_EXPIRED` | Token expired | Generate new token |
+| `ERR_USER_NOT_LOGGED_IN` | No user logged in | Call login() first |
+| `ERR_ALREADY_LOGGED_IN` | User already logged in | Check getLoggedInUser() |
+| `ERR_LOGIN_IN_PROGRESS` | Login already in progress | Wait for completion |
+
+### Initialization Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_INIT_NOT_CALLED` | SDK not initialized | Call init() first |
+| `ERR_INVALID_APP_ID` | Invalid App ID | Check Dashboard |
+| `ERR_INVALID_REGION` | Invalid region | Use "us" or "eu" |
+
+### Messaging Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_MESSAGE_TEXT_EMPTY` | Empty message text | Provide message content |
+| `ERR_INVALID_RECEIVER_TYPE` | Invalid receiver type | Use "user" or "group" |
+| `ERR_INVALID_UID` | Invalid user UID | Check UID format |
+| `ERR_INVALID_GUID` | Invalid group GUID | Check GUID format |
+| `ERR_FILE_OBJECT_INVALID` | Invalid file | Check file object |
+
+### Group Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_GROUP_NOT_FOUND` | Group doesn't exist | Check GUID |
+| `ERR_PASSWORD_MISSING` | Password required | Provide password |
+| `ERR_WRONG_PASSWORD` | Incorrect password | Check password |
+| `ERR_NOT_A_MEMBER` | Not a group member | Join group first |
+| `ERR_ALREADY_JOINED` | Already a member | No action needed |
+
+### Network Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_INTERNET_UNAVAILABLE` | No internet | Check connectivity |
+| `ERR_REQUEST_IN_PROGRESS` | Duplicate request | Wait for completion |
+| `ERR_CONNECTION_ERROR` | Connection failed | Retry later |
+
+### Call Errors
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_CALL_IN_PROGRESS` | Call already active | End current call |
+| `ERR_CALL_NOT_FOUND` | Call doesn't exist | Check session ID |
+
+## Error Handling Patterns
+
+### Centralized Error Handler
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+object CometChatErrorHandler {
+    
+    fun handle(e: CometChatException?, context: Context) {
+        val userMessage = getUserFriendlyMessage(e)
+        Toast.makeText(context, userMessage, Toast.LENGTH_SHORT).show()
+        
+        // Log for debugging
+        Log.e("CometChat", "Error: ${e?.code} - ${e?.message}")
+    }
+    
+    fun getUserFriendlyMessage(e: CometChatException?): String {
+        return when (e?.code) {
+            // Authentication
+            "ERR_UID_NOT_FOUND" -> "User account not found"
+            "ERR_INVALID_API_KEY" -> "Authentication failed"
+            "ERR_AUTH_TOKEN_EXPIRED" -> "Session expired. Please login again"
+            "ERR_USER_NOT_LOGGED_IN" -> "Please login to continue"
+            
+            // Network
+            "ERR_INTERNET_UNAVAILABLE" -> "No internet connection"
+            "ERR_CONNECTION_ERROR" -> "Connection failed. Please try again"
+            
+            // Messaging
+            "ERR_MESSAGE_TEXT_EMPTY" -> "Message cannot be empty"
+            
+            // Groups
+            "ERR_GROUP_NOT_FOUND" -> "Group not found"
+            "ERR_WRONG_PASSWORD" -> "Incorrect password"
+            "ERR_NOT_A_MEMBER" -> "You're not a member of this group"
+            
+            // Default
+            else -> e?.message ?: "Something went wrong"
+        }
+    }
+    
+    fun shouldRetry(e: CometChatException?): Boolean {
+        return when (e?.code) {
+            "ERR_INTERNET_UNAVAILABLE",
+            "ERR_CONNECTION_ERROR" -> true
+            else -> false
+        }
+    }
+    
+    fun requiresReauth(e: CometChatException?): Boolean {
+        return when (e?.code) {
+            "ERR_AUTH_TOKEN_EXPIRED",
+            "ERR_USER_NOT_LOGGED_IN" -> true
+            else -> false
+        }
+    }
+}
+
+// Usage
+CometChat.sendMessage(message, object : CometChat.CallbackListener<TextMessage>() {
+    override fun onSuccess(msg: TextMessage) {
+        // Handle success
+    }
+    
+    override fun onError(e: CometChatException?) {
+        CometChatErrorHandler.handle(e, context)
+        
+        if (CometChatErrorHandler.requiresReauth(e)) {
+            navigateToLogin()
+        } else if (CometChatErrorHandler.shouldRetry(e)) {
+            showRetryOption()
+        }
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+public class CometChatErrorHandler {
+    
+    public static void handle(CometChatException e, Context context) {
+        String userMessage = getUserFriendlyMessage(e);
+        Toast.makeText(context, userMessage, Toast.LENGTH_SHORT).show();
+        
+        Log.e("CometChat", "Error: " + e.getCode() + " - " + e.getMessage());
+    }
+    
+    public static String getUserFriendlyMessage(CometChatException e) {
+        if (e == null) return "Something went wrong";
+        
+        switch (e.getCode()) {
+            case "ERR_UID_NOT_FOUND":
+                return "User account not found";
+            case "ERR_INVALID_API_KEY":
+                return "Authentication failed";
+            case "ERR_AUTH_TOKEN_EXPIRED":
+                return "Session expired. Please login again";
+            case "ERR_USER_NOT_LOGGED_IN":
+                return "Please login to continue";
+            case "ERR_INTERNET_UNAVAILABLE":
+                return "No internet connection";
+            case "ERR_MESSAGE_TEXT_EMPTY":
+                return "Message cannot be empty";
+            case "ERR_GROUP_NOT_FOUND":
+                return "Group not found";
+            default:
+                return e.getMessage() != null ? e.getMessage() : "Something went wrong";
+        }
+    }
+    
+    public static boolean shouldRetry(CometChatException e) {
+        if (e == null) return false;
+        return "ERR_INTERNET_UNAVAILABLE".equals(e.getCode()) ||
+               "ERR_CONNECTION_ERROR".equals(e.getCode());
+    }
+    
+    public static boolean requiresReauth(CometChatException e) {
+        if (e == null) return false;
+        return "ERR_AUTH_TOKEN_EXPIRED".equals(e.getCode()) ||
+               "ERR_USER_NOT_LOGGED_IN".equals(e.getCode());
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Retry Logic
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class RetryHelper {
+    
+    companion object {
+        private const val MAX_RETRIES = 3
+        private const val RETRY_DELAY_MS = 1000L
+    }
+    
+    fun <T> executeWithRetry(
+        operation: (CometChat.CallbackListener<T>) -> Unit,
+        onSuccess: (T) -> Unit,
+        onError: (CometChatException?) -> Unit,
+        retryCount: Int = 0
+    ) {
+        operation(object : CometChat.CallbackListener<T>() {
+            override fun onSuccess(result: T) {
+                onSuccess(result)
+            }
+            
+            override fun onError(e: CometChatException?) {
+                if (CometChatErrorHandler.shouldRetry(e) && retryCount < MAX_RETRIES) {
+                    Log.d("Retry", "Retrying... attempt ${retryCount + 1}")
+                    
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        executeWithRetry(operation, onSuccess, onError, retryCount + 1)
+                    }, RETRY_DELAY_MS * (retryCount + 1))
+                } else {
+                    onError(e)
+                }
+            }
+        })
+    }
+}
+
+// Usage
+val retryHelper = RetryHelper()
+retryHelper.executeWithRetry<TextMessage>(
+    operation = { callback ->
+        CometChat.sendMessage(message, callback)
+    },
+    onSuccess = { sentMessage ->
+        Log.d("Message", "Sent: ${sentMessage.id}")
+    },
+    onError = { e ->
+        Log.e("Message", "Failed after retries: ${e?.message}")
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+public class RetryHelper {
+    
+    private static final int MAX_RETRIES = 3;
+    private static final long RETRY_DELAY_MS = 1000L;
+    
+    public interface Operation<T> {
+        void execute(CometChat.CallbackListener<T> callback);
+    }
+    
+    public <T> void executeWithRetry(
+            Operation<T> operation,
+            Consumer<T> onSuccess,
+            Consumer<CometChatException> onError,
+            int retryCount
+    ) {
+        operation.execute(new CometChat.CallbackListener<T>() {
+            @Override
+            public void onSuccess(T result) {
+                onSuccess.accept(result);
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                if (CometChatErrorHandler.shouldRetry(e) && retryCount < MAX_RETRIES) {
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        executeWithRetry(operation, onSuccess, onError, retryCount + 1);
+                    }, RETRY_DELAY_MS * (retryCount + 1));
+                } else {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+1. **Always handle errors** - Never ignore the `onError` callback
+2. **Show user-friendly messages** - Don't show raw error codes to users
+3. **Log for debugging** - Log full error details for troubleshooting
+4. **Implement retry logic** - For network-related errors
+5. **Handle auth errors** - Redirect to login when session expires
+6. **Check preconditions** - Verify user is logged in before API calls
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Rate Limits" href="/sdk/android/concepts/rate-limits">
+    API rate limiting
+  </Card>
+  <Card title="Troubleshooting" href="/sdk/android/resources/troubleshooting">
+    Common issues and solutions
+  </Card>
+  <Card title="Best Practices" href="/sdk/android/advanced/best-practices">
+    SDK best practices
+  </Card>
+  <Card title="Connection Management" href="/sdk/android/concepts/connection-management">
+    Handle connection errors
+  </Card>
+</CardGroup>

@@ -1,0 +1,399 @@
+---
+title: "Login Listeners"
+sidebarTitle: "Login Listeners"
+description: "Monitor authentication state changes in real-time with LoginListener. Track login success, failure, and logout events."
+keywords: ["login listener", "auth events", "logout listener", "authentication state", "session monitoring"]
+---
+
+The `LoginListener` provides real-time updates for authentication events, allowing you to respond to login and logout actions across your app.
+
+## Use Cases
+
+- Update UI when user logs in/out
+- Sync authentication state across multiple screens
+- Handle session expiry gracefully
+- Log authentication events for analytics
+
+## Events
+
+| Callback | Description |
+|----------|-------------|
+| `loginSuccess(User user)` | User successfully logged in |
+| `loginFailure(CometChatException e)` | Login attempt failed |
+| `logoutSuccess()` | User successfully logged out |
+| `logoutFailure(CometChatException e)` | Logout attempt failed |
+
+## Add Login Listener
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.core.CometChat.LoginListener
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+class AuthStateManager {
+    
+    companion object {
+        private const val LOGIN_LISTENER_ID = "auth_state_listener"
+    }
+    
+    fun startListening() {
+        CometChat.addLoginListener(LOGIN_LISTENER_ID, object : LoginListener() {
+            override fun loginSuccess(user: User) {
+                Log.d("AuthState", "User logged in: ${user.uid}")
+                
+                // Update UI state
+                updateAuthState(AuthState.LoggedIn(user))
+                
+                // Initialize other services
+                initializeUserServices(user)
+            }
+            
+            override fun loginFailure(e: CometChatException) {
+                Log.e("AuthState", "Login failed: ${e.message}")
+                
+                // Show error to user
+                showLoginError(e.message)
+                
+                // Track analytics
+                trackLoginFailure(e.code)
+            }
+            
+            override fun logoutSuccess() {
+                Log.d("AuthState", "User logged out")
+                
+                // Update UI state
+                updateAuthState(AuthState.LoggedOut)
+                
+                // Clean up services
+                cleanupUserServices()
+                
+                // Navigate to login screen
+                navigateToLogin()
+            }
+            
+            override fun logoutFailure(e: CometChatException) {
+                Log.e("AuthState", "Logout failed: ${e.message}")
+                
+                // Even on failure, treat as logged out for security
+                updateAuthState(AuthState.LoggedOut)
+                navigateToLogin()
+            }
+        })
+    }
+    
+    fun stopListening() {
+        CometChat.removeLoginListener(LOGIN_LISTENER_ID)
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.core.CometChat.LoginListener;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+public class AuthStateManager {
+    
+    private static final String LOGIN_LISTENER_ID = "auth_state_listener";
+    
+    public void startListening() {
+        CometChat.addLoginListener(LOGIN_LISTENER_ID, new LoginListener() {
+            @Override
+            public void loginSuccess(User user) {
+                Log.d("AuthState", "User logged in: " + user.getUid());
+                
+                // Update UI state
+                updateAuthState(new AuthState.LoggedIn(user));
+                
+                // Initialize other services
+                initializeUserServices(user);
+            }
+            
+            @Override
+            public void loginFailure(CometChatException e) {
+                Log.e("AuthState", "Login failed: " + e.getMessage());
+                
+                // Show error to user
+                showLoginError(e.getMessage());
+                
+                // Track analytics
+                trackLoginFailure(e.getCode());
+            }
+            
+            @Override
+            public void logoutSuccess() {
+                Log.d("AuthState", "User logged out");
+                
+                // Update UI state
+                updateAuthState(AuthState.LoggedOut);
+                
+                // Clean up services
+                cleanupUserServices();
+                
+                // Navigate to login screen
+                navigateToLogin();
+            }
+            
+            @Override
+            public void logoutFailure(CometChatException e) {
+                Log.e("AuthState", "Logout failed: " + e.getMessage());
+                
+                // Even on failure, treat as logged out for security
+                updateAuthState(AuthState.LoggedOut);
+                navigateToLogin();
+            }
+        });
+    }
+    
+    public void stopListening() {
+        CometChat.removeLoginListener(LOGIN_LISTENER_ID);
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Remove Login Listener
+
+Always remove listeners when they're no longer needed to prevent memory leaks:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// Remove specific listener
+CometChat.removeLoginListener(LOGIN_LISTENER_ID)
+
+// Typically in onDestroy() or when cleaning up
+override fun onDestroy() {
+    super.onDestroy()
+    CometChat.removeLoginListener(LOGIN_LISTENER_ID)
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+// Remove specific listener
+CometChat.removeLoginListener(LOGIN_LISTENER_ID);
+
+// Typically in onDestroy() or when cleaning up
+@Override
+protected void onDestroy() {
+    super.onDestroy();
+    CometChat.removeLoginListener(LOGIN_LISTENER_ID);
+}
+```
+</Tab>
+</Tabs>
+
+## Practical Example: Auth State in Application Class
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import android.app.Application
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.core.CometChat.LoginListener
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+class MyApplication : Application() {
+    
+    companion object {
+        private const val LOGIN_LISTENER_ID = "app_login_listener"
+        
+        private val _authState = MutableStateFlow<AuthState>(AuthState.Unknown)
+        val authState: StateFlow<AuthState> = _authState
+    }
+    
+    sealed class AuthState {
+        object Unknown : AuthState()
+        object LoggedOut : AuthState()
+        data class LoggedIn(val user: User) : AuthState()
+    }
+    
+    override fun onCreate() {
+        super.onCreate()
+        
+        // Check initial state
+        CometChat.getLoggedInUser()?.let { user ->
+            _authState.value = AuthState.LoggedIn(user)
+        } ?: run {
+            _authState.value = AuthState.LoggedOut
+        }
+        
+        // Listen for changes
+        CometChat.addLoginListener(LOGIN_LISTENER_ID, object : LoginListener() {
+            override fun loginSuccess(user: User) {
+                _authState.value = AuthState.LoggedIn(user)
+            }
+            
+            override fun loginFailure(e: CometChatException) {
+                // State remains unchanged on failure
+            }
+            
+            override fun logoutSuccess() {
+                _authState.value = AuthState.LoggedOut
+            }
+            
+            override fun logoutFailure(e: CometChatException) {
+                // Treat as logged out for security
+                _authState.value = AuthState.LoggedOut
+            }
+        })
+    }
+}
+
+// Usage in Activity/Fragment
+class MainActivity : AppCompatActivity() {
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        lifecycleScope.launch {
+            MyApplication.authState.collect { state ->
+                when (state) {
+                    is MyApplication.AuthState.LoggedIn -> {
+                        showChatUI(state.user)
+                    }
+                    is MyApplication.AuthState.LoggedOut -> {
+                        showLoginUI()
+                    }
+                    is MyApplication.AuthState.Unknown -> {
+                        showLoadingUI()
+                    }
+                }
+            }
+        }
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import android.app.Application;
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.core.CometChat.LoginListener;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+public class MyApplication extends Application {
+    
+    private static final String LOGIN_LISTENER_ID = "app_login_listener";
+    
+    private static MutableLiveData<AuthState> authState = new MutableLiveData<>();
+    
+    public static LiveData<AuthState> getAuthState() {
+        return authState;
+    }
+    
+    public enum AuthState {
+        UNKNOWN,
+        LOGGED_OUT,
+        LOGGED_IN
+    }
+    
+    private static User currentUser;
+    
+    public static User getCurrentUser() {
+        return currentUser;
+    }
+    
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        
+        // Check initial state
+        User user = CometChat.getLoggedInUser();
+        if (user != null) {
+            currentUser = user;
+            authState.setValue(AuthState.LOGGED_IN);
+        } else {
+            authState.setValue(AuthState.LOGGED_OUT);
+        }
+        
+        // Listen for changes
+        CometChat.addLoginListener(LOGIN_LISTENER_ID, new LoginListener() {
+            @Override
+            public void loginSuccess(User user) {
+                currentUser = user;
+                authState.postValue(AuthState.LOGGED_IN);
+            }
+            
+            @Override
+            public void loginFailure(CometChatException e) {
+                // State remains unchanged on failure
+            }
+            
+            @Override
+            public void logoutSuccess() {
+                currentUser = null;
+                authState.postValue(AuthState.LOGGED_OUT);
+            }
+            
+            @Override
+            public void logoutFailure(CometChatException e) {
+                currentUser = null;
+                authState.postValue(AuthState.LOGGED_OUT);
+            }
+        });
+    }
+}
+
+// Usage in Activity
+public class MainActivity extends AppCompatActivity {
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        MyApplication.getAuthState().observe(this, state -> {
+            switch (state) {
+                case LOGGED_IN:
+                    showChatUI(MyApplication.getCurrentUser());
+                    break;
+                case LOGGED_OUT:
+                    showLoginUI();
+                    break;
+                case UNKNOWN:
+                    showLoadingUI();
+                    break;
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+1. **Use unique listener IDs** - Prevents accidentally removing the wrong listener
+2. **Add listener early** - Add in `Application.onCreate()` or main Activity
+3. **Remove on cleanup** - Always remove listeners to prevent memory leaks
+4. **Handle failures gracefully** - Treat logout failures as successful for security
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Authentication Overview" href="/sdk/android/authentication/overview">
+    Login options and flow
+  </Card>
+  <Card title="Logout" href="/sdk/android/authentication/logout">
+    Proper logout implementation
+  </Card>
+  <Card title="Real-time Listeners" href="/sdk/android/concepts/real-time-listeners">
+    All listener types
+  </Card>
+  <Card title="Best Practices" href="/sdk/android/advanced/best-practices">
+    Listener cleanup patterns
+  </Card>
+</CardGroup>

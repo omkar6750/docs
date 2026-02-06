@@ -1,0 +1,295 @@
+---
+title: "Ask Bot"
+sidebarTitle: "Ask Bot"
+description: "Query AI bots for answers and assistance in the CometChat Android SDK."
+keywords: ["ask bot", "ai bot", "chatbot", "question answering", "android", "kotlin", "ai"]
+---
+
+Ask Bot allows users to query AI-powered bots for information, assistance, or to perform actions within your application.
+
+## Prerequisites
+
+- AI Bots must be configured in your CometChat dashboard
+- User must be logged in
+- Bot ID must be valid and active
+
+## Ask a Question
+
+Use `CometChat.askBot()` to send a question to an AI bot:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val botId = "support_bot"
+val question = "How do I reset my password?"
+
+CometChat.askBot(
+    botId,
+    question,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(answer: String) {
+            Log.d("AskBot", "Bot response: $answer")
+            displayBotResponse(answer)
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("AskBot", "Error: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String botId = "support_bot";
+String question = "How do I reset my password?";
+
+CometChat.askBot(
+    botId,
+    question,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String answer) {
+            Log.d("AskBot", "Bot response: " + answer);
+            displayBotResponse(answer);
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("AskBot", "Error: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `botId` | `String` | The unique identifier of the bot |
+| `question` | `String` | The question or query to send |
+| `callback` | `CallbackListener<String>` | Callback with the bot's response |
+
+## Ask Bot with Conversation Context
+
+Provide conversation context for more relevant answers:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val botId = "support_bot"
+val question = "Can you help me with this?"
+val receiverId = "user_123"
+val receiverType = CometChatConstants.RECEIVER_TYPE_USER
+
+CometChat.askBot(
+    botId,
+    question,
+    receiverId,
+    receiverType,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(answer: String) {
+            Log.d("AskBot", "Contextual response: $answer")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("AskBot", "Error: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String botId = "support_bot";
+String question = "Can you help me with this?";
+String receiverId = "user_123";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+
+CometChat.askBot(
+    botId,
+    question,
+    receiverId,
+    receiverType,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String answer) {
+            Log.d("AskBot", "Contextual response: " + answer);
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("AskBot", "Error: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters with Context
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `botId` | `String` | The unique identifier of the bot |
+| `question` | `String` | The question or query to send |
+| `receiverId` | `String` | UID of user or GUID of group for context |
+| `receiverType` | `String` | `"user"` or `"group"` |
+| `callback` | `CallbackListener<String>` | Callback with the bot's response |
+
+## Implementing Ask Bot UI
+
+Example of a simple bot chat interface:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class AskBotFragment : Fragment() {
+    
+    private lateinit var questionInput: EditText
+    private lateinit var sendButton: Button
+    private lateinit var responseText: TextView
+    private lateinit var loadingIndicator: ProgressBar
+    
+    private val botId = "support_bot"
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        sendButton.setOnClickListener {
+            val question = questionInput.text.toString().trim()
+            if (question.isNotEmpty()) {
+                askBot(question)
+            }
+        }
+    }
+    
+    private fun askBot(question: String) {
+        loadingIndicator.visibility = View.VISIBLE
+        responseText.visibility = View.GONE
+        sendButton.isEnabled = false
+        
+        CometChat.askBot(
+            botId,
+            question,
+            object : CometChat.CallbackListener<String>() {
+                override fun onSuccess(answer: String) {
+                    loadingIndicator.visibility = View.GONE
+                    responseText.visibility = View.VISIBLE
+                    responseText.text = answer
+                    sendButton.isEnabled = true
+                    questionInput.text.clear()
+                }
+
+                override fun onError(e: CometChatException) {
+                    loadingIndicator.visibility = View.GONE
+                    responseText.visibility = View.VISIBLE
+                    responseText.text = "Sorry, I couldn't process your question. Please try again."
+                    sendButton.isEnabled = true
+                }
+            }
+        )
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class AskBotFragment extends Fragment {
+    
+    private EditText questionInput;
+    private Button sendButton;
+    private TextView responseText;
+    private ProgressBar loadingIndicator;
+    
+    private String botId = "support_bot";
+    
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        
+        sendButton.setOnClickListener(v -> {
+            String question = questionInput.getText().toString().trim();
+            if (!question.isEmpty()) {
+                askBot(question);
+            }
+        });
+    }
+    
+    private void askBot(String question) {
+        loadingIndicator.setVisibility(View.VISIBLE);
+        responseText.setVisibility(View.GONE);
+        sendButton.setEnabled(false);
+        
+        CometChat.askBot(
+            botId,
+            question,
+            new CometChat.CallbackListener<String>() {
+                @Override
+                public void onSuccess(String answer) {
+                    loadingIndicator.setVisibility(View.GONE);
+                    responseText.setVisibility(View.VISIBLE);
+                    responseText.setText(answer);
+                    sendButton.setEnabled(true);
+                    questionInput.getText().clear();
+                }
+
+                @Override
+                public void onError(CometChatException e) {
+                    loadingIndicator.setVisibility(View.GONE);
+                    responseText.setVisibility(View.VISIBLE);
+                    responseText.setText("Sorry, I couldn't process your question. Please try again.");
+                    sendButton.setEnabled(true);
+                }
+            }
+        );
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Bot Configuration
+
+Bots are configured in the CometChat dashboard. Common bot types include:
+
+| Bot Type | Description |
+|----------|-------------|
+| **FAQ Bot** | Answers frequently asked questions |
+| **Support Bot** | Provides customer support assistance |
+| **Knowledge Bot** | Queries a knowledge base |
+| **Custom Bot** | Custom AI behavior defined by you |
+
+## Best Practices
+
+1. **Show typing indicator** - Display a loading state while waiting for the bot response
+2. **Handle timeouts** - Bot responses may take a few seconds
+3. **Provide fallback** - Offer to connect with a human if the bot can't help
+4. **Log interactions** - Track bot usage for improvement
+
+## Error Handling
+
+| Error Code | Description |
+|------------|-------------|
+| `ERR_BOT_NOT_FOUND` | The specified bot ID doesn't exist |
+| `ERR_BOT_DISABLED` | The bot is currently disabled |
+| `ERR_RATE_LIMIT` | Too many requests to the bot |
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="AI Overview" href="/sdk/android/features/ai/overview">
+    AI features overview
+  </Card>
+  <Card title="AI Chatbots" href="/sdk/android/features/ai/ai-chatbots">
+    Chatbot integration
+  </Card>
+  <Card title="Smart Replies" href="/sdk/android/features/ai/smart-replies">
+    AI-powered reply suggestions
+  </Card>
+  <Card title="Conversation Summary" href="/sdk/android/features/ai/conversation-summary">
+    Generate conversation summaries
+  </Card>
+</CardGroup>

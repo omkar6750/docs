@@ -1,0 +1,241 @@
+---
+title: "Conversation Summary"
+sidebarTitle: "Conversation Summary"
+description: "Generate AI-powered summaries of conversations in the CometChat Android SDK."
+keywords: ["conversation summary", "ai summary", "chat summary", "android", "kotlin", "ai"]
+---
+
+Conversation Summary uses AI to generate concise summaries of chat conversations, helping users quickly catch up on missed messages or understand the context of a discussion.
+
+## Prerequisites
+
+- Conversation Summary must be enabled in your CometChat dashboard
+- User must be logged in
+- Conversation must have sufficient message history
+
+## Get Conversation Summary
+
+Use `CometChat.getConversationSummary()` to generate a summary:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val receiverId = "user_123"
+val receiverType = CometChatConstants.RECEIVER_TYPE_USER
+
+CometChat.getConversationSummary(
+    receiverId,
+    receiverType,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(summary: String) {
+            Log.d("Summary", "Conversation summary: $summary")
+            displaySummary(summary)
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Summary", "Error: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String receiverId = "user_123";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+
+CometChat.getConversationSummary(
+    receiverId,
+    receiverType,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String summary) {
+            Log.d("Summary", "Conversation summary: " + summary);
+            displaySummary(summary);
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Summary", "Error: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `receiverId` | `String` | UID of user or GUID of group |
+| `receiverType` | `String` | `CometChatConstants.RECEIVER_TYPE_USER` or `RECEIVER_TYPE_GROUP` |
+| `callback` | `CallbackListener<String>` | Callback with summary text |
+
+## Get Summary for Group
+
+Generate a summary for a group conversation:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val groupId = "group_123"
+
+CometChat.getConversationSummary(
+    groupId,
+    CometChatConstants.RECEIVER_TYPE_GROUP,
+    object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(summary: String) {
+            Log.d("Summary", "Group summary: $summary")
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("Summary", "Error: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String groupId = "group_123";
+
+CometChat.getConversationSummary(
+    groupId,
+    CometChatConstants.RECEIVER_TYPE_GROUP,
+    new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String summary) {
+            Log.d("Summary", "Group summary: " + summary);
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Summary", "Error: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+## Implementing Summary UI
+
+Example of displaying a conversation summary:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class ConversationSummaryView(context: Context) : LinearLayout(context) {
+    
+    private val summaryText: TextView
+    private val loadingIndicator: ProgressBar
+    
+    init {
+        orientation = VERTICAL
+        // Initialize views...
+        summaryText = TextView(context)
+        loadingIndicator = ProgressBar(context)
+    }
+    
+    fun loadSummary(receiverId: String, receiverType: String) {
+        loadingIndicator.visibility = View.VISIBLE
+        summaryText.visibility = View.GONE
+        
+        CometChat.getConversationSummary(
+            receiverId,
+            receiverType,
+            object : CometChat.CallbackListener<String>() {
+                override fun onSuccess(summary: String) {
+                    loadingIndicator.visibility = View.GONE
+                    summaryText.visibility = View.VISIBLE
+                    summaryText.text = summary
+                }
+
+                override fun onError(e: CometChatException) {
+                    loadingIndicator.visibility = View.GONE
+                    summaryText.visibility = View.VISIBLE
+                    summaryText.text = "Unable to generate summary"
+                }
+            }
+        )
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class ConversationSummaryView extends LinearLayout {
+    
+    private TextView summaryText;
+    private ProgressBar loadingIndicator;
+    
+    public ConversationSummaryView(Context context) {
+        super(context);
+        setOrientation(VERTICAL);
+        summaryText = new TextView(context);
+        loadingIndicator = new ProgressBar(context);
+        // Add views...
+    }
+    
+    public void loadSummary(String receiverId, String receiverType) {
+        loadingIndicator.setVisibility(View.VISIBLE);
+        summaryText.setVisibility(View.GONE);
+        
+        CometChat.getConversationSummary(
+            receiverId,
+            receiverType,
+            new CometChat.CallbackListener<String>() {
+                @Override
+                public void onSuccess(String summary) {
+                    loadingIndicator.setVisibility(View.GONE);
+                    summaryText.setVisibility(View.VISIBLE);
+                    summaryText.setText(summary);
+                }
+
+                @Override
+                public void onError(CometChatException e) {
+                    loadingIndicator.setVisibility(View.GONE);
+                    summaryText.setVisibility(View.VISIBLE);
+                    summaryText.setText("Unable to generate summary");
+                }
+            }
+        );
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Use Cases
+
+| Use Case | Description |
+|----------|-------------|
+| **Catch-up** | Help users understand what they missed in a conversation |
+| **Context** | Provide context before joining a group discussion |
+| **Search** | Summarize search results for quick scanning |
+| **Reports** | Generate summaries for conversation exports |
+
+## Best Practices
+
+1. **Cache summaries** - Don't regenerate for the same conversation repeatedly
+2. **Show loading state** - Summary generation may take a few seconds
+3. **Handle errors gracefully** - Show a fallback message if generation fails
+4. **Refresh on demand** - Allow users to regenerate if the conversation has progressed
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="AI Overview" href="/sdk/android/features/ai/overview">
+    AI features overview
+  </Card>
+  <Card title="Smart Replies" href="/sdk/android/features/ai/smart-replies">
+    AI-powered reply suggestions
+  </Card>
+  <Card title="Ask Bot" href="/sdk/android/features/ai/ask-bot">
+    Query AI bots
+  </Card>
+  <Card title="Retrieve Conversations" href="/sdk/android/features/messaging/retrieve-conversations">
+    Get conversation list
+  </Card>
+</CardGroup>

@@ -1,0 +1,231 @@
+---
+title: "Smart Replies"
+sidebarTitle: "Smart Replies"
+description: "Generate AI-powered smart reply suggestions for conversations in the CometChat Android SDK."
+keywords: ["smart replies", "ai suggestions", "quick replies", "android", "kotlin", "ai"]
+---
+
+Smart Replies uses AI to generate contextually relevant reply suggestions based on the conversation history. Users can tap a suggestion to quickly respond without typing.
+
+## Prerequisites
+
+- Smart Replies must be enabled in your CometChat dashboard
+- User must be logged in
+- Active conversation with message history
+
+## Get Smart Replies
+
+Use `CometChat.getSmartReplies()` to generate reply suggestions:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val receiverId = "user_123"
+val receiverType = CometChatConstants.RECEIVER_TYPE_USER
+
+CometChat.getSmartReplies(
+    receiverId,
+    receiverType,
+    object : CometChat.CallbackListener<HashMap<String, String>>() {
+        override fun onSuccess(replies: HashMap<String, String>) {
+            replies.forEach { (key, suggestion) ->
+                Log.d("SmartReplies", "Option $key: $suggestion")
+            }
+            displaySuggestions(replies.values.toList())
+        }
+
+        override fun onError(e: CometChatException) {
+            Log.e("SmartReplies", "Error: ${e.message}")
+        }
+    }
+)
+```
+</Tab>
+<Tab title="Java">
+```java
+String receiverId = "user_123";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+
+CometChat.getSmartReplies(
+    receiverId,
+    receiverType,
+    new CometChat.CallbackListener<HashMap<String, String>>() {
+        @Override
+        public void onSuccess(HashMap<String, String> replies) {
+            for (Map.Entry<String, String> entry : replies.entrySet()) {
+                Log.d("SmartReplies", "Option " + entry.getKey() + ": " + entry.getValue());
+            }
+            displaySuggestions(new ArrayList<>(replies.values()));
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("SmartReplies", "Error: " + e.getMessage());
+        }
+    }
+);
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `receiverId` | `String` | UID of user or GUID of group |
+| `receiverType` | `String` | `CometChatConstants.RECEIVER_TYPE_USER` or `RECEIVER_TYPE_GROUP` |
+| `callback` | `CallbackListener<HashMap<String, String>>` | Callback with suggestions |
+
+### Response Format
+
+The response is a `HashMap<String, String>` where:
+- **Key**: Identifier for the suggestion (e.g., "positive", "negative", "neutral")
+- **Value**: The suggested reply text
+
+Example response:
+```
+{
+  "positive": "That sounds great! I'm in.",
+  "negative": "Sorry, I can't make it.",
+  "neutral": "Let me check my schedule and get back to you."
+}
+```
+
+## Implementing Smart Replies UI
+
+Example of displaying smart reply chips:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class SmartRepliesAdapter(
+    private val suggestions: List<String>,
+    private val onSuggestionClick: (String) -> Unit
+) : RecyclerView.Adapter<SmartRepliesAdapter.ViewHolder>() {
+
+    class ViewHolder(val chip: Chip) : RecyclerView.ViewHolder(chip)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val chip = Chip(parent.context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            isClickable = true
+        }
+        return ViewHolder(chip)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.chip.text = suggestions[position]
+        holder.chip.setOnClickListener {
+            onSuggestionClick(suggestions[position])
+        }
+    }
+
+    override fun getItemCount() = suggestions.size
+}
+
+// Usage
+fun showSmartReplies(receiverId: String) {
+    CometChat.getSmartReplies(
+        receiverId,
+        CometChatConstants.RECEIVER_TYPE_USER,
+        object : CometChat.CallbackListener<HashMap<String, String>>() {
+            override fun onSuccess(replies: HashMap<String, String>) {
+                val adapter = SmartRepliesAdapter(replies.values.toList()) { suggestion ->
+                    sendMessage(suggestion)
+                }
+                smartRepliesRecyclerView.adapter = adapter
+                smartRepliesRecyclerView.visibility = View.VISIBLE
+            }
+
+            override fun onError(e: CometChatException) {
+                smartRepliesRecyclerView.visibility = View.GONE
+            }
+        }
+    )
+}
+
+fun sendMessage(text: String) {
+    val message = TextMessage(receiverId, text, CometChatConstants.RECEIVER_TYPE_USER)
+    CometChat.sendMessage(message, object : CometChat.CallbackListener<TextMessage>() {
+        override fun onSuccess(sentMessage: TextMessage) {
+            smartRepliesRecyclerView.visibility = View.GONE
+        }
+        override fun onError(e: CometChatException) {
+            Log.e("Send", "Error: ${e.message}")
+        }
+    })
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class SmartRepliesAdapter extends RecyclerView.Adapter<SmartRepliesAdapter.ViewHolder> {
+    private List<String> suggestions;
+    private OnSuggestionClickListener listener;
+
+    public interface OnSuggestionClickListener {
+        void onSuggestionClick(String suggestion);
+    }
+
+    public SmartRepliesAdapter(List<String> suggestions, OnSuggestionClickListener listener) {
+        this.suggestions = suggestions;
+        this.listener = listener;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Chip chip = new Chip(parent.getContext());
+        chip.setClickable(true);
+        return new ViewHolder(chip);
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        String suggestion = suggestions.get(position);
+        holder.chip.setText(suggestion);
+        holder.chip.setOnClickListener(v -> listener.onSuggestionClick(suggestion));
+    }
+
+    @Override
+    public int getItemCount() {
+        return suggestions.size();
+    }
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        Chip chip;
+        ViewHolder(Chip chip) {
+            super(chip);
+            this.chip = chip;
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+1. **Show after receiving messages** - Display suggestions after the other user sends a message
+2. **Hide after sending** - Remove suggestions once the user sends any message
+3. **Limit display time** - Hide suggestions if the user doesn't respond within a reasonable time
+4. **Handle empty responses** - The API may return empty results if there's insufficient context
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="AI Overview" href="/sdk/android/features/ai/overview">
+    AI features overview
+  </Card>
+  <Card title="Conversation Summary" href="/sdk/android/features/ai/conversation-summary">
+    Generate conversation summaries
+  </Card>
+  <Card title="Send Messages" href="/sdk/android/features/messaging/send-message">
+    Send text messages
+  </Card>
+  <Card title="Receive Messages" href="/sdk/android/features/messaging/receive-messages">
+    Handle incoming messages
+  </Card>
+</CardGroup>

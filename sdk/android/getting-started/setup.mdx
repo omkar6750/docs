@@ -1,0 +1,352 @@
+---
+title: "Setup"
+sidebarTitle: "Setup"
+description: "Complete setup guide for integrating CometChat Android SDK into your project with Gradle configuration and initialization."
+keywords: ["android setup", "gradle", "cometchat setup", "sdk installation", "android integration"]
+timeToComplete: "10 minutes"
+difficulty: "beginner"
+---
+
+<Info>
+⏱️ **Time to complete**: 10 minutes | **Difficulty**: Beginner
+</Info>
+
+This guide walks you through the complete setup process for integrating CometChat into your Android application.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Android Studio installed (latest stable version recommended)
+- An Android project with minimum SDK version 21
+- A CometChat account with an app created
+
+<Note>
+**Minimum Requirements**
+
+- Android API Level 21
+- Android API level 24 (for Calling SDK)
+- AndroidX Compatibility
+</Note>
+
+## Get your Application Keys
+
+[Signup for CometChat](https://app.cometchat.com) and then:
+
+1. Create a new app
+2. Head over to the **API Keys** section and note the **Auth Key**, **App ID** & **Region**
+
+## Add the CometChat Dependency
+
+### Step 1: Add Repository
+
+Add the repository URL to the **project level** `build.gradle` file in the `repositories` block under the `allprojects` section:
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+// settings.gradle.kts (for newer projects)
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://dl.cloudsmith.io/public/cometchat/cometchat/maven/")
+        }
+    }
+}
+
+// OR in project-level build.gradle.kts (for older projects)
+allprojects {
+    repositories {
+        maven {
+            url = uri("https://dl.cloudsmith.io/public/cometchat/cometchat/maven/")
+        }
+    }
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+// settings.gradle (for newer projects)
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url "https://dl.cloudsmith.io/public/cometchat/cometchat/maven/"
+        }
+    }
+}
+
+// OR in project-level build.gradle (for older projects)
+allprojects {
+    repositories {
+        maven {
+            url "https://dl.cloudsmith.io/public/cometchat/cometchat/maven/"
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Step 2: Add Dependencies
+
+Add CometChat to the **app level** `build.gradle` file in the `dependencies` section:
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+dependencies {
+    // CometChat Chat SDK
+    implementation("com.cometchat:chat-sdk-android:4.1.8")
+    
+    // Optional: CometChat Calling SDK (for voice/video calls)
+    implementation("com.cometchat:calls-sdk-android:4.3.3")
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+dependencies {
+    // CometChat Chat SDK
+    implementation "com.cometchat:chat-sdk-android:4.1.8"
+    
+    // Optional: CometChat Calling SDK (for voice/video calls)
+    implementation "com.cometchat:calls-sdk-android:4.3.3"
+}
+```
+</Tab>
+</Tabs>
+
+### Step 3: Configure Java Version
+
+Add the following to the `android` section of your **app level** gradle file:
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Step 4: Sync Project
+
+Click **Sync Now** in Android Studio to download the dependencies.
+
+## Initialize CometChat
+
+The `init()` method initializes the settings required for CometChat. We recommend calling this method in your `Application` class or main `Activity`.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `context` | `Context` | Yes | Android application context |
+| `appID` | `String` | Yes | Your CometChat App ID |
+| `appSettings` | `AppSettings` | Yes | Configuration object |
+| `callbackListener` | `CallbackListener<String>` | Yes | Success/error callback |
+
+### AppSettings Configuration
+
+| Method | Description | Default |
+|--------|-------------|---------|
+| `setRegion(region)` | **Required**. App region (`"us"` or `"eu"`) | - |
+| `subscribePresenceForAllUsers()` | Subscribe to all users' presence | - |
+| `subscribePresenceForFriends()` | Subscribe to friends' presence only | - |
+| `subscribePresenceForRoles(roles)` | Subscribe to specific roles' presence | - |
+| `autoEstablishSocketConnection(boolean)` | Auto-manage WebSocket connection | `true` |
+| `overrideAdminHost(url)` | Custom admin URL (dedicated deployment) | - |
+| `overrideClientHost(url)` | Custom client URL (dedicated deployment) | - |
+
+### Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import android.app.Application
+import android.util.Log
+import com.cometchat.chat.core.AppSettings
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+
+class MyApplication : Application() {
+    
+    companion object {
+        private const val TAG = "CometChat"
+    }
+    
+    override fun onCreate() {
+        super.onCreate()
+        initCometChat()
+    }
+    
+    private fun initCometChat() {
+        val appID = "YOUR_APP_ID" // Replace with your App ID
+        val region = "us" // Replace with your App Region ("eu" or "us")
+        
+        val appSettings = AppSettings.AppSettingsBuilder()
+            .subscribePresenceForAllUsers()
+            .setRegion(region)
+            .autoEstablishSocketConnection(true)
+            .build()
+        
+        CometChat.init(this, appID, appSettings, object : CometChat.CallbackListener<String>() {
+            override fun onSuccess(successMessage: String?) {
+                Log.d(TAG, "CometChat initialized successfully")
+            }
+            
+            override fun onError(e: CometChatException?) {
+                Log.e(TAG, "CometChat initialization failed: ${e?.message}")
+                // Handle initialization error
+                // Common errors: Invalid App ID, Network issues
+            }
+        })
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import android.app.Application;
+import android.util.Log;
+import com.cometchat.chat.core.AppSettings;
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.exceptions.CometChatException;
+
+public class MyApplication extends Application {
+    
+    private static final String TAG = "CometChat";
+    
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        initCometChat();
+    }
+    
+    private void initCometChat() {
+        String appID = "YOUR_APP_ID"; // Replace with your App ID
+        String region = "us"; // Replace with your App Region ("eu" or "us")
+        
+        AppSettings appSettings = new AppSettings.AppSettingsBuilder()
+            .subscribePresenceForAllUsers()
+            .setRegion(region)
+            .autoEstablishSocketConnection(true)
+            .build();
+        
+        CometChat.init(this, appID, appSettings, new CometChat.CallbackListener<String>() {
+            @Override
+            public void onSuccess(String successMessage) {
+                Log.d(TAG, "CometChat initialized successfully");
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                Log.e(TAG, "CometChat initialization failed: " + e.getMessage());
+                // Handle initialization error
+                // Common errors: Invalid App ID, Network issues
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+<Warning>
+Don't forget to register your Application class in `AndroidManifest.xml`:
+```xml
+<application
+    android:name=".MyApplication"
+    ...>
+```
+</Warning>
+
+## Connection Modes
+
+CometChat supports two connection modes for WebSocket management:
+
+### Auto Mode (Default)
+
+When `autoEstablishSocketConnection(true)` is set:
+
+| App State | Behavior |
+|-----------|----------|
+| Foreground | Connected to WebSocket |
+| Background | Immediately disconnected from WebSocket |
+
+This is the recommended mode for most applications.
+
+### Manual Mode
+
+When `autoEstablishSocketConnection(false)` is set:
+
+| App State | Behavior |
+|-----------|----------|
+| Foreground | Call `CometChat.connect()` to establish connection |
+| Background | Disconnects after 30 seconds if no ping received |
+
+Use manual mode when you need fine-grained control over the connection lifecycle.
+
+<Note>
+Learn more about connection management in the [Advanced Connection Management](/sdk/android/advanced/connection-management) guide.
+</Note>
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| `Initialization failed` | Verify your App ID and Region are correct |
+| `Network error` | Check internet connectivity and firewall settings |
+| `Dependency not found` | Ensure the Maven repository URL is added correctly |
+| `Java version error` | Set `sourceCompatibility` and `targetCompatibility` to Java 8 |
+
+## Next Steps
+
+After successful setup:
+
+1. [Login your user](/sdk/android/authentication/overview)
+2. [Send your first message](/sdk/android/features/messaging/send-message)
+3. [Explore the UI Kit](/ui-kit/android/overview)
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Overview" href="/sdk/android/getting-started/overview">
+    Quick start guide for CometChat
+  </Card>
+  <Card title="Authentication" href="/sdk/android/authentication/overview">
+    Learn about login options
+  </Card>
+  <Card title="Connection Management" href="/sdk/android/advanced/connection-management">
+    Advanced WebSocket configuration
+  </Card>
+  <Card title="Troubleshooting" href="/sdk/android/resources/troubleshooting">
+    Common issues and solutions
+  </Card>
+</CardGroup>

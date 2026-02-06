@@ -1,0 +1,418 @@
+---
+title: "Quickstart"
+sidebarTitle: "Quickstart"
+description: "Get CometChat running in your Android app in 5 minutes. Send your first message with minimal code."
+keywords: ["quickstart", "android quickstart", "5 minute guide", "first message", "cometchat tutorial"]
+timeToComplete: "5 minutes"
+difficulty: "beginner"
+---
+
+<Info>
+⏱️ **Time to complete**: 5 minutes | **Difficulty**: Beginner
+</Info>
+
+This quickstart guide helps you integrate CometChat and send your first message in just 5 minutes.
+
+## Prerequisites
+
+- Android Studio installed
+- CometChat account with App ID, Auth Key, and Region ([Sign up here](https://app.cometchat.com))
+
+## Step 1: Add Dependencies (1 minute)
+
+Add to your **app-level** `build.gradle`:
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+repositories {
+    maven { url = uri("https://dl.cloudsmith.io/public/cometchat/cometchat/maven/") }
+}
+
+dependencies {
+    implementation("com.cometchat:chat-sdk-android:4.1.8")
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+repositories {
+    maven { url "https://dl.cloudsmith.io/public/cometchat/cometchat/maven/" }
+}
+
+dependencies {
+    implementation "com.cometchat:chat-sdk-android:4.1.8"
+}
+```
+</Tab>
+</Tabs>
+
+Sync your project.
+
+## Step 2: Initialize SDK (1 minute)
+
+Add this to your `Application` class or main `Activity`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.AppSettings
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+
+// Replace with your credentials
+val appID = "YOUR_APP_ID"
+val region = "us" // or "eu"
+
+val appSettings = AppSettings.AppSettingsBuilder()
+    .setRegion(region)
+    .autoEstablishSocketConnection(true)
+    .build()
+
+CometChat.init(this, appID, appSettings, object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(msg: String?) {
+        Log.d("CometChat", "Initialized!")
+        // Proceed to login
+    }
+    override fun onError(e: CometChatException?) {
+        Log.e("CometChat", "Init failed: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.AppSettings;
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.exceptions.CometChatException;
+
+// Replace with your credentials
+String appID = "YOUR_APP_ID";
+String region = "us"; // or "eu"
+
+AppSettings appSettings = new AppSettings.AppSettingsBuilder()
+    .setRegion(region)
+    .autoEstablishSocketConnection(true)
+    .build();
+
+CometChat.init(this, appID, appSettings, new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String msg) {
+        Log.d("CometChat", "Initialized!");
+        // Proceed to login
+    }
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Init failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## Step 3: Login User (1 minute)
+
+Login with your Auth Key (for development only):
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+val uid = "superhero1" // Use a test user UID
+val authKey = "YOUR_AUTH_KEY"
+
+CometChat.login(uid, authKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(user: User?) {
+        Log.d("CometChat", "Logged in as: ${user?.uid}")
+        // Ready to send messages!
+    }
+    override fun onError(e: CometChatException?) {
+        Log.e("CometChat", "Login failed: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String uid = "superhero1"; // Use a test user UID
+String authKey = "YOUR_AUTH_KEY";
+
+CometChat.login(uid, authKey, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User user) {
+        Log.d("CometChat", "Logged in as: " + user.getUid());
+        // Ready to send messages!
+    }
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Login failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+<Warning>
+**For production**: Use [Auth Token login](/sdk/android/authentication/login-with-auth-token) instead of Auth Key.
+</Warning>
+
+## Step 4: Send Your First Message (2 minutes)
+
+Send a text message to another user:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.TextMessage
+import com.cometchat.chat.constants.CometChatConstants
+import com.cometchat.chat.exceptions.CometChatException
+
+val receiverUID = "superhero2" // UID of the user to message
+val messageText = "Hello from CometChat! 👋"
+val receiverType = CometChatConstants.RECEIVER_TYPE_USER
+
+val textMessage = TextMessage(receiverUID, messageText, receiverType)
+
+CometChat.sendMessage(textMessage, object : CometChat.CallbackListener<TextMessage>() {
+    override fun onSuccess(message: TextMessage) {
+        Log.d("CometChat", "Message sent! ID: ${message.id}")
+    }
+    override fun onError(e: CometChatException) {
+        Log.e("CometChat", "Send failed: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.TextMessage;
+import com.cometchat.chat.constants.CometChatConstants;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String receiverUID = "superhero2"; // UID of the user to message
+String messageText = "Hello from CometChat! 👋";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+
+TextMessage textMessage = new TextMessage(receiverUID, messageText, receiverType);
+
+CometChat.sendMessage(textMessage, new CometChat.CallbackListener<TextMessage>() {
+    @Override
+    public void onSuccess(TextMessage message) {
+        Log.d("CometChat", "Message sent! ID: " + message.getId());
+    }
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Send failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## 🎉 You Did It!
+
+You've successfully:
+- ✅ Initialized CometChat SDK
+- ✅ Logged in a user
+- ✅ Sent your first message
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Receive Messages" href="/sdk/android/features/messaging/receive-messages">
+    Listen for incoming messages in real-time
+  </Card>
+  <Card title="Create Groups" href="/sdk/android/group-management/create-group">
+    Build group chat functionality
+  </Card>
+  <Card title="UI Kit" href="/ui-kit/android/overview">
+    Add pre-built chat UI components
+  </Card>
+  <Card title="Voice & Video Calls" href="/sdk/android/features/calling/overview">
+    Add calling to your app
+  </Card>
+</CardGroup>
+
+## Complete Example
+
+Here's a complete example you can copy into a single Activity:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import com.cometchat.chat.core.AppSettings
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.constants.CometChatConstants
+import com.cometchat.chat.exceptions.CometChatException
+import com.cometchat.chat.models.TextMessage
+import com.cometchat.chat.models.User
+
+class MainActivity : AppCompatActivity() {
+    
+    companion object {
+        private const val TAG = "CometChat"
+        private const val APP_ID = "YOUR_APP_ID"
+        private const val REGION = "us"
+        private const val AUTH_KEY = "YOUR_AUTH_KEY"
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        
+        initCometChat()
+    }
+    
+    private fun initCometChat() {
+        val appSettings = AppSettings.AppSettingsBuilder()
+            .setRegion(REGION)
+            .autoEstablishSocketConnection(true)
+            .build()
+        
+        CometChat.init(this, APP_ID, appSettings, object : CometChat.CallbackListener<String>() {
+            override fun onSuccess(msg: String?) {
+                Log.d(TAG, "CometChat initialized")
+                loginUser()
+            }
+            override fun onError(e: CometChatException?) {
+                Log.e(TAG, "Init failed: ${e?.message}")
+            }
+        })
+    }
+    
+    private fun loginUser() {
+        CometChat.login("superhero1", AUTH_KEY, object : CometChat.CallbackListener<User>() {
+            override fun onSuccess(user: User?) {
+                Log.d(TAG, "Logged in: ${user?.uid}")
+                sendMessage()
+            }
+            override fun onError(e: CometChatException?) {
+                Log.e(TAG, "Login failed: ${e?.message}")
+            }
+        })
+    }
+    
+    private fun sendMessage() {
+        val message = TextMessage(
+            "superhero2",
+            "Hello from CometChat! 👋",
+            CometChatConstants.RECEIVER_TYPE_USER
+        )
+        
+        CometChat.sendMessage(message, object : CometChat.CallbackListener<TextMessage>() {
+            override fun onSuccess(msg: TextMessage) {
+                Log.d(TAG, "Message sent! ID: ${msg.id}")
+            }
+            override fun onError(e: CometChatException) {
+                Log.e(TAG, "Send failed: ${e.message}")
+            }
+        })
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import android.os.Bundle;
+import android.util.Log;
+import androidx.appcompat.app.AppCompatActivity;
+import com.cometchat.chat.core.AppSettings;
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.constants.CometChatConstants;
+import com.cometchat.chat.exceptions.CometChatException;
+import com.cometchat.chat.models.TextMessage;
+import com.cometchat.chat.models.User;
+
+public class MainActivity extends AppCompatActivity {
+    
+    private static final String TAG = "CometChat";
+    private static final String APP_ID = "YOUR_APP_ID";
+    private static final String REGION = "us";
+    private static final String AUTH_KEY = "YOUR_AUTH_KEY";
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        initCometChat();
+    }
+    
+    private void initCometChat() {
+        AppSettings appSettings = new AppSettings.AppSettingsBuilder()
+            .setRegion(REGION)
+            .autoEstablishSocketConnection(true)
+            .build();
+        
+        CometChat.init(this, APP_ID, appSettings, new CometChat.CallbackListener<String>() {
+            @Override
+            public void onSuccess(String msg) {
+                Log.d(TAG, "CometChat initialized");
+                loginUser();
+            }
+            @Override
+            public void onError(CometChatException e) {
+                Log.e(TAG, "Init failed: " + e.getMessage());
+            }
+        });
+    }
+    
+    private void loginUser() {
+        CometChat.login("superhero1", AUTH_KEY, new CometChat.CallbackListener<User>() {
+            @Override
+            public void onSuccess(User user) {
+                Log.d(TAG, "Logged in: " + user.getUid());
+                sendMessage();
+            }
+            @Override
+            public void onError(CometChatException e) {
+                Log.e(TAG, "Login failed: " + e.getMessage());
+            }
+        });
+    }
+    
+    private void sendMessage() {
+        TextMessage message = new TextMessage(
+            "superhero2",
+            "Hello from CometChat! 👋",
+            CometChatConstants.RECEIVER_TYPE_USER
+        );
+        
+        CometChat.sendMessage(message, new CometChat.CallbackListener<TextMessage>() {
+            @Override
+            public void onSuccess(TextMessage msg) {
+                Log.d(TAG, "Message sent! ID: " + msg.getId());
+            }
+            @Override
+            public void onError(CometChatException e) {
+                Log.e(TAG, "Send failed: " + e.getMessage());
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Detailed Setup" href="/sdk/android/getting-started/setup">
+    Complete setup instructions
+  </Card>
+  <Card title="Sample Apps" href="/sdk/android/getting-started/sample-apps">
+    Explore full sample applications
+  </Card>
+</CardGroup>

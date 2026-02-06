@@ -1,0 +1,347 @@
+---
+title: "Logout"
+sidebarTitle: "Logout"
+description: "Learn how to properly log out users from CometChat Android SDK. Clean up listeners and end sessions securely."
+keywords: ["logout", "sign out", "end session", "cleanup", "disconnect"]
+---
+
+Properly logging out users ensures clean session management and prevents memory leaks from lingering listeners.
+
+## Basic Logout
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+
+CometChat.logout(object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(message: String?) {
+        Log.d("CometChat", "Logout successful")
+        // Navigate to login screen
+        navigateToLogin()
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("CometChat", "Logout failed: ${e?.message}")
+        // Handle error - you may still want to clear local state
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.exceptions.CometChatException;
+
+CometChat.logout(new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String message) {
+        Log.d("CometChat", "Logout successful");
+        // Navigate to login screen
+        navigateToLogin();
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Logout failed: " + e.getMessage());
+        // Handle error - you may still want to clear local state
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## Complete Logout with Cleanup
+
+For a proper logout, you should also remove all listeners before calling `logout()`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+
+class LogoutManager {
+    
+    companion object {
+        // Store listener IDs when you add them
+        const val MESSAGE_LISTENER_ID = "message_listener"
+        const val USER_LISTENER_ID = "user_listener"
+        const val GROUP_LISTENER_ID = "group_listener"
+        const val CALL_LISTENER_ID = "call_listener"
+        const val CONNECTION_LISTENER_ID = "connection_listener"
+    }
+    
+    fun performLogout(onComplete: (Boolean) -> Unit) {
+        // Step 1: Remove all listeners
+        removeAllListeners()
+        
+        // Step 2: Logout from CometChat
+        CometChat.logout(object : CometChat.CallbackListener<String>() {
+            override fun onSuccess(message: String?) {
+                Log.d("CometChat", "Logout successful")
+                
+                // Step 3: Clear local data
+                clearLocalData()
+                
+                onComplete(true)
+            }
+            
+            override fun onError(e: CometChatException?) {
+                Log.e("CometChat", "Logout failed: ${e?.message}")
+                
+                // Even on error, clear local state for security
+                clearLocalData()
+                
+                onComplete(false)
+            }
+        })
+    }
+    
+    private fun removeAllListeners() {
+        // Remove message listener
+        CometChat.removeMessageListener(MESSAGE_LISTENER_ID)
+        
+        // Remove user listener
+        CometChat.removeUserListener(USER_LISTENER_ID)
+        
+        // Remove group listener
+        CometChat.removeGroupListener(GROUP_LISTENER_ID)
+        
+        // Remove call listener
+        CometChat.removeCallListener(CALL_LISTENER_ID)
+        
+        // Remove connection listener
+        CometChat.removeConnectionListener(CONNECTION_LISTENER_ID)
+        
+        Log.d("CometChat", "All listeners removed")
+    }
+    
+    private fun clearLocalData() {
+        // Clear any cached user data
+        // Clear stored auth tokens
+        // Clear chat history cache if applicable
+        
+        // Example: Clear SharedPreferences
+        val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
+    }
+}
+
+// Usage
+val logoutManager = LogoutManager()
+logoutManager.performLogout { success ->
+    if (success) {
+        navigateToLoginScreen()
+    } else {
+        // Still navigate to login for security
+        navigateToLoginScreen()
+        showToast("Logout completed with errors")
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.exceptions.CometChatException;
+
+public class LogoutManager {
+    
+    // Store listener IDs when you add them
+    public static final String MESSAGE_LISTENER_ID = "message_listener";
+    public static final String USER_LISTENER_ID = "user_listener";
+    public static final String GROUP_LISTENER_ID = "group_listener";
+    public static final String CALL_LISTENER_ID = "call_listener";
+    public static final String CONNECTION_LISTENER_ID = "connection_listener";
+    
+    public interface LogoutCallback {
+        void onComplete(boolean success);
+    }
+    
+    public void performLogout(LogoutCallback callback) {
+        // Step 1: Remove all listeners
+        removeAllListeners();
+        
+        // Step 2: Logout from CometChat
+        CometChat.logout(new CometChat.CallbackListener<String>() {
+            @Override
+            public void onSuccess(String message) {
+                Log.d("CometChat", "Logout successful");
+                
+                // Step 3: Clear local data
+                clearLocalData();
+                
+                callback.onComplete(true);
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                Log.e("CometChat", "Logout failed: " + e.getMessage());
+                
+                // Even on error, clear local state for security
+                clearLocalData();
+                
+                callback.onComplete(false);
+            }
+        });
+    }
+    
+    private void removeAllListeners() {
+        CometChat.removeMessageListener(MESSAGE_LISTENER_ID);
+        CometChat.removeUserListener(USER_LISTENER_ID);
+        CometChat.removeGroupListener(GROUP_LISTENER_ID);
+        CometChat.removeCallListener(CALL_LISTENER_ID);
+        CometChat.removeConnectionListener(CONNECTION_LISTENER_ID);
+        
+        Log.d("CometChat", "All listeners removed");
+    }
+    
+    private void clearLocalData() {
+        // Clear any cached user data
+        SharedPreferences prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
+    }
+}
+
+// Usage
+LogoutManager logoutManager = new LogoutManager();
+logoutManager.performLogout(success -> {
+    navigateToLoginScreen();
+});
+```
+</Tab>
+</Tabs>
+
+## What Logout Does
+
+When you call `logout()`:
+
+1. **Ends the session** - User is logged out from CometChat servers
+2. **Disconnects WebSocket** - Real-time connection is closed
+3. **Clears SDK state** - Internal user session is cleared
+4. **Stops receiving messages** - No more real-time events
+
+<Warning>
+**Important**: `logout()` does NOT automatically remove listeners. You must remove them manually to prevent memory leaks.
+</Warning>
+
+## Logout Checklist
+
+Before calling `logout()`, ensure you:
+
+- [ ] Remove `MessageListener`
+- [ ] Remove `UserListener`
+- [ ] Remove `GroupListener`
+- [ ] Remove `CallListener`
+- [ ] Remove `ConnectionListener`
+- [ ] Remove `LoginListener`
+- [ ] End any active calls
+- [ ] Clear local cached data
+
+## Handling Logout Errors
+
+Even if logout fails, you should still clear local state:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+CometChat.logout(object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(message: String?) {
+        handleLogoutComplete()
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("CometChat", "Logout error: ${e?.message}")
+        
+        // Still handle as logged out for security
+        // The server session may have been cleared even if we got an error
+        handleLogoutComplete()
+    }
+})
+
+private fun handleLogoutComplete() {
+    // Clear all local state
+    clearLocalData()
+    
+    // Navigate to login
+    navigateToLogin()
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+CometChat.logout(new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String message) {
+        handleLogoutComplete();
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("CometChat", "Logout error: " + e.getMessage());
+        
+        // Still handle as logged out for security
+        handleLogoutComplete();
+    }
+});
+
+private void handleLogoutComplete() {
+    clearLocalData();
+    navigateToLogin();
+}
+```
+</Tab>
+</Tabs>
+
+## Force Logout on Token Expiry
+
+If you receive an authentication error during API calls, force logout:
+
+```kotlin
+fun handleApiError(error: CometChatException) {
+    when (error.code) {
+        "ERR_AUTH_TOKEN_EXPIRED",
+        "ERR_USER_NOT_LOGGED_IN" -> {
+            // Force logout and redirect to login
+            forceLogout()
+        }
+    }
+}
+
+private fun forceLogout() {
+    removeAllListeners()
+    clearLocalData()
+    navigateToLogin()
+    showMessage("Session expired. Please login again.")
+}
+```
+
+## Logout vs Disconnect
+
+| Action | `logout()` | `disconnect()` |
+|--------|-----------|----------------|
+| Ends session | ✅ Yes | ❌ No |
+| Closes WebSocket | ✅ Yes | ✅ Yes |
+| Clears user state | ✅ Yes | ❌ No |
+| Requires re-login | ✅ Yes | ❌ No |
+
+Use `disconnect()` when you want to temporarily close the connection (e.g., app going to background in manual mode) but keep the user logged in.
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Login Overview" href="/sdk/android/authentication/overview">
+    Authentication options
+  </Card>
+  <Card title="Login Listeners" href="/sdk/android/authentication/login-listeners">
+    Monitor auth state changes
+  </Card>
+  <Card title="Best Practices" href="/sdk/android/advanced/best-practices">
+    Listener cleanup patterns
+  </Card>
+  <Card title="Connection Management" href="/sdk/android/advanced/connection-management">
+    Manual connection control
+  </Card>
+</CardGroup>

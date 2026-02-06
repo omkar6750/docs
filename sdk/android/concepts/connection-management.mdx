@@ -1,0 +1,374 @@
+---
+title: "Connection Management"
+sidebarTitle: "Connection Management"
+description: "Understand WebSocket connection management in CometChat Android SDK. Learn about auto and manual connection modes."
+keywords: ["connection", "websocket", "connection status", "auto mode", "manual mode", "reconnection"]
+---
+
+CometChat uses WebSocket connections for real-time messaging. This guide covers how to monitor and manage these connections.
+
+## Connection Status
+
+Monitor the WebSocket connection state using `ConnectionListener`:
+
+### Events
+
+| Event | Description |
+|-------|-------------|
+| `onConnecting` | SDK is attempting to connect |
+| `onConnected` | Connection established successfully |
+| `onDisconnected` | Connection lost (network issues, etc.) |
+| `onFeatureThrottled` | Features disabled due to rate limiting |
+| `onConnectionError` | Connection error occurred |
+
+### Add Connection Listener
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.core.CometChat.ConnectionListener
+import com.cometchat.chat.exceptions.CometChatException
+
+CometChat.addConnectionListener("connection_listener", object : ConnectionListener() {
+    override fun onConnected() {
+        Log.d("Connection", "Connected to CometChat")
+        // Update UI to show online status
+        updateConnectionStatus(ConnectionStatus.CONNECTED)
+    }
+    
+    override fun onConnecting() {
+        Log.d("Connection", "Connecting to CometChat...")
+        updateConnectionStatus(ConnectionStatus.CONNECTING)
+    }
+    
+    override fun onDisconnected() {
+        Log.w("Connection", "Disconnected from CometChat")
+        updateConnectionStatus(ConnectionStatus.DISCONNECTED)
+        // Show offline indicator to user
+    }
+    
+    override fun onFeatureThrottled() {
+        Log.w("Connection", "Features throttled due to rate limiting")
+        // Reduce API call frequency
+    }
+    
+    override fun onError(e: CometChatException) {
+        Log.e("Connection", "Connection error: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.core.CometChat.ConnectionListener;
+import com.cometchat.chat.exceptions.CometChatException;
+
+CometChat.addConnectionListener("connection_listener", new ConnectionListener() {
+    @Override
+    public void onConnected() {
+        Log.d("Connection", "Connected to CometChat");
+        updateConnectionStatus(ConnectionStatus.CONNECTED);
+    }
+    
+    @Override
+    public void onConnecting() {
+        Log.d("Connection", "Connecting to CometChat...");
+        updateConnectionStatus(ConnectionStatus.CONNECTING);
+    }
+    
+    @Override
+    public void onDisconnected() {
+        Log.w("Connection", "Disconnected from CometChat");
+        updateConnectionStatus(ConnectionStatus.DISCONNECTED);
+    }
+    
+    @Override
+    public void onFeatureThrottled() {
+        Log.w("Connection", "Features throttled");
+    }
+    
+    @Override
+    public void onConnectionError(CometChatException e) {
+        Log.e("Connection", "Connection error: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+### Get Current Status
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val status = CometChat.getConnectionStatus()
+
+when (status) {
+    CometChatConstants.WS_STATE_CONNECTED -> {
+        // Connected and ready
+    }
+    CometChatConstants.WS_STATE_CONNECTING -> {
+        // Connection in progress
+    }
+    CometChatConstants.WS_STATE_DISCONNECTED -> {
+        // Not connected
+    }
+    CometChatConstants.WS_STATE_FEATURE_THROTTLED -> {
+        // Connected but throttled
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+String status = CometChat.getConnectionStatus();
+
+if (status.equals(CometChatConstants.WS_STATE_CONNECTED)) {
+    // Connected and ready
+} else if (status.equals(CometChatConstants.WS_STATE_CONNECTING)) {
+    // Connection in progress
+} else if (status.equals(CometChatConstants.WS_STATE_DISCONNECTED)) {
+    // Not connected
+} else if (status.equals(CometChatConstants.WS_STATE_FEATURE_THROTTLED)) {
+    // Connected but throttled
+}
+```
+</Tab>
+</Tabs>
+
+### Remove Listener
+
+```kotlin
+CometChat.removeConnectionListener("connection_listener")
+```
+
+## Connection Modes
+
+CometChat supports two connection modes:
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **Auto** (Default) | SDK manages connection automatically | Most applications |
+| **Manual** | You control connect/disconnect | Background services, custom behavior |
+
+## Auto Mode (Default)
+
+In auto mode, the SDK automatically manages the WebSocket connection:
+
+| App State | Behavior |
+|-----------|----------|
+| Foreground | Connected |
+| Background | Immediately disconnected |
+| Network lost | Auto-reconnect when restored |
+
+### Enable Auto Mode
+
+```kotlin
+val appSettings = AppSettings.AppSettingsBuilder()
+    .setRegion("us")
+    .autoEstablishSocketConnection(true) // Default
+    .build()
+
+CometChat.init(context, appID, appSettings, callback)
+```
+
+## Manual Mode
+
+In manual mode, you control when to connect and disconnect:
+
+| App State | Behavior |
+|-----------|----------|
+| Foreground | Call `connect()` to establish connection |
+| Background | Disconnects after 30 seconds without `ping()` |
+
+### Enable Manual Mode
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val appSettings = AppSettings.AppSettingsBuilder()
+    .setRegion("us")
+    .autoEstablishSocketConnection(false) // Enable manual mode
+    .build()
+
+CometChat.init(context, appID, appSettings, object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(msg: String?) {
+        Log.d("Init", "SDK initialized in manual mode")
+        // Now you must call connect() to establish connection
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("Init", "Init failed: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+AppSettings appSettings = new AppSettings.AppSettingsBuilder()
+    .setRegion("us")
+    .autoEstablishSocketConnection(false) // Enable manual mode
+    .build();
+
+CometChat.init(context, appID, appSettings, new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String msg) {
+        Log.d("Init", "SDK initialized in manual mode");
+        // Now you must call connect() to establish connection
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("Init", "Init failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+### Connect Manually
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// Ensure user is logged in first
+if (CometChat.getLoggedInUser() != null) {
+    CometChat.connect(object : CometChat.CallbackListener<String>() {
+        override fun onSuccess(msg: String?) {
+            Log.d("Connection", "Connected successfully")
+        }
+        
+        override fun onError(e: CometChatException?) {
+            Log.e("Connection", "Connect failed: ${e?.message}")
+        }
+    })
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+if (CometChat.getLoggedInUser() != null) {
+    CometChat.connect(new CometChat.CallbackListener<String>() {
+        @Override
+        public void onSuccess(String msg) {
+            Log.d("Connection", "Connected successfully");
+        }
+        
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("Connection", "Connect failed: " + e.getMessage());
+        }
+    });
+}
+```
+</Tab>
+</Tabs>
+
+### Disconnect Manually
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+CometChat.disconnect(object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(msg: String?) {
+        Log.d("Connection", "Disconnected successfully")
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("Connection", "Disconnect failed: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+CometChat.disconnect(new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String msg) {
+        Log.d("Connection", "Disconnected successfully");
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("Connection", "Disconnect failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+### Keep Connection Alive (Background)
+
+In manual mode, call `ping()` every 30 seconds to keep the connection alive when your app is in the background:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+// Call this within 30 seconds of going to background
+CometChat.ping(object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(msg: String?) {
+        Log.d("Connection", "Ping successful")
+    }
+    
+    override fun onError(e: CometChatException?) {
+        Log.e("Connection", "Ping failed: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+CometChat.ping(new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String msg) {
+        Log.d("Connection", "Ping successful");
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("Connection", "Ping failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+<Note>
+For keeping connections alive in the background, see the [Background Keep-Alive](/sdk/android/advanced/background-keep-alive) guide.
+</Note>
+
+## Mode Comparison
+
+| Feature | Auto Mode | Manual Mode |
+|---------|-----------|-------------|
+| Connection on init | ✅ Automatic | ❌ Must call `connect()` |
+| Background handling | Disconnects immediately | 30-second grace period |
+| Reconnection | ✅ Automatic | ✅ Automatic (foreground only) |
+| Use case | Standard apps | Background services |
+
+## Reconnection Behavior
+
+| Scenario | Auto Mode | Manual Mode |
+|----------|-----------|-------------|
+| Network lost (foreground) | Auto-reconnect | Auto-reconnect |
+| Network lost (background) | N/A (disconnected) | Must call `connect()` |
+| App returns to foreground | Auto-connect | Must call `connect()` |
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Background Keep-Alive" href="/sdk/android/advanced/background-keep-alive">
+    Maintain connections in background
+  </Card>
+  <Card title="Feature Throttling" href="/sdk/android/advanced/feature-throttling">
+    Handle rate limiting
+  </Card>
+  <Card title="Real-time Listeners" href="/sdk/android/concepts/real-time-listeners">
+    All listener types
+  </Card>
+  <Card title="Best Practices" href="/sdk/android/advanced/best-practices">
+    Connection best practices
+  </Card>
+</CardGroup>

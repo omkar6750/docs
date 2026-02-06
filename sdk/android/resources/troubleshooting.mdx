@@ -1,0 +1,385 @@
+---
+title: "Troubleshooting"
+sidebarTitle: "Troubleshooting"
+description: "Common issues and solutions for CometChat Android SDK. Debug integration problems and resolve errors quickly."
+keywords: ["troubleshooting", "debugging", "common issues", "errors", "problems", "solutions"]
+---
+
+This guide covers common issues you may encounter when integrating the CometChat Android SDK and their solutions.
+
+## Build Issues
+
+### Dependency Not Found
+
+**Error:**
+```
+Could not find com.cometchat:chat-sdk-android:4.1.8
+```
+
+**Solution:**
+Add the CometChat Maven repository to your project:
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://dl.cloudsmith.io/public/cometchat/cometchat/maven/") }
+    }
+}
+```
+
+### Java Version Error
+
+**Error:**
+```
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+```
+
+**Solution:**
+Set Java 8 compatibility in your app's `build.gradle`:
+
+```kotlin
+android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+```
+
+### Duplicate Class Error
+
+**Error:**
+```
+Duplicate class found in modules
+```
+
+**Solution:**
+Exclude the conflicting dependency:
+
+```kotlin
+implementation("com.cometchat:chat-sdk-android:4.1.8") {
+    exclude(group = "org.json", module = "json")
+}
+```
+
+## Initialization Issues
+
+### Init Failed
+
+**Error:**
+```
+Initialization failed with exception: Invalid App ID
+```
+
+**Solutions:**
+1. Verify your App ID in the [CometChat Dashboard](https://app.cometchat.com)
+2. Check the region matches your app's region (`us` or `eu`)
+3. Ensure you're calling `init()` before any other SDK methods
+
+```kotlin
+// Correct initialization
+val appSettings = AppSettings.AppSettingsBuilder()
+    .setRegion("us") // Must match your app's region
+    .build()
+
+CometChat.init(context, "YOUR_APP_ID", appSettings, callback)
+```
+
+### Context Issues
+
+**Error:**
+```
+NullPointerException in CometChat.init()
+```
+
+**Solution:**
+Use Application context, not Activity context:
+
+```kotlin
+// In Application class
+CometChat.init(this, appID, appSettings, callback)
+
+// Or from Activity
+CometChat.init(applicationContext, appID, appSettings, callback)
+```
+
+## Authentication Issues
+
+### Login Failed - User Not Found
+
+**Error:**
+```
+Login failed: ERR_UID_NOT_FOUND
+```
+
+**Solutions:**
+1. Create the user first using `createUser()` or REST API
+2. Verify the UID exists in your CometChat Dashboard
+
+### Login Failed - Invalid Auth Key
+
+**Error:**
+```
+Login failed: ERR_INVALID_API_KEY
+```
+
+**Solutions:**
+1. Copy the Auth Key from Dashboard → API Keys
+2. Ensure you're using Auth Key, not API Key or REST API Key
+3. Check for extra spaces or characters
+
+### Auth Token Expired
+
+**Error:**
+```
+ERR_AUTH_TOKEN_EXPIRED
+```
+
+**Solution:**
+Generate a new Auth Token from your server and login again:
+
+```kotlin
+// Request new token from your server
+val newToken = yourServer.getNewAuthToken(uid)
+
+// Login with new token
+CometChat.login(newToken, callback)
+```
+
+## Messaging Issues
+
+### Messages Not Sending
+
+**Checklist:**
+1. ✅ User is logged in (`CometChat.getLoggedInUser() != null`)
+2. ✅ Receiver UID/GUID exists
+3. ✅ Message text is not empty
+4. ✅ Internet connection is available
+
+```kotlin
+// Verify before sending
+if (CometChat.getLoggedInUser() == null) {
+    Log.e("Error", "User not logged in")
+    return
+}
+
+if (messageText.isBlank()) {
+    Log.e("Error", "Message is empty")
+    return
+}
+```
+
+### Messages Not Receiving
+
+**Checklist:**
+1. ✅ MessageListener is added
+2. ✅ Listener ID is unique
+3. ✅ WebSocket is connected
+4. ✅ Listener is not removed prematurely
+
+```kotlin
+// Verify connection status
+val status = CometChat.getConnectionStatus()
+if (status != CometChatConstants.WS_STATE_CONNECTED) {
+    Log.w("Warning", "Not connected: $status")
+}
+
+// Add listener with unique ID
+CometChat.addMessageListener("unique_listener_id", messageListener)
+```
+
+### Duplicate Messages
+
+**Cause:** Multiple listeners with same ID or listener added multiple times.
+
+**Solution:**
+```kotlin
+// Remove before adding to prevent duplicates
+CometChat.removeMessageListener("message_listener")
+CometChat.addMessageListener("message_listener", listener)
+```
+
+## Real-time Issues
+
+### Not Receiving Real-time Events
+
+**Solutions:**
+
+1. **Check connection status:**
+```kotlin
+val status = CometChat.getConnectionStatus()
+Log.d("Connection", "Status: $status")
+```
+
+2. **Add ConnectionListener to debug:**
+```kotlin
+CometChat.addConnectionListener("debug", object : ConnectionListener() {
+    override fun onConnected() {
+        Log.d("Connection", "Connected")
+    }
+    override fun onDisconnected() {
+        Log.d("Connection", "Disconnected")
+    }
+    // ... other methods
+})
+```
+
+3. **Verify listeners are added:**
+```kotlin
+// Add listeners after successful login
+CometChat.login(uid, authKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(user: User?) {
+        // Add listeners here
+        addMessageListener()
+        addUserListener()
+    }
+})
+```
+
+### Events Stop After Background
+
+**Cause:** In auto mode, WebSocket disconnects when app goes to background.
+
+**Solutions:**
+1. This is expected behavior in auto mode
+2. Use manual mode with `ping()` for background connections
+3. See [Background Keep-Alive](/sdk/android/advanced/background-keep-alive)
+
+## Group Issues
+
+### Cannot Join Group
+
+**Error:**
+```
+ERR_WRONG_PASSWORD
+```
+
+**Solution:**
+For password-protected groups, provide the correct password:
+
+```kotlin
+CometChat.joinGroup(
+    guid,
+    CometChatConstants.GROUP_TYPE_PASSWORD,
+    "correct_password",
+    callback
+)
+```
+
+### Cannot Send to Group
+
+**Error:**
+```
+ERR_NOT_A_MEMBER
+```
+
+**Solution:**
+Join the group before sending messages:
+
+```kotlin
+CometChat.joinGroup(guid, groupType, password, object : CometChat.CallbackListener<Group>() {
+    override fun onSuccess(group: Group) {
+        // Now you can send messages
+        sendMessageToGroup(guid)
+    }
+})
+```
+
+## Call Issues
+
+### Calls Not Working
+
+**Checklist:**
+1. ✅ Calling SDK added: `implementation("com.cometchat:calls-sdk-android:4.3.3")`
+2. ✅ Permissions granted (CAMERA, RECORD_AUDIO)
+3. ✅ CallListener added
+4. ✅ Minimum API level 24
+
+### No Audio/Video
+
+**Solutions:**
+1. Check runtime permissions:
+```kotlin
+if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) 
+    != PackageManager.PERMISSION_GRANTED) {
+    // Request permission
+}
+```
+
+2. Verify device has camera/microphone
+
+## ProGuard Issues
+
+### ClassNotFoundException After Release Build
+
+**Solution:**
+Add ProGuard rules for CometChat:
+
+```proguard
+# CometChat SDK
+-keep class com.cometchat.** { *; }
+-keep interface com.cometchat.** { *; }
+
+# Keep model classes
+-keepclassmembers class com.cometchat.chat.models.** { *; }
+```
+
+See [ProGuard Configuration](/sdk/android/advanced/proguard-configuration) for complete rules.
+
+## Debugging Tips
+
+### Enable SDK Logging
+
+```kotlin
+// During development only
+CometChat.setLogLevel(CometChatConstants.LOG_LEVEL_DEBUG)
+```
+
+### Check SDK Version
+
+```kotlin
+val version = CometChat.getSDKVersion()
+Log.d("CometChat", "SDK Version: $version")
+```
+
+### Verify User Session
+
+```kotlin
+val user = CometChat.getLoggedInUser()
+if (user != null) {
+    Log.d("Session", "Logged in as: ${user.uid}")
+} else {
+    Log.d("Session", "No user logged in")
+}
+```
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. Check the [API Reference](/sdk/android/api-reference/overview)
+2. Review [Error Codes](/sdk/android/concepts/error-handling)
+3. Contact [CometChat Support](https://help.cometchat.com)
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Error Handling" href="/sdk/android/concepts/error-handling">
+    Complete error code reference
+  </Card>
+  <Card title="Setup Guide" href="/sdk/android/getting-started/setup">
+    Correct setup instructions
+  </Card>
+  <Card title="Best Practices" href="/sdk/android/advanced/best-practices">
+    Avoid common mistakes
+  </Card>
+  <Card title="ProGuard Config" href="/sdk/android/advanced/proguard-configuration">
+    Release build configuration
+  </Card>
+</CardGroup>

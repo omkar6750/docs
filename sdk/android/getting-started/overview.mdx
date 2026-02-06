@@ -1,0 +1,362 @@
+---
+title: "Overview"
+sidebarTitle: "Overview"
+description: "Get started with the CometChat Android SDK. Learn how to integrate real-time chat, voice, and video calling into your Android application."
+keywords: ["android sdk", "chat sdk", "cometchat", "android chat", "real-time messaging", "kotlin", "java"]
+---
+
+<Note>
+📦 **Current SDK Version**: `4.1.8` | [View Changelog](/sdk/android/resources/changelog) | [Migration Guide](/sdk/android/resources/migration-from-v3)
+</Note>
+
+This guide demonstrates how to add chat to an Android application. Before you begin, we strongly recommend you read the [Key Concepts](/sdk/android/concepts/key-concepts) guide.
+
+## Quick Navigation
+
+#### **I want to integrate with my app**
+
+1. [Get your application keys](#get-your-application-keys)
+2. [Add the CometChat dependency](#add-the-cometchat-dependency)
+3. [Initialize CometChat](#initialize-cometchat)
+4. [Register and Login your user](#register-and-login-your-user)
+5. [Integrate Our UI Kits](#integrate-our-ui-kits)
+
+#### **I want to explore a sample app (includes UI)**
+
+Import the app into Android Studio and follow the steps mentioned in the `README.md` file.
+
+- [Kotlin Chat App](https://github.com/cometchat-pro/android-kotlin-chat-app) (Recommended)
+- [Java Chat App](https://github.com/cometchat-pro/android-java-chat-app/)
+
+## Get your Application Keys
+
+[Signup for CometChat](https://app.cometchat.com) and then:
+
+1. Create a new app
+2. Head over to the **API Keys** section and note the **Auth Key**, **App ID** & **Region**
+
+<Note>
+**Minimum Requirements**
+
+- Android API Level 21
+- Android API level 24 (in case you are using the calls SDKS)
+- Androidx Compatibility
+</Note>
+
+## Add the CometChat Dependency
+
+First, add the repository URL to the **project level** `build.gradle` file in the `repositories` block under the `allprojects` section.
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+allprojects {
+    repositories {
+        maven {
+            url = uri("https://dl.cloudsmith.io/public/cometchat/cometchat/maven/")
+        }
+    }
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+allprojects {
+    repositories {
+        maven {
+            url "https://dl.cloudsmith.io/public/cometchat/cometchat/maven/"
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+Then, add CometChat to the **app level** `build.gradle` file in the `dependencies` section.
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+dependencies { 
+    implementation("com.cometchat:chat-sdk-android:4.1.8")
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+dependencies { 
+    implementation "com.cometchat:chat-sdk-android:4.1.8"
+}
+```
+</Tab>
+</Tabs>
+
+<Note>
+v2.4+ onwards, Voice & Video Calling functionality has been moved to a separate library. In case you plan to use the calling feature, please add the Calling dependency `implementation("com.cometchat:calls-sdk-android:4.3.3")` in the dependencies section of the app-level `build.gradle` file.
+</Note>
+
+Finally, add the below lines to the `android` section of the **app level** gradle file:
+
+<Tabs>
+<Tab title="Kotlin DSL">
+```kotlin
+android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+```
+</Tab>
+<Tab title="Groovy">
+```groovy
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Initialize CometChat
+
+The `init()` method initializes the settings required for CometChat. The `init()` method takes the below parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `context` | `Context` | Android application context |
+| `appID` | `String` | Your CometChat App ID |
+| `appSettings` | `AppSettings` | Configuration object built using `AppSettingsBuilder` |
+| `callbackListener` | `CallbackListener<String>` | Callback to handle success/error |
+
+The `AppSettings` class allows you to configure these settings:
+
+| Method | Description |
+|--------|-------------|
+| `setRegion(region)` | **Required**. The region where your app was created (`"us"` or `"eu"`) |
+| `subscribePresenceForAllUsers()` | Subscribe to presence updates for all users |
+| `subscribePresenceForFriends()` | Subscribe to presence updates for friends only |
+| `subscribePresenceForRoles(roles)` | Subscribe to presence updates for specific roles |
+| `autoEstablishSocketConnection(boolean)` | When `true`, SDK manages WebSocket connection automatically. Default: `true` |
+| `overrideAdminHost(adminHost)` | Custom admin URL for dedicated deployment |
+| `overrideClientHost(clientHost)` | Custom client URL for dedicated deployment |
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.AppSettings
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+
+val appID = "APP_ID" // Replace with your App ID
+val region = "REGION" // Replace with your App Region ("eu" or "us")
+
+val appSettings = AppSettings.AppSettingsBuilder()
+    .subscribePresenceForAllUsers()
+    .setRegion(region)
+    .autoEstablishSocketConnection(true)
+    .build()
+
+CometChat.init(this, appID, appSettings, object : CometChat.CallbackListener<String>() {
+    override fun onSuccess(successMessage: String?) {
+        Log.d(TAG, "Initialization completed successfully")
+    }
+
+    override fun onError(e: CometChatException?) {
+        Log.e(TAG, "Initialization failed with exception: ${e?.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.AppSettings;
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String appID = "APP_ID"; // Replace with your App ID
+String region = "REGION"; // Replace with your App Region ("eu" or "us")
+
+AppSettings appSettings = new AppSettings.AppSettingsBuilder()
+    .subscribePresenceForAllUsers()
+    .setRegion(region)
+    .autoEstablishSocketConnection(true)
+    .build();
+
+CometChat.init(this, appID, appSettings, new CometChat.CallbackListener<String>() {
+    @Override
+    public void onSuccess(String successMessage) {
+        Log.d(TAG, "Initialization completed successfully");
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e(TAG, "Initialization failed with exception: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+<Warning>
+Replace `APP_ID` with your CometChat **App ID** and `REGION` with your **App Region** in the above code.
+</Warning>
+
+## Register and Login your User
+
+Once initialization is successful, you will need to create a user.
+
+To create users on the fly, you can use the `createUser()` method. This method takes a `User` object and the `Auth Key` as input parameters and returns the created `User` object if the request is successful.
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+val authKey = "AUTH_KEY" // Replace with your App Auth Key
+val user = User().apply {
+    uid = "USER_UID" // Replace with the UID for the user to be created
+    name = "USER_NAME" // Replace with the name of the user
+}
+
+CometChat.createUser(user, authKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(createdUser: User) {
+        Log.d("createUser", "User created successfully: ${createdUser.uid}")
+    }
+
+    override fun onError(e: CometChatException) {
+        Log.e("createUser", "User creation failed: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String authKey = "AUTH_KEY"; // Replace with your App Auth Key
+User user = new User();
+user.setUid("USER_UID"); // Replace with the UID for the user to be created
+user.setName("USER_NAME"); // Replace with the name of the user
+
+CometChat.createUser(user, authKey, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User createdUser) {
+        Log.d("createUser", "User created successfully: " + createdUser.getUid());
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("createUser", "User creation failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+<Note>
+`uid` and `name` are mandatory fields to create a user.
+</Note>
+
+Once you have created the user successfully, you will need to log the user into CometChat using the `login()` method.
+
+We recommend you call the CometChat `login()` method once your user logs into your app. The `login()` method needs to be called only once.
+
+<Warning>
+This straightforward authentication method is ideal for proof-of-concept (POC) development or during the early stages of application development. For production environments, we strongly recommend using an [Auth Token](/sdk/android/authentication/login-with-auth-token) instead of an Auth Key to ensure enhanced security.
+</Warning>
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+val uid = "user1" // Replace with the UID of the user to login
+val authKey = "AUTH_KEY" // Replace with your App Auth Key
+
+if (CometChat.getLoggedInUser() == null) {
+    CometChat.login(uid, authKey, object : CometChat.CallbackListener<User>() {
+        override fun onSuccess(user: User?) {
+            Log.d(TAG, "Login Successful: ${user?.uid}")
+        }
+
+        override fun onError(e: CometChatException?) {
+            Log.e(TAG, "Login failed: ${e?.message}")
+        }
+    })
+} else {
+    // User already logged in
+    Log.d(TAG, "User already logged in: ${CometChat.getLoggedInUser()?.uid}")
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String uid = "user1"; // Replace with the UID of the user to login
+String authKey = "AUTH_KEY"; // Replace with your App Auth Key
+
+if (CometChat.getLoggedInUser() == null) {
+    CometChat.login(uid, authKey, new CometChat.CallbackListener<User>() {
+        @Override
+        public void onSuccess(User user) {
+            Log.d(TAG, "Login Successful: " + user.getUid());
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e(TAG, "Login failed: " + e.getMessage());
+        }
+    });
+} else {
+    // User already logged in
+    Log.d(TAG, "User already logged in: " + CometChat.getLoggedInUser().getUid());
+}
+```
+</Tab>
+</Tabs>
+
+<Warning>
+Replace `AUTH_KEY` with your App **Auth Key** in the above code.
+</Warning>
+
+The `login()` method returns the `User` object containing all the information of the logged-in user.
+
+<Note>
+**UID Requirements**: UID can be alphanumeric with underscore and hyphen. Spaces, punctuation and other special characters are not allowed.
+</Note>
+
+## Integrate our UI Kits
+
+Please refer to the [Android UI Kit](/ui-kit/android/overview) section to integrate the UI Kit inside your app.
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" href="/sdk/android/getting-started/setup">
+    Detailed setup instructions for your Android project
+  </Card>
+  <Card title="Key Concepts" href="/sdk/android/concepts/key-concepts">
+    Understand the core concepts of CometChat SDK
+  </Card>
+  <Card title="Authentication" href="/sdk/android/authentication/overview">
+    Learn about authentication options
+  </Card>
+  <Card title="Sample Apps" href="/sdk/android/getting-started/sample-apps">
+    Explore sample applications
+  </Card>
+</CardGroup>

@@ -1,0 +1,334 @@
+---
+title: "Update User"
+sidebarTitle: "Update User"
+description: "Learn how to update user profiles in CometChat Android SDK. Modify name, avatar, metadata, and other properties."
+keywords: ["update user", "edit user", "user profile", "modify user", "user settings"]
+---
+
+Update user properties like name, avatar, and metadata. There are two methods depending on whether you're updating the logged-in user or another user.
+
+## Update Methods
+
+| Method | Use Case | Requires API Key |
+|--------|----------|------------------|
+| `updateCurrentUserDetails()` | Update logged-in user | No |
+| `updateUser()` | Update any user (admin) | Yes |
+
+## Update Logged-in User
+
+Use `updateCurrentUserDetails()` to update the currently logged-in user's profile. This method doesn't require an API Key.
+
+### Editable Properties
+
+| Property | Editable | Description |
+|----------|----------|-------------|
+| `name` | ✅ Yes | Display name |
+| `avatar` | ✅ Yes | Avatar URL |
+| `link` | ✅ Yes | Profile link |
+| `metadata` | ✅ Yes | Custom JSON data |
+| `statusMessage` | ✅ Yes | Status message |
+| `tags` | ✅ Yes | User tags |
+| `role` | ❌ No | Cannot update own role |
+| `uid` | ❌ No | Cannot change UID |
+
+### Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+import org.json.JSONObject
+
+// Create user object with updated properties
+val updatedUser = User().apply {
+    name = "John Smith"
+    avatar = "https://example.com/new-avatar.png"
+    statusMessage = "Available for chat"
+    
+    // Update metadata
+    metadata = JSONObject().apply {
+        put("bio", "Software Developer")
+        put("location", "San Francisco")
+        put("website", "https://johnsmith.dev")
+    }
+    
+    // Update tags
+    tags = listOf("developer", "premium")
+}
+
+CometChat.updateCurrentUserDetails(updatedUser, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(user: User) {
+        Log.d("UpdateUser", "Profile updated successfully")
+        Log.d("UpdateUser", "New name: ${user.name}")
+        Log.d("UpdateUser", "New avatar: ${user.avatar}")
+        
+        // Update UI with new user data
+        updateProfileUI(user)
+    }
+    
+    override fun onError(e: CometChatException) {
+        Log.e("UpdateUser", "Update failed: ${e.message}")
+        showError("Failed to update profile: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+import org.json.JSONObject;
+import java.util.Arrays;
+
+// Create user object with updated properties
+User updatedUser = new User();
+updatedUser.setName("John Smith");
+updatedUser.setAvatar("https://example.com/new-avatar.png");
+updatedUser.setStatusMessage("Available for chat");
+
+// Update metadata
+try {
+    JSONObject metadata = new JSONObject();
+    metadata.put("bio", "Software Developer");
+    metadata.put("location", "San Francisco");
+    metadata.put("website", "https://johnsmith.dev");
+    updatedUser.setMetadata(metadata);
+} catch (JSONException e) {
+    e.printStackTrace();
+}
+
+// Update tags
+updatedUser.setTags(Arrays.asList("developer", "premium"));
+
+CometChat.updateCurrentUserDetails(updatedUser, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User user) {
+        Log.d("UpdateUser", "Profile updated successfully");
+        Log.d("UpdateUser", "New name: " + user.getName());
+        Log.d("UpdateUser", "New avatar: " + user.getAvatar());
+        
+        // Update UI with new user data
+        updateProfileUI(user);
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("UpdateUser", "Update failed: " + e.getMessage());
+        showError("Failed to update profile: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## Update Any User (Admin)
+
+Use `updateUser()` to update any user's profile. This requires an API Key and is typically used for admin operations.
+
+<Warning>
+**Security Note**: This method requires your API Key. For production apps, perform admin operations from your backend server using the [REST API](https://api-explorer.cometchat.com/reference/update-user).
+</Warning>
+
+### Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+val apiKey = "YOUR_API_KEY"
+
+// User object must have UID set
+val user = User().apply {
+    uid = "user_to_update" // Required: specify which user to update
+    name = "Updated Name"
+    role = "moderator" // Can update role with this method
+}
+
+CometChat.updateUser(user, apiKey, object : CometChat.CallbackListener<User>() {
+    override fun onSuccess(updatedUser: User) {
+        Log.d("UpdateUser", "User updated: ${updatedUser.uid}")
+    }
+    
+    override fun onError(e: CometChatException) {
+        Log.e("UpdateUser", "Update failed: ${e.message}")
+    }
+})
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String apiKey = "YOUR_API_KEY";
+
+// User object must have UID set
+User user = new User();
+user.setUid("user_to_update"); // Required: specify which user to update
+user.setName("Updated Name");
+user.setRole("moderator"); // Can update role with this method
+
+CometChat.updateUser(user, apiKey, new CometChat.CallbackListener<User>() {
+    @Override
+    public void onSuccess(User updatedUser) {
+        Log.d("UpdateUser", "User updated: " + updatedUser.getUid());
+    }
+    
+    @Override
+    public void onError(CometChatException e) {
+        Log.e("UpdateUser", "Update failed: " + e.getMessage());
+    }
+});
+```
+</Tab>
+</Tabs>
+
+## Profile Edit Screen Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+class ProfileEditViewModel : ViewModel() {
+    
+    private val _updateState = MutableLiveData<UpdateState>()
+    val updateState: LiveData<UpdateState> = _updateState
+    
+    sealed class UpdateState {
+        object Loading : UpdateState()
+        data class Success(val user: User) : UpdateState()
+        data class Error(val message: String) : UpdateState()
+    }
+    
+    fun updateProfile(
+        name: String,
+        avatarUrl: String?,
+        bio: String?,
+        statusMessage: String?
+    ) {
+        _updateState.value = UpdateState.Loading
+        
+        val user = User().apply {
+            this.name = name
+            avatarUrl?.let { this.avatar = it }
+            statusMessage?.let { this.statusMessage = it }
+            
+            // Build metadata
+            val metadata = JSONObject()
+            bio?.let { metadata.put("bio", it) }
+            
+            // Preserve existing metadata
+            CometChat.getLoggedInUser()?.metadata?.let { existing ->
+                val keys = existing.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    if (!metadata.has(key)) {
+                        metadata.put(key, existing.get(key))
+                    }
+                }
+            }
+            
+            this.metadata = metadata
+        }
+        
+        CometChat.updateCurrentUserDetails(user, object : CometChat.CallbackListener<User>() {
+            override fun onSuccess(updatedUser: User) {
+                _updateState.postValue(UpdateState.Success(updatedUser))
+            }
+            
+            override fun onError(e: CometChatException) {
+                _updateState.postValue(UpdateState.Error(e.message ?: "Update failed"))
+            }
+        })
+    }
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+public class ProfileEditViewModel extends ViewModel {
+    
+    private MutableLiveData<UpdateState> updateState = new MutableLiveData<>();
+    
+    public LiveData<UpdateState> getUpdateState() {
+        return updateState;
+    }
+    
+    public void updateProfile(String name, String avatarUrl, String bio, String statusMessage) {
+        updateState.setValue(new UpdateState.Loading());
+        
+        User user = new User();
+        user.setName(name);
+        
+        if (avatarUrl != null) {
+            user.setAvatar(avatarUrl);
+        }
+        
+        if (statusMessage != null) {
+            user.setStatusMessage(statusMessage);
+        }
+        
+        // Build metadata
+        try {
+            JSONObject metadata = new JSONObject();
+            if (bio != null) {
+                metadata.put("bio", bio);
+            }
+            user.setMetadata(metadata);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        
+        CometChat.updateCurrentUserDetails(user, new CometChat.CallbackListener<User>() {
+            @Override
+            public void onSuccess(User updatedUser) {
+                updateState.postValue(new UpdateState.Success(updatedUser));
+            }
+            
+            @Override
+            public void onError(CometChatException e) {
+                updateState.postValue(new UpdateState.Error(e.getMessage()));
+            }
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Error Codes
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_USER_NOT_LOGGED_IN` | No user logged in | Login first |
+| `ERR_INVALID_API_KEY` | Invalid API Key | Check API Key |
+| `ERR_UID_NOT_FOUND` | User doesn't exist | Verify UID |
+
+## Delete User
+
+<Note>
+User deletion can only be done via the [REST API](https://api-explorer.cometchat.com/reference/delete-user) from your backend server.
+</Note>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Create User" href="/sdk/android/user-management/create-user">
+    Create new users
+  </Card>
+  <Card title="Retrieve Users" href="/sdk/android/user-management/retrieve-users">
+    Fetch user lists
+  </Card>
+  <Card title="User Presence" href="/sdk/android/user-management/user-presence">
+    Online/offline status
+  </Card>
+  <Card title="Custom Metadata" href="/sdk/android/advanced/custom-metadata">
+    Store custom user data
+  </Card>
+</CardGroup>

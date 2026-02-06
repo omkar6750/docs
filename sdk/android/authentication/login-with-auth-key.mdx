@@ -1,0 +1,228 @@
+---
+title: "Login with Auth Key"
+sidebarTitle: "Auth Key Login"
+description: "Login users with Auth Key for development and prototyping. Quick setup for proof-of-concept applications."
+keywords: ["auth key", "login", "development login", "poc", "prototype"]
+---
+
+<Warning>
+**Development Only**: Auth Key login is for development and prototyping only. For production apps, use [Auth Token Login](/sdk/android/authentication/login-with-auth-token).
+</Warning>
+
+Auth Key login provides a quick way to authenticate users during development without setting up a backend server.
+
+## How It Works
+
+1. Get your Auth Key from the CometChat Dashboard
+2. Call `CometChat.login(uid, authKey, callback)`
+3. User is authenticated
+
+<Note>
+**Security Risk**: The Auth Key is embedded in your client code and can be extracted by anyone with access to your APK. This is why it should never be used in production.
+</Note>
+
+## Prerequisites
+
+- CometChat SDK initialized
+- Auth Key from CometChat Dashboard
+- User created in CometChat
+
+## Get Your Auth Key
+
+1. Go to [CometChat Dashboard](https://app.cometchat.com)
+2. Select your app
+3. Navigate to **API Keys**
+4. Copy your **Auth Key**
+
+## Implementation
+
+### Method Signature
+
+```kotlin
+fun login(
+    uid: String,
+    authKey: String,
+    callbackListener: CallbackListener<User>
+)
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `uid` | `String` | Yes | Unique identifier of the user to login |
+| `authKey` | `String` | Yes | Your CometChat Auth Key |
+| `callbackListener` | `CallbackListener<User>` | Yes | Callback for success/error |
+
+### Example
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.models.User
+import com.cometchat.chat.exceptions.CometChatException
+
+val uid = "cometchat-uid-1"
+val authKey = "YOUR_AUTH_KEY" // Replace with your Auth Key
+
+// Check if already logged in
+if (CometChat.getLoggedInUser() == null) {
+    CometChat.login(uid, authKey, object : CometChat.CallbackListener<User>() {
+        override fun onSuccess(user: User?) {
+            Log.d("CometChat", "Login successful!")
+            Log.d("CometChat", "User UID: ${user?.uid}")
+            Log.d("CometChat", "User Name: ${user?.name}")
+            
+            // Navigate to chat screen
+            navigateToChatScreen()
+        }
+
+        override fun onError(e: CometChatException?) {
+            Log.e("CometChat", "Login failed: ${e?.code}")
+            Log.e("CometChat", "Error: ${e?.message}")
+            
+            // Handle error
+            when (e?.code) {
+                "ERR_UID_NOT_FOUND" -> showError("User not found")
+                "ERR_INVALID_API_KEY" -> showError("Invalid Auth Key")
+                else -> showError("Login failed: ${e?.message}")
+            }
+        }
+    })
+} else {
+    // Already logged in
+    Log.d("CometChat", "Already logged in as: ${CometChat.getLoggedInUser()?.uid}")
+    navigateToChatScreen()
+}
+```
+</Tab>
+<Tab title="Java">
+```java
+import com.cometchat.chat.core.CometChat;
+import com.cometchat.chat.models.User;
+import com.cometchat.chat.exceptions.CometChatException;
+
+String uid = "cometchat-uid-1";
+String authKey = "YOUR_AUTH_KEY"; // Replace with your Auth Key
+
+// Check if already logged in
+if (CometChat.getLoggedInUser() == null) {
+    CometChat.login(uid, authKey, new CometChat.CallbackListener<User>() {
+        @Override
+        public void onSuccess(User user) {
+            Log.d("CometChat", "Login successful!");
+            Log.d("CometChat", "User UID: " + user.getUid());
+            Log.d("CometChat", "User Name: " + user.getName());
+            
+            // Navigate to chat screen
+            navigateToChatScreen();
+        }
+
+        @Override
+        public void onError(CometChatException e) {
+            Log.e("CometChat", "Login failed: " + e.getCode());
+            Log.e("CometChat", "Error: " + e.getMessage());
+            
+            // Handle error
+            if ("ERR_UID_NOT_FOUND".equals(e.getCode())) {
+                showError("User not found");
+            } else if ("ERR_INVALID_API_KEY".equals(e.getCode())) {
+                showError("Invalid Auth Key");
+            } else {
+                showError("Login failed: " + e.getMessage());
+            }
+        }
+    });
+} else {
+    // Already logged in
+    Log.d("CometChat", "Already logged in as: " + CometChat.getLoggedInUser().getUid());
+    navigateToChatScreen();
+}
+```
+</Tab>
+</Tabs>
+
+## Response
+
+On successful login, you receive a `User` object:
+
+```kotlin
+User {
+    uid: "cometchat-uid-1"
+    name: "Kevin"
+    avatar: "https://..."
+    status: "online"
+    role: "default"
+    lastActiveAt: 1699123456789
+    // ... other properties
+}
+```
+
+## Error Codes
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `ERR_UID_NOT_FOUND` | User with this UID doesn't exist | Create the user first |
+| `ERR_INVALID_API_KEY` | Auth Key is invalid | Check your Auth Key in Dashboard |
+| `ERR_ALREADY_LOGGED_IN` | User is already logged in | Call `getLoggedInUser()` first |
+| `ERR_INIT_NOT_CALLED` | SDK not initialized | Call `CometChat.init()` first |
+
+## Best Practices
+
+<Warning>
+**Do NOT do this in production:**
+```kotlin
+// ❌ WRONG - Auth Key hardcoded in client
+val authKey = "abc123xyz789"
+CometChat.login(uid, authKey, callback)
+```
+</Warning>
+
+<Note>
+**For production, use Auth Token:**
+```kotlin
+// ✅ CORRECT - Auth Token from your server
+val authToken = getAuthTokenFromServer(uid)
+CometChat.login(authToken, callback)
+```
+</Note>
+
+## When to Use Auth Key Login
+
+✅ **Use for:**
+- Proof of concept (POC)
+- Development and testing
+- Hackathons and demos
+- Learning the SDK
+
+❌ **Don't use for:**
+- Production apps
+- Apps with real users
+- Apps published to Play Store
+
+## Migrate to Auth Token
+
+When you're ready for production:
+
+1. Set up a backend server
+2. Store your Auth Key securely on the server
+3. Create an endpoint that generates Auth Tokens
+4. Update your app to use [Auth Token Login](/sdk/android/authentication/login-with-auth-token)
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Auth Token Login" href="/sdk/android/authentication/login-with-auth-token">
+    Secure login for production
+  </Card>
+  <Card title="Logout" href="/sdk/android/authentication/logout">
+    End user sessions
+  </Card>
+  <Card title="Create User" href="/sdk/android/user-management/create-user">
+    Create users before login
+  </Card>
+  <Card title="Login Listeners" href="/sdk/android/authentication/login-listeners">
+    Monitor auth state changes
+  </Card>
+</CardGroup>
