@@ -1,134 +1,324 @@
 ---
 title: "Setup"
-sidebarTitle: "Overview"
+sidebarTitle: "Setup"
+description: "Install and configure the CometChat JavaScript SDK"
 ---
 
+This guide covers the complete setup process for the CometChat JavaScript SDK, including installation, initialization, and framework-specific configurations.
 
+<Info>
+**Migrating from v3?** Your existing app can be upgraded to v4. See the [Migration Guide](/sdk/javascript/upgrading-from-v3).
+</Info>
 
-<Note>
-Migrating app version from v3 to v4 ?
+## Prerequisites
 
-Skip the create new app step. Your existing v3 app can be migrated to v4.
+Before you begin, ensure you have:
 
-Follow steps mentioned in **Add the CometChat dependency** section below to upgrade to latest version of v4
+<Steps>
+  <Step title="CometChat Account">
+    [Sign up](https://app.cometchat.com) or log in to your CometChat dashboard
+  </Step>
+  <Step title="App Credentials">
+    From your app's **API & Auth Keys** section, note:
+    - **App ID** - Your unique application identifier
+    - **Region** - Where your app is hosted (`us`, `eu`, or `in`)
+    - **Auth Key** - For development/testing (use Auth Tokens in production)
+  </Step>
+</Steps>
 
-</Note>
+## Installation
 
-## Get your Application Keys
-
-[Signup for CometChat](https://app.cometchat.com) and then:
-
-1. Create a new app
-2. Head over to the **API & Auth Keys** section and note the **Auth Key**, **App ID** & **Region**
-
-## Add the CometChat Dependency
-
-### NPM
-
-<Tabs>
-<Tab title="JavaScript">
-```js
-npm install @cometchat/chat-sdk-javascript
-```
-
-</Tab>
-
-</Tabs>
-
-Then, import the `CometChat` object wherever you want to use CometChat.
+Choose your preferred installation method:
 
 <Tabs>
-<Tab title="JavaScript">
-```js
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-```
-
-</Tab>
-
-</Tabs>
-
-### HTML (via CDN)
-
-Include the CometChat JavaScript library in your HTML code.
-
-<Tabs>
-<Tab title="HTML">
-```
-<script
-  type="text/javascript"
-  src="https://unpkg.com/@cometchat/chat-sdk-javascript/CometChat.js"
-></script>
-```
-
-</Tab>
-
+  <Tab title="npm">
+    ```bash
+    npm install @cometchat/chat-sdk-javascript
+    ```
+    
+    Then import in your code:
+    ```javascript
+    import { CometChat } from "@cometchat/chat-sdk-javascript";
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @cometchat/chat-sdk-javascript
+    ```
+    
+    Then import in your code:
+    ```javascript
+    import { CometChat } from "@cometchat/chat-sdk-javascript";
+    ```
+  </Tab>
+  <Tab title="CDN">
+    Add to your HTML:
+    ```html
+    <script 
+      type="text/javascript" 
+      src="https://unpkg.com/@cometchat/chat-sdk-javascript/CometChat.js">
+    </script>
+    ```
+    
+    The `CometChat` object is available globally.
+  </Tab>
 </Tabs>
 
 ## Initialize CometChat
 
-The `init()` method initialises the settings required for CometChat. The `init()` method takes the below parameters:
-
-1. appID - You CometChat App ID
-2. appSettings - An object of the AppSettings class can be created using the AppSettingsBuilder class. The region field is mandatory and can be set using the `setRegion()` method.
-
-The `AppSettings` class allows you to configure two settings:
-
-* **Region**: The region where you app was created.
-* [Presence Subscription](/sdk/javascript/user-presence)**:** Represents the subscription type for user presence (real-time online/offline status)
-* **autoEstablishSocketConnection(boolean value)**: This property takes a boolean value which when set to `true` informs the SDK to manage the web-socket connection internally. If set to `false` , it informs the SDK that the web-socket connection will be managed manually. The default value for this parameter is true. For more information on this, please check the [Managing Web-Socket connections manually](/sdk/javascript/managing-web-sockets-connections-manually) section. The default value for this property is **true.**
-* **overrideAdminHost(adminHost: string)**: This method takes the admin URL as input and uses this admin URL instead of the default admin URL. This can be used in case of dedicated deployment of CometChat.
-* **overrideClientHost(clientHost: string)**: This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
-
-You need to call `init()` before calling any other method from CometChat. We suggest you call the `init()` method on app startup, preferably in the `index.js` file.
+Call `init()` once when your application starts, before using any other CometChat methods.
 
 <Tabs>
-<Tab title="JavaScript">
-```js
-let appID = "APP_ID";
-let region = "APP_REGION";
-let appSetting = new CometChat.AppSettingsBuilder()
-  .subscribePresenceForAllUsers()
-  .setRegion(region)
-  .autoEstablishSocketConnection(true)
-  .build();
-CometChat.init(appID, appSetting).then(
-  () => {
-    console.log("Initialization completed successfully");
-  },
-  (error) => {
-    console.log("Initialization failed with error:", error);
-  }
-);
-```
+  <Tab title="JavaScript">
+    ```javascript
+    const appID = "YOUR_APP_ID";
+    const region = "YOUR_REGION";
 
-</Tab>
+    const appSetting = new CometChat.AppSettingsBuilder()
+      .subscribePresenceForAllUsers()
+      .setRegion(region)
+      .autoEstablishSocketConnection(true)
+      .build();
 
-<Tab title="TypeScript">
-```typescript
-let appID: string = "APP_ID",
-  region: string = "APP_REGION",
-  appSetting: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
-    .subscribePresenceForAllUsers()
-    .setRegion(region)
-    .autoEstablishSocketConnection(true)
-    .build();
-CometChat.init(appID, appSetting).then(
-  (initialized: boolean) => {
-    console.log("Initialization completed successfully", initialized);
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Initialization failed with error:", error);
-  }
-);
-```
+    CometChat.init(appID, appSetting).then(
+      () => {
+        console.log("Initialization completed successfully");
+      },
+      (error) => {
+        console.log("Initialization failed with error:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const appID: string = "YOUR_APP_ID";
+    const region: string = "YOUR_REGION";
 
-</Tab>
+    const appSetting: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
+      .subscribePresenceForAllUsers()
+      .setRegion(region)
+      .autoEstablishSocketConnection(true)
+      .build();
 
+    CometChat.init(appID, appSetting).then(
+      (initialized: boolean) => {
+        console.log("Initialization completed successfully", initialized);
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Initialization failed with error:", error);
+      }
+    );
+    ```
+  </Tab>
 </Tabs>
 
-Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
+<Warning>
+Replace `YOUR_APP_ID` and `YOUR_REGION` with your actual credentials from the CometChat dashboard.
+</Warning>
 
-| Parameter  | Description                         |
-| ---------- | ----------------------------------- |
-| appID      | CometChat App ID                    |
-| appSetting | An object of the AppSettings class. |
+## Configuration Options
+
+The `AppSettingsBuilder` provides several configuration options:
+
+| Method | Description | Default |
+|--------|-------------|---------|
+| `setRegion(region)` | **Required.** Set your app's region (`us`, `eu`, `in`) | - |
+| `subscribePresenceForAllUsers()` | Receive presence updates for all users | Disabled |
+| `subscribePresenceForRoles(roles)` | Receive presence for specific roles only | - |
+| `subscribePresenceForFriends()` | Receive presence for friends only | - |
+| `autoEstablishSocketConnection(bool)` | SDK manages WebSocket connection | `true` |
+| `setStorageMode(mode)` | Set data storage mode | Local Storage |
+| `overrideAdminHost(url)` | Custom admin URL (dedicated deployment) | - |
+| `overrideClientHost(url)` | Custom client URL (dedicated deployment) | - |
+
+### Storage Modes
+
+Control how CometChat stores data locally:
+
+```javascript
+const appSetting = new CometChat.AppSettingsBuilder()
+  .setRegion(region)
+  .setStorageMode(CometChat.StorageMode.SESSION) // Session storage
+  .build();
+```
+
+Available modes:
+- `CometChat.StorageMode.LOCAL` - Persists across browser sessions (default)
+- `CometChat.StorageMode.SESSION` - Cleared when browser session ends
+
+### Presence Subscription
+
+Choose how to receive user online/offline status:
+
+<Tabs>
+  <Tab title="All Users">
+    ```javascript
+    // Receive presence for all users
+    const appSetting = new CometChat.AppSettingsBuilder()
+      .setRegion(region)
+      .subscribePresenceForAllUsers()
+      .build();
+    ```
+  </Tab>
+  <Tab title="Specific Roles">
+    ```javascript
+    // Receive presence for specific roles only
+    const appSetting = new CometChat.AppSettingsBuilder()
+      .setRegion(region)
+      .subscribePresenceForRoles(["premium", "moderator"])
+      .build();
+    ```
+  </Tab>
+  <Tab title="Friends Only">
+    ```javascript
+    // Receive presence for friends only
+    const appSetting = new CometChat.AppSettingsBuilder()
+      .setRegion(region)
+      .subscribePresenceForFriends()
+      .build();
+    ```
+  </Tab>
+</Tabs>
+
+Learn more about [User Presence](/sdk/javascript/user-presence).
+
+---
+
+## Framework-Specific Setup
+
+### Next.js (SSR)
+
+For Next.js applications, import CometChat dynamically on the client side.
+
+**App Router (React Server Components):**
+
+```javascript
+// app/chat/page.js
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function ChatPage() {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const initCometChat = async () => {
+      const { CometChat } = await import("@cometchat/chat-sdk-javascript");
+      
+      const appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("YOUR_REGION")
+        .build();
+
+      await CometChat.init("YOUR_APP_ID", appSetting);
+      setIsReady(true);
+    };
+
+    initCometChat();
+  }, []);
+
+  if (!isReady) return <div>Loading...</div>;
+
+  return <div>Chat is ready!</div>;
+}
+```
+
+**Pages Router:**
+
+```javascript
+// pages/index.js
+import { useEffect, useState } from "react";
+import Chat from "../components/Chat";
+
+export default function Home() {
+  const [libraryImported, setLibraryImported] = useState(false);
+
+  useEffect(() => {
+    window.CometChat = require("@cometchat/chat-sdk-javascript").CometChat;
+    setLibraryImported(true);
+  }, []);
+
+  return libraryImported ? <Chat /> : <p>Loading...</p>;
+}
+```
+
+### Nuxt.js (SSR)
+
+For Nuxt applications, import CometChat in the `mounted` lifecycle hook:
+
+```vue
+<template>
+  <div v-if="libraryImported">
+    <Chat />
+  </div>
+  <div v-else>Loading...</div>
+</template>
+
+<script>
+export default {
+  name: "Index",
+  components: {
+    Chat: () => import("./Chat.vue"),
+  },
+  data() {
+    return {
+      libraryImported: false,
+    };
+  },
+  mounted() {
+    window.CometChat = require("@cometchat/chat-sdk-javascript").CometChat;
+    this.libraryImported = true;
+  },
+};
+</script>
+```
+
+---
+
+## Verify Installation
+
+After setup, verify CometChat is working:
+
+```javascript
+CometChat.init(appID, appSetting).then(
+  () => {
+    console.log("CometChat initialized");
+    
+    // Try logging in with a test user
+    return CometChat.login("cometchat-uid-1", authKey);
+  }
+).then(
+  (user) => {
+    console.log("Login successful:", user.getName());
+  },
+  (error) => {
+    console.error("Error:", error);
+  }
+);
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/sdk/javascript/authentication-overview">
+    Learn about Auth Keys vs Auth Tokens and secure login flows
+  </Card>
+  <Card title="Send Your First Message" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Initialization fails with 'App not found'">
+    Verify your App ID and Region match exactly what's shown in your CometChat dashboard. Region values are case-sensitive (`us`, `eu`, `in`).
+  </Accordion>
+  <Accordion title="'CometChat is not defined' error">
+    Ensure you've imported CometChat before using it. For CDN usage, make sure the script tag loads before your code runs.
+  </Accordion>
+  <Accordion title="SSR/Hydration errors in Next.js or Nuxt">
+    CometChat requires browser APIs. Use dynamic imports or load the SDK only on the client side. See the framework-specific sections above.
+  </Accordion>
+</AccordionGroup>
