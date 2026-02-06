@@ -1,10 +1,282 @@
 ---
 title: "Groups"
 sidebarTitle: "Overview"
+description: "Create and manage group conversations in your chat application"
 ---
 
+Groups enable multiple users to communicate together. CometChat supports public, private, and password-protected groups with role-based member management.
 
+---
 
-Groups help your users to converse together in a single space. You can have three types of groups- private, public and password protected.
+## Group Types
 
-Each group includes three kinds of users- owner, moderator, member.
+| Type | Visibility | How to Join |
+|------|------------|-------------|
+| **Public** | Visible to all users | Anyone can join freely |
+| **Password** | Visible to all users | Requires correct password |
+| **Private** | Only visible to members | Invitation only (auto-joined) |
+
+```javascript
+// Group type constants
+CometChat.GROUP_TYPE.PUBLIC
+CometChat.GROUP_TYPE.PASSWORD
+CometChat.GROUP_TYPE.PRIVATE
+```
+
+---
+
+## Member Scopes
+
+| Scope | Capabilities |
+|-------|-------------|
+| **Admin** | Full control: manage all members, update/delete group, change any scope |
+| **Moderator** | Moderate: kick/ban participants, update group info |
+| **Participant** | Basic: send/receive messages and calls |
+
+```javascript
+// Scope constants
+CometChat.GROUP_MEMBER_SCOPE.ADMIN
+CometChat.GROUP_MEMBER_SCOPE.MODERATOR
+CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT
+```
+
+<Note>
+The group creator is automatically assigned as Admin.
+</Note>
+
+---
+
+## Quick Start
+
+### Create a Group
+
+```javascript
+const GUID = "group_" + Date.now();
+const groupName = "My Group";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+const group = new CometChat.Group(GUID, groupName, groupType);
+
+CometChat.createGroup(group).then(
+  (group) => console.log("Group created:", group),
+  (error) => console.log("Error:", error)
+);
+```
+
+### Fetch Groups
+
+```javascript
+const groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(30)
+  .build();
+
+groupsRequest.fetchNext().then(
+  (groups) => console.log("Groups:", groups),
+  (error) => console.log("Error:", error)
+);
+```
+
+---
+
+## Group Management
+
+<CardGroup cols={2}>
+  <Card title="Retrieve Groups" icon="users-rectangle" href="/sdk/javascript/retrieve-groups">
+    Fetch and search groups
+  </Card>
+  <Card title="Create Group" icon="plus" href="/sdk/javascript/create-group">
+    Create new groups with members
+  </Card>
+  <Card title="Update Group" icon="pen" href="/sdk/javascript/update-group">
+    Modify group settings
+  </Card>
+  <Card title="Delete Group" icon="trash" href="/sdk/javascript/delete-group">
+    Remove groups permanently
+  </Card>
+</CardGroup>
+
+---
+
+## Membership
+
+<CardGroup cols={2}>
+  <Card title="Join Group" icon="right-to-bracket" href="/sdk/javascript/join-group">
+    Join public or password groups
+  </Card>
+  <Card title="Leave Group" icon="right-from-bracket" href="/sdk/javascript/leave-group">
+    Exit a group
+  </Card>
+  <Card title="Retrieve Members" icon="users" href="/sdk/javascript/retrieve-group-members">
+    List group members
+  </Card>
+  <Card title="Add Members" icon="user-plus" href="/sdk/javascript/group-add-members">
+    Add users to a group
+  </Card>
+</CardGroup>
+
+---
+
+## Member Management
+
+<CardGroup cols={2}>
+  <Card title="Kick/Ban Members" icon="user-slash" href="/sdk/javascript/group-kick-ban-members">
+    Remove or ban users from groups
+  </Card>
+  <Card title="Change Scope" icon="user-gear" href="/sdk/javascript/group-change-member-scope">
+    Promote or demote members
+  </Card>
+  <Card title="Transfer Ownership" icon="arrow-right-arrow-left" href="/sdk/javascript/transfer-group-ownership">
+    Transfer admin rights
+  </Card>
+</CardGroup>
+
+---
+
+## Group Object Properties
+
+| Property | Method | Description | Editable |
+|----------|--------|-------------|----------|
+| GUID | `getGuid()` | Unique identifier | No (set at creation) |
+| Name | `getName()` | Group name | Yes |
+| Type | `getType()` | public, password, private | No |
+| Icon | `getIcon()` | Group image URL | Yes |
+| Description | `getDescription()` | Group description | Yes |
+| Owner | `getOwner()` | UID of group owner | Yes |
+| Metadata | `getMetadata()` | Custom JSON data | Yes |
+| Members Count | `getMembersCount()` | Number of members | No |
+| Has Joined | `getHasJoined()` | If logged-in user is member | No |
+| Joined At | `getJoinedAt()` | When user joined | No |
+| Scope | `getScope()` | User's scope in group | Yes |
+| Tags | `getTags()` | Array of tags | Yes |
+| Created At | `getCreatedAt()` | Creation timestamp | No |
+
+---
+
+## Common Use Cases
+
+### Create Group with Members
+
+```javascript
+const GUID = "team_chat";
+const groupName = "Team Chat";
+const groupType = CometChat.GROUP_TYPE.PRIVATE;
+
+const group = new CometChat.Group(GUID, groupName, groupType);
+
+const members = [
+  new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.ADMIN),
+  new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+  new CometChat.GroupMember("user3", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+];
+
+CometChat.createGroupWithMembers(group, members, []).then(
+  (response) => {
+    console.log("Group created:", response.group);
+    console.log("Members added:", response.members);
+  }
+);
+```
+
+### Join a Public Group
+
+```javascript
+const GUID = "public_group";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+CometChat.joinGroup(GUID, groupType).then(
+  (group) => console.log("Joined group:", group),
+  (error) => console.log("Error:", error)
+);
+```
+
+### Join a Password Group
+
+```javascript
+const GUID = "password_group";
+const groupType = CometChat.GROUP_TYPE.PASSWORD;
+const password = "secret123";
+
+CometChat.joinGroup(GUID, groupType, password).then(
+  (group) => console.log("Joined group:", group),
+  (error) => console.log("Error:", error)
+);
+```
+
+### Search Groups
+
+```javascript
+const groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(30)
+  .setSearchKeyword("team")
+  .build();
+
+groupsRequest.fetchNext().then((groups) => {
+  console.log("Search results:", groups);
+});
+```
+
+### Filter Joined Groups
+
+```javascript
+const groupsRequest = new CometChat.GroupsRequestBuilder()
+  .setLimit(30)
+  .joinedOnly(true)
+  .build();
+
+groupsRequest.fetchNext().then((groups) => {
+  console.log("My groups:", groups);
+});
+```
+
+---
+
+## Real-Time Group Events
+
+Listen for group changes:
+
+```javascript
+const listenerID = "GROUP_LISTENER";
+
+CometChat.addGroupListener(
+  listenerID,
+  new CometChat.GroupListener({
+    onGroupMemberJoined: (message, joinedUser, joinedGroup) => {
+      console.log(joinedUser.getName(), "joined", joinedGroup.getName());
+    },
+    onGroupMemberLeft: (message, leftUser, leftGroup) => {
+      console.log(leftUser.getName(), "left", leftGroup.getName());
+    },
+    onGroupMemberKicked: (message, kickedUser, kickedBy, kickedFrom) => {
+      console.log(kickedUser.getName(), "was kicked by", kickedBy.getName());
+    },
+    onGroupMemberBanned: (message, bannedUser, bannedBy, bannedFrom) => {
+      console.log(bannedUser.getName(), "was banned");
+    },
+    onGroupMemberUnbanned: (message, unbannedUser, unbannedBy, unbannedFrom) => {
+      console.log(unbannedUser.getName(), "was unbanned");
+    },
+    onGroupMemberScopeChanged: (message, changedUser, newScope, oldScope, changedGroup) => {
+      console.log(changedUser.getName(), "scope changed to", newScope);
+    },
+    onMemberAddedToGroup: (message, userAdded, userAddedBy, userAddedIn) => {
+      console.log(userAdded.getName(), "was added by", userAddedBy.getName());
+    }
+  })
+);
+
+// Remove when done
+CometChat.removeGroupListener(listenerID);
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Group" icon="plus" href="/sdk/javascript/create-group">
+    Learn all group creation options
+  </Card>
+  <Card title="Retrieve Groups" icon="users-rectangle" href="/sdk/javascript/retrieve-groups">
+    Fetch and filter groups
+  </Card>
+</CardGroup>

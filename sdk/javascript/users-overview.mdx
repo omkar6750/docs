@@ -1,10 +1,178 @@
 ---
 title: "Users"
 sidebarTitle: "Overview"
+description: "Manage users and build contact lists in your chat application"
 ---
 
+Users are the foundation of your chat application. This section covers retrieving, creating, updating, and managing users.
 
+---
 
-The primary aim for our Users functionality is to allow you to quickly retrieve and add users to CometChat.
+## Core Concepts
 
-You can begin with [user management](/sdk/javascript/user-management) to sync your users to CometChat. Once that is done, you can [retrieve users](/sdk/javascript/retrieve-users) and display them in your app.
+- **UID**: Unique identifier for each user (typically matches your database user ID)
+- **User Object**: Contains profile info like name, avatar, status, and metadata
+- **Presence**: Real-time online/offline status
+
+---
+
+## Quick Start
+
+### Get Current User
+
+```javascript
+CometChat.getLoggedinUser().then(
+  (user) => {
+    if (user) {
+      console.log("Logged in as:", user.getName());
+    }
+  }
+);
+```
+
+### Fetch Users
+
+```javascript
+const usersRequest = new CometChat.UsersRequestBuilder()
+  .setLimit(30)
+  .build();
+
+usersRequest.fetchNext().then(
+  (users) => console.log("Users:", users),
+  (error) => console.log("Error:", error)
+);
+```
+
+---
+
+## User Management
+
+<CardGroup cols={2}>
+  <Card title="Retrieve Users" icon="users" href="/sdk/javascript/retrieve-users">
+    Fetch user lists with filtering and search
+  </Card>
+  <Card title="User Management" icon="user-gear" href="/sdk/javascript/user-management">
+    Create, update, and manage user profiles
+  </Card>
+  <Card title="Block Users" icon="ban" href="/sdk/javascript/block-users">
+    Block and unblock users
+  </Card>
+  <Card title="User Presence" icon="circle" href="/sdk/javascript/user-presence">
+    Track online/offline status in real-time
+  </Card>
+</CardGroup>
+
+---
+
+## User Object Properties
+
+| Property | Method | Description | Editable |
+|----------|--------|-------------|----------|
+| UID | `getUid()` | Unique identifier | No (set at creation) |
+| Name | `getName()` | Display name | Yes |
+| Avatar | `getAvatar()` | Profile picture URL | Yes |
+| Status | `getStatus()` | `online` or `offline` | No (system managed) |
+| Role | `getRole()` | User role for access control | Yes |
+| Metadata | `getMetadata()` | Custom JSON data | Yes |
+| Status Message | `getStatusMessage()` | Custom status text | Yes |
+| Last Active | `getLastActiveAt()` | Last activity timestamp | No |
+| Link | `getLink()` | Profile page URL | Yes |
+| Tags | `getTags()` | Array of tags | Yes |
+| Blocked By Me | `getBlockedByMe()` | If logged-in user blocked them | No |
+| Has Blocked Me | `getHasBlockedMe()` | If they blocked logged-in user | No |
+
+---
+
+## Common Use Cases
+
+### Build a Contacts List
+
+```javascript
+const usersRequest = new CometChat.UsersRequestBuilder()
+  .setLimit(30)
+  .friendsOnly(true)
+  .build();
+
+usersRequest.fetchNext().then((users) => {
+  users.forEach((user) => {
+    console.log(user.getName(), user.getStatus());
+  });
+});
+```
+
+### Search Users
+
+```javascript
+const usersRequest = new CometChat.UsersRequestBuilder()
+  .setLimit(30)
+  .setSearchKeyword("john")
+  .build();
+
+usersRequest.fetchNext().then((users) => {
+  console.log("Search results:", users);
+});
+```
+
+### Filter Online Users
+
+```javascript
+const usersRequest = new CometChat.UsersRequestBuilder()
+  .setLimit(30)
+  .setStatus(CometChat.USER_STATUS.ONLINE)
+  .build();
+
+usersRequest.fetchNext().then((users) => {
+  console.log("Online users:", users);
+});
+```
+
+### Filter by Role
+
+```javascript
+const usersRequest = new CometChat.UsersRequestBuilder()
+  .setLimit(30)
+  .setRoles(["premium", "moderator"])
+  .build();
+
+usersRequest.fetchNext().then((users) => {
+  console.log("Premium/Moderator users:", users);
+});
+```
+
+---
+
+## Real-Time User Events
+
+Listen for user status changes:
+
+```javascript
+const listenerID = "USER_LISTENER";
+
+CometChat.addUserListener(
+  listenerID,
+  new CometChat.UserListener({
+    onUserOnline: (onlineUser) => {
+      console.log("User online:", onlineUser.getName());
+    },
+    onUserOffline: (offlineUser) => {
+      console.log("User offline:", offlineUser.getName());
+    }
+  })
+);
+
+// Remove when done
+CometChat.removeUserListener(listenerID);
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Retrieve Users" icon="users" href="/sdk/javascript/retrieve-users">
+    Learn all filtering and pagination options
+  </Card>
+  <Card title="User Presence" icon="circle" href="/sdk/javascript/user-presence">
+    Implement real-time online/offline status
+  </Card>
+</CardGroup>
