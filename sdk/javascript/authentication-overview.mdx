@@ -1,197 +1,385 @@
 ---
 title: "Authentication"
 sidebarTitle: "Overview"
+description: "Authenticate users with CometChat using Auth Keys or Auth Tokens"
 ---
 
-
-
-## Create User
-
-Before you log in a user, you must add the user to CometChat.
-
-1. **For proof of concept/MVPs**: Create the user using the [CometChat Dashboard](https://app.cometchat.com).
-2. **For production apps**: Use the CometChat [Create User API](https://api-explorer.cometchat.com/reference/creates-user) to create the user when your user signs up in your app.
+CometChat requires users to be authenticated before they can send or receive messages. This guide covers the authentication flow and best practices for both development and production environments.
 
 <Note>
-
-We have setup 5 users for testing having UIDs: `cometchat-uid-1`, `cometchat-uid-2`, `cometchat-uid-3`, `cometchat-uid-4` and `cometchat-uid-5`.
-
+**CometChat does not handle user management.** You manage user registration and login in your app. Once a user logs into your app, you programmatically log them into CometChat.
 </Note>
 
-Once initialization is successful, you will need to log the user into CometChat using the `login()` method.
+## Authentication Flow
 
-We recommend you call the CometChat login method once your user logs into your app. The `login()` method needs to be called only once.
+```mermaid
+sequenceDiagram
+    participant User
+    participant YourApp
+    participant YourServer
+    participant CometChat
+    
+    User->>YourApp: Signs up / Logs in
+    YourApp->>YourServer: Authenticate user
+    YourServer->>CometChat: Create user (if new)
+    YourServer->>CometChat: Get Auth Token
+    YourServer->>YourApp: Return Auth Token
+    YourApp->>CometChat: Login with Auth Token
+    CometChat->>YourApp: User session established
+```
+
+## Choose Your Authentication Method
+
+<CardGroup cols={2}>
+  <Card title="Auth Key (Development)" icon="key">
+    Simple setup for prototyping and testing. The Auth Key is used directly in client code.
+    
+    **Use for:** POC, development, testing
+  </Card>
+  <Card title="Auth Token (Production)" icon="shield-check">
+    Secure authentication where tokens are generated server-side. Auth Key never exposed to clients.
+    
+    **Use for:** Production applications
+  </Card>
+</CardGroup>
+
+---
+
+## Create a User
+
+Before logging in, users must exist in CometChat.
+
+<Tabs>
+  <Tab title="Dashboard (Testing)">
+    For testing, create users manually in the [CometChat Dashboard](https://app.cometchat.com) under **Users**.
+    
+    <Note>
+    We provide 5 test users: `cometchat-uid-1` through `cometchat-uid-5`
+    </Note>
+  </Tab>
+  <Tab title="REST API (Production)">
+    For production, create users via the [Create User API](https://api-explorer.cometchat.com/reference/creates-user) when users sign up in your app.
+  </Tab>
+  <Tab title="SDK (On-the-fly)">
+    Create users directly from the client (development only):
+    
+    ```javascript
+    const authKey = "YOUR_AUTH_KEY";
+    const uid = "user1";
+    const name = "Kevin";
+
+    const user = new CometChat.User(uid);
+    user.setName(name);
+
+    CometChat.createUser(user, authKey).then(
+      (user) => console.log("User created:", user),
+      (error) => console.log("Error:", error)
+    );
+    ```
+  </Tab>
+</Tabs>
 
 <Warning>
-
-The CometChat SDK maintains the session of the logged-in user within the SDK. Thus you do not need to call the login method for every session. You can use the CometChat.getLoggedinUser() method to check if there is any existing session in the SDK. This method should return the details of the logged-in user. If this method returns null, it implies there is no session present within the SDK and you need to log the user into CometChat.
-
+**UID Requirements:** Alphanumeric characters, underscores, and hyphens only. No spaces, punctuation, or special characters.
 </Warning>
 
-## Login using Auth Key
+---
 
-This straightforward authentication method is ideal for proof-of-concept (POC) development or during the early stages of application development. For production environments, however, we strongly recommend using an [AuthToken](#login-using-auth-token) instead of an Auth Key to ensure enhanced security.
+## Login with Auth Key
+
+<Warning>
+**Development Only:** Auth Key login exposes your key in client code. Use [Auth Token](#login-with-auth-token) for production.
+</Warning>
+
+The simplest way to authenticate during development:
 
 <Tabs>
-<Tab title="JavaScript">
-```js
-var UID = "UID";
-var authKey = "AUTH_KEY";
+  <Tab title="JavaScript">
+    ```javascript
+    const UID = "cometchat-uid-1";
+    const authKey = "YOUR_AUTH_KEY";
 
+    // Check if already logged in
+    CometChat.getLoggedinUser().then(
+      (user) => {
+        if (!user) {
+          // Not logged in, proceed with login
+          CometChat.login(UID, authKey).then(
+            (user) => {
+              console.log("Login successful:", user);
+            },
+            (error) => {
+              console.log("Login failed:", error);
+            }
+          );
+        } else {
+          console.log("Already logged in:", user);
+        }
+      },
+      (error) => {
+        console.log("Error:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const UID: string = "cometchat-uid-1";
+    const authKey: string = "YOUR_AUTH_KEY";
+
+    CometChat.getLoggedinUser().then(
+      (user: CometChat.User | null) => {
+        if (!user) {
+          CometChat.login(UID, authKey).then(
+            (user: CometChat.User) => {
+              console.log("Login successful:", user);
+            },
+            (error: CometChat.CometChatException) => {
+              console.log("Login failed:", error);
+            }
+          );
+        } else {
+          console.log("Already logged in:", user);
+        }
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Error:", error);
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+| Parameter | Description |
+|-----------|-------------|
+| `UID` | The unique identifier of the user to log in |
+| `authKey` | Your CometChat Auth Key from the dashboard |
+
+---
+
+## Login with Auth Token
+
+<Check>
+**Recommended for Production:** Auth Tokens are generated server-side, keeping your Auth Key secure.
+</Check>
+
+### How It Works
+
+<Steps>
+  <Step title="User signs up in your app">
+    Create the user in CometChat via [REST API](https://api-explorer.cometchat.com/reference/creates-user)
+  </Step>
+  <Step title="Generate Auth Token">
+    Call the [Create Auth Token API](https://api-explorer.cometchat.com/reference/create-authtoken) from your server
+  </Step>
+  <Step title="Send token to client">
+    Your server returns the Auth Token to your client app
+  </Step>
+  <Step title="Login with token">
+    Use the token to log in via the SDK
+  </Step>
+</Steps>
+
+### Client-Side Login
+
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    const authToken = "AUTH_TOKEN_FROM_YOUR_SERVER";
+
+    CometChat.getLoggedinUser().then(
+      (user) => {
+        if (!user) {
+          CometChat.login(authToken).then(
+            (user) => {
+              console.log("Login successful:", user);
+            },
+            (error) => {
+              console.log("Login failed:", error);
+            }
+          );
+        } else {
+          console.log("Already logged in:", user);
+        }
+      },
+      (error) => {
+        console.log("Error:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const authToken: string = "AUTH_TOKEN_FROM_YOUR_SERVER";
+
+    CometChat.getLoggedinUser().then(
+      (user: CometChat.User | null) => {
+        if (!user) {
+          CometChat.login(authToken).then(
+            (user: CometChat.User) => {
+              console.log("Login successful:", user);
+            },
+            (error: CometChat.CometChatException) => {
+              console.log("Login failed:", error);
+            }
+          );
+        } else {
+          console.log("Already logged in:", user);
+        }
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Error:", error);
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+| Parameter | Description |
+|-----------|-------------|
+| `authToken` | The Auth Token generated by your server |
+
+---
+
+## Check Login Status
+
+The SDK maintains the user session. Check if a user is already logged in before calling `login()`:
+
+```javascript
 CometChat.getLoggedinUser().then(
   (user) => {
-    if (!user) {
-      CometChat.login(UID, authKey).then(
-        (user) => {
-          console.log("Login Successful:", { user });
-        },
-        (error) => {
-          console.log("Login failed with exception:", { error });
-        }
-      );
+    if (user) {
+      console.log("User is logged in:", user.getName());
+    } else {
+      console.log("No user logged in");
+      // Proceed with login
     }
   },
   (error) => {
-    console.log("Something went wrong", error);
+    console.log("Error checking login status:", error);
   }
 );
 ```
 
-</Tab>
+<Info>
+You only need to call `login()` once. The SDK persists the session, so users remain logged in across page refreshes until you call `logout()`.
+</Info>
 
-<Tab title="TypeScript">
-```typescript
-var UID: string = "cometchat-uid-1",
-  authKey: string = "AUTH_KEY";
-
-CometChat.getLoggedinUser().then(
-  (user: CometChat.User) => {
-    if (!user) {
-      CometChat.login(UID, authKey).then(
-        (user: CometChat.User) => {
-          console.log("Login Successful:", { user });
-        },
-        (error: CometChat.CometChatException) => {
-          console.log("Login failed with exception:", { error });
-        }
-      );
-    }
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Some Error Occured", { error });
-  }
-);
-```
-
-</Tab>
-
-</Tabs>
-
-| Parameters | Description                                      |
-| ---------- | ------------------------------------------------ |
-| UID        | The UID of the user that you would like to login |
-| authKey    | CometChat Auth Key                               |
-
-After the user logs in, their information is returned in the `User` object on `Promise` resolved.
-
-## Login using Auth Token
-
-This advanced authentication procedure does not use the Auth Key directly in your client code thus ensuring safety.
-
-1. [Create a User](https://api-explorer.cometchat.com/reference/creates-user) via the CometChat API when the user signs up in your app.
-2. [Create an Auth Token](https://api-explorer.cometchat.com/reference/create-authtoken) via the CometChat API for the new user and save the token in your database.
-3. Load the Auth Token in your client and pass it to the `login()` method.
-
-<Tabs>
-<Tab title="JavaScript">
-```js
-var authToken = "AUTH_TOKEN";
-
-CometChat.getLoggedinUser().then(
-  (user) => {
-    if (!user) {
-      CometChat.login(authToken).then(
-        (user) => {
-          console.log("Login Successful:", { user });
-        },
-        (error) => {
-          console.log("Login failed with exception:", { error });
-        }
-      );
-    }
-  },
-  (error) => {
-    console.log("Something went wrong", error);
-  }
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-var authToken: string = "AUTH_TOKEN";
-
-CometChat.getLoggedinUser().then(
-  (user: CometChat.User) => {
-    if (!user) {
-      CometChat.login(authToken).then(
-        (user: CometChat.User) => {
-          console.log("Login Successful:", { user });
-        },
-        (error: CometChat.CometChatException) => {
-          console.log("Login failed with exception:", { error });
-        }
-      );
-    }
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Some Error Occured", { error });
-  }
-);
-```
-
-</Tab>
-
-</Tabs>
-
-| Parameter | Description                                    |
-| --------- | ---------------------------------------------- |
-| authToken | Auth Token of the user you would like to login |
-
-After the user logs in, their information is returned in the `User` object on the `Promise` resolved.
+---
 
 ## Logout
 
-You can use the `logout()` method to log out the user from CometChat. We suggest you call this method once your user has been successfully logged out from your app.
+Log out the user when they sign out of your app:
 
 <Tabs>
-<Tab title="JavaScript">
-```js
-CometChat.logout().then(
-  () => {
-    console.log("Logout completed successfully");
-  },
-  (error) => {
-    console.log("Logout failed with exception:", { error });
-  }
-);
-```
-
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-CometChat.logout().then(
-  (loggedOut: Object) => {
-    console.log("Logout completed successfully");
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Logout failed with exception:", { error });
-  }
-);
-```
-
-</Tab>
-
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.logout().then(
+      () => {
+        console.log("Logout successful");
+      },
+      (error) => {
+        console.log("Logout failed:", error);
+      }
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.logout().then(
+      () => {
+        console.log("Logout successful");
+      },
+      (error: CometChat.CometChatException) => {
+        console.log("Logout failed:", error);
+      }
+    );
+    ```
+  </Tab>
 </Tabs>
+
+---
+
+## User Object
+
+On successful login, you receive a `User` object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `uid` | string | Unique identifier |
+| `name` | string | Display name |
+| `avatar` | string | Profile picture URL |
+| `status` | string | `online` or `offline` |
+| `role` | string | User role for access control |
+| `metadata` | object | Custom data |
+| `lastActiveAt` | number | Unix timestamp of last activity |
+
+Access user properties:
+
+```javascript
+CometChat.login(UID, authKey).then((user) => {
+  console.log("UID:", user.getUid());
+  console.log("Name:", user.getName());
+  console.log("Avatar:", user.getAvatar());
+  console.log("Status:", user.getStatus());
+});
+```
+
+---
+
+## Listen for Login Events
+
+Monitor authentication state changes across devices:
+
+```javascript
+const listenerID = "AUTH_LISTENER";
+
+CometChat.addLoginListener(
+  listenerID,
+  new CometChat.LoginListener({
+    loginSuccess: (user) => {
+      console.log("User logged in:", user);
+    },
+    logoutSuccess: () => {
+      console.log("User logged out");
+    },
+  })
+);
+
+// Remove listener when no longer needed
+CometChat.removeLoginListener(listenerID);
+```
+
+Learn more about [Login Listeners](/sdk/javascript/login-listener).
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always check login status first">
+    Before calling `login()`, use `getLoggedinUser()` to check if a session exists. This prevents unnecessary API calls and potential errors.
+  </Accordion>
+  <Accordion title="Use Auth Tokens in production">
+    Never expose your Auth Key in production client code. Generate Auth Tokens server-side and pass them to your client.
+  </Accordion>
+  <Accordion title="Handle token expiration">
+    Auth Tokens can expire. Implement token refresh logic in your app to generate new tokens when needed.
+  </Accordion>
+  <Accordion title="Sync logout with your app">
+    Call `CometChat.logout()` when users log out of your app to properly clean up the CometChat session.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Start sending text, media, and custom messages
+  </Card>
+  <Card title="User Management" icon="user" href="/sdk/javascript/user-management">
+    Create, update, and manage users
+  </Card>
+</CardGroup>
