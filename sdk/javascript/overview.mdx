@@ -4,38 +4,31 @@ sidebarTitle: "Overview"
 description: "Add real-time chat and calling to your JavaScript application"
 ---
 
-Build powerful chat experiences in your web applications using CometChat's JavaScript SDK. Whether you're building with React, Angular, Vue, Next.js, or vanilla JavaScript, this SDK provides the foundation for real-time messaging, voice, and video calling.
+Build powerful chat experiences in your web applications using CometChat's JavaScript SDK. Whether you're building with React, Angular, Vue, or vanilla JavaScript, this SDK provides the foundation for real-time messaging, voice, and video calling.
 
 <Note>
 **Choose Your Integration Path**
 
-| Approach | Best For | Effort | Customization |
-|----------|----------|--------|---------------|
-| [Chat Widget](/widget/html/overview) | Quick embed, any website | No Code | Low |
-| [UI Kit Builder](/chat-builder/react/overview) | Visual customization | Low Code | Medium |
-| [UI Kits](/ui-kit/react/overview) | Pre-built components | Code | High |
-| **SDK** (this guide) | Complete flexibility | Code | Full |
-| [REST API](https://api-explorer.cometchat.com) | Server-side operations | Code | Full |
+CometChat offers multiple ways to add chat to your application:
 
-**Not sure?** Start with [UI Kits](/ui-kit/react/overview) for faster development, or use the SDK if you need complete control over the UI.
+| Approach | Best For | Effort |
+|----------|----------|--------|
+| [Widget Builder](/widget/html/overview) | Quick embed, minimal coding | No Code |
+| [UI Kit Builder](/chat-builder/react/overview) | Visual customization with code export | Code |
+| [UI Kits](/ui-kit/react/overview) | Pre-built components, full control | Code |
+| **SDK** (this guide) | Complete flexibility, custom UI | Code |
+| [REST API](https://api-explorer.cometchat.com) | Server-side integration | Code |
+
 </Note>
-
----
 
 ## Quick Start
 
-Get chat working in under 5 minutes:
+Get up and running in 4 steps:
 
 <Steps>
   <Step title="Get Your Credentials">
-    1. [Sign up for CometChat](https://app.cometchat.com/signup) (free trial available)
-    2. Create a new app and select your region
-    3. Go to **API & Auth Keys** and copy:
-       - **App ID**
-       - **Region** (`us`, `eu`, or `in`)
-       - **Auth Key**
+    [Sign up for CometChat](https://app.cometchat.com) and create a new app. Note your **App ID**, **Region**, and **Auth Key** from the **API & Auth Keys** section.
   </Step>
-  
   <Step title="Install the SDK">
     <Tabs>
       <Tab title="npm">
@@ -48,11 +41,6 @@ Get chat working in under 5 minutes:
         yarn add @cometchat/chat-sdk-javascript
         ```
       </Tab>
-      <Tab title="pnpm">
-        ```bash
-        pnpm add @cometchat/chat-sdk-javascript
-        ```
-      </Tab>
       <Tab title="CDN">
         ```html
         <script src="https://unpkg.com/@cometchat/chat-sdk-javascript/CometChat.js"></script>
@@ -60,327 +48,54 @@ Get chat working in under 5 minutes:
       </Tab>
     </Tabs>
   </Step>
-  
-  <Step title="Initialize & Login">
+  <Step title="Initialize CometChat">
     ```javascript
     import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-    // Replace with your credentials
-    const APP_ID = "YOUR_APP_ID";
-    const REGION = "YOUR_REGION";
-    const AUTH_KEY = "YOUR_AUTH_KEY";
+    const appID = "YOUR_APP_ID";
+    const region = "YOUR_REGION";
 
-    // Initialize CometChat
-    const appSettings = new CometChat.AppSettingsBuilder()
+    const appSetting = new CometChat.AppSettingsBuilder()
       .subscribePresenceForAllUsers()
-      .setRegion(REGION)
-      .autoEstablishSocketConnection(true)
+      .setRegion(region)
       .build();
 
-    await CometChat.init(APP_ID, appSettings);
-    console.log("✓ CometChat initialized");
-
-    // Login with a test user
-    const user = await CometChat.login("cometchat-uid-1", AUTH_KEY);
-    console.log("✓ Logged in as:", user.getName());
-    ```
-    
-    <Info>
-    **Test Users:** We provide 5 pre-created users for testing: `cometchat-uid-1` through `cometchat-uid-5`
-    </Info>
-  </Step>
-  
-  <Step title="Send Your First Message">
-    ```javascript
-    // Send a message to another test user
-    const message = new CometChat.TextMessage(
-      "cometchat-uid-2",              // Receiver UID
-      "Hello from CometChat! 👋",     // Message text
-      CometChat.RECEIVER_TYPE.USER    // Receiver type
-    );
-
-    const sentMessage = await CometChat.sendMessage(message);
-    console.log("✓ Message sent:", sentMessage.getId());
-    ```
-  </Step>
-  
-  <Step title="Receive Messages">
-    ```javascript
-    // Listen for incoming messages
-    CometChat.addMessageListener(
-      "MY_LISTENER",
-      new CometChat.MessageListener({
-        onTextMessageReceived: (message) => {
-          console.log("New message from:", message.getSender().getName());
-          console.log("Text:", message.getText());
-        }
-      })
+    CometChat.init(appID, appSetting).then(
+      () => console.log("CometChat initialized successfully"),
+      (error) => console.log("Initialization failed:", error)
     );
     ```
+  </Step>
+  <Step title="Login a User">
+    ```javascript
+    const UID = "cometchat-uid-1";
+    const authKey = "YOUR_AUTH_KEY";
+
+    CometChat.login(UID, authKey).then(
+      (user) => console.log("Login successful:", user),
+      (error) => console.log("Login failed:", error)
+    );
+    ```
+    <Note>
+    We provide 5 test users: `cometchat-uid-1` through `cometchat-uid-5`
+    </Note>
   </Step>
 </Steps>
 
-<Check>
-**That's it!** You now have a working chat implementation. Open two browser tabs, login as different test users, and send messages between them.
-</Check>
+## What's Next?
 
----
-
-## Complete Example
-
-Here's a full working example you can copy and run:
-
-<Tabs>
-  <Tab title="Complete Script">
-    ```javascript
-    import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-    // ============================================
-    // CONFIGURATION - Replace with your credentials
-    // ============================================
-    const APP_ID = "YOUR_APP_ID";
-    const REGION = "YOUR_REGION";
-    const AUTH_KEY = "YOUR_AUTH_KEY";
-
-    // ============================================
-    // INITIALIZE
-    // ============================================
-    async function initCometChat() {
-      const appSettings = new CometChat.AppSettingsBuilder()
-        .subscribePresenceForAllUsers()
-        .setRegion(REGION)
-        .autoEstablishSocketConnection(true)
-        .build();
-
-      try {
-        await CometChat.init(APP_ID, appSettings);
-        console.log("✓ CometChat initialized");
-        return true;
-      } catch (error) {
-        console.error("✗ Initialization failed:", error);
-        return false;
-      }
-    }
-
-    // ============================================
-    // LOGIN
-    // ============================================
-    async function login(uid) {
-      try {
-        // Check if already logged in
-        let user = await CometChat.getLoggedinUser();
-        if (user) {
-          console.log("✓ Already logged in as:", user.getName());
-          return user;
-        }
-
-        // Login
-        user = await CometChat.login(uid, AUTH_KEY);
-        console.log("✓ Logged in as:", user.getName());
-        return user;
-      } catch (error) {
-        console.error("✗ Login failed:", error);
-        return null;
-      }
-    }
-
-    // ============================================
-    // SEND MESSAGE
-    // ============================================
-    async function sendMessage(receiverUID, text) {
-      const message = new CometChat.TextMessage(
-        receiverUID,
-        text,
-        CometChat.RECEIVER_TYPE.USER
-      );
-
-      try {
-        const sent = await CometChat.sendMessage(message);
-        console.log("✓ Message sent:", sent.getText());
-        return sent;
-      } catch (error) {
-        console.error("✗ Send failed:", error);
-        return null;
-      }
-    }
-
-    // ============================================
-    // RECEIVE MESSAGES
-    // ============================================
-    function setupMessageListener(onMessageReceived) {
-      CometChat.addMessageListener(
-        "MESSAGE_LISTENER",
-        new CometChat.MessageListener({
-          onTextMessageReceived: (message) => {
-            console.log("📩 New message from:", message.getSender().getName());
-            console.log("   Text:", message.getText());
-            onMessageReceived?.(message);
-          },
-          onMediaMessageReceived: (message) => {
-            console.log("📎 Media received:", message.getAttachment()?.getUrl());
-            onMessageReceived?.(message);
-          }
-        })
-      );
-    }
-
-    // ============================================
-    // FETCH MESSAGE HISTORY
-    // ============================================
-    async function getMessages(uid, limit = 30) {
-      const messagesRequest = new CometChat.MessagesRequestBuilder()
-        .setUID(uid)
-        .setLimit(limit)
-        .build();
-
-      try {
-        const messages = await messagesRequest.fetchPrevious();
-        console.log(`✓ Fetched ${messages.length} messages`);
-        return messages;
-      } catch (error) {
-        console.error("✗ Fetch failed:", error);
-        return [];
-      }
-    }
-
-    // ============================================
-    // RUN
-    // ============================================
-    async function main() {
-      // 1. Initialize
-      const initialized = await initCometChat();
-      if (!initialized) return;
-
-      // 2. Login
-      const user = await login("cometchat-uid-1");
-      if (!user) return;
-
-      // 3. Setup listener
-      setupMessageListener((message) => {
-        // Handle new messages here
-      });
-
-      // 4. Fetch history with another user
-      const messages = await getMessages("cometchat-uid-2");
-
-      // 5. Send a message
-      await sendMessage("cometchat-uid-2", "Hello! 👋");
-
-      console.log("\n🎉 CometChat is ready!");
-    }
-
-    main();
-    ```
-  </Tab>
-  <Tab title="React Hook">
-    ```jsx
-    // hooks/useCometChat.js
-    import { useEffect, useState, useCallback } from "react";
-    import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-    const APP_ID = "YOUR_APP_ID";
-    const REGION = "YOUR_REGION";
-    const AUTH_KEY = "YOUR_AUTH_KEY";
-
-    export function useCometChat() {
-      const [isReady, setIsReady] = useState(false);
-      const [user, setUser] = useState(null);
-      const [error, setError] = useState(null);
-
-      // Initialize on mount
-      useEffect(() => {
-        const init = async () => {
-          try {
-            const appSettings = new CometChat.AppSettingsBuilder()
-              .subscribePresenceForAllUsers()
-              .setRegion(REGION)
-              .autoEstablishSocketConnection(true)
-              .build();
-
-            await CometChat.init(APP_ID, appSettings);
-            
-            // Check for existing session
-            const loggedInUser = await CometChat.getLoggedinUser();
-            if (loggedInUser) {
-              setUser(loggedInUser);
-            }
-            
-            setIsReady(true);
-          } catch (err) {
-            setError(err.message);
-          }
-        };
-
-        init();
-      }, []);
-
-      // Login function
-      const login = useCallback(async (uid) => {
-        try {
-          const loggedInUser = await CometChat.login(uid, AUTH_KEY);
-          setUser(loggedInUser);
-          return loggedInUser;
-        } catch (err) {
-          setError(err.message);
-          throw err;
-        }
-      }, []);
-
-      // Logout function
-      const logout = useCallback(async () => {
-        await CometChat.logout();
-        setUser(null);
-      }, []);
-
-      // Send message function
-      const sendMessage = useCallback(async (receiverUID, text) => {
-        const message = new CometChat.TextMessage(
-          receiverUID,
-          text,
-          CometChat.RECEIVER_TYPE.USER
-        );
-        return CometChat.sendMessage(message);
-      }, []);
-
-      return {
-        isReady,
-        user,
-        error,
-        login,
-        logout,
-        sendMessage,
-        CometChat
-      };
-    }
-
-    // Usage in component:
-    // const { isReady, user, login, sendMessage } = useCometChat();
-    ```
-  </Tab>
-</Tabs>
-
----
-
-## What Can You Build?
-
-<CardGroup cols={3}>
-  <Card title="1:1 Chat" icon="comments">
-    Private conversations between two users with typing indicators, read receipts, and media sharing.
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="gear" href="/sdk/javascript/setup-sdk">
+    Detailed configuration options including SSR support for Next.js and Nuxt.
   </Card>
-  <Card title="Group Chat" icon="users">
-    Public, private, or password-protected group conversations with admin controls.
+  <Card title="Key Concepts" icon="book" href="/sdk/javascript/key-concepts">
+    Understand users, groups, messages, and how CometChat works.
   </Card>
-  <Card title="Video Calls" icon="video">
-    One-on-one and group video calls with screen sharing and recording.
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages to users and groups.
   </Card>
-  <Card title="Voice Calls" icon="phone">
-    Audio calls with call recording and background audio support.
-  </Card>
-  <Card title="Live Streaming" icon="tower-broadcast">
-    Broadcast to many viewers with real-time chat alongside.
-  </Card>
-  <Card title="Customer Support" icon="headset">
-    Support chat with agent assignment, queuing, and integrations.
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Handle real-time messages and fetch message history.
   </Card>
 </CardGroup>
 
@@ -388,131 +103,129 @@ Here's a full working example you can copy and run:
 
 ## Core Features
 
-### Messaging
+Essential messaging capabilities built into the SDK:
 
-| Feature | Description | Guide |
-|---------|-------------|-------|
-| **Text Messages** | Send and receive text with formatting | [Send Message](/sdk/javascript/send-message) |
-| **Media Messages** | Share images, videos, audio, and files | [Media Messages](/sdk/javascript/send-message#media-message) |
-| **Custom Messages** | Send structured data (location, polls, etc.) | [Custom Messages](/sdk/javascript/send-message#custom-message) |
-| **Interactive Messages** | Forms, buttons, and actionable content | [Interactive Messages](/sdk/javascript/interactive-messages) |
-| **Threaded Messages** | Organize discussions with threads | [Threaded Messages](/sdk/javascript/threaded-messages) |
+| Feature | Description | Learn More |
+|---------|-------------|------------|
+| **Instant Messaging** | Real-time one-on-one and group chat | [Send Message](/sdk/javascript/send-message) |
+| **Media Sharing** | Share images, videos, documents, and files | [Media Messages](/sdk/javascript/send-message#media-message) |
+| **Read Receipts** | Know when messages are delivered and read | [Delivery & Read Receipts](/sdk/javascript/delivery-read-receipts) |
+| **Mark as Unread** | Mark messages as unread to revisit later | [Mark as Unread](/sdk/javascript/delivery-read-receipts#mark-messages-as-unread) |
+| **Typing Indicators** | Show when users are typing | [Typing Indicators](/sdk/javascript/typing-indicators) |
+| **User Presence** | Real-time online/offline status | [User Presence](/sdk/javascript/user-presence) |
 | **Reactions** | React to messages with emojis | [Reactions](/sdk/javascript/reactions) |
 | **Mentions** | @mention users in conversations | [Mentions](/sdk/javascript/mentions) |
-| **Edit & Delete** | Modify or remove sent messages | [Edit](/sdk/javascript/edit-message) / [Delete](/sdk/javascript/delete-message) |
-
-### Real-Time Features
-
-| Feature | Description | Guide |
-|---------|-------------|-------|
-| **Typing Indicators** | Show when users are typing | [Typing Indicators](/sdk/javascript/typing-indicators) |
-| **Read Receipts** | Track delivery and read status | [Delivery & Read Receipts](/sdk/javascript/delivery-read-receipts) |
-| **User Presence** | Online/offline status | [User Presence](/sdk/javascript/user-presence) |
-| **Real-Time Events** | Instant message delivery via WebSocket | [All Listeners](/sdk/javascript/all-real-time-listeners) |
-
-### Users & Groups
-
-| Feature | Description | Guide |
-|---------|-------------|-------|
-| **User Management** | Create, update, and manage users | [User Management](/sdk/javascript/user-management) |
-| **Group Types** | Public, private, and password groups | [Groups Overview](/sdk/javascript/groups-overview) |
-| **Member Roles** | Admin, moderator, and participant scopes | [Member Scopes](/sdk/javascript/group-change-member-scope) |
-| **Block Users** | Block/unblock functionality | [Block Users](/sdk/javascript/block-users) |
-
-### Voice & Video Calling
-
-| Feature | Description | Guide |
-|---------|-------------|-------|
-| **1:1 Voice Calls** | Audio calls between two users | [Voice Calling](/sdk/javascript/calling-overview) |
-| **1:1 Video Calls** | Video calls with camera support | [Video Calling](/sdk/javascript/calling-overview) |
-| **Group Calls** | Multi-participant audio/video | [Group Calling](/sdk/javascript/calling-overview#group-calls) |
-| **Screen Sharing** | Share screen during calls | [Screen Sharing](/sdk/javascript/calling-overview#screen-sharing) |
-| **Call Recording** | Record calls for playback | [Recording](/sdk/javascript/calling-overview#recording) |
-| **Call Logs** | History of all calls | [Call Logs](/sdk/javascript/call-logs) |
-
-<Note>
-**Calling SDK:** Voice and video calling requires the separate [CometChat Calls SDK](/calls-sdk/javascript/overview). The Chat SDK handles call signaling, while the Calls SDK handles the actual media.
-</Note>
+| **Threaded Conversations** | Create message threads for organized discussions | [Threaded Messages](/sdk/javascript/threaded-messages) |
+| **Quoted Replies** | Reply to specific messages with context | [Quoted Messages](/sdk/javascript/send-message#set-quoted-message-id) |
+| **Group Chats** | Create and manage group conversations | [Groups](/sdk/javascript/groups-overview) |
+| **Report Message** | Allow users to report inappropriate content | [Flag Message](/sdk/javascript/flag-message) |
+| **Conversation & Advanced Search** | Search messages by text, file name, mentions, or mime type | [Search Messages](/sdk/javascript/receive-message#search-messages) |
 
 ---
 
 ## Extensions
 
-Extend CometChat with powerful add-ons:
+Enhance your chat with these optional features. Enable them from the [CometChat Dashboard](https://app.cometchat.com) under **Extensions**.
 
 <AccordionGroup>
-  <Accordion title="Moderation & Safety">
+  <Accordion title="User Experience" icon="sparkles">
     | Extension | Description |
     |-----------|-------------|
-    | **Profanity Filter** | Automatically filter inappropriate language |
-    | **Image Moderation** | Detect and block inappropriate images |
-    | **Data Masking** | Mask sensitive data (emails, phone numbers) |
-    | **Sentiment Analysis** | Analyze message sentiment |
-    | **Malware Scanner** | Scan shared files for malware |
-    
-    [Configure Extensions →](/fundamentals/moderation-extensions)
-  </Accordion>
-  
-  <Accordion title="Rich Media">
-    | Extension | Description |
-    |-----------|-------------|
-    | **Thumbnail Generation** | Auto-generate image thumbnails |
+    | **Message Shortcuts** | Quick shortcuts for common messages |
+    | **Avatars** | Auto-generated avatars for users |
     | **Link Preview** | Rich previews for shared URLs |
-    | **GIF Support** | GIPHY integration for GIF sharing |
-    | **Stickers** | Custom sticker packs |
-    | **Voice Transcription** | Convert voice messages to text |
-    
-    [Configure Extensions →](/fundamentals/extensions-overview)
+    | **Rich Media Preview** | Enhanced previews for media content |
+    | **Thumbnail Generation** | Auto-generate thumbnails for images and videos |
+    | **Pin Message** | Pin important messages in conversations |
+    | **Save Messages** | Save messages for later reference |
+    | **TinyURL** | Shorten long URLs automatically |
+    | **Bitly** | URL shortening via Bitly integration |
+    | **Voice Transcription** | Transcribe voice messages to text |
   </Accordion>
-  
-  <Accordion title="Notifications">
+
+  <Accordion title="User Engagement" icon="heart">
     | Extension | Description |
     |-----------|-------------|
-    | **Push Notifications** | FCM, APNs, and web push |
-    | **Email Notifications** | Email for offline users |
-    | **SMS Notifications** | SMS alerts via Twilio |
-    
-    [Configure Notifications →](/fundamentals/notification-extensions)
+    | **Giphy** | Send animated GIFs |
+    | **Tenor** | Alternative GIF integration |
+    | **Message Translation** | Translate messages in real-time |
+    | **Polls** | Create polls for group decisions |
+    | **Reminders** | Set reminders for messages |
+    | **Stickers** | Send stickers in conversations |
+    | **Stipop Stickers** | Premium sticker packs via Stipop |
+    | **Emojis** | Enhanced emoji support |
   </Accordion>
-  
-  <Accordion title="Integrations">
+
+  <Accordion title="Collaboration" icon="users">
     | Extension | Description |
     |-----------|-------------|
-    | **Webhooks** | Real-time event notifications to your server |
-    | **Intercom** | Connect with Intercom for support |
-    | **Chatwoot** | Open-source customer support |
-    | **Salesforce** | CRM integration |
+    | **Collaborative Document** | Create and share documents in real-time |
+    | **Collaborative Whiteboard** | Shared whiteboard for visual collaboration |
+  </Accordion>
+
+  <Accordion title="Security" icon="shield">
+    | Extension | Description |
+    |-----------|-------------|
+    | **Disappearing Messages** | Messages that auto-delete after a set time |
+    | **End-to-End Encryption** | Secure message encryption |
+  </Accordion>
+
+  <Accordion title="Customer Support" icon="headset">
+    | Extension | Description |
+    |-----------|-------------|
+    | **Chatwoot** | Connect with Chatwoot for support workflows |
+    | **Intercom** | Integrate with Intercom for customer messaging |
+  </Accordion>
+
+  <Accordion title="AI User Copilot" icon="robot">
+    | Feature | Description |
+    |---------|-------------|
+    | **Conversation Starter** | AI-suggested conversation starters |
+    | **Smart Replies** | AI-generated reply suggestions |
+    | **Conversation Summary** | AI-generated summaries of conversations |
     
-    [View All Integrations →](/fundamentals/extensions-overview)
+    [Learn more about AI User Copilot →](/sdk/javascript/ai-user-copilot-overview)
   </Accordion>
 </AccordionGroup>
 
 ---
 
-## AI Features
+## Voice & Video Calling
 
-Enhance your chat with AI-powered capabilities:
+Add real-time calling capabilities to your app:
 
 <CardGroup cols={2}>
-  <Card title="Smart Replies" icon="lightbulb">
-    AI-generated reply suggestions based on conversation context.
-    
-    [Learn More →](/fundamentals/ai-user-copilot/smart-replies)
+  <Card title="Ringing Flow" icon="phone-volume" href="/sdk/javascript/default-call">
+    Complete calling experience with incoming/outgoing UI, accept/reject, and notifications.
   </Card>
-  <Card title="Conversation Summary" icon="file-lines">
-    Automatically summarize long conversations for quick catch-up.
-    
-    [Learn More →](/fundamentals/ai-user-copilot/conversation-summary)
+  <Card title="Direct Call" icon="video" href="/sdk/javascript/direct-call">
+    Start call sessions directly without the ringing flow.
   </Card>
-  <Card title="Conversation Starters" icon="comments">
-    AI-suggested icebreakers to start conversations.
-    
-    [Learn More →](/fundamentals/ai-user-copilot/conversation-starter)
+  <Card title="Recording" icon="circle-dot" href="/sdk/javascript/recording">
+    Record calls for playback or compliance.
   </Card>
-  <Card title="AI Chatbots" icon="robot">
-    Build custom AI-powered chatbots for support and engagement.
-    
-    [Learn More →](/ai-chatbots/custom-bots)
+  <Card title="Virtual Background" icon="image" href="/sdk/javascript/virtual-background">
+    Blur or replace backgrounds during video calls.
+  </Card>
+</CardGroup>
+
+[Explore all Calling features →](/sdk/javascript/calling-overview)
+
+---
+
+## AI Features
+
+Leverage AI to enhance your chat experience:
+
+<CardGroup cols={3}>
+  <Card title="AI Moderation" icon="shield-check" href="/sdk/javascript/ai-moderation">
+    Automatically moderate content for safety
+  </Card>
+  <Card title="AI Agents" icon="robot" href="/sdk/javascript/ai-agents">
+    Build AI-powered chat agents
+  </Card>
+  <Card title="AI Chatbots" icon="message-bot" href="/sdk/javascript/ai-chatbots-overview">
+    Create intelligent chatbot experiences
   </Card>
 </CardGroup>
 
@@ -520,101 +233,39 @@ Enhance your chat with AI-powered capabilities:
 
 ## Framework Guides
 
-Step-by-step setup for your framework:
-
 <CardGroup cols={3}>
-  <Card title="React" icon="react" href="/sdk/javascript/setup-sdk#react">
-    Hooks-based integration with React
+  <Card title="React" icon="react" href="/sdk/javascript/react-overview">
+    Integration guide for React applications
   </Card>
-  <Card title="Next.js" icon="n" href="/sdk/javascript/setup-sdk#nextjs-app-router">
-    App Router and Pages Router support
+  <Card title="Angular" icon="angular" href="/sdk/javascript/angular-overview">
+    Integration guide for Angular applications
   </Card>
-  <Card title="Vue.js" icon="vuejs" href="/sdk/javascript/setup-sdk#vuejs">
-    Plugin-based Vue 3 integration
-  </Card>
-  <Card title="Angular" icon="angular" href="/sdk/javascript/setup-sdk#angular">
-    Service-based Angular integration
-  </Card>
-  <Card title="Nuxt.js" icon="n" href="/sdk/javascript/setup-sdk#nuxtjs">
-    Client-side plugin for Nuxt 3
-  </Card>
-  <Card title="Vanilla JS" icon="js" href="/sdk/javascript/setup-sdk#vanilla-js">
-    No framework, pure JavaScript
+  <Card title="Vue" icon="vuejs" href="/sdk/javascript/vue-overview">
+    Integration guide for Vue.js applications
   </Card>
 </CardGroup>
 
----
-
 ## Sample Apps
 
-Explore complete working examples:
+Explore complete implementations with UI:
 
-| Sample | Description | Source |
-|--------|-------------|--------|
-| **React Chat App** | Full-featured chat with React | [GitHub](https://github.com/cometchat/cometchat-sample-app-react) |
-| **Angular Chat App** | Complete Angular implementation | [GitHub](https://github.com/cometchat/cometchat-sample-app-angular) |
-| **Vue Chat App** | Vue.js chat application | [GitHub](https://github.com/cometchat/cometchat-sample-app-vue) |
-| **JavaScript Chat App** | Vanilla JS implementation | [GitHub](https://github.com/cometchat/cometchat-sample-app-javascript) |
-
-<Info>
-**Live Demo:** Try our [sample apps](https://www.cometchat.com/demos) to see CometChat in action before building.
-</Info>
+| Framework | Repository |
+|-----------|------------|
+| React | [javascript-react-chat-app](https://github.com/cometchat-pro/javascript-react-chat-app) |
+| Angular | [javascript-angular-chat-app](https://github.com/cometchat-pro/javascript-angular-chat-app) |
+| Vue | [javascript-vue-chat-app](https://github.com/cometchat-pro/javascript-vue-chat-app) |
 
 ---
 
 ## Need Pre-Built UI?
 
-Don't want to build UI from scratch? We've got you covered:
+If you prefer ready-to-use components instead of building from scratch:
 
 <CardGroup cols={2}>
-  <Card title="UI Kits" icon="palette" href="/ui-kit/react/overview">
-    **Recommended for most apps**
-    
-    Pre-built, customizable React/Angular/Vue components. Get a complete chat UI in minutes with full control over styling.
-    
-    - Ready-to-use components
-    - Themeable and customizable
-    - Built on top of this SDK
+  <Card title="React UI Kit" icon="react" href="/ui-kit/react/overview">
+    Production-ready React components for chat and calling
   </Card>
-  <Card title="Chat Widget" icon="window-maximize" href="/widget/html/overview">
-    **Fastest integration**
-    
-    Embed a complete chat experience with a single line of code. Perfect for adding chat to existing websites.
-    
-    - No code required
-    - Fully hosted
-    - Customizable via dashboard
+  <Card title="Chat Widget" icon="window" href="/widget/html/overview">
+    Embeddable chat widget for any website
   </Card>
 </CardGroup>
-
-| Option | Integration Time | Customization | Best For |
-|--------|------------------|---------------|----------|
-| **Chat Widget** | 5 minutes | Dashboard config | Quick embed, any website |
-| **UI Kits** | 1-2 hours | Full component control | Production apps |
-| **SDK** (this guide) | 1-2 days | Complete flexibility | Custom UI requirements |
-
----
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Setup Guide" icon="gear" href="/sdk/javascript/setup-sdk">
-    Install and configure the SDK for your framework
-  </Card>
-  <Card title="Key Concepts" icon="book" href="/sdk/javascript/key-concepts">
-    Understand users, groups, messages, and real-time events
-  </Card>
-  <Card title="Authentication" icon="key" href="/sdk/javascript/authentication-overview">
-    Learn about secure login with Auth Tokens
-  </Card>
-  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
-    Send text, media, and custom messages
-  </Card>
-</CardGroup>
-
-<Note>
-**Need Help?** 
-- [API Reference](https://api-explorer.cometchat.com) - Complete REST API documentation
-- [Discord Community](https://discord.cometchat.com) - Get help from the community
-- [Support](https://help.cometchat.com) - Contact our support team
-</Note>
