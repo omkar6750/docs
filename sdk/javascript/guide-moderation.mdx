@@ -111,10 +111,21 @@ User sends message
 
 ## Step 3: Check Moderation Status on Send
 
+When moderation is enabled, messages are reviewed before being delivered. Check the moderation status after sending to know if the message is pending review, approved, or blocked.
+
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
+/**
+ * Send a message and handle moderation status
+ * Messages may be immediately approved, pending review, or blocked
+ * 
+ * @param {string} receiverUID - Recipient's user ID
+ * @param {string} text - Message content
+ * @returns {Object} - Message and moderation status
+ */
 async function sendModeratedMessage(receiverUID, text) {
+  // Create a standard text message
   const textMessage = new CometChat.TextMessage(
     receiverUID,
     text,
@@ -122,22 +133,32 @@ async function sendModeratedMessage(receiverUID, text) {
   );
 
   try {
+    // Send the message - it goes through moderation automatically
     const message = await CometChat.sendMessage(textMessage);
+    
+    // Check the moderation status
+    // This tells you what happened to the message
     const status = message.getModerationStatus();
 
     switch (status) {
       case CometChat.ModerationStatus.PENDING:
+        // Message is being reviewed by AI moderation
+        // It will be delivered if approved, blocked if not
+        // Listen for onMessageModerated to get the final result
         console.log("Message under moderation review");
-        // Show pending indicator in UI
         return { message, pending: true };
         
       case CometChat.ModerationStatus.APPROVED:
+        // Message passed moderation immediately
+        // This happens when content is clearly safe
         console.log("Message approved immediately");
         return { message, pending: false };
         
       case CometChat.ModerationStatus.DISAPPROVED:
+        // Message was blocked immediately
+        // This is rare on send - usually happens via listener
+        // Content clearly violated moderation rules
         console.log("Message blocked");
-        // This is rare on send, usually happens via listener
         return { message, blocked: true };
     }
   } catch (error) {
@@ -155,6 +176,10 @@ interface ModerationResult {
   blocked?: boolean;
 }
 
+/**
+ * Send a message with moderation status handling
+ * Returns the message and its moderation state
+ */
 async function sendModeratedMessage(
   receiverUID: string,
   text: string
@@ -170,10 +195,13 @@ async function sendModeratedMessage(
 
   switch (status) {
     case CometChat.ModerationStatus.PENDING:
+      // Message queued for AI review
       return { message, pending: true };
     case CometChat.ModerationStatus.APPROVED:
+      // Message passed moderation
       return { message, pending: false };
     case CometChat.ModerationStatus.DISAPPROVED:
+      // Message blocked by moderation
       return { message, blocked: true };
     default:
       return { message };
@@ -183,56 +211,90 @@ async function sendModeratedMessage(
 </Tab>
 </Tabs>
 
+### What This Code Does
+
+1. **Sends Message**: `sendMessage()` transmits the message through CometChat
+2. **Triggers Moderation**: AI automatically reviews the content
+3. **Returns Status**: `getModerationStatus()` tells you the result
+4. **Enables UI Updates**: You can show pending indicators or blocked notices
+
+### Moderation Status Values
+
+| Status | Meaning | UI Action |
+|--------|---------|-----------|
+| `PENDING` | Under AI review | Show "reviewing..." indicator |
+| `APPROVED` | Passed moderation | Display normally |
+| `DISAPPROVED` | Blocked by moderation | Show blocked notice or hide |
+
 ---
 
 ## Step 4: Listen for Moderation Results
 
-Register a listener to receive real-time moderation decisions:
+Register a listener to receive real-time moderation decisions. This is essential for updating your UI when pending messages are approved or blocked.
 
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
 const listenerID = "MODERATION_LISTENER";
 
+// addMessageListener() registers callbacks for message events
+// including moderation results
 CometChat.addMessageListener(
   listenerID,
   new CometChat.MessageListener({
+    // ==================== MODERATION RESULTS ====================
+    // Called when a pending message gets a final moderation decision
+    // This fires for YOUR messages that were pending review
     onMessageModerated: (message) => {
       const messageId = message.getId();
       const status = message.getModerationStatus();
 
       switch (status) {
         case CometChat.ModerationStatus.APPROVED:
+          // Message passed moderation - it will be delivered
           console.log(`Message ${messageId} approved`);
-          // Update UI - show message normally
+          // Update UI - remove pending indicator, show as sent
           updateMessageStatus(messageId, "approved");
           break;
 
         case CometChat.ModerationStatus.DISAPPROVED:
+          // Message was blocked - it won't be delivered
           console.log(`Message ${messageId} blocked`);
-          // Update UI - hide or show warning
+          // Update UI - show blocked notice or remove message
           handleBlockedMessage(messageId, message);
           break;
       }
     },
     
-    // Also handle regular messages
+    // ==================== INCOMING MESSAGES ====================
+    // Called when you receive a message from another user
+    // These have already passed moderation (or are pending)
     onTextMessageReceived: (textMessage) => {
       const status = textMessage.getModerationStatus();
       
       if (status === CometChat.ModerationStatus.APPROVED) {
-        // Display the message
+        // Message passed moderation - safe to display
         displayMessage(textMessage);
       } else if (status === CometChat.ModerationStatus.PENDING) {
-        // Optionally show with pending indicator
+        // Message is still being reviewed
+        // Optionally show with a pending indicator
         displayMessage(textMessage, { pending: true });
       }
-      // Don't display DISAPPROVED messages
+      // Don't display DISAPPROVED messages from others
+      // They shouldn't reach you, but handle just in case
+    },
+    
+    // Also handle media messages the same way
+    onMediaMessageReceived: (mediaMessage) => {
+      const status = mediaMessage.getModerationStatus();
+      if (status === CometChat.ModerationStatus.APPROVED) {
+        displayMessage(mediaMessage);
+      }
     }
   })
 );
 
-// Remove listener when done
+// IMPORTANT: Remove listener when done to prevent memory leaks
 // CometChat.removeMessageListener(listenerID);
 ```
 </Tab>
@@ -243,26 +305,31 @@ const listenerID: string = "MODERATION_LISTENER";
 CometChat.addMessageListener(
   listenerID,
   new CometChat.MessageListener({
+    // Handle moderation decisions for your sent messages
     onMessageModerated: (message: CometChat.BaseMessage): void => {
       const messageId = message.getId();
       const status = message.getModerationStatus();
 
       switch (status) {
         case CometChat.ModerationStatus.APPROVED:
+          // Message approved - update UI to show as sent
           updateMessageStatus(messageId, "approved");
           break;
         case CometChat.ModerationStatus.DISAPPROVED:
+          // Message blocked - show notice or remove
           handleBlockedMessage(messageId, message);
           break;
       }
     },
     
+    // Handle incoming messages (already moderated)
     onTextMessageReceived: (textMessage: CometChat.TextMessage): void => {
       const status = textMessage.getModerationStatus();
       
       if (status === CometChat.ModerationStatus.APPROVED) {
         displayMessage(textMessage);
       }
+      // Skip DISAPPROVED messages
     }
   })
 );
@@ -270,93 +337,214 @@ CometChat.addMessageListener(
 </Tab>
 </Tabs>
 
+### What This Code Does
+
+1. **Listens for Moderation Results**: `onMessageModerated` fires when pending messages get a decision
+2. **Handles Incoming Messages**: `onTextMessageReceived` includes moderation status
+3. **Filters Blocked Content**: Only displays approved messages
+4. **Updates UI**: Removes pending indicators or shows blocked notices
+
+### Event Flow
+
+| Event | When It Fires | Your Action |
+|-------|---------------|-------------|
+| `onMessageModerated` | Your pending message gets approved/blocked | Update message status in UI |
+| `onTextMessageReceived` | You receive a message | Check status before displaying |
+| `onMediaMessageReceived` | You receive media | Check status before displaying |
+
+<Note>
+**Incoming Messages**: Messages you receive from others have usually already passed moderation. The `DISAPPROVED` status on incoming messages is rare but possible if moderation rules change.
+</Note>
+
 ---
 
 ## Step 5: Handle Blocked Messages
 
-When a message is disapproved, decide how to handle it in your UI:
+When a message is disapproved by moderation, decide how to handle it in your UI. The approach differs based on whether it's your message or someone else's.
 
 ```javascript
+/**
+ * Handle a message that was blocked by moderation
+ * Different handling for sender vs receiver
+ * 
+ * @param {string} messageId - The blocked message's ID
+ * @param {CometChat.BaseMessage} message - The blocked message object
+ */
 function handleBlockedMessage(messageId, message) {
   const sender = message.getSender();
   const currentUser = CometChat.getLoggedinUser();
 
   if (sender.getUid() === currentUser.getUid()) {
-    // Current user's message was blocked
-    // Option 1: Show notification
+    // ==================== YOUR MESSAGE WAS BLOCKED ====================
+    // This means your message violated moderation rules
+    // You should inform the user why their message wasn't sent
+    
+    // Option 1: Show a notification explaining the block
+    // Best for: Transparent communication with users
     showNotification("Your message was blocked due to policy violation");
     
-    // Option 2: Replace message content
+    // Option 2: Replace the message content with a notice
+    // Best for: Keeping message in timeline but showing it was blocked
     replaceMessageContent(messageId, "This message was blocked");
     
-    // Option 3: Remove from UI
+    // Option 3: Remove the message from the UI entirely
+    // Best for: Clean UI, but user might be confused
     removeMessageFromUI(messageId);
+    
   } else {
-    // Someone else's message was blocked
-    // Usually just don't display it
+    // ==================== SOMEONE ELSE'S MESSAGE WAS BLOCKED ====================
+    // This is rare - blocked messages usually don't reach you
+    // But handle it just in case (e.g., moderation rules changed)
+    
+    // Simply don't display it or remove if already shown
     removeMessageFromUI(messageId);
   }
 }
 
+/**
+ * Update a message's visual status in the UI
+ * Used to remove pending indicators when moderation completes
+ * 
+ * @param {string} messageId - The message ID
+ * @param {string} status - New status ("approved", "blocked", etc.)
+ */
 function updateMessageStatus(messageId, status) {
+  // Find the message element in your UI
   const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+  
   if (messageElement) {
+    // Remove pending indicator
     messageElement.classList.remove("pending");
+    
+    // Add new status class for styling
     messageElement.classList.add(status);
+    
+    // If approved, you might want to remove any "reviewing..." text
+    const pendingBadge = messageElement.querySelector(".pending-badge");
+    if (pendingBadge) {
+      pendingBadge.remove();
+    }
   }
 }
 ```
+
+### What This Code Does
+
+1. **Identifies Sender**: Checks if the blocked message is yours or someone else's
+2. **Handles Your Blocked Messages**: Shows notification, replaces content, or removes
+3. **Handles Others' Blocked Messages**: Simply removes from UI
+4. **Updates Visual Status**: Removes pending indicators when moderation completes
+
+### Handling Strategies
+
+| Strategy | Pros | Cons | Best For |
+|----------|------|------|----------|
+| **Notification** | Clear communication | Interrupts user | Transparent apps |
+| **Replace Content** | Message stays in timeline | Takes up space | Audit trails |
+| **Remove Message** | Clean UI | User confusion | Minimal UI |
+
+<Note>
+**User Experience**: Be transparent with users about why their message was blocked. Vague messages like "Something went wrong" lead to frustration. Clear messages like "Your message was blocked due to community guidelines" help users understand and adjust their behavior.
+</Note>
 
 ---
 
 ## Step 6: User Flagging (Manual Reports)
 
-Allow users to manually flag inappropriate messages:
+In addition to AI moderation, allow users to manually flag inappropriate messages. This creates a community-driven moderation layer where users can report content that AI might miss.
 
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
+/**
+ * Flag a message for manual review
+ * This reports the message to moderators for human review
+ * 
+ * @param {CometChat.BaseMessage} message - The message to flag
+ * @returns {boolean} - true if flagged successfully
+ */
 async function flagMessage(message) {
   try {
+    // flagMessage() reports this message to CometChat's moderation system
+    // The message will appear in Dashboard → Moderation → Flagged Messages
+    // Moderators can then review and take action
     await CometChat.flagMessage(message);
     console.log("Message flagged successfully");
     
-    // Update UI
+    // Update UI to show the message was reported
+    // This provides feedback to the user who reported it
     showNotification("Message reported. Thank you for helping keep our community safe.");
     
     return true;
   } catch (error) {
     console.log("Flag failed:", error);
     
+    // Handle specific error cases
     if (error.code === "ERR_ALREADY_FLAGGED") {
+      // User already reported this message
       showNotification("You've already reported this message");
+    } else if (error.code === "ERR_CANNOT_FLAG_OWN_MESSAGE") {
+      // Can't flag your own messages
+      showNotification("You cannot report your own messages");
+    } else {
+      showNotification("Failed to report message. Please try again.");
     }
     
     return false;
   }
 }
 
-// Usage - typically from a context menu or report button
+// ==================== USAGE EXAMPLE ====================
+// Typically triggered from a context menu or report button
+
+// Add click handler to report button
 const reportButton = document.getElementById("report-btn");
 reportButton.addEventListener("click", () => {
+  // selectedMessage is the message the user right-clicked or long-pressed
   flagMessage(selectedMessage);
 });
 ```
 </Tab>
 <Tab title="React">
 ```jsx
+import { useState } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+/**
+ * MessageActions Component
+ * Provides action buttons for a message, including report
+ * 
+ * @param {Object} props
+ * @param {CometChat.BaseMessage} props.message - The message to act on
+ */
 function MessageActions({ message }) {
   const [flagged, setFlagged] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  /**
+   * Handle the flag/report action
+   * Flags the message and updates UI state
+   */
   const handleFlag = async () => {
+    setLoading(true);
+    
     try {
+      // Flag the message for moderator review
       await CometChat.flagMessage(message);
       setFlagged(true);
-      alert("Message reported successfully");
+      
+      // Show success feedback
+      alert("Message reported successfully. Thank you for helping keep our community safe.");
     } catch (error) {
       if (error.code === "ERR_ALREADY_FLAGGED") {
+        // Already reported - update UI to reflect this
+        setFlagged(true);
         alert("You've already reported this message");
+      } else {
+        alert("Failed to report message. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -364,16 +552,39 @@ function MessageActions({ message }) {
     <div className="message-actions">
       <button 
         onClick={handleFlag} 
-        disabled={flagged}
+        disabled={flagged || loading}
+        className={flagged ? "reported" : ""}
       >
-        {flagged ? "Reported" : "Report Message"}
+        {loading ? "Reporting..." : flagged ? "Reported" : "Report Message"}
       </button>
     </div>
   );
 }
+
+export default MessageActions;
 ```
 </Tab>
 </Tabs>
+
+### What This Code Does
+
+1. **Reports Message**: `flagMessage()` sends the message to CometChat's moderation queue
+2. **Handles Errors**: Catches duplicate reports and other error cases
+3. **Updates UI**: Shows feedback to the user who reported
+4. **Prevents Duplicates**: Tracks flagged state to prevent re-reporting
+
+### Flagging Best Practices
+
+| Practice | Description |
+|----------|-------------|
+| **Confirm Action** | Consider showing a confirmation dialog before flagging |
+| **Provide Feedback** | Always tell users their report was received |
+| **Prevent Abuse** | Track flagged messages to prevent spam reporting |
+| **Easy Access** | Make the report option easy to find but not accidental |
+
+<Note>
+**Moderator Review**: Flagged messages appear in the CometChat Dashboard under Moderation → Flagged Messages. Moderators can review each report and take action (approve, delete, or ban user).
+</Note>
 
 ---
 
