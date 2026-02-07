@@ -26,26 +26,32 @@ const messages = await messagesRequest.fetchPrevious();  // or fetchNext()
 ```
 </Info>
 
-The `MessagesRequest` class as you must be familiar with helps you to fetch messages based on the various parameters provided to it. This document will help you understand better the various options that are available using the `MessagesRequest` class.
+Use `MessagesRequestBuilder` to filter and fetch messages with fine-grained control. This page covers all available filtering options.
 
-The `MessagesRequest` class is designed using the `Builder design pattern`. In order to obtain an object of the `MessagesRequest` class, you will have to make use of the `MessagesRequestBuilder` class in the `MessagesRequest` class.
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com)
+</Note>
 
-The `MessagesRequestBuilder` class allows you to set various parameters to the `MessagesRequest` class based on which the messages are fetched.
+The `MessagesRequestBuilder` uses the Builder pattern. Create a builder, set your filters, call `build()`, then use `fetchPrevious()` or `fetchNext()` to retrieve messages.
 
-Steps to generate an object of the MessagesRequest class:
+<Steps>
+  <Step title="Create a builder">
+    `new CometChat.MessagesRequestBuilder()`
+  </Step>
+  <Step title="Set filters">
+    Chain methods like `.setUID()`, `.setLimit()`, `.setCategories()`, etc.
+  </Step>
+  <Step title="Build the request">
+    Call `.build()` to get a `MessagesRequest` object
+  </Step>
+  <Step title="Fetch messages">
+    Call `fetchPrevious()` (older messages) or `fetchNext()` (newer messages)
+  </Step>
+</Steps>
 
-1. Create an object of the `MessagesRequestBuilder` class.
-2. Set all the parameters you wish to set.
-3. Call the `build()` method of the `MessagesRequestBuilder` class to get an object of the `MessagesRequest` class.
-
-Once you have an object of the `MessagesRequest` class, you can call either the `fetchNext()` method or the `fetchPrevious()` method using the object.
-
-1. fetchNext() - Calling this method will return the messages after the specified parameters.
-2. fetchPrevious() - Calling this method will give you messages before the specified parameters.
-
-Since messages are obtained in a paginated manner, a `maximum of 100` messages can be pulled in a single iteration. Calling the `fetchPrevious()`/`fetchNext()` method on the same `MessagesRequest` object will get you the next set of messages.
-
-Now that you are clear how to use the `MessagesRequest` class, below are the various options available:
+<Info>
+Messages are paginated — max **100** per request. Call `fetchPrevious()`/`fetchNext()` again on the same object to get the next page.
+</Info>
 
 ## Number of messages fetched
 
