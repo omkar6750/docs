@@ -1,0 +1,605 @@
+---
+title: "Moderation Integration Guide"
+sidebarTitle: "Moderation"
+description: "Complete step-by-step guide to integrate AI-powered content moderation"
+---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Moderation is automatic once enabled in Dashboard
+// 1. Enable moderation in CometChat Dashboard → Moderation → Rules
+
+// 2. Check moderation status when sending
+const message = await CometChat.sendMessage(textMessage);
+if (message.getModerationStatus() === CometChat.ModerationStatus.PENDING) {
+  console.log("Message under review");
+}
+
+// 3. Listen for moderation results
+CometChat.addMessageListener("MOD_LISTENER", new CometChat.MessageListener({
+  onMessageModerated: (msg) => {
+    const status = msg.getModerationStatus();
+    // APPROVED, DISAPPROVED, or PENDING
+  }
+}));
+
+// 4. Manual flagging by users
+await CometChat.flagMessage(message);
+```
+</Info>
+
+This guide walks you through integrating CometChat's AI-powered moderation to automatically review messages for inappropriate content and allow users to flag messages manually.
+
+<Note>
+**Prerequisites**
+- CometChat SDK already integrated (see [Chat Integration Guide](/sdk/javascript/guide-chat-only))
+- Moderation enabled in your CometChat plan
+- Access to the [CometChat Dashboard](https://app.cometchat.com)
+</Note>
+
+---
+
+## Overview
+
+CometChat Moderation provides two types of content review:
+
+| Type | Description | Trigger |
+|------|-------------|---------|
+| **AI Moderation** | Automatic review of text, images, and videos | Automatic on send |
+| **User Flagging** | Manual reporting by users | User action |
+
+---
+
+## Step 1: Enable Moderation in Dashboard
+
+1. Go to [app.cometchat.com](https://app.cometchat.com)
+2. Select your app
+3. Navigate to **Moderation → Rules**
+4. Enable moderation and configure rules:
+   - Profanity filter
+   - Spam detection
+   - Image/video content analysis
+   - Custom keywords
+
+<Note>
+Moderation rules are configured in the dashboard, not in code. The SDK automatically applies these rules to messages.
+</Note>
+
+---
+
+## Step 2: Understand Moderation Status
+
+When moderation is enabled, every text, image, and video message goes through review:
+
+```javascript
+// Moderation statuses
+CometChat.ModerationStatus.PENDING      // Under review
+CometChat.ModerationStatus.APPROVED     // Passed moderation
+CometChat.ModerationStatus.DISAPPROVED  // Blocked by moderation
+```
+
+### Message Flow with Moderation
+
+```
+User sends message
+       │
+       ▼
+┌─────────────────┐
+│ Message sent    │
+│ Status: PENDING │
+└─────────────────┘
+       │
+       ▼
+┌─────────────────┐
+│ AI Moderation   │
+│ Reviews content │
+└─────────────────┘
+       │
+       ├──────────────────┐
+       ▼                  ▼
+┌─────────────┐    ┌──────────────┐
+│  APPROVED   │    │ DISAPPROVED  │
+│ Message     │    │ Message      │
+│ visible     │    │ blocked      │
+└─────────────┘    └──────────────┘
+```
+
+---
+
+## Step 3: Check Moderation Status on Send
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+async function sendModeratedMessage(receiverUID, text) {
+  const textMessage = new CometChat.TextMessage(
+    receiverUID,
+    text,
+    CometChat.RECEIVER_TYPE.USER
+  );
+
+  try {
+    const message = await CometChat.sendMessage(textMessage);
+    const status = message.getModerationStatus();
+
+    switch (status) {
+      case CometChat.ModerationStatus.PENDING:
+        console.log("Message under moderation review");
+        // Show pending indicator in UI
+        return { message, pending: true };
+        
+      case CometChat.ModerationStatus.APPROVED:
+        console.log("Message approved immediately");
+        return { message, pending: false };
+        
+      case CometChat.ModerationStatus.DISAPPROVED:
+        console.log("Message blocked");
+        // This is rare on send, usually happens via listener
+        return { message, blocked: true };
+    }
+  } catch (error) {
+    console.log("Send failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+interface ModerationResult {
+  message: CometChat.TextMessage;
+  pending?: boolean;
+  blocked?: boolean;
+}
+
+async function sendModeratedMessage(
+  receiverUID: string,
+  text: string
+): Promise<ModerationResult> {
+  const textMessage = new CometChat.TextMessage(
+    receiverUID,
+    text,
+    CometChat.RECEIVER_TYPE.USER
+  );
+
+  const message = await CometChat.sendMessage(textMessage);
+  const status = message.getModerationStatus();
+
+  switch (status) {
+    case CometChat.ModerationStatus.PENDING:
+      return { message, pending: true };
+    case CometChat.ModerationStatus.APPROVED:
+      return { message, pending: false };
+    case CometChat.ModerationStatus.DISAPPROVED:
+      return { message, blocked: true };
+    default:
+      return { message };
+  }
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+## Step 4: Listen for Moderation Results
+
+Register a listener to receive real-time moderation decisions:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const listenerID = "MODERATION_LISTENER";
+
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onMessageModerated: (message) => {
+      const messageId = message.getId();
+      const status = message.getModerationStatus();
+
+      switch (status) {
+        case CometChat.ModerationStatus.APPROVED:
+          console.log(`Message ${messageId} approved`);
+          // Update UI - show message normally
+          updateMessageStatus(messageId, "approved");
+          break;
+
+        case CometChat.ModerationStatus.DISAPPROVED:
+          console.log(`Message ${messageId} blocked`);
+          // Update UI - hide or show warning
+          handleBlockedMessage(messageId, message);
+          break;
+      }
+    },
+    
+    // Also handle regular messages
+    onTextMessageReceived: (textMessage) => {
+      const status = textMessage.getModerationStatus();
+      
+      if (status === CometChat.ModerationStatus.APPROVED) {
+        // Display the message
+        displayMessage(textMessage);
+      } else if (status === CometChat.ModerationStatus.PENDING) {
+        // Optionally show with pending indicator
+        displayMessage(textMessage, { pending: true });
+      }
+      // Don't display DISAPPROVED messages
+    }
+  })
+);
+
+// Remove listener when done
+// CometChat.removeMessageListener(listenerID);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const listenerID: string = "MODERATION_LISTENER";
+
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onMessageModerated: (message: CometChat.BaseMessage): void => {
+      const messageId = message.getId();
+      const status = message.getModerationStatus();
+
+      switch (status) {
+        case CometChat.ModerationStatus.APPROVED:
+          updateMessageStatus(messageId, "approved");
+          break;
+        case CometChat.ModerationStatus.DISAPPROVED:
+          handleBlockedMessage(messageId, message);
+          break;
+      }
+    },
+    
+    onTextMessageReceived: (textMessage: CometChat.TextMessage): void => {
+      const status = textMessage.getModerationStatus();
+      
+      if (status === CometChat.ModerationStatus.APPROVED) {
+        displayMessage(textMessage);
+      }
+    }
+  })
+);
+```
+</Tab>
+</Tabs>
+
+---
+
+## Step 5: Handle Blocked Messages
+
+When a message is disapproved, decide how to handle it in your UI:
+
+```javascript
+function handleBlockedMessage(messageId, message) {
+  const sender = message.getSender();
+  const currentUser = CometChat.getLoggedinUser();
+
+  if (sender.getUid() === currentUser.getUid()) {
+    // Current user's message was blocked
+    // Option 1: Show notification
+    showNotification("Your message was blocked due to policy violation");
+    
+    // Option 2: Replace message content
+    replaceMessageContent(messageId, "This message was blocked");
+    
+    // Option 3: Remove from UI
+    removeMessageFromUI(messageId);
+  } else {
+    // Someone else's message was blocked
+    // Usually just don't display it
+    removeMessageFromUI(messageId);
+  }
+}
+
+function updateMessageStatus(messageId, status) {
+  const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+  if (messageElement) {
+    messageElement.classList.remove("pending");
+    messageElement.classList.add(status);
+  }
+}
+```
+
+---
+
+## Step 6: User Flagging (Manual Reports)
+
+Allow users to manually flag inappropriate messages:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+async function flagMessage(message) {
+  try {
+    await CometChat.flagMessage(message);
+    console.log("Message flagged successfully");
+    
+    // Update UI
+    showNotification("Message reported. Thank you for helping keep our community safe.");
+    
+    return true;
+  } catch (error) {
+    console.log("Flag failed:", error);
+    
+    if (error.code === "ERR_ALREADY_FLAGGED") {
+      showNotification("You've already reported this message");
+    }
+    
+    return false;
+  }
+}
+
+// Usage - typically from a context menu or report button
+const reportButton = document.getElementById("report-btn");
+reportButton.addEventListener("click", () => {
+  flagMessage(selectedMessage);
+});
+```
+</Tab>
+<Tab title="React">
+```jsx
+function MessageActions({ message }) {
+  const [flagged, setFlagged] = useState(false);
+
+  const handleFlag = async () => {
+    try {
+      await CometChat.flagMessage(message);
+      setFlagged(true);
+      alert("Message reported successfully");
+    } catch (error) {
+      if (error.code === "ERR_ALREADY_FLAGGED") {
+        alert("You've already reported this message");
+      }
+    }
+  };
+
+  return (
+    <div className="message-actions">
+      <button 
+        onClick={handleFlag} 
+        disabled={flagged}
+      >
+        {flagged ? "Reported" : "Report Message"}
+      </button>
+    </div>
+  );
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+## Step 7: Review Flagged Messages (Admin)
+
+Flagged messages can be reviewed in the CometChat Dashboard:
+
+1. Go to **Moderation → Flagged Messages**
+2. Review each flagged message
+3. Take action: Approve, Delete, or Ban User
+
+<Note>
+For programmatic access to flagged messages, use the [CometChat REST API](/rest-api/moderation).
+</Note>
+
+---
+
+## Complete Integration Example
+
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+class ModeratedChatService {
+  constructor() {
+    this.pendingMessages = new Map();
+    this.listenerID = "MODERATION_LISTENER";
+  }
+
+  setupModerationListeners(callbacks) {
+    CometChat.addMessageListener(
+      this.listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message) => {
+          this.handleIncomingMessage(message, callbacks);
+        },
+        
+        onMediaMessageReceived: (message) => {
+          this.handleIncomingMessage(message, callbacks);
+        },
+        
+        onMessageModerated: (message) => {
+          this.handleModerationResult(message, callbacks);
+        }
+      })
+    );
+  }
+
+  handleIncomingMessage(message, callbacks) {
+    const status = message.getModerationStatus();
+
+    switch (status) {
+      case CometChat.ModerationStatus.APPROVED:
+        callbacks.onMessageReceived?.(message);
+        break;
+        
+      case CometChat.ModerationStatus.PENDING:
+        // Optionally show with indicator
+        callbacks.onMessageReceived?.(message, { pending: true });
+        break;
+        
+      case CometChat.ModerationStatus.DISAPPROVED:
+        // Don't display blocked messages from others
+        console.log("Blocked message not displayed");
+        break;
+    }
+  }
+
+  handleModerationResult(message, callbacks) {
+    const messageId = message.getId();
+    const status = message.getModerationStatus();
+
+    // Remove from pending tracking
+    this.pendingMessages.delete(messageId);
+
+    if (status === CometChat.ModerationStatus.APPROVED) {
+      callbacks.onMessageApproved?.(message);
+    } else if (status === CometChat.ModerationStatus.DISAPPROVED) {
+      callbacks.onMessageBlocked?.(message);
+    }
+  }
+
+  async sendMessage(receiverUID, text) {
+    const textMessage = new CometChat.TextMessage(
+      receiverUID,
+      text,
+      CometChat.RECEIVER_TYPE.USER
+    );
+
+    const message = await CometChat.sendMessage(textMessage);
+    const status = message.getModerationStatus();
+
+    if (status === CometChat.ModerationStatus.PENDING) {
+      this.pendingMessages.set(message.getId(), message);
+    }
+
+    return {
+      message,
+      status,
+      isPending: status === CometChat.ModerationStatus.PENDING
+    };
+  }
+
+  async flagMessage(message) {
+    try {
+      await CometChat.flagMessage(message);
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        alreadyFlagged: error.code === "ERR_ALREADY_FLAGGED",
+        error 
+      };
+    }
+  }
+
+  cleanup() {
+    CometChat.removeMessageListener(this.listenerID);
+  }
+}
+
+// Usage
+const moderatedChat = new ModeratedChatService();
+
+moderatedChat.setupModerationListeners({
+  onMessageReceived: (message, options) => {
+    console.log("New message:", message.getText());
+    if (options?.pending) {
+      console.log("(pending moderation)");
+    }
+    // Add to UI
+  },
+  
+  onMessageApproved: (message) => {
+    console.log("Message approved:", message.getId());
+    // Update UI - remove pending indicator
+  },
+  
+  onMessageBlocked: (message) => {
+    console.log("Message blocked:", message.getId());
+    // Update UI - show blocked notice or remove
+  }
+});
+
+// Send a message
+const result = await moderatedChat.sendMessage("user_456", "Hello!");
+if (result.isPending) {
+  console.log("Message sent, awaiting moderation...");
+}
+
+// Flag a message
+const flagResult = await moderatedChat.flagMessage(someMessage);
+if (flagResult.success) {
+  console.log("Message reported");
+}
+```
+
+---
+
+## Moderation Best Practices
+
+<AccordionGroup>
+  <Accordion title="Show Pending Status">
+    Let users know their message is being reviewed:
+    
+    ```javascript
+    // Show a subtle indicator
+    <div className={`message ${isPending ? 'pending' : ''}`}>
+      {messageText}
+      {isPending && <span className="pending-badge">Reviewing...</span>}
+    </div>
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle Blocked Messages Gracefully">
+    Don't just silently remove messages - inform the sender:
+    
+    ```javascript
+    if (message.getSender().getUid() === currentUser.getUid()) {
+      showNotification("Your message couldn't be sent due to community guidelines");
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Provide Clear Flagging UI">
+    Make it easy for users to report inappropriate content:
+    
+    ```javascript
+    // Add to message context menu
+    <MenuItem onClick={() => flagMessage(message)}>
+      Report Message
+    </MenuItem>
+    ```
+  </Accordion>
+  
+  <Accordion title="Don't Over-Moderate">
+    Configure rules carefully in the dashboard to avoid false positives. Start with basic rules and adjust based on your community's needs.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Supported Message Types
+
+| Message Type | AI Moderation | User Flagging |
+|--------------|---------------|---------------|
+| Text Messages | ✅ | ✅ |
+| Image Messages | ✅ | ✅ |
+| Video Messages | ✅ | ✅ |
+| Audio Messages | ❌ | ✅ |
+| Custom Messages | ❌ | ✅ |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Block Users" icon="ban" href="/sdk/javascript/block-users">
+    Let users block other users
+  </Card>
+  <Card title="Groups" icon="users" href="/sdk/javascript/groups-overview">
+    Moderate group conversations
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/fundamentals/webhooks-overview">
+    Get notified of moderation events
+  </Card>
+  <Card title="REST API" icon="code" href="/rest-api/moderation">
+    Programmatic moderation management
+  </Card>
+</CardGroup>

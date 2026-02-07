@@ -1,0 +1,646 @@
+---
+title: "Push Notifications Guide"
+sidebarTitle: "Notifications"
+description: "Complete step-by-step guide to integrate push notifications for messages and calls"
+---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Push notifications require:
+// 1. Firebase Cloud Messaging (FCM) setup
+// 2. CometChat Dashboard configuration
+// 3. Client-side token registration
+
+// Register FCM token with CometChat
+await CometChat.registerTokenForPushNotification(fcmToken);
+
+// Handle notification when app is in foreground
+messaging.onMessage((payload) => {
+  const data = payload.data;
+  if (data.type === "chat") {
+    showNotification(data.title, data.body);
+  } else if (data.type === "call") {
+    showIncomingCallUI(data);
+  }
+});
+
+// Unregister on logout
+await CometChat.unregisterTokenForPushNotification(fcmToken);
+```
+</Info>
+
+This guide walks you through integrating push notifications to alert users of new messages and incoming calls when your app is in the background or closed.
+
+<Note>
+**Prerequisites**
+- CometChat SDK already integrated
+- Firebase project with Cloud Messaging enabled
+- Push notifications enabled in your CometChat plan
+</Note>
+
+---
+
+## Overview
+
+Push notifications ensure users never miss important messages or calls:
+
+| Scenario | Without Push | With Push |
+|----------|--------------|-----------|
+| App in foreground | ✅ Real-time listeners | ✅ Real-time listeners |
+| App in background | ❌ No alerts | ✅ Push notification |
+| App closed | ❌ No alerts | ✅ Push notification |
+
+---
+
+## Step 1: Set Up Firebase Cloud Messaging
+
+### 1a. Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Create a new project or select existing
+3. Navigate to **Project Settings → Cloud Messaging**
+4. Note your **Server Key** and **Sender ID**
+
+### 1b. Add Firebase to Your App
+
+<Tabs>
+<Tab title="npm">
+```bash
+npm install firebase
+```
+</Tab>
+<Tab title="CDN">
+```html
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js"></script>
+```
+</Tab>
+</Tabs>
+
+### 1c. Initialize Firebase
+
+```javascript
+import { initializeApp } from "firebase/app";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+```
+
+---
+
+## Step 2: Configure CometChat Dashboard
+
+1. Go to [app.cometchat.com](https://app.cometchat.com)
+2. Select your app
+3. Navigate to **Notifications → Push Notifications**
+4. Enable push notifications
+5. Add your Firebase credentials:
+   - **FCM Server Key**: From Firebase Console
+   - **FCM Sender ID**: From Firebase Console
+
+---
+
+## Step 3: Request Notification Permission
+
+```javascript
+async function requestNotificationPermission() {
+  try {
+    const permission = await Notification.requestPermission();
+    
+    if (permission === "granted") {
+      console.log("Notification permission granted");
+      return true;
+    } else {
+      console.log("Notification permission denied");
+      return false;
+    }
+  } catch (error) {
+    console.log("Permission request failed:", error);
+    return false;
+  }
+}
+```
+
+---
+
+## Step 4: Get FCM Token
+
+```javascript
+async function getFCMToken() {
+  try {
+    const token = await getToken(messaging, {
+      vapidKey: "YOUR_VAPID_KEY"  // From Firebase Console → Web Push certificates
+    });
+    
+    if (token) {
+      console.log("FCM Token:", token);
+      return token;
+    } else {
+      console.log("No token available");
+      return null;
+    }
+  } catch (error) {
+    console.log("Token retrieval failed:", error);
+    return null;
+  }
+}
+```
+
+<Note>
+**VAPID Key**: Find this in Firebase Console → Project Settings → Cloud Messaging → Web Push certificates. Generate one if it doesn't exist.
+</Note>
+
+---
+
+## Step 5: Register Token with CometChat
+
+After user login, register the FCM token with CometChat:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+async function registerPushNotifications() {
+  // 1. Request permission
+  const hasPermission = await requestNotificationPermission();
+  if (!hasPermission) return false;
+
+  // 2. Get FCM token
+  const fcmToken = await getFCMToken();
+  if (!fcmToken) return false;
+
+  // 3. Register with CometChat
+  try {
+    await CometChat.registerTokenForPushNotification(fcmToken);
+    console.log("Push notifications registered");
+    
+    // Store token for later unregistration
+    localStorage.setItem("fcmToken", fcmToken);
+    
+    return true;
+  } catch (error) {
+    console.log("Registration failed:", error);
+    return false;
+  }
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+async function registerPushNotifications(): Promise<boolean> {
+  const hasPermission = await requestNotificationPermission();
+  if (!hasPermission) return false;
+
+  const fcmToken = await getFCMToken();
+  if (!fcmToken) return false;
+
+  try {
+    await CometChat.registerTokenForPushNotification(fcmToken);
+    console.log("Push notifications registered");
+    localStorage.setItem("fcmToken", fcmToken);
+    return true;
+  } catch (error) {
+    console.log("Registration failed:", error);
+    return false;
+  }
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+## Step 6: Handle Foreground Notifications
+
+When the app is in the foreground, handle notifications manually:
+
+```javascript
+import { onMessage } from "firebase/messaging";
+
+onMessage(messaging, (payload) => {
+  console.log("Foreground message:", payload);
+
+  const { data } = payload;
+  
+  // Check notification type
+  if (data.type === "chat") {
+    // New message notification
+    handleChatNotification(data);
+  } else if (data.type === "call") {
+    // Incoming call notification
+    handleCallNotification(data);
+  }
+});
+
+function handleChatNotification(data) {
+  // Option 1: Show browser notification
+  new Notification(data.title, {
+    body: data.body,
+    icon: data.senderAvatar || "/default-avatar.png",
+    tag: data.conversationId  // Prevents duplicate notifications
+  });
+
+  // Option 2: Show in-app notification
+  showInAppNotification({
+    title: data.title,
+    body: data.body,
+    onClick: () => openConversation(data.conversationId)
+  });
+}
+
+function handleCallNotification(data) {
+  // Show incoming call UI
+  showIncomingCallUI({
+    callerName: data.senderName,
+    callerAvatar: data.senderAvatar,
+    callType: data.callType,  // "audio" or "video"
+    sessionId: data.sessionId
+  });
+}
+```
+
+---
+
+## Step 7: Handle Background Notifications
+
+Create a service worker to handle background notifications:
+
+### 7a. Create Service Worker
+
+Create `firebase-messaging-sw.js` in your public folder:
+
+```javascript
+// firebase-messaging-sw.js
+importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+});
+
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.onBackgroundMessage((payload) => {
+  console.log("Background message:", payload);
+
+  const { data } = payload;
+  
+  const notificationTitle = data.title || "New Message";
+  const notificationOptions = {
+    body: data.body || "You have a new message",
+    icon: data.senderAvatar || "/default-avatar.png",
+    badge: "/badge-icon.png",
+    tag: data.conversationId,
+    data: data  // Pass data for click handling
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification click
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const data = event.notification.data;
+  
+  // Open the app and navigate to conversation
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientList) => {
+      // If app is already open, focus it
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.focus();
+          client.postMessage({
+            type: "NOTIFICATION_CLICK",
+            data: data
+          });
+          return;
+        }
+      }
+      
+      // Otherwise, open new window
+      if (clients.openWindow) {
+        const url = data.type === "call" 
+          ? `/call/${data.sessionId}`
+          : `/chat/${data.conversationId}`;
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
+```
+
+### 7b. Register Service Worker
+
+```javascript
+// In your main app
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    .then((registration) => {
+      console.log("Service Worker registered:", registration);
+    })
+    .catch((error) => {
+      console.log("Service Worker registration failed:", error);
+    });
+}
+```
+
+---
+
+## Step 8: Handle Notification Clicks
+
+Listen for notification clicks in your app:
+
+```javascript
+// Listen for messages from service worker
+navigator.serviceWorker.addEventListener("message", (event) => {
+  if (event.data.type === "NOTIFICATION_CLICK") {
+    const data = event.data.data;
+    
+    if (data.type === "chat") {
+      // Navigate to conversation
+      navigateToConversation(data.conversationId);
+    } else if (data.type === "call") {
+      // Handle incoming call
+      handleIncomingCall(data);
+    }
+  }
+});
+```
+
+---
+
+## Step 9: Unregister on Logout
+
+When the user logs out, unregister the push token:
+
+```javascript
+async function logout() {
+  try {
+    // Get stored FCM token
+    const fcmToken = localStorage.getItem("fcmToken");
+    
+    if (fcmToken) {
+      // Unregister from CometChat
+      await CometChat.unregisterTokenForPushNotification(fcmToken);
+      localStorage.removeItem("fcmToken");
+    }
+    
+    // Logout from CometChat
+    await CometChat.logout();
+    
+    console.log("Logged out successfully");
+  } catch (error) {
+    console.log("Logout failed:", error);
+  }
+}
+```
+
+---
+
+## Complete Integration Example
+
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { initializeApp } from "firebase/app";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+
+class PushNotificationService {
+  constructor(firebaseConfig, vapidKey) {
+    this.firebaseConfig = firebaseConfig;
+    this.vapidKey = vapidKey;
+    this.messaging = null;
+    this.fcmToken = null;
+  }
+
+  async initialize() {
+    // Initialize Firebase
+    const app = initializeApp(this.firebaseConfig);
+    this.messaging = getMessaging(app);
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    }
+
+    // Set up foreground message handler
+    this.setupForegroundHandler();
+
+    // Set up notification click handler
+    this.setupClickHandler();
+  }
+
+  async register() {
+    // Request permission
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      console.log("Notification permission denied");
+      return false;
+    }
+
+    // Get FCM token
+    this.fcmToken = await getToken(this.messaging, {
+      vapidKey: this.vapidKey
+    });
+
+    if (!this.fcmToken) {
+      console.log("Failed to get FCM token");
+      return false;
+    }
+
+    // Register with CometChat
+    await CometChat.registerTokenForPushNotification(this.fcmToken);
+    localStorage.setItem("fcmToken", this.fcmToken);
+
+    console.log("Push notifications registered");
+    return true;
+  }
+
+  async unregister() {
+    const token = this.fcmToken || localStorage.getItem("fcmToken");
+    
+    if (token) {
+      await CometChat.unregisterTokenForPushNotification(token);
+      localStorage.removeItem("fcmToken");
+      this.fcmToken = null;
+    }
+  }
+
+  setupForegroundHandler() {
+    onMessage(this.messaging, (payload) => {
+      const { data } = payload;
+
+      if (data.type === "chat") {
+        this.showChatNotification(data);
+      } else if (data.type === "call") {
+        this.onIncomingCall?.(data);
+      }
+    });
+  }
+
+  setupClickHandler() {
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data.type === "NOTIFICATION_CLICK") {
+        this.onNotificationClick?.(event.data.data);
+      }
+    });
+  }
+
+  showChatNotification(data) {
+    // Check if we should show notification
+    // (e.g., don't show if user is viewing that conversation)
+    if (this.shouldShowNotification?.(data) === false) {
+      return;
+    }
+
+    new Notification(data.title, {
+      body: data.body,
+      icon: data.senderAvatar || "/default-avatar.png",
+      tag: data.conversationId
+    });
+  }
+
+  // Event handlers (set by consumer)
+  onIncomingCall = null;
+  onNotificationClick = null;
+  shouldShowNotification = null;
+}
+
+// Usage
+const pushService = new PushNotificationService(
+  {
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+    messagingSenderId: "...",
+    appId: "..."
+  },
+  "YOUR_VAPID_KEY"
+);
+
+await pushService.initialize();
+
+// After CometChat login
+await pushService.register();
+
+// Set up handlers
+pushService.onIncomingCall = (data) => {
+  showIncomingCallUI(data);
+};
+
+pushService.onNotificationClick = (data) => {
+  if (data.type === "chat") {
+    navigateToConversation(data.conversationId);
+  }
+};
+
+pushService.shouldShowNotification = (data) => {
+  // Don't show if user is viewing this conversation
+  return currentConversationId !== data.conversationId;
+};
+
+// On logout
+await pushService.unregister();
+await CometChat.logout();
+```
+
+---
+
+## Notification Payload Structure
+
+CometChat sends notifications with this data structure:
+
+### Chat Notification
+
+```json
+{
+  "type": "chat",
+  "title": "John Doe",
+  "body": "Hello! How are you?",
+  "senderUid": "user_123",
+  "senderName": "John Doe",
+  "senderAvatar": "https://...",
+  "receiverUid": "user_456",
+  "receiverType": "user",
+  "conversationId": "user_user_123_user_456",
+  "messageId": "12345",
+  "messageType": "text"
+}
+```
+
+### Call Notification
+
+```json
+{
+  "type": "call",
+  "title": "Incoming Video Call",
+  "body": "John Doe is calling...",
+  "senderUid": "user_123",
+  "senderName": "John Doe",
+  "senderAvatar": "https://...",
+  "callType": "video",
+  "sessionId": "call_session_123"
+}
+```
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Notifications not appearing">
+    1. Check browser notification permissions
+    2. Verify FCM token is registered with CometChat
+    3. Check Firebase Console for delivery status
+    4. Ensure service worker is registered
+  </Accordion>
+  
+  <Accordion title="Token registration fails">
+    1. Verify CometChat user is logged in
+    2. Check FCM token is valid
+    3. Ensure push notifications are enabled in CometChat Dashboard
+  </Accordion>
+  
+  <Accordion title="Background notifications not working">
+    1. Verify service worker is registered
+    2. Check service worker console for errors
+    3. Ensure Firebase config in service worker matches app config
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Chat Integration" icon="message" href="/sdk/javascript/guide-chat-only">
+    Set up messaging first
+  </Card>
+  <Card title="Calling" icon="video" href="/sdk/javascript/guide-chat-calls">
+    Add voice and video calls
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/fundamentals/webhooks-overview">
+    Server-side notifications
+  </Card>
+  <Card title="Mobile SDKs" icon="mobile" href="/sdk/ios/overview">
+    iOS and Android push setup
+  </Card>
+</CardGroup>
