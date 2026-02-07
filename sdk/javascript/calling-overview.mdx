@@ -4,6 +4,48 @@ sidebarTitle: "Overview"
 description: "Add voice and video calling to your JavaScript application"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Install: npm install @cometchat/calls-sdk-javascript
+
+// Initialize Calls SDK (after Chat SDK init)
+const callSettings = new CometChatCalls.CallAppSettingsBuilder()
+  .setAppId(APP_ID)
+  .setRegion(REGION)
+  .build();
+await CometChatCalls.init(callSettings);
+
+// Initiate a call
+const call = new CometChat.Call(
+  "receiver_uid",
+  CometChat.CALL_TYPE.VIDEO,  // or AUDIO
+  CometChat.RECEIVER_TYPE.USER  // or GROUP
+);
+const outgoingCall = await CometChat.initiateCall(call);
+
+// Accept incoming call
+const acceptedCall = await CometChat.acceptCall(sessionId);
+
+// Reject/Cancel call
+await CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.REJECTED);
+
+// End call
+CometChatCalls.endSession();
+await CometChat.endCall(sessionId);
+
+// Listen for calls
+CometChat.addCallListener("CALL_LISTENER", new CometChat.CallListener({
+  onIncomingCallReceived: (call) => { /* show incoming UI */ },
+  onOutgoingCallAccepted: (call) => { /* start session */ },
+  onOutgoingCallRejected: (call) => { /* hide call UI */ },
+  onIncomingCallCancelled: (call) => { /* hide incoming UI */ }
+}));
+```
+</Info>
+
 CometChat provides real-time voice and video calling capabilities for your web application. Build 1:1 calls, group calls, screen sharing, and more.
 
 ---

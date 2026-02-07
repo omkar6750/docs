@@ -3,6 +3,37 @@ title: "Delivery & Read Receipts"
 description: "Track when messages are delivered and read"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Mark single message as delivered/read
+CometChat.markAsDelivered(message);
+CometChat.markAsRead(message);
+
+// Mark entire conversation
+await CometChat.markConversationAsDelivered("user_uid", "user");
+await CometChat.markConversationAsRead("user_uid", "user");
+
+// Mark as unread (requires Enhanced Messaging Status)
+await CometChat.markMessageAsUnread(message);
+
+// Listen for receipts
+CometChat.addMessageListener("RECEIPT_LISTENER", new CometChat.MessageListener({
+  onMessagesDelivered: (receipt) => updateStatus(receipt.getMessageId(), "delivered"),
+  onMessagesRead: (receipt) => updateStatus(receipt.getMessageId(), "read")
+}));
+
+// Check message status
+const deliveredAt = message.getDeliveredAt();
+const readAt = message.getReadAt();
+
+// Get receipt history for a message
+const receipts = await CometChat.getMessageReceipts(messageId);
+```
+</Info>
+
 Message receipts let you show delivery and read status (✓ sent, ✓✓ delivered, ✓✓ read) in your chat UI.
 
 ---

@@ -3,6 +3,31 @@ title: "Receive Messages"
 description: "Handle real-time messages and fetch message history"
 ---
 
+{/* Agent-Friendly Quick Reference */}
+<Info>
+**Quick Reference**
+
+```javascript
+// Listen for real-time messages (register AFTER login)
+CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
+  onTextMessageReceived: (msg) => console.log(msg.getText()),
+  onMediaMessageReceived: (msg) => console.log(msg.getAttachment()),
+}));
+
+// Fetch message history
+const request = new CometChat.MessagesRequestBuilder().setUID("USER_UID").setLimit(30).build();
+const messages = await request.fetchPrevious();
+
+// Cleanup (on component unmount)
+CometChat.removeMessageListener("LISTENER_ID");
+```
+
+**Key Points:**
+- Register listeners AFTER successful login
+- Use unique listener IDs (duplicates overwrite)
+- Always remove listeners on cleanup
+</Info>
+
 Receiving messages in CometChat involves two parts:
 
 1. **Real-time messages** - Listen for new messages while your app is running

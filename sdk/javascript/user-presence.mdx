@@ -4,6 +4,34 @@ sidebarTitle: "User Presence"
 description: "Track when users are online or offline in real-time"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Configure presence during init
+const appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()  // or subscribePresenceForRoles(["admin"])
+  .setRegion(region)
+  .build();
+await CometChat.init(appID, appSettings);
+
+// Listen for presence changes
+CometChat.addUserListener("PRESENCE_LISTENER", new CometChat.UserListener({
+  onUserOnline: (user) => console.log(user.getName(), "is online"),
+  onUserOffline: (user) => {
+    console.log(user.getName(), "went offline");
+    console.log("Last seen:", user.getLastActiveAt());
+  }
+}));
+
+// Check user status
+const user = await CometChat.getUser("user_uid");
+const status = user.getStatus();  // "online" or "offline"
+const lastActive = user.getLastActiveAt();  // Unix timestamp
+```
+</Info>
+
 User presence shows whether users are currently online and available to chat. CometChat provides real-time presence updates and last-seen timestamps.
 
 <Note>

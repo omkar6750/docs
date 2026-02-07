@@ -4,6 +4,35 @@ sidebarTitle: "Kick/Ban Members"
 description: "Remove members from a group temporarily or permanently"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Kick member (can rejoin)
+await CometChat.kickGroupMember("group_guid", "user_uid");
+
+// Ban member (cannot rejoin until unbanned)
+await CometChat.banGroupMember("group_guid", "user_uid");
+
+// Unban member
+await CometChat.unbanGroupMember("group_guid", "user_uid");
+
+// Get banned members list
+const bannedRequest = new CometChat.BannedMembersRequestBuilder("group_guid")
+  .setLimit(30)
+  .build();
+const bannedMembers = await bannedRequest.fetchNext();
+
+// Listen for kick/ban events
+CometChat.addGroupListener("LISTENER", new CometChat.GroupListener({
+  onGroupMemberKicked: (msg, kickedUser, kickedBy, group) => {},
+  onGroupMemberBanned: (msg, bannedUser, bannedBy, group) => {},
+  onGroupMemberUnbanned: (msg, unbannedUser, unbannedBy, group) => {}
+}));
+```
+</Info>
+
 Remove members from a group by kicking (temporary) or banning (permanent until unbanned).
 
 <Note>

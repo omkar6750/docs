@@ -2,6 +2,32 @@
 title: "Standalone Calling"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// 1. Generate call token (requires user auth token from REST API)
+const callToken = await CometChatCalls.generateToken(sessionId, userAuthToken);
+
+// 2. Configure call settings
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .setCallListener({
+    onCallEnded: () => CometChatCalls.endSession(),
+    onCallEndButtonPressed: () => CometChatCalls.endSession()
+  })
+  .build();
+
+// 3. Start call session
+CometChatCalls.startSession(callToken.token, callSettings, document.getElementById("call-container"));
+
+// 4. End session
+CometChatCalls.endSession();
+```
+</Info>
+
 ## Overview
 
 This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.

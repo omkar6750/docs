@@ -4,6 +4,44 @@ sidebarTitle: "Interactive Messages"
 description: "Send messages with embedded forms, buttons, and interactive elements"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Send interactive message (form, card, buttons)
+const interactiveData = {
+  title: "Quick Survey",
+  formFields: [
+    { elementType: "textInput", elementId: "name", label: "Your Name" },
+    { elementType: "dropdown", elementId: "rating", label: "Rating",
+      options: [{ label: "Good", value: "4" }, { label: "Great", value: "5" }] }
+  ],
+  submitElement: { elementType: "button", elementId: "submit", buttonText: "Submit" }
+};
+
+const message = new CometChat.InteractiveMessage(
+  receiverID,
+  CometChat.RECEIVER_TYPE.GROUP,
+  "form",  // type: form, card, etc.
+  interactiveData
+);
+await CometChat.sendInteractiveMessage(message);
+
+// Listen for interactive messages
+CometChat.addMessageListener("LISTENER", new CometChat.MessageListener({
+  onInteractiveMessageReceived: (msg) => {
+    const data = msg.getInteractiveData();
+  }
+}));
+
+// Set interaction goal
+message.setInteractionGoal(new CometChat.InteractionGoal(
+  ["submitBtn"], CometChat.INTERACTION_TYPE.ANY_OF
+));
+```
+</Info>
+
 Interactive messages contain embedded interactive elements like forms, buttons, and inputs that users can interact with directly in the chat interface.
 
 <Info>

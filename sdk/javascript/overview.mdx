@@ -4,6 +4,20 @@ sidebarTitle: "Overview"
 description: "Add real-time chat and calling to your JavaScript application"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```
+Package: @cometchat/chat-sdk-javascript
+Init: CometChat.init(appID, appSettings)
+Login: CometChat.login(uid, authKey) or CometChat.login(authToken)
+Send: CometChat.sendMessage(textMessage)
+Receive: CometChat.addMessageListener(id, listener)
+Logout: CometChat.logout()
+```
+</Info>
+
 Build powerful chat experiences in your web applications using CometChat's JavaScript SDK. Whether you're building with React, Angular, Vue, or vanilla JavaScript, this SDK provides the foundation for real-time messaging, voice, and video calling.
 
 <Note>
@@ -11,14 +25,18 @@ Build powerful chat experiences in your web applications using CometChat's JavaS
 
 CometChat offers multiple ways to add chat to your application:
 
-| Approach | Best For | Effort |
-|----------|----------|--------|
-| [Widget Builder](/widget/html/overview) | Quick embed, minimal coding | No Code |
-| [UI Kit Builder](/chat-builder/react/overview) | Visual customization with code export | Code |
-| [UI Kits](/ui-kit/react/overview) | Pre-built components, full control | Code |
-| **SDK** (this guide) | Complete flexibility, custom UI | Code |
-| [REST API](https://api-explorer.cometchat.com) | Server-side integration | Code |
+| Approach | Best For | Effort | Time to MVP |
+|----------|----------|--------|-------------|
+| [Widget Builder](/widget/html/overview) | Quick embed, minimal coding | No Code | Minutes |
+| [UI Kit Builder](/chat-builder/react/overview) | Visual customization with code export | Low Code | Hours |
+| [UI Kits](/ui-kit/react/overview) | Pre-built components, full control | Code | Days |
+| **SDK** (this guide) | Complete flexibility, custom UI | Code | Days-Weeks |
+| [REST API](https://api-explorer.cometchat.com) | Server-side integration | Code | Days |
 
+**Decision Guide:**
+- Need chat TODAY? → Widget Builder
+- Want customizable UI without building from scratch? → UI Kits  
+- Building a unique experience or integrating into existing UI? → SDK (you're in the right place)
 </Note>
 
 ## Quick Start
@@ -269,3 +287,206 @@ If you prefer ready-to-use components instead of building from scratch:
     Embeddable chat widget for any website
   </Card>
 </CardGroup>
+
+---
+
+## Complete Working Example
+
+Here's a production-ready example that initializes CometChat, logs in, sends a message, and listens for responses:
+
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+// Configuration
+const APP_ID = "YOUR_APP_ID";
+const REGION = "YOUR_REGION"; // "us", "eu", or "in"
+const AUTH_KEY = "YOUR_AUTH_KEY";
+
+class ChatService {
+  static instance = null;
+  
+  static getInstance() {
+    if (!ChatService.instance) {
+      ChatService.instance = new ChatService();
+    }
+    return ChatService.instance;
+  }
+
+  async initialize() {
+    const appSettings = new CometChat.AppSettingsBuilder()
+      .subscribePresenceForAllUsers()
+      .setRegion(REGION)
+      .autoEstablishSocketConnection(true)
+      .build();
+
+    try {
+      await CometChat.init(APP_ID, appSettings);
+      console.log("✓ CometChat initialized");
+      return true;
+    } catch (error) {
+      console.error("✗ Init failed:", error);
+      return false;
+    }
+  }
+
+  async login(uid) {
+    try {
+      // Check if already logged in
+      let user = await CometChat.getLoggedinUser();
+      if (user) {
+        console.log("✓ Already logged in:", user.getName());
+        return user;
+      }
+
+      // Login
+      user = await CometChat.login(uid, AUTH_KEY);
+      console.log("✓ Logged in:", user.getName());
+      return user;
+    } catch (error) {
+      console.error("✗ Login failed:", error);
+      throw error;
+    }
+  }
+
+  async sendMessage(receiverUID, text) {
+    const message = new CometChat.TextMessage(
+      receiverUID,
+      text,
+      CometChat.RECEIVER_TYPE.USER
+    );
+
+    try {
+      const sent = await CometChat.sendMessage(message);
+      console.log("✓ Message sent:", sent.getId());
+      return sent;
+    } catch (error) {
+      console.error("✗ Send failed:", error);
+      throw error;
+    }
+  }
+
+  startListening(onMessage) {
+    const listenerID = "MAIN_LISTENER";
+    
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message) => {
+          console.log("← Received:", message.getText());
+          onMessage?.(message);
+        },
+        onMediaMessageReceived: (message) => {
+          console.log("← Media received:", message.getAttachment());
+          onMessage?.(message);
+        }
+      })
+    );
+
+    return () => CometChat.removeMessageListener(listenerID);
+  }
+
+  async logout() {
+    try {
+      await CometChat.logout();
+      console.log("✓ Logged out");
+    } catch (error) {
+      console.error("✗ Logout failed:", error);
+    }
+  }
+}
+
+// Usage
+const chat = ChatService.getInstance();
+await chat.initialize();
+await chat.login("cometchat-uid-1");
+chat.startListening((msg) => console.log("New message:", msg));
+await chat.sendMessage("cometchat-uid-2", "Hello from the SDK!");
+```
+
+---
+
+## Common Errors & Solutions
+
+<AccordionGroup>
+  <Accordion title="ERR_INVALID_APP_ID - App ID is invalid">
+    **Cause:** The App ID doesn't match any app in your CometChat account.
+    
+    **Solution:**
+    1. Go to [CometChat Dashboard](https://app.cometchat.com)
+    2. Select your app → API & Auth Keys
+    3. Copy the exact App ID (case-sensitive)
+    4. Ensure no extra spaces when pasting
+  </Accordion>
+  
+  <Accordion title="ERR_INVALID_AUTH_KEY - Auth Key is invalid">
+    **Cause:** Using wrong key type or incorrect key.
+    
+    **Solution:**
+    - Use **Auth Key** (not REST API Key) for client-side login
+    - Auth Key is for development only; use Auth Tokens in production
+    - Copy directly from Dashboard → API & Auth Keys
+  </Accordion>
+  
+  <Accordion title="ERR_UID_NOT_FOUND - User does not exist">
+    **Cause:** Trying to login with a UID that hasn't been created.
+    
+    **Solution:**
+    - Use test users: `cometchat-uid-1` through `cometchat-uid-5`
+    - Or create users via REST API before login
+    - Check for typos in the UID
+  </Accordion>
+  
+  <Accordion title="ERR_NOT_LOGGED_IN - User is not logged in">
+    **Cause:** Calling SDK methods before successful login.
+    
+    **Solution:**
+    ```javascript
+    // Always check login status first
+    const user = await CometChat.getLoggedinUser();
+    if (!user) {
+      await CometChat.login(uid, authKey);
+    }
+    // Now safe to use other methods
+    ```
+  </Accordion>
+  
+  <Accordion title="Messages not received in real-time">
+    **Cause:** Message listener not registered or registered before login.
+    
+    **Solution:**
+    1. Register listeners AFTER successful login
+    2. Use unique listener IDs
+    3. Check WebSocket connection: `CometChat.getConnectionStatus()`
+    4. Ensure `autoEstablishSocketConnection(true)` in app settings
+  </Accordion>
+  
+  <Accordion title="CORS errors in browser">
+    **Cause:** Browser security blocking requests.
+    
+    **Solution:**
+    - CometChat handles CORS automatically
+    - If using a proxy, ensure it forwards headers correctly
+    - Check browser console for specific blocked URLs
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## SDK Method Reference
+
+Quick lookup for common operations:
+
+| Operation | Method | Returns |
+|-----------|--------|---------|
+| Initialize | `CometChat.init(appID, settings)` | `Promise<boolean>` |
+| Login (Auth Key) | `CometChat.login(uid, authKey)` | `Promise<User>` |
+| Login (Auth Token) | `CometChat.login(authToken)` | `Promise<User>` |
+| Logout | `CometChat.logout()` | `Promise<void>` |
+| Get Logged-in User | `CometChat.getLoggedinUser()` | `Promise<User\|null>` |
+| Send Text | `CometChat.sendMessage(textMessage)` | `Promise<TextMessage>` |
+| Send Media | `CometChat.sendMediaMessage(mediaMessage)` | `Promise<MediaMessage>` |
+| Fetch Messages | `messagesRequest.fetchPrevious()` | `Promise<BaseMessage[]>` |
+| Fetch Conversations | `conversationsRequest.fetchNext()` | `Promise<Conversation[]>` |
+| Get User | `CometChat.getUser(uid)` | `Promise<User>` |
+| Get Group | `CometChat.getGroup(guid)` | `Promise<Group>` |
+| Connection Status | `CometChat.getConnectionStatus()` | `string` |

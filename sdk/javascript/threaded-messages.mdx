@@ -4,6 +4,39 @@ sidebarTitle: "Threaded Messages"
 description: "Create organized conversation threads attached to parent messages"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Send a thread reply
+const textMessage = new CometChat.TextMessage(receiverID, "Reply text", receiverType);
+textMessage.setParentMessageId(parentMessageId);  // Required for thread
+await CometChat.sendMessage(textMessage);
+
+// Fetch thread messages
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setParentMessageId(parentMessageId)
+  .setLimit(30)
+  .build();
+const threadMessages = await messagesRequest.fetchPrevious();
+
+// Hide thread replies in main chat
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(guid)
+  .hideReplies(true)
+  .build();
+
+// Get reply count
+const replyCount = message.getReplyCount();
+
+// Listen for thread messages
+if (message.getParentMessageId() === activeThreadId) {
+  // This is a thread reply
+}
+```
+</Info>
+
 Threaded messages are replies attached to a specific parent message. They help organize discussions by keeping related messages grouped together, especially useful in busy group conversations.
 
 ---

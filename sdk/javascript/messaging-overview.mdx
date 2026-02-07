@@ -4,6 +4,49 @@ sidebarTitle: "Overview"
 description: "Send, receive, and manage messages in your chat application"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Send text message
+const textMessage = new CometChat.TextMessage(
+  "receiver_uid",
+  "Hello!",
+  CometChat.RECEIVER_TYPE.USER  // or GROUP
+);
+await CometChat.sendMessage(textMessage);
+
+// Send media message
+const mediaMessage = new CometChat.MediaMessage(
+  "receiver_uid",
+  file,
+  CometChat.MESSAGE_TYPE.IMAGE,  // IMAGE, VIDEO, AUDIO, FILE
+  CometChat.RECEIVER_TYPE.USER
+);
+await CometChat.sendMediaMessage(mediaMessage);
+
+// Fetch message history
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setUID("user_uid")  // or .setGUID("group_guid")
+  .setLimit(30)
+  .build();
+const messages = await messagesRequest.fetchPrevious();
+
+// Listen for messages
+CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
+  onTextMessageReceived: (msg) => console.log("Text:", msg.getText()),
+  onMediaMessageReceived: (msg) => console.log("Media:", msg.getAttachment()),
+  onTypingStarted: (indicator) => console.log("Typing..."),
+  onMessagesRead: (receipt) => console.log("Read:", receipt.getMessageId())
+}));
+
+// Edit/Delete
+await CometChat.editMessage(editedMessage);
+await CometChat.deleteMessage(messageId);
+```
+</Info>
+
 Messaging is the core of CometChat. This section covers everything you need to build a complete messaging experience—from sending your first message to implementing advanced features like reactions and threaded conversations.
 
 <Note>

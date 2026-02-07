@@ -3,6 +3,40 @@ title: "Reactions"
 description: "Add emoji reactions to messages"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Add reaction
+await CometChat.addReaction(messageId, "😊");
+
+// Remove reaction
+await CometChat.removeReaction(messageId, "😊");
+
+// Get reactions from message
+const reactions = message.getReactions();
+reactions.forEach((r) => {
+  console.log(r.getReaction(), r.getCount(), r.getReactedByMe());
+});
+
+// Fetch detailed reaction info (who reacted)
+const reactionRequest = new CometChat.ReactionRequestBuilder()
+  .setMessageId(messageId)
+  .setLimit(10)
+  .build();
+const reactions = await reactionRequest.fetchNext();
+
+// Listen for real-time reactions
+CometChat.addMessageListener("REACTION_LISTENER", new CometChat.MessageListener({
+  onMessageReactionAdded: (event) => {
+    console.log(event.getReactedBy().getName(), "reacted with", event.getReaction());
+  },
+  onMessageReactionRemoved: (event) => { /* handle removal */ }
+}));
+```
+</Info>
+
 Reactions let users express emotions on messages using emojis, enhancing engagement in your chat application.
 
 ---
