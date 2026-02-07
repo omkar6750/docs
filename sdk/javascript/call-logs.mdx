@@ -59,6 +59,26 @@ callLogRequest.fetchNext().then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+const fetchCallLogs = async () => {
+  try {
+    const loggedInUser = await CometChat.getLoggedinUser();
+
+    const callLogRequest = new CometChatCalls.CallLogRequestBuilder()
+      .setLimit(30)
+      .setAuthToken(loggedInUser.getAuthToken())
+      .setCallCategory("call")
+      .build();
+
+    const callLogs = await callLogRequest.fetchNext();
+    console.log("Call logs:", callLogs);
+  } catch (error) {
+    console.log("Failed to fetch call logs:", error);
+  }
+};
+```
+</Tab>
 </Tabs>
 
 ## Builder Options
@@ -216,6 +236,22 @@ CometChatCalls.getCallDetails(sessionId, authToken).then(
     console.log("Failed to get call details:", error);
   }
 );
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+const getCallDetails = async () => {
+  try {
+    const loggedInUser = await CometChat.getLoggedinUser();
+    const sessionId = "SESSION_ID";
+    const authToken = loggedInUser.getAuthToken();
+
+    const callDetails = await CometChatCalls.getCallDetails(sessionId, authToken);
+    console.log("Call details:", callDetails);
+  } catch (error) {
+    console.log("Failed to get call details:", error);
+  }
+};
 ```
 </Tab>
 </Tabs>

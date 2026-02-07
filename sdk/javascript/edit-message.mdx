@@ -62,6 +62,31 @@ Use `editMessage()` to modify a previously sent message. Currently, only `TextMe
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function editMessage(originalMessage, newText) {
+      const editedMessage = new CometChat.TextMessage(
+        originalMessage.getReceiverId(),
+        newText,
+        originalMessage.getReceiverType()
+      );
+      editedMessage.setId(originalMessage.getId());
+
+      try {
+        const message = await CometChat.editMessage(editedMessage);
+        console.log("Message edited:", message.getText());
+        console.log("Edited at:", message.getEditedAt());
+        return message;
+      } catch (error) {
+        console.error("Edit failed:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    const updatedMessage = await editMessage(originalMessage, "New text here");
+    ```
+  </Tab>
 </Tabs>
 
 <Warning>

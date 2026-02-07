@@ -72,6 +72,20 @@ Before flagging a message, retrieve the list of available flag reasons configure
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    const getFlagReasons = async () => {
+      try {
+        const reasons = await CometChat.getFlagReasons();
+        console.log("Flag reasons retrieved:", reasons);
+        // reasons is an array of { id, reason } objects
+        // Use these to populate your report dialog UI
+      } catch (error) {
+        console.log("Failed to get flag reasons:", error);
+      }
+    };
+    ```
+  </Tab>
 </Tabs>
 
 ### Response
@@ -128,6 +142,24 @@ To flag a message, use the `flagMessage()` method with the message ID and a payl
         console.log("Message flagging failed:", error);
       }
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    const flagMessage = async () => {
+      try {
+        const messageId = "MESSAGE_ID_TO_FLAG";
+        const payload = {
+          reasonId: "spam",  // Required: ID from getFlagReasons()
+          remark: "This message contains promotional content"  // Optional
+        };
+
+        const response = await CometChat.flagMessage(messageId, payload);
+        console.log("Message flagged successfully:", response);
+      } catch (error) {
+        console.log("Message flagging failed:", error);
+      }
+    };
     ```
   </Tab>
 </Tabs>

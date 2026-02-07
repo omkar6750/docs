@@ -68,18 +68,29 @@ CometChat.createGroup(group).then(
 );
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
-const GUID: string = "group-123";
-const groupName: string = "Team Chat";
-const groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+<Tab title="Async/Await">
+```javascript
+async function createGroup(guid, name, type, password = "") {
+  const group = new CometChat.Group(guid, name, type, password);
 
-const group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
+  try {
+    const createdGroup = await CometChat.createGroup(group);
+    console.log("Group created:", createdGroup.getName());
+    return createdGroup;
+  } catch (error) {
+    console.error("Failed to create group:", error);
+    throw error;
+  }
+}
 
-CometChat.createGroup(group).then(
-  (group: CometChat.Group) => console.log("Group created:", group),
-  (error: CometChat.CometChatException) => console.log("Failed:", error)
-);
+// Create a public group
+await createGroup("team-123", "Team Chat", CometChat.GROUP_TYPE.PUBLIC);
+
+// Create a password-protected group
+await createGroup("vip-room", "VIP Room", CometChat.GROUP_TYPE.PASSWORD, "secret");
+
+// Create a private group
+await createGroup("exec-team", "Executive Team", CometChat.GROUP_TYPE.PRIVATE);
 ```
 </Tab>
 </Tabs>

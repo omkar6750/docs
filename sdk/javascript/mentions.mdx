@@ -87,6 +87,28 @@ CometChat.sendMessage(textMessage).then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+const sendMentionMessage = async () => {
+  try {
+    const receiverID = "GUID";
+    const messageText = "Hey <@uid:cometchat-uid-1>, check this out!";
+    const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+    const textMessage = new CometChat.TextMessage(
+      receiverID,
+      messageText,
+      receiverType
+    );
+
+    const message = await CometChat.sendMessage(textMessage);
+    console.log("Message sent:", message);
+  } catch (error) {
+    console.log("Failed to send:", error);
+  }
+};
+```
+</Tab>
 </Tabs>
 
 ---
@@ -168,6 +190,32 @@ messagesRequest.fetchPrevious().then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+const fetchMessagesWithMentions = async () => {
+  try {
+    const GUID = "GUID";
+    const limit = 30;
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setLimit(limit)
+      .mentionsWithTagInfo(true)
+      .build();
+
+    const messages = await messagesRequest.fetchPrevious();
+    messages.forEach((message) => {
+      message.getMentionedUsers().forEach((user) => {
+        console.log("User:", user.getName());
+        console.log("Tags:", user.getTags());
+      });
+    });
+  } catch (error) {
+    console.log("Failed to fetch:", error);
+  }
+};
+```
+</Tab>
 </Tabs>
 
 ### With Blocked Relationship Info
@@ -221,6 +269,33 @@ messagesRequest.fetchPrevious().then(
   },
   (error: CometChat.CometChatException) => console.log("Failed to fetch:", error)
 );
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+const fetchMessagesWithBlockedInfo = async () => {
+  try {
+    const GUID = "GUID";
+    const limit = 30;
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setLimit(limit)
+      .mentionsWithBlockedInfo(true)
+      .build();
+
+    const messages = await messagesRequest.fetchPrevious();
+    messages.forEach((message) => {
+      message.getMentionedUsers().forEach((user) => {
+        console.log("User:", user.getName());
+        console.log("Blocked by me:", user.getBlockedByMe());
+        console.log("Has blocked me:", user.getHasBlockedMe());
+      });
+    });
+  } catch (error) {
+    console.log("Failed to fetch:", error);
+  }
+};
 ```
 </Tab>
 </Tabs>
