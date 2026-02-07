@@ -80,6 +80,8 @@ Maximum of 50 conversations can be fetched at once.
 
 Call `fetchNext()` repeatedly to load more conversations:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const conversationsRequest = new CometChat.ConversationsRequestBuilder()
   .setLimit(30)
@@ -97,6 +99,39 @@ function loadMore() {
   });
 }
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+const conversationsRequest = new CometChat.ConversationsRequestBuilder()
+  .setLimit(30)
+  .build();
+
+// Initial load
+async function loadInitialConversations() {
+  try {
+    const conversations = await conversationsRequest.fetchNext();
+    displayConversations(conversations);
+    return conversations;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+
+// Load more (on scroll)
+async function loadMore() {
+  try {
+    const conversations = await conversationsRequest.fetchNext();
+    appendConversations(conversations);
+    return conversations;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

@@ -87,6 +87,23 @@ Remove your reaction from a message:
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function removeReaction(messageId, emoji) {
+      try {
+        const message = await CometChat.removeReaction(messageId, emoji);
+        console.log("Reaction removed:", emoji);
+        return message;
+      } catch (error) {
+        console.error("Failed to remove reaction:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    await removeReaction(123, "😊");
+    ```
+  </Tab>
 </Tabs>
 
 ---
@@ -152,6 +169,31 @@ Get detailed information about who reacted to a message:
       },
       (error: CometChat.CometChatException) => console.log("Error:", error)
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function fetchReactionDetails(messageId, limit = 10) {
+      try {
+        const reactionRequest = new CometChat.ReactionRequestBuilder()
+          .setMessageId(messageId)
+          .setLimit(limit)
+          .build();
+
+        const reactions = await reactionRequest.fetchNext();
+        reactions.forEach((reaction) => {
+          console.log("User:", reaction.getReactedBy().getName());
+          console.log("Emoji:", reaction.getReaction());
+        });
+        return reactions;
+      } catch (error) {
+        console.error("Failed to fetch reactions:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    const reactions = await fetchReactionDetails(123);
     ```
   </Tab>
 </Tabs>

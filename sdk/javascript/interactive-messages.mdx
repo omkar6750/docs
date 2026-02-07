@@ -122,6 +122,52 @@ const message = new CometChat.InteractiveMessage(
 CometChat.sendInteractiveMessage(message);
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+const sendInteractiveMessage = async () => {
+  try {
+    const interactiveData = {
+      title: "Quick Survey",
+      formFields: [
+        {
+          elementType: "textInput",
+          elementId: "name",
+          label: "Your Name",
+          placeholder: { text: "Enter your name" }
+        },
+        {
+          elementType: "dropdown",
+          elementId: "rating",
+          label: "How would you rate us?",
+          options: [
+            { label: "Excellent", value: "5" },
+            { label: "Good", value: "4" },
+            { label: "Average", value: "3" }
+          ]
+        }
+      ],
+      submitElement: {
+        elementType: "button",
+        elementId: "submitBtn",
+        buttonText: "Submit"
+      }
+    };
+
+    const message = new CometChat.InteractiveMessage(
+      "group-123",
+      CometChat.RECEIVER_TYPE.GROUP,
+      "form",
+      interactiveData
+    );
+
+    const sentMessage = await CometChat.sendInteractiveMessage(message);
+    console.log("Interactive message sent:", sentMessage);
+  } catch (error) {
+    console.log("Failed:", error);
+  }
+};
+```
+</Tab>
 </Tabs>
 
 

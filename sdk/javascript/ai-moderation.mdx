@@ -121,6 +121,31 @@ When you send a text, image, or video message, check the initial moderation stat
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    const sendModeratedMessage = async () => {
+      try {
+        const textMessage = new CometChat.TextMessage(
+          receiverUID,
+          "Hello, how are you?",
+          CometChat.RECEIVER_TYPE.USER
+        );
+
+        const message = await CometChat.sendMessage(textMessage);
+        
+        // Check moderation status
+        const status = message.getModerationStatus();
+        
+        if (status === CometChat.ModerationStatus.PENDING) {
+          console.log("Message is under moderation review");
+          // Show pending indicator in UI
+        }
+      } catch (error) {
+        console.log("Message sending failed:", error);
+      }
+    };
+    ```
+  </Tab>
 </Tabs>
 
 ### Step 2: Listen for Moderation Results

@@ -43,6 +43,24 @@ CometChat.getLoggedinUser().then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+async function getLoggedInUser() {
+  try {
+    const user = await CometChat.getLoggedinUser();
+    if (user) {
+      console.log("Logged in as:", user.getName());
+    } else {
+      console.log("No user logged in");
+    }
+    return user;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
 </Tabs>
 
 ---
@@ -125,6 +143,8 @@ const users = await fetchUsers();
 
 ## Search Users
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -136,6 +156,27 @@ usersRequest.fetchNext().then(
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function searchUsers(keyword) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setSearchKeyword(keyword)
+    .build();
+
+  try {
+    const userList = await usersRequest.fetchNext();
+    console.log("Search results:", userList);
+    return userList;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Search in Specific Fields
 
@@ -171,6 +212,8 @@ const offlineRequest = new CometChat.UsersRequestBuilder()
 
 ## Filter by Role
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -182,11 +225,34 @@ usersRequest.fetchNext().then(
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchUsersByRole(roles) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setRoles(roles)
+    .build();
+
+  try {
+    const userList = await usersRequest.fetchNext();
+    console.log("Filtered users:", userList);
+    return userList;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
 ## Filter by Tags
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -203,11 +269,37 @@ usersRequest.fetchNext().then(
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchUsersByTags(tags) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setTags(tags)
+    .withTags(true)
+    .build();
+
+  try {
+    const userList = await usersRequest.fetchNext();
+    userList.forEach((user) => {
+      console.log(user.getName(), "Tags:", user.getTags());
+    });
+    return userList;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
 ## Get Friends Only
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -219,6 +311,27 @@ usersRequest.fetchNext().then(
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchFriends() {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .friendsOnly(true)
+    .build();
+
+  try {
+    const friends = await usersRequest.fetchNext();
+    console.log("Friends:", friends);
+    return friends;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -226,6 +339,8 @@ usersRequest.fetchNext().then(
 
 Get users by their UIDs (max 25):
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setUIDs(["user1", "user2", "user3"])
@@ -236,6 +351,26 @@ usersRequest.fetchNext().then(
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchSpecificUsers(uids) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setUIDs(uids)
+    .build();
+
+  try {
+    const userList = await usersRequest.fetchNext();
+    console.log("Specific users:", userList);
+    return userList;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -271,6 +406,22 @@ CometChat.getUser(UID).then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+async function getUser(uid) {
+  try {
+    const user = await CometChat.getUser(uid);
+    console.log("User:", user.getName());
+    console.log("Status:", user.getStatus());
+    console.log("Last Active:", user.getLastActiveAt());
+    return user;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
 </Tabs>
 
 ---
@@ -279,12 +430,30 @@ CometChat.getUser(UID).then(
 
 Get the total number of online users in your app:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.getOnlineUserCount().then(
   (count) => console.log("Online users:", count),
   (error) => console.log("Failed:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function getOnlineCount() {
+  try {
+    const count = await CometChat.getOnlineUserCount();
+    console.log("Online users:", count);
+    return count;
+  } catch (error) {
+    console.log("Failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

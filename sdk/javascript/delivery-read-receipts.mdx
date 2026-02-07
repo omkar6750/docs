@@ -120,6 +120,26 @@ Mark all messages in a conversation at once:
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    const markConversation = async () => {
+      try {
+        const conversationWith = "user_uid"; // or group_guid
+        const conversationType = "user"; // or "group"
+
+        // Mark as delivered
+        await CometChat.markConversationAsDelivered(conversationWith, conversationType);
+        console.log("Conversation marked as delivered");
+
+        // Or mark as read
+        await CometChat.markConversationAsRead(conversationWith, conversationType);
+        console.log("Conversation marked as read");
+      } catch (error) {
+        console.log("Error:", error);
+      }
+    };
+    ```
+  </Tab>
 </Tabs>
 
 ---
@@ -128,6 +148,8 @@ Mark all messages in a conversation at once:
 
 Mark a message as unread to revisit later:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.markMessageAsUnread(message).then(
   (conversation) => {
@@ -137,6 +159,23 @@ CometChat.markMessageAsUnread(message).then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function markAsUnread(message) {
+  try {
+    const conversation = await CometChat.markMessageAsUnread(message);
+    console.log("Marked as unread");
+    console.log("Unread count:", conversation.getUnreadMessageCount());
+    return conversation;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 <Note>
 You can only mark messages from other users as unread, not your own messages.
@@ -203,6 +242,8 @@ CometChat.addMessageListener(
 
 Fetch delivery/read status for a specific message (useful for group messages):
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const messageId = 123;
 
@@ -220,6 +261,29 @@ CometChat.getMessageReceipts(messageId).then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function getReceiptHistory(messageId) {
+  try {
+    const receipts = await CometChat.getMessageReceipts(messageId);
+    receipts.forEach((receipt) => {
+      console.log(
+        receipt.getSender().getName(),
+        receipt.getReceiptType(),
+        "at",
+        receipt.getReadAt() || receipt.getDeliveredAt()
+      );
+    });
+    return receipts;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -227,6 +291,8 @@ CometChat.getMessageReceipts(messageId).then(
 
 When fetching messages, check their delivery/read status:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 messagesRequest.fetchPrevious().then((messages) => {
   messages.forEach((message) => {
@@ -243,6 +309,35 @@ messagesRequest.fetchPrevious().then((messages) => {
   });
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function checkMessageStatuses() {
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    
+    messages.forEach((message) => {
+      const deliveredAt = message.getDeliveredAt();
+      const readAt = message.getReadAt();
+      
+      if (readAt) {
+        console.log("Read at:", readAt);
+      } else if (deliveredAt) {
+        console.log("Delivered at:", deliveredAt);
+      } else {
+        console.log("Sent");
+      }
+    });
+    
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

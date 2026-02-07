@@ -172,6 +172,8 @@ messagesRequest.fetchPrevious().then(
 
 Call `fetchPrevious()` repeatedly on the same request object to load older messages:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 // Initial load
 const messagesRequest = new CometChat.MessagesRequestBuilder()
@@ -191,6 +193,41 @@ function loadMoreMessages() {
   });
 }
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Initial load
+const messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setUID(UID)
+  .setLimit(30)
+  .build();
+
+// First page
+async function loadInitialMessages() {
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    displayMessages(messages);
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+
+// Load more (on scroll up)
+async function loadMoreMessages() {
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    prependMessages(messages);
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -198,6 +235,8 @@ function loadMoreMessages() {
 
 Fetch messages that arrived while your app was offline.
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const UID = "user_id";
 const limit = 30;
@@ -214,6 +253,30 @@ messagesRequest.fetchNext().then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchMissedMessages(UID) {
+  try {
+    const latestId = await CometChat.getLastDeliveredMessageId();
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setUID(UID)
+      .setMessageId(latestId)
+      .setLimit(30)
+      .build();
+
+    const messages = await messagesRequest.fetchNext();
+    console.log("Missed messages:", messages);
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 <Note>
 Use `fetchNext()` for missed messages (messages after a specific ID) and `fetchPrevious()` for message history (messages before current view).

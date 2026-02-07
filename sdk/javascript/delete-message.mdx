@@ -111,6 +111,8 @@ CometChat.addMessageListener(
 
 When fetching message history, deleted messages include `deletedAt` and `deletedBy` fields:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 messagesRequest.fetchPrevious().then((messages) => {
   messages.forEach((message) => {
@@ -123,6 +125,28 @@ messagesRequest.fetchPrevious().then((messages) => {
   });
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchAndCheckDeleted() {
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    messages.forEach((message) => {
+      if (message.getDeletedAt()) {
+        console.log("This message was deleted");
+      } else {
+        // Display message normally
+      }
+    });
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 Additionally, an `Action` message is created when a message is deleted:
 
@@ -139,6 +163,8 @@ Additionally, an `Action` message is created when a message is deleted:
 
 To exclude deleted messages from history, use the filter:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
@@ -150,6 +176,28 @@ messagesRequest.fetchPrevious().then((messages) => {
   // Only non-deleted messages returned
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchWithoutDeleted(UID) {
+  const messagesRequest = new CometChat.MessagesRequestBuilder()
+    .setUID(UID)
+    .setLimit(30)
+    .hideDeletedMessages(true)
+    .build();
+
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    // Only non-deleted messages returned
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

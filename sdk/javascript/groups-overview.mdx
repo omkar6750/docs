@@ -54,6 +54,8 @@ The group creator is automatically assigned as Admin.
 
 ### Create a Group
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const GUID = "group_" + Date.now();
 const groupName = "My Group";
@@ -66,9 +68,33 @@ CometChat.createGroup(group).then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function createGroup() {
+  const GUID = "group_" + Date.now();
+  const groupName = "My Group";
+  const groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+  const group = new CometChat.Group(GUID, groupName, groupType);
+
+  try {
+    const createdGroup = await CometChat.createGroup(group);
+    console.log("Group created:", createdGroup);
+    return createdGroup;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Fetch Groups
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const groupsRequest = new CometChat.GroupsRequestBuilder()
   .setLimit(30)
@@ -79,6 +105,26 @@ groupsRequest.fetchNext().then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchGroups() {
+  const groupsRequest = new CometChat.GroupsRequestBuilder()
+    .setLimit(30)
+    .build();
+
+  try {
+    const groups = await groupsRequest.fetchNext();
+    console.log("Groups:", groups);
+    return groups;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -160,6 +206,8 @@ groupsRequest.fetchNext().then(
 
 ### Create Group with Members
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const GUID = "team_chat";
 const groupName = "Team Chat";
@@ -180,9 +228,40 @@ CometChat.createGroupWithMembers(group, members, []).then(
   }
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function createGroupWithMembers() {
+  const GUID = "team_chat";
+  const groupName = "Team Chat";
+  const groupType = CometChat.GROUP_TYPE.PRIVATE;
+
+  const group = new CometChat.Group(GUID, groupName, groupType);
+
+  const members = [
+    new CometChat.GroupMember("user1", CometChat.GROUP_MEMBER_SCOPE.ADMIN),
+    new CometChat.GroupMember("user2", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+    new CometChat.GroupMember("user3", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+  ];
+
+  try {
+    const response = await CometChat.createGroupWithMembers(group, members, []);
+    console.log("Group created:", response.group);
+    console.log("Members added:", response.members);
+    return response;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Join a Public Group
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const GUID = "public_group";
 const groupType = CometChat.GROUP_TYPE.PUBLIC;
@@ -192,9 +271,27 @@ CometChat.joinGroup(GUID, groupType).then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function joinPublicGroup(GUID) {
+  try {
+    const group = await CometChat.joinGroup(GUID, CometChat.GROUP_TYPE.PUBLIC);
+    console.log("Joined group:", group);
+    return group;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Join a Password Group
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const GUID = "password_group";
 const groupType = CometChat.GROUP_TYPE.PASSWORD;
@@ -205,9 +302,31 @@ CometChat.joinGroup(GUID, groupType, password).then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function joinPasswordGroup(GUID, password) {
+  try {
+    const group = await CometChat.joinGroup(
+      GUID, 
+      CometChat.GROUP_TYPE.PASSWORD, 
+      password
+    );
+    console.log("Joined group:", group);
+    return group;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Search Groups
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const groupsRequest = new CometChat.GroupsRequestBuilder()
   .setLimit(30)
@@ -218,9 +337,32 @@ groupsRequest.fetchNext().then((groups) => {
   console.log("Search results:", groups);
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function searchGroups(keyword) {
+  const groupsRequest = new CometChat.GroupsRequestBuilder()
+    .setLimit(30)
+    .setSearchKeyword(keyword)
+    .build();
+
+  try {
+    const groups = await groupsRequest.fetchNext();
+    console.log("Search results:", groups);
+    return groups;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Filter Joined Groups
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const groupsRequest = new CometChat.GroupsRequestBuilder()
   .setLimit(30)
@@ -231,6 +373,27 @@ groupsRequest.fetchNext().then((groups) => {
   console.log("My groups:", groups);
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchJoinedGroups() {
+  const groupsRequest = new CometChat.GroupsRequestBuilder()
+    .setLimit(30)
+    .joinedOnly(true)
+    .build();
+
+  try {
+    const groups = await groupsRequest.fetchNext();
+    console.log("My groups:", groups);
+    return groups;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

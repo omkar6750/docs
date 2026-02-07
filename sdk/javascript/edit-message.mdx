@@ -158,6 +158,8 @@ CometChat.addMessageListener(
 
 When fetching message history, edited messages include `editedAt` and `editedBy` fields:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 messagesRequest.fetchPrevious().then((messages) => {
   messages.forEach((message) => {
@@ -167,6 +169,26 @@ messagesRequest.fetchPrevious().then((messages) => {
   });
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchAndCheckEdits() {
+  try {
+    const messages = await messagesRequest.fetchPrevious();
+    messages.forEach((message) => {
+      if (message.getEditedAt()) {
+        console.log("This message was edited at:", message.getEditedAt());
+      }
+    });
+    return messages;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 Additionally, an `Action` message is created when a message is edited:
 

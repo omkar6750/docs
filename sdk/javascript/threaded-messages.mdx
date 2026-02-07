@@ -93,6 +93,29 @@ CometChat.sendMessage(textMessage).then(
 );
 ```
 </Tab>
+<Tab title="Async/Await">
+```javascript
+const sendThreadReply = async () => {
+  try {
+    const receiverID = "UID";
+    const parentMessageId = 100;
+
+    const textMessage = new CometChat.TextMessage(
+      receiverID,
+      "This is a reply in the thread",
+      CometChat.RECEIVER_TYPE.USER
+    );
+
+    textMessage.setParentMessageId(parentMessageId);
+
+    const message = await CometChat.sendMessage(textMessage);
+    console.log("Thread reply sent:", message);
+  } catch (error) {
+    console.log("Failed to send:", error);
+  }
+};
+```
+</Tab>
 </Tabs>
 
 ---
@@ -132,6 +155,26 @@ messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => console.log("Thread messages:", messages),
   (error: CometChat.CometChatException) => console.log("Failed to fetch:", error)
 );
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+const fetchThreadMessages = async () => {
+  try {
+    const parentMessageId = 100;
+    const limit = 30;
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setParentMessageId(parentMessageId)
+      .setLimit(limit)
+      .build();
+
+    const messages = await messagesRequest.fetchPrevious();
+    console.log("Thread messages:", messages);
+  } catch (error) {
+    console.log("Failed to fetch:", error);
+  }
+};
 ```
 </Tab>
 </Tabs>
@@ -214,6 +257,27 @@ messagesRequest.fetchPrevious().then(
   (messages: CometChat.BaseMessage[]) => console.log("Messages:", messages),
   (error: CometChat.CometChatException) => console.log("Failed to fetch:", error)
 );
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+const fetchMessagesWithoutReplies = async () => {
+  try {
+    const GUID = "GUID";
+    const limit = 30;
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setLimit(limit)
+      .hideReplies(true) // Exclude thread replies
+      .build();
+
+    const messages = await messagesRequest.fetchPrevious();
+    console.log("Messages (without thread replies):", messages);
+  } catch (error) {
+    console.log("Failed to fetch:", error);
+  }
+};
 ```
 </Tab>
 </Tabs>

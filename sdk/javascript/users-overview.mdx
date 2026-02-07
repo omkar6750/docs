@@ -24,6 +24,8 @@ Users are the foundation of your chat application. This section covers retrievin
 
 ### Get Current User
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.getLoggedinUser().then(
   (user) => {
@@ -33,9 +35,29 @@ CometChat.getLoggedinUser().then(
   }
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function getCurrentUser() {
+  try {
+    const user = await CometChat.getLoggedinUser();
+    if (user) {
+      console.log("Logged in as:", user.getName());
+    }
+    return user;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Fetch Users
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -46,6 +68,26 @@ usersRequest.fetchNext().then(
   (error) => console.log("Error:", error)
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchUsers() {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .build();
+
+  try {
+    const users = await usersRequest.fetchNext();
+    console.log("Users:", users);
+    return users;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 
@@ -91,6 +133,8 @@ usersRequest.fetchNext().then(
 
 ### Build a Contacts List
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -103,9 +147,34 @@ usersRequest.fetchNext().then((users) => {
   });
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchContacts() {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .friendsOnly(true)
+    .build();
+
+  try {
+    const users = await usersRequest.fetchNext();
+    users.forEach((user) => {
+      console.log(user.getName(), user.getStatus());
+    });
+    return users;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Search Users
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -116,9 +185,32 @@ usersRequest.fetchNext().then((users) => {
   console.log("Search results:", users);
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function searchUsers(keyword) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setSearchKeyword(keyword)
+    .build();
+
+  try {
+    const users = await usersRequest.fetchNext();
+    console.log("Search results:", users);
+    return users;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Filter Online Users
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -129,9 +221,32 @@ usersRequest.fetchNext().then((users) => {
   console.log("Online users:", users);
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchOnlineUsers() {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setStatus(CometChat.USER_STATUS.ONLINE)
+    .build();
+
+  try {
+    const users = await usersRequest.fetchNext();
+    console.log("Online users:", users);
+    return users;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ### Filter by Role
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const usersRequest = new CometChat.UsersRequestBuilder()
   .setLimit(30)
@@ -142,6 +257,27 @@ usersRequest.fetchNext().then((users) => {
   console.log("Premium/Moderator users:", users);
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchUsersByRole(roles) {
+  const usersRequest = new CometChat.UsersRequestBuilder()
+    .setLimit(30)
+    .setRoles(roles)
+    .build();
+
+  try {
+    const users = await usersRequest.fetchNext();
+    console.log("Filtered users:", users);
+    return users;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

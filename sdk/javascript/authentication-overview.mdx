@@ -306,6 +306,8 @@ The simplest way to authenticate during development:
 
 The SDK maintains the user session. Check if a user is already logged in before calling `login()`:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.getLoggedinUser().then(
   (user) => {
@@ -321,6 +323,27 @@ CometChat.getLoggedinUser().then(
   }
 );
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function checkLoginStatus() {
+  try {
+    const user = await CometChat.getLoggedinUser();
+    if (user) {
+      console.log("User is logged in:", user.getName());
+      return user;
+    } else {
+      console.log("No user logged in");
+      return null;
+    }
+  } catch (error) {
+    console.log("Error checking login status:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 <Info>
 You only need to call `login()` once. The SDK persists the session, so users remain logged in across page refreshes until you call `logout()`.
@@ -517,6 +540,8 @@ On successful login, you receive a `User` object with the following properties:
 
 Access user properties:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.login(UID, authKey).then((user) => {
   console.log("UID:", user.getUid());
@@ -525,6 +550,25 @@ CometChat.login(UID, authKey).then((user) => {
   console.log("Status:", user.getStatus());
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function loginAndGetUserInfo(UID, authKey) {
+  try {
+    const user = await CometChat.login(UID, authKey);
+    console.log("UID:", user.getUid());
+    console.log("Name:", user.getName());
+    console.log("Avatar:", user.getAvatar());
+    console.log("Status:", user.getStatus());
+    return user;
+  } catch (error) {
+    console.log("Login failed:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 ---
 

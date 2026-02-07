@@ -469,6 +469,8 @@ graph LR
 
 ### Conversation Properties
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 // Fetch conversations
 const conversationsRequest = new CometChat.ConversationsRequestBuilder()
@@ -493,6 +495,39 @@ conversationsRequest.fetchNext().then((conversations) => {
   });
 });
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function fetchConversations() {
+  const conversationsRequest = new CometChat.ConversationsRequestBuilder()
+    .setLimit(30)
+    .build();
+
+  try {
+    const conversations = await conversationsRequest.fetchNext();
+    
+    conversations.forEach((conversation) => {
+      console.log("ID:", conversation.getConversationId());
+      console.log("Type:", conversation.getConversationType());
+      console.log("Unread:", conversation.getUnreadMessageCount());
+      console.log("Updated:", conversation.getUpdatedAt());
+      
+      const lastMessage = conversation.getLastMessage();
+      console.log("Last message:", lastMessage?.getText());
+      
+      const partner = conversation.getConversationWith();
+      console.log("With:", partner.getName());
+    });
+    
+    return conversations;
+  } catch (error) {
+    console.log("Error:", error);
+    throw error;
+  }
+}
+```
+</Tab>
+</Tabs>
 
 | Property | Method | Description |
 |----------|--------|-------------|
