@@ -5,6 +5,10 @@ description: "Handle real-time messages and fetch message history"
 
 Receiving messages in CometChat involves two parts:
 
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
+
 1. **Real-time messages** - Listen for new messages while your app is running
 2. **Message history** - Fetch previous messages when loading a conversation
 
@@ -125,6 +129,28 @@ Fetch previous messages for a conversation using `MessagesRequest`.
         console.log("Error:", error);
       }
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function fetchMessages(uid, limit = 30) {
+      const messagesRequest = new CometChat.MessagesRequestBuilder()
+        .setUID(uid)
+        .setLimit(limit)
+        .build();
+
+      try {
+        const messages = await messagesRequest.fetchPrevious();
+        console.log(`Fetched ${messages.length} messages`);
+        return messages;
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    const messages = await fetchMessages("user123");
     ```
   </Tab>
 </Tabs>
@@ -390,6 +416,151 @@ messages.forEach((message) => {
 | Delivered At | `getDeliveredAt()` | When message was delivered |
 | Edited At | `getEditedAt()` | When message was edited |
 | Deleted At | `getDeletedAt()` | When message was deleted |
+
+---
+
+## React Implementation Example
+
+Here's a complete React hook for handling messages:
+
+```jsx
+import { useEffect, useState, useCallback, useRef } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+export function useMessages(conversationId, conversationType = "user") {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const requestRef = useRef(null);
+
+  // Initialize messages request
+  useEffect(() => {
+    const builder = new CometChat.MessagesRequestBuilder()
+      .setLimit(30);
+
+    if (conversationType === "user") {
+      builder.setUID(conversationId);
+    } else {
+      builder.setGUID(conversationId);
+    }
+
+    requestRef.current = builder.build();
+    setMessages([]);
+    setHasMore(true);
+
+    // Load initial messages
+    loadMessages();
+
+    // Setup real-time listener
+    const listenerID = `messages_${conversationId}`;
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message) => {
+          if (isRelevantMessage(message)) {
+            setMessages((prev) => [...prev, message]);
+            CometChat.markAsRead(message);
+          }
+        },
+        onMediaMessageReceived: (message) => {
+          if (isRelevantMessage(message)) {
+            setMessages((prev) => [...prev, message]);
+            CometChat.markAsRead(message);
+          }
+        },
+        onMessageEdited: (message) => {
+          setMessages((prev) =>
+            prev.map((m) => (m.getId() === message.getId() ? message : m))
+          );
+        },
+        onMessageDeleted: (message) => {
+          setMessages((prev) =>
+            prev.map((m) => (m.getId() === message.getId() ? message : m))
+          );
+        }
+      })
+    );
+
+    return () => {
+      CometChat.removeMessageListener(listenerID);
+    };
+  }, [conversationId, conversationType]);
+
+  const isRelevantMessage = (message) => {
+    const sender = message.getSender().getUid();
+    const receiver = message.getReceiverId();
+    return sender === conversationId || receiver === conversationId;
+  };
+
+  const loadMessages = useCallback(async () => {
+    if (!requestRef.current || loading || !hasMore) return;
+
+    setLoading(true);
+    try {
+      const fetchedMessages = await requestRef.current.fetchPrevious();
+      setMessages((prev) => [...fetchedMessages, ...prev]);
+      setHasMore(fetchedMessages.length === 30);
+
+      // Mark last message as read
+      if (fetchedMessages.length > 0) {
+        CometChat.markAsRead(fetchedMessages[fetchedMessages.length - 1]);
+      }
+    } catch (error) {
+      console.error("Failed to load messages:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, hasMore]);
+
+  const sendMessage = useCallback(async (text) => {
+    const receiverType = conversationType === "user"
+      ? CometChat.RECEIVER_TYPE.USER
+      : CometChat.RECEIVER_TYPE.GROUP;
+
+    const textMessage = new CometChat.TextMessage(
+      conversationId,
+      text,
+      receiverType
+    );
+
+    const sentMessage = await CometChat.sendMessage(textMessage);
+    setMessages((prev) => [...prev, sentMessage]);
+    return sentMessage;
+  }, [conversationId, conversationType]);
+
+  return {
+    messages,
+    loading,
+    hasMore,
+    loadMore: loadMessages,
+    sendMessage
+  };
+}
+
+// Usage in component
+function ChatScreen({ conversationId }) {
+  const { messages, loading, hasMore, loadMore, sendMessage } = useMessages(conversationId);
+  const [input, setInput] = useState("");
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    await sendMessage(input);
+    setInput("");
+  };
+
+  return (
+    <div>
+      {hasMore && <button onClick={loadMore}>Load More</button>}
+      {loading && <div>Loading...</div>}
+      {messages.map((msg) => (
+        <div key={msg.getId()}>{msg.getText?.() || "Media message"}</div>
+      ))}
+      <input value={input} onChange={(e) => setInput(e.target.value)} />
+      <button onClick={handleSend}>Send</button>
+    </div>
+  );
+}
+```
 
 ---
 

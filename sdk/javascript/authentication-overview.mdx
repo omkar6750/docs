@@ -7,8 +7,12 @@ description: "Authenticate users with CometChat using Auth Keys or Auth Tokens"
 CometChat requires users to be authenticated before they can send or receive messages. This guide covers the authentication flow and best practices for both development and production environments.
 
 <Note>
-**CometChat does not handle user management.** You manage user registration and login in your app. Once a user logs into your app, you programmatically log them into CometChat.
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
 </Note>
+
+<Info>
+**CometChat does not handle user management.** You manage user registration and login in your app. Once a user logs into your app, you programmatically log them into CometChat.
+</Info>
 
 ## Authentication Flow
 
@@ -148,6 +152,34 @@ The simplest way to authenticate during development:
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    const UID = "cometchat-uid-1";
+    const authKey = "YOUR_AUTH_KEY";
+
+    async function loginWithAuthKey() {
+      try {
+        // Check if already logged in
+        let user = await CometChat.getLoggedinUser();
+        
+        if (user) {
+          console.log("Already logged in:", user.getName());
+          return user;
+        }
+
+        // Login
+        user = await CometChat.login(UID, authKey);
+        console.log("Login successful:", user.getName());
+        return user;
+      } catch (error) {
+        console.error("Login failed:", error);
+        throw error;
+      }
+    }
+
+    loginWithAuthKey();
+    ```
+  </Tab>
 </Tabs>
 
 | Parameter | Description |
@@ -233,6 +265,39 @@ The simplest way to authenticate during development:
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function loginWithAuthToken(authToken) {
+      try {
+        // Check if already logged in
+        let user = await CometChat.getLoggedinUser();
+        
+        if (user) {
+          console.log("Already logged in:", user.getName());
+          return user;
+        }
+
+        // Login with token
+        user = await CometChat.login(authToken);
+        console.log("Login successful:", user.getName());
+        return user;
+      } catch (error) {
+        console.error("Login failed:", error);
+        throw error;
+      }
+    }
+
+    // Get token from your server and login
+    async function authenticateUser(userId) {
+      // 1. Get auth token from your backend
+      const response = await fetch(`/api/cometchat/token/${userId}`);
+      const { authToken } = await response.json();
+      
+      // 2. Login to CometChat
+      return loginWithAuthToken(authToken);
+    }
+    ```
+  </Tab>
 </Tabs>
 
 | Parameter | Description |
@@ -294,6 +359,146 @@ Log out the user when they sign out of your app:
         console.log("Logout failed:", error);
       }
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function logout() {
+      try {
+        await CometChat.logout();
+        console.log("Logout successful");
+        // Redirect to login page or update UI
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+Always call `CometChat.logout()` when users sign out of your app. This clears the local session and stops real-time event delivery.
+</Warning>
+
+---
+
+## Server-Side Token Generation
+
+Here's how to generate Auth Tokens on your backend:
+
+<Tabs>
+  <Tab title="Node.js">
+    ```javascript
+    // server.js
+    const express = require("express");
+    const fetch = require("node-fetch");
+
+    const app = express();
+
+    const APP_ID = process.env.COMETCHAT_APP_ID;
+    const REGION = process.env.COMETCHAT_REGION;
+    const API_KEY = process.env.COMETCHAT_API_KEY; // REST API Key
+
+    // Generate auth token for a user
+    app.post("/api/cometchat/token/:uid", async (req, res) => {
+      const { uid } = req.params;
+
+      try {
+        const response = await fetch(
+          `https://${APP_ID}.api-${REGION}.cometchat.io/v3/users/${uid}/auth_tokens`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apiKey": API_KEY
+            }
+          }
+        );
+
+        const data = await response.json();
+        
+        if (data.data?.authToken) {
+          res.json({ authToken: data.data.authToken });
+        } else {
+          res.status(400).json({ error: "Failed to generate token" });
+        }
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Create user and generate token
+    app.post("/api/cometchat/users", async (req, res) => {
+      const { uid, name, avatar } = req.body;
+
+      try {
+        // Create user
+        await fetch(
+          `https://${APP_ID}.api-${REGION}.cometchat.io/v3/users`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apiKey": API_KEY
+            },
+            body: JSON.stringify({ uid, name, avatar })
+          }
+        );
+
+        // Generate token
+        const tokenResponse = await fetch(
+          `https://${APP_ID}.api-${REGION}.cometchat.io/v3/users/${uid}/auth_tokens`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apiKey": API_KEY
+            }
+          }
+        );
+
+        const tokenData = await tokenResponse.json();
+        res.json({ authToken: tokenData.data.authToken });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.listen(3000);
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # server.py
+    from flask import Flask, jsonify, request
+    import requests
+    import os
+
+    app = Flask(__name__)
+
+    APP_ID = os.environ.get("COMETCHAT_APP_ID")
+    REGION = os.environ.get("COMETCHAT_REGION")
+    API_KEY = os.environ.get("COMETCHAT_API_KEY")
+
+    BASE_URL = f"https://{APP_ID}.api-{REGION}.cometchat.io/v3"
+
+    @app.route("/api/cometchat/token/<uid>", methods=["POST"])
+    def generate_token(uid):
+        response = requests.post(
+            f"{BASE_URL}/users/{uid}/auth_tokens",
+            headers={
+                "Content-Type": "application/json",
+                "apiKey": API_KEY
+            }
+        )
+        
+        data = response.json()
+        if "data" in data and "authToken" in data["data"]:
+            return jsonify({"authToken": data["data"]["authToken"]})
+        return jsonify({"error": "Failed to generate token"}), 400
+
+    if __name__ == "__main__":
+        app.run(port=3000)
     ```
   </Tab>
 </Tabs>
@@ -373,6 +578,47 @@ Learn more about [Login Listeners](/sdk/javascript/login-listener).
 
 ---
 
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="'User does not exist' error">
+    The UID you're trying to login with hasn't been created in CometChat.
+    
+    **Solutions:**
+    - Use test users: `cometchat-uid-1` through `cometchat-uid-5`
+    - Create the user first via REST API or SDK
+    - Check for typos in the UID
+  </Accordion>
+  <Accordion title="'Auth Key is invalid' error">
+    **Causes:**
+    - Using REST API Key instead of Auth Key
+    - Auth Key has extra spaces
+    - Auth Key is from a different app
+    
+    **Solution:** Copy the Auth Key directly from Dashboard → API & Auth Keys
+  </Accordion>
+  <Accordion title="'Auth Token is invalid or expired' error">
+    Auth Tokens have an expiration time (default: 15 minutes).
+    
+    **Solutions:**
+    - Generate a new token from your server
+    - Increase token expiration in Dashboard settings
+    - Implement token refresh logic in your app
+  </Accordion>
+  <Accordion title="Login works but no messages received">
+    **Causes:**
+    - Message listeners not registered
+    - WebSocket connection not established
+    
+    **Solutions:**
+    - Register listeners after successful login
+    - Check `autoEstablishSocketConnection(true)` in app settings
+    - Add a connection listener to debug
+  </Accordion>
+</AccordionGroup>
+
+---
+
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -381,5 +627,11 @@ Learn more about [Login Listeners](/sdk/javascript/login-listener).
   </Card>
   <Card title="User Management" icon="user" href="/sdk/javascript/user-management">
     Create, update, and manage users
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Handle real-time and historical messages
+  </Card>
+  <Card title="Key Concepts" icon="book" href="/sdk/javascript/key-concepts">
+    Understand users, groups, and messages
   </Card>
 </CardGroup>

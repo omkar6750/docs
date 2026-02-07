@@ -5,6 +5,10 @@ description: "Fetch and manage conversation lists for your chat UI"
 
 Conversations represent chat threads between users or within groups. Use them to build your "Recent Chats" or "Inbox" view.
 
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
+
 ---
 
 ## Fetch Conversations
@@ -47,6 +51,27 @@ Use `ConversationsRequest` to retrieve the logged-in user's conversations:
         console.log("Error:", error);
       }
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function fetchConversations(limit = 30) {
+      const conversationsRequest = new CometChat.ConversationsRequestBuilder()
+        .setLimit(limit)
+        .build();
+
+      try {
+        const conversations = await conversationsRequest.fetchNext();
+        console.log(`Fetched ${conversations.length} conversations`);
+        return conversations;
+      } catch (error) {
+        console.error("Failed to fetch conversations:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    const conversations = await fetchConversations();
     ```
   </Tab>
 </Tabs>
@@ -358,6 +383,143 @@ conversations.forEach((conversation) => {
 | `setWithBlockedInfo(true)` | Include block status |
 | `setHideAgentic(true)` | Exclude AI agent conversations |
 | `setOnlyAgentic(true)` | Only AI agent conversations |
+
+---
+
+## React Implementation Example
+
+Here's a complete React hook for managing conversations:
+
+```jsx
+import { useEffect, useState, useCallback, useRef } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+export function useConversations() {
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const requestRef = useRef(null);
+
+  // Initialize and load conversations
+  useEffect(() => {
+    requestRef.current = new CometChat.ConversationsRequestBuilder()
+      .setLimit(30)
+      .build();
+
+    loadConversations();
+
+    // Listen for new messages to update conversation list
+    const listenerID = "CONVERSATION_LISTENER";
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: updateConversationFromMessage,
+        onMediaMessageReceived: updateConversationFromMessage,
+        onCustomMessageReceived: updateConversationFromMessage
+      })
+    );
+
+    return () => {
+      CometChat.removeMessageListener(listenerID);
+    };
+  }, []);
+
+  const updateConversationFromMessage = async (message) => {
+    try {
+      const conversation = await CometChat.CometChatHelper
+        .getConversationFromMessage(message);
+      
+      setConversations((prev) => {
+        // Remove existing conversation if present
+        const filtered = prev.filter(
+          (c) => c.getConversationId() !== conversation.getConversationId()
+        );
+        // Add updated conversation at the top
+        return [conversation, ...filtered];
+      });
+    } catch (error) {
+      console.error("Failed to update conversation:", error);
+    }
+  };
+
+  const loadConversations = useCallback(async () => {
+    if (!requestRef.current || loading || !hasMore) return;
+
+    setLoading(true);
+    try {
+      const fetched = await requestRef.current.fetchNext();
+      setConversations((prev) => [...prev, ...fetched]);
+      setHasMore(fetched.length === 30);
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, hasMore]);
+
+  const markAsRead = useCallback(async (conversation) => {
+    const conversationWith = conversation.getConversationType() === "user"
+      ? conversation.getConversationWith().getUid()
+      : conversation.getConversationWith().getGuid();
+
+    await CometChat.markConversationAsRead(
+      conversationWith,
+      conversation.getConversationType()
+    );
+
+    // Update local state
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.getConversationId() === conversation.getConversationId()) {
+          // Create updated conversation with 0 unread count
+          // Note: In practice, you'd refetch or update the object
+          return c;
+        }
+        return c;
+      })
+    );
+  }, []);
+
+  return {
+    conversations,
+    loading,
+    hasMore,
+    loadMore: loadConversations,
+    markAsRead
+  };
+}
+
+// Usage in component
+function ConversationList({ onSelect }) {
+  const { conversations, loading, hasMore, loadMore } = useConversations();
+
+  return (
+    <div>
+      {conversations.map((conv) => {
+        const partner = conv.getConversationWith();
+        const lastMessage = conv.getLastMessage();
+        const unread = conv.getUnreadMessageCount();
+
+        return (
+          <div key={conv.getConversationId()} onClick={() => onSelect(conv)}>
+            <img src={partner.getAvatar()} alt={partner.getName()} />
+            <div>
+              <strong>{partner.getName()}</strong>
+              <p>{lastMessage?.getText?.() || "No messages"}</p>
+            </div>
+            {unread > 0 && <span className="badge">{unread}</span>}
+          </div>
+        );
+      })}
+      {hasMore && (
+        <button onClick={loadMore} disabled={loading}>
+          {loading ? "Loading..." : "Load More"}
+        </button>
+      )}
+    </div>
+  );
+}
+```
 
 ---
 

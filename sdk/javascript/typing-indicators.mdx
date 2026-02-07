@@ -259,6 +259,136 @@ function updateTypingUI() {
 
 ---
 
+## React Hook Example
+
+```jsx
+import { useEffect, useState, useCallback, useRef } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+export function useTypingIndicator(receiverID, receiverType) {
+  const [typingUsers, setTypingUsers] = useState(new Map());
+  const isTypingRef = useRef(false);
+  const timeoutRef = useRef(null);
+
+  // Listen for typing events
+  useEffect(() => {
+    const listenerID = `typing_${receiverID}`;
+
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTypingStarted: (indicator) => {
+          const sender = indicator.getSender();
+          setTypingUsers((prev) => {
+            const next = new Map(prev);
+            next.set(sender.getUid(), sender.getName());
+            return next;
+          });
+        },
+        onTypingEnded: (indicator) => {
+          const sender = indicator.getSender();
+          setTypingUsers((prev) => {
+            const next = new Map(prev);
+            next.delete(sender.getUid());
+            return next;
+          });
+        }
+      })
+    );
+
+    return () => {
+      CometChat.removeMessageListener(listenerID);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      // Stop typing on unmount
+      if (isTypingRef.current) {
+        stopTyping();
+      }
+    };
+  }, [receiverID]);
+
+  const startTyping = useCallback(() => {
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      const indicator = new CometChat.TypingIndicator(receiverID, receiverType);
+      CometChat.startTyping(indicator);
+    }
+
+    // Reset timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Auto-stop after 2 seconds of inactivity
+    timeoutRef.current = setTimeout(() => {
+      stopTyping();
+    }, 2000);
+  }, [receiverID, receiverType]);
+
+  const stopTyping = useCallback(() => {
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      const indicator = new CometChat.TypingIndicator(receiverID, receiverType);
+      CometChat.endTyping(indicator);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, [receiverID, receiverType]);
+
+  // Format typing text
+  const typingText = useCallback(() => {
+    const names = Array.from(typingUsers.values());
+    if (names.length === 0) return "";
+    if (names.length === 1) return `${names[0]} is typing...`;
+    if (names.length === 2) return `${names[0]} and ${names[1]} are typing...`;
+    return "Several people are typing...";
+  }, [typingUsers]);
+
+  return {
+    typingUsers,
+    typingText: typingText(),
+    isAnyoneTyping: typingUsers.size > 0,
+    onInputChange: startTyping,
+    onMessageSent: stopTyping
+  };
+}
+
+// Usage in component
+function ChatInput({ receiverID }) {
+  const [message, setMessage] = useState("");
+  const { typingText, isAnyoneTyping, onInputChange, onMessageSent } = 
+    useTypingIndicator(receiverID, CometChat.RECEIVER_TYPE.USER);
+
+  const handleChange = (e) => {
+    setMessage(e.target.value);
+    onInputChange();
+  };
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    // Send message...
+    onMessageSent();
+    setMessage("");
+  };
+
+  return (
+    <div>
+      {isAnyoneTyping && <div className="typing-indicator">{typingText}</div>}
+      <input
+        value={message}
+        onChange={handleChange}
+        placeholder="Type a message..."
+      />
+      <button onClick={handleSend}>Send</button>
+    </div>
+  );
+}
+```
+
+---
+
 ## Best Practices
 
 <AccordionGroup>

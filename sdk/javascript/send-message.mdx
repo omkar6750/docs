@@ -5,6 +5,10 @@ description: "Send text, media, and custom messages to users and groups"
 
 CometChat supports multiple message types to cover all your chat needs:
 
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
+
 | Type | Method | Use Case |
 |------|--------|----------|
 | [Text](#text-message) | `sendMessage()` | Standard chat messages |
@@ -71,6 +75,34 @@ Send plain text messages to users or groups.
       (message: CometChat.TextMessage) => console.log("Message sent:", message),
       (error: CometChat.CometChatException) => console.log("Error:", error)
     );
+    ```
+  </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function sendTextMessage(receiverID, text, isGroup = false) {
+      const receiverType = isGroup 
+        ? CometChat.RECEIVER_TYPE.GROUP 
+        : CometChat.RECEIVER_TYPE.USER;
+
+      const textMessage = new CometChat.TextMessage(
+        receiverID,
+        text,
+        receiverType
+      );
+
+      try {
+        const message = await CometChat.sendMessage(textMessage);
+        console.log("Message sent:", message.getId());
+        return message;
+      } catch (error) {
+        console.error("Send failed:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    await sendTextMessage("user123", "Hello!");
+    await sendTextMessage("group456", "Hello everyone!", true);
     ```
   </Tab>
 </Tabs>
