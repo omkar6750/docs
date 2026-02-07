@@ -317,6 +317,27 @@ Fetch a specific conversation:
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    async function getConversation(conversationWith, conversationType) {
+      try {
+        const conversation = await CometChat.getConversation(
+          conversationWith,
+          conversationType
+        );
+        console.log("Conversation:", conversation);
+        return conversation;
+      } catch (error) {
+        console.error("Failed to get conversation:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    const userConversation = await getConversation("user_uid", "user");
+    const groupConversation = await getConversation("group_guid", "group");
+    ```
+  </Tab>
 </Tabs>
 
 ---
@@ -325,6 +346,8 @@ Fetch a specific conversation:
 
 Add tags to organize conversations (e.g., archive, pin, categorize):
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 const conversationWith = "user_uid";
 const conversationType = "user";
@@ -339,6 +362,45 @@ CometChat.tagConversation(conversationWith, conversationType, tags).then(
   }
 );
 ```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const conversationWith: string = "user_uid";
+const conversationType: string = "user";
+const tags: string[] = ["archived", "important"];
+
+CometChat.tagConversation(conversationWith, conversationType, tags).then(
+  (conversation: CometChat.Conversation) => {
+    console.log("Tagged conversation:", conversation);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function tagConversation(conversationWith, conversationType, tags) {
+  try {
+    const conversation = await CometChat.tagConversation(
+      conversationWith,
+      conversationType,
+      tags
+    );
+    console.log("Tagged conversation:", conversation);
+    return conversation;
+  } catch (error) {
+    console.error("Failed to tag conversation:", error);
+    throw error;
+  }
+}
+
+// Usage
+await tagConversation("user_uid", "user", ["archived", "important"]);
+```
+</Tab>
+</Tabs>
 
 <Note>
 Conversation tags are user-specific. If User A tags a conversation with User B, only User A sees that tag.
@@ -350,6 +412,8 @@ Conversation tags are user-specific. If User A tags a conversation with User B, 
 
 When receiving real-time messages, convert them to conversation objects for your UI:
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 CometChat.CometChatHelper.getConversationFromMessage(message).then(
   (conversation) => {
@@ -361,6 +425,38 @@ CometChat.CometChatHelper.getConversationFromMessage(message).then(
   }
 );
 ```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+CometChat.CometChatHelper.getConversationFromMessage(message).then(
+  (conversation: CometChat.Conversation) => {
+    console.log("Conversation:", conversation);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function convertMessageToConversation(message) {
+  try {
+    const conversation = await CometChat.CometChatHelper
+      .getConversationFromMessage(message);
+    console.log("Conversation:", conversation);
+    return conversation;
+  } catch (error) {
+    console.error("Failed to convert message:", error);
+    throw error;
+  }
+}
+
+// Usage in message listener
+const conversation = await convertMessageToConversation(receivedMessage);
+```
+</Tab>
+</Tabs>
 
 <Warning>
 The converted conversation won't include `unreadMessageCount` or `tags`. Manage unread counts client-side.

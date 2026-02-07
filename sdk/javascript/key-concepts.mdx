@@ -422,6 +422,82 @@ graph TD
     );
     ```
   </Tab>
+  <Tab title="Async/Await">
+    ```javascript
+    // Text message
+    async function sendTextMessage(receiverID, text, isGroup = false) {
+      const receiverType = isGroup 
+        ? CometChat.RECEIVER_TYPE.GROUP 
+        : CometChat.RECEIVER_TYPE.USER;
+      
+      const textMessage = new CometChat.TextMessage(
+        receiverID,
+        text,
+        receiverType
+      );
+
+      try {
+        const message = await CometChat.sendMessage(textMessage);
+        console.log("Sent:", message);
+        return message;
+      } catch (error) {
+        console.error("Error:", error);
+        throw error;
+      }
+    }
+
+    // Media message
+    async function sendMediaMessage(receiverID, file, type, isGroup = false) {
+      const receiverType = isGroup 
+        ? CometChat.RECEIVER_TYPE.GROUP 
+        : CometChat.RECEIVER_TYPE.USER;
+      
+      const mediaMessage = new CometChat.MediaMessage(
+        receiverID,
+        file,
+        type,
+        receiverType
+      );
+
+      try {
+        const message = await CometChat.sendMediaMessage(mediaMessage);
+        console.log("Sent:", message);
+        return message;
+      } catch (error) {
+        console.error("Error:", error);
+        throw error;
+      }
+    }
+
+    // Custom message
+    async function sendCustomMessage(receiverID, customType, data, isGroup = false) {
+      const receiverType = isGroup 
+        ? CometChat.RECEIVER_TYPE.GROUP 
+        : CometChat.RECEIVER_TYPE.USER;
+      
+      const customMessage = new CometChat.CustomMessage(
+        receiverID,
+        receiverType,
+        customType,
+        data
+      );
+
+      try {
+        const message = await CometChat.sendCustomMessage(customMessage);
+        console.log("Sent:", message);
+        return message;
+      } catch (error) {
+        console.error("Error:", error);
+        throw error;
+      }
+    }
+
+    // Usage
+    await sendTextMessage("user123", "Hello!");
+    await sendMediaMessage("user123", file, CometChat.MESSAGE_TYPE.IMAGE);
+    await sendCustomMessage("user123", "location", { latitude: 37.7749, longitude: -122.4194 });
+    ```
+  </Tab>
 </Tabs>
 
 ### Message Properties

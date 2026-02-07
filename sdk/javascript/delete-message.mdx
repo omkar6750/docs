@@ -203,6 +203,8 @@ async function fetchWithoutDeleted(UID) {
 
 ## Example: Delete Message UI
 
+<Tabs>
+<Tab title="JavaScript">
 ```javascript
 function deleteMessage(messageId) {
   return CometChat.deleteMessage(messageId).then(
@@ -230,6 +232,39 @@ function renderMessage(message) {
   return `<div class='message'>${message.getText()}</div>`;
 }
 ```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+async function deleteMessage(messageId) {
+  try {
+    const message = await CometChat.deleteMessage(messageId);
+    
+    // Option 1: Remove from UI
+    removeMessageFromUI(messageId);
+    
+    // Option 2: Show "deleted" placeholder
+    markMessageAsDeleted(messageId);
+    
+    return message;
+  } catch (error) {
+    console.error("Delete failed:", error);
+    throw error;
+  }
+}
+
+// Check if message is deleted when rendering
+function renderMessage(message) {
+  if (message.getDeletedAt()) {
+    return "<div class='deleted'>This message was deleted</div>";
+  }
+  return `<div class='message'>${message.getText()}</div>`;
+}
+
+// Usage
+await deleteMessage(123);
+```
+</Tab>
+</Tabs>
 
 ---
 
