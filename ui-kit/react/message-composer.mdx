@@ -1,6 +1,22 @@
 ---
 title: "Message Composer"
+description: "Text input, media attachments, mentions, reactions, and custom actions for composing messages"
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+// For a user chat
+<CometChatMessageComposer user={chatUser} />
+
+// For a group chat
+<CometChatMessageComposer group={chatGroup} />
+```
+</Info>
 
 ## Overview
 
@@ -12,6 +28,10 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
   <img src="/images/6c67574d-wGdWG0FDGDEYQAAAABJRU5ErkJggg.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/send-message)
+</Note>
+
 ## Usage
 
 ### Integration
@@ -19,7 +39,7 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
 The following code snippet illustrates how you can directly incorporate the MessageComposer component into your app.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -43,18 +63,25 @@ export function MessageComposerDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageComposerDemo } from "./MessageComposerDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageComposerDemo />
-      </div>
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer user={chatUser} />
     </div>
-  );
+  ) : null;
 }
 ```
 
@@ -71,7 +98,7 @@ export default function App() {
 The `OnSendButtonClick` event gets activated when the send message button is clicked. It has a predefined function of sending messages entered in the composer `EditText`. However, you can overide this action with the following code snippet.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -100,6 +127,35 @@ export function MessageComposerDemo() {
 
 </Tab>
 
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = useState(null);
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleSendButtonClick(message) {
+    console.log("your custom on send buttonclick action");
+  }
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer onSendButtonClick={handleSendButtonClick} />
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
 </Tabs>
 
 ##### 2. onError
@@ -107,7 +163,7 @@ export function MessageComposerDemo() {
 This action doesn't change the behavior of the component but rather listens for any errors that occur in the MessageList component.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -136,6 +192,35 @@ export function MessageComposerDemo() {
 
 </Tab>
 
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = useState(null);
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleError(error) {
+    throw new Error("your custom error action");
+  }
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer user={chatUser} onError={handleError} />
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
 </Tabs>
 
 ##### 3. onTextChange
@@ -143,7 +228,7 @@ export function MessageComposerDemo() {
 This event is triggered as the user starts typing in the Message Composer.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -175,6 +260,38 @@ export function MessageComposerDemo() {
 
 </Tab>
 
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = useState(null);
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleTextChange(text) {
+    console.log("onTextChange", text);
+  }
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer
+        user={chatUser}
+        onTextChange={handleTextChange}
+      />
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
 </Tabs>
 
 ##### 4. Custom Mentions Request Builders
@@ -182,7 +299,7 @@ export function MessageComposerDemo() {
 You can customize how mentioned users and group members are fetched by providing custom request builders.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -314,7 +431,7 @@ To modify the styling, you can customise the css of MessageComposer Component.
 </Frame>
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -325,7 +442,7 @@ import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
 
 </Tab>
 
-<Tab title="MessageComposerDemo.css">
+<Tab title="css">
 ```css
 .cometchat-message-composer .cometchat-message-composer__input {
   font-family: "SF Pro";
@@ -351,7 +468,7 @@ import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
 These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -422,7 +539,7 @@ The customized chat interface is displayed below.
 Use the following code to achieve the customization shown above.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -464,7 +581,7 @@ function getAttachments() {
 
 </Tab>
 
-<Tab title="MessageComposerDemo.css">
+<Tab title="css">
 ```css
 .cometchat-message-composer__secondary-button-view-attachment-button
   .cometchat-action-sheet {
@@ -519,7 +636,7 @@ The customized chat interface is displayed below.
 Use the following code to achieve the customization shown above.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -569,7 +686,7 @@ The customized chat interface is displayed below.
 Use the following code to achieve the customization shown above.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -592,7 +709,7 @@ const sendButtonView = (
 
 </Tab>
 
-<Tab title="MessageComposerDemo.css">
+<Tab title="css">
 ```css
 .cometchat-message-composer
   div:not([class])
@@ -634,7 +751,7 @@ The customized chat interface is displayed below.
 Use the following code to achieve the customization shown above.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -656,7 +773,7 @@ const getHeaderView = () => {
 
 </Tab>
 
-<Tab title="MessageComposerDemo.css">
+<Tab title="css">
 ```css
 .cometchat-message-composer .message-composer__header-view {
   display: flex;
@@ -889,7 +1006,7 @@ export default class DialogHelper {
 
 </Tab>
 
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -920,3 +1037,10 @@ export function MessageComposerDemo() {
 </Tabs>
 
 ***
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" href="/ui-kit/react/message-list" icon="list" />
+  <Card title="Message Template" href="/ui-kit/react/message-template" icon="file-code" />
+</CardGroup>

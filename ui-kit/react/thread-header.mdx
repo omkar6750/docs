@@ -1,10 +1,25 @@
 ---
 title: "Thread Header"
+description: "Display parent message context and reply count for threaded conversations"
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+<CometChatThreadHeader parentMessage={parentMessage} />
+```
+</Info>
 
 ## Overview
 
 CometChatThreadHeader is a Component that displays the parent message & number of replies of thread.
+
+<Note>
+Available via: [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/threaded-messages)
+</Note>
 
 <Frame>
   <img src="/images/a5456902-threaded_message_preview_overview_web_screens-0f6df1fc848c99494f5ef81c5c44393f.png" />
@@ -17,7 +32,7 @@ CometChatThreadHeader is a Component that displays the parent message & number o
 The following code snippet illustrates how you can directly incorporate the CometChatThreadHeader component into your Application.
 
 <Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -45,18 +60,28 @@ export function ThreadHeaderDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { ThreadHeaderDemo } from "./ThreadHeaderDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <ThreadHeaderDemo />
-      </div>
-    </div>
-  );
+export function ThreadHeaderDemo() {
+  const [parentMessage, setParentMessage] = useState(null);
+  const [chatWithUser, setChatWithUser] = useState(null);
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatWithUser(user);
+    });
+    CometChat.getMessageDetails("Parent Message Id").then((message) => {
+      setParentMessage(message);
+    });
+  }, []);
+
+  return chatWithUser && parentMessage ? (
+    <CometChatThreadHeader parentMessage={parentMessage} />
+  ) : null;
 }
 ```
 
@@ -75,7 +100,7 @@ export default function App() {
 In this example, we are overriding the `onClose` of the ThreadedMesssage Component.
 
 <Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -87,6 +112,40 @@ export function ThreadHeaderDemo() {
   const [chatWithUser, setChatWithUser] = React.useState<CometChat.User>();
 
   React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatWithUser(user);
+    });
+    CometChat.getMessageDetails("Parent Message Id").then((message) => {
+      setParentMessage(message);
+    });
+  }, []);
+
+  const handleClose = () => {
+    console.log("your custom on close action");
+  };
+
+  return chatWithUser && parentMessage ? (
+    <CometChatThreadHeader
+      parentMessage={parentMessage}
+      onClose={handleClose}
+    />
+  ) : null;
+}
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+export function ThreadHeaderDemo() {
+  const [parentMessage, setParentMessage] = useState(null);
+  const [chatWithUser, setChatWithUser] = useState(null);
+
+  useEffect(() => {
     CometChat.getUser("uid").then((user) => {
       setChatWithUser(user);
     });
@@ -139,7 +198,7 @@ Using Style you can customize the look and feel of the component in your app, Th
 </Frame>
 
 <Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -167,7 +226,7 @@ export function ThreadHeaderDemo() {
 
 </Tab>
 
-<Tab title="ThreadHeaderDemo.css">
+<Tab title="css">
 ```css
 .cometchat .cometchat-thread-header {
   background-color: #edeafa;
@@ -193,7 +252,7 @@ export function ThreadHeaderDemo() {
 These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
 
 <Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -209,6 +268,41 @@ export function ThreadHeaderDemo() {
   const [chatWithUser, setChatWithUser] = React.useState<CometChat.User>();
 
   React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatWithUser(user);
+    });
+
+    CometChat.getMessageDetails("Parent Message Id").then((message) => {
+      setParentMessage(message);
+    });
+  }, []);
+
+  return chatWithUser && parentMessage ? (
+    <CometChatThreadHeader
+      parentMessage={parentMessage}
+      messageBubbleView={messageBubbleView}
+    />
+  ) : null;
+}
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+const messageBubbleView = () => {
+  return <div>your custom bubble view</div>;
+};
+
+export function ThreadHeaderDemo() {
+  const [parentMessage, setParentMessage] = useState(null);
+  const [chatWithUser, setChatWithUser] = useState(null);
+
+  useEffect(() => {
     CometChat.getUser("uid").then((user) => {
       setChatWithUser(user);
     });
@@ -350,3 +444,15 @@ function getDateFormat() {
 </Note>
 
 ***
+
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="list" href="/ui-kit/react/message-list">
+    Render messages in a chat with full customization support.
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Display conversation context at the top of the chat view.
+  </Card>
+</CardGroup>

@@ -1,17 +1,34 @@
 ---
 title: "AI Assistant Chat"
+description: "AI agent chat component with streaming responses, tool calls, and chat history"
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+<CometChatAIAssistantChat user={agentUser} />
+// With custom suggestions
+<CometChatAIAssistantChat user={agentUser} suggestedMessages={["Help", "Summarize"]} />
+```
+</Info>
 
 ## Overview
 
 `CometChatAIAssistantChat` is a composite component that assembles the message header, message list, and message composer to provide an AI agent chat experience. It supports streaming responses, quick starter suggestions, "New Chat" to reset context, and a chat history sidebar.
+
+<Note>
+Available via: [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
 
 <Frame>
   <img src="/images/react-uikit_ai-assistant-chat-overview.png" />
 </Frame>
 
 <Tabs>
-<Tab title="AIAssistantChatDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -38,17 +55,29 @@ export function AIAssistantChatDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { AIAssistantChatDemo } from "./AIAssistantChatDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-    return (
-        <div className="App">
-            <AIAssistantChatDemo />
-        </div>
-    );
+export function AIAssistantChatDemo() {
+    const [agent, setAgent] = useState(null);
+
+    useEffect(() => {
+        // Replace with your assistant UID
+        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
+    }, []);
+
+    if (!agent) return null;
+
+    return(
+        <>
+            <CometChatAIAssistantChat user={agent} />
+        </>
+    ); 
 }
+
 ```
 
 </Tab>
@@ -936,3 +965,15 @@ export function AIAssistantChatDemo() {
 </Tabs>
 
 ***
+
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Features" icon="robot" href="/ui-kit/react/ai-features">
+    Explore all AI-powered features available in the UI Kit.
+  </Card>
+  <Card title="Message List" icon="list" href="/ui-kit/react/message-list">
+    Render messages in a chat with full customization support.
+  </Card>
+</CardGroup>

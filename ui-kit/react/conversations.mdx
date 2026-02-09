@@ -1,12 +1,41 @@
 ---
 title: "Conversations"
+description: "Display and manage the conversation list — recent chats, unread counts, presence, and custom views"
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+// Minimal usage
+<CometChatConversations />
+
+// With common props
+<CometChatConversations
+  onItemClick={(conversation) => setActiveChat(conversation)}
+  hideReceipts={false}
+  showSearchBar={true}
+/>
+
+// With filter
+<CometChatConversations
+  conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(10)}
+/>
+```
+</Info>
 
 ## Overview
 
 The Conversations is a Component, that shows all conversations related to the currently logged-in user.
 
 This component lists the most recent or latest conversations or contacts with whom you have exchanged messages. It provides a convenient way to quickly access and resume conversations with the people you have been in contact with recently.
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/retrieve-conversations) | [REST API](https://api-explorer.cometchat.com)
+</Note>
 
 <Frame>
   <img src="/images/c5ab5546-conversations_overview_web_screens-981f3ae54a9cef1c1f774bbda2f05a81.png" />
@@ -17,7 +46,7 @@ This component lists the most recent or latest conversations or contacts with wh
 ### Integration
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -39,17 +68,23 @@ export default ConversationsDemo;
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { ConversationsDemo } from "./ConversationsDemo";
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+} from "@cometchat/chat-uikit-react";
 
-export default function App() {
+function ConversationsDemo() {
   return (
-    <div className="App">
-      <ConversationsDemo />
+    <div className="conversations" style={{ width: "100%", height: "100%" }}>
+      <div>
+        <CometChatConversations />
+      </div>
     </div>
   );
 }
+
+export default ConversationsDemo;
 ```
 
 </Tab>
@@ -65,11 +100,25 @@ export default function App() {
 `OnItemClick` is triggered when you click on a ListItem of the Conversations component. The `OnItemClick` action doesn't have a predefined behavior. You can override this action using the following code snippet.
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
 const getOnItemClick = (conversation: CometChat.Conversation) => {
+  console.log("ItemClick:", conversation);
+  // Your custom action here
+};
+
+<CometChatConversations onItemClick={getOnItemClick} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+const getOnItemClick = (conversation) => {
   console.log("ItemClick:", conversation);
   // Your custom action here
 };
@@ -88,7 +137,7 @@ const getOnItemClick = (conversation: CometChat.Conversation) => {
 The `OnSelect` event is triggered upon the completion of a selection in `SelectionMode`. It does not have a default behavior. However, you can override its behavior using the following code snippet.
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -111,6 +160,26 @@ const getOnSelect = (
 
 </Tab>
 
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  SelectionMode,
+} from "@cometchat/chat-uikit-react";
+
+const getOnSelect = (conversation, selected) => {
+  console.log("Selected, ", conversation.getConversationId(), selected);
+  // Your custom action on select
+};
+
+<CometChatConversations
+  selectionMode={SelectionMode.multiple}
+  onSelect={getOnSelect}
+/>;
+```
+
+</Tab>
+
 </Tabs>
 
 ***
@@ -120,11 +189,24 @@ const getOnSelect = (
 This action doesn't change the behavior of the component but rather listens for any errors that occur in the Conversations component.
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
 const handleOnError = (error: CometChat.CometChatException) => {
+  // Your exception handling code
+};
+
+<CometChatConversations onError={handleOnError} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+const handleOnError = (error) => {
   // Your exception handling code
 };
 
@@ -142,8 +224,21 @@ const handleOnError = (error: CometChat.CometChatException) => {
 The `onSearchBarClicked` event is triggered when the user clicks the search bar. It does not have a default behavior. However, you can override its behavior using the following code snippet.
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+const handleSearchClick = () => {
+  console.log("Search bar clicked");
+};
+
+<CometChatConversations onSearchBarClicked={handleSearchClick} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
 const handleSearchClick = () => {
@@ -173,8 +268,22 @@ You can set filters using the following parameters.
 6. **GroupTags:** Filters on specific Group `Tag`
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+<CometChatConversations
+  conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(
+    10
+  )}
+/>;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
@@ -284,8 +393,19 @@ Using CSS you can customize the look and feel of the component in your app like 
 These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
 
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
+<div className="conversations" style={{ width: "100%", height: "100%" }}>
+  <div>
+    <CometChatConversations title="Your Custom Title" />
+  </div>
+</div>
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
 <div className="conversations" style={{ width: "100%", height: "100%" }}>
   <div>
     <CometChatConversations title="Your Custom Title" />
@@ -778,7 +898,7 @@ export default class DialogHelper {
 
 </Tab>
 
-<Tab title="ConversationDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import ShortcutFormatter from "./ShortCutFormatter";
 
@@ -1166,3 +1286,20 @@ const getOptions = (conversation: CometChat.Conversation) => {
 | **onClick** | Method to be invoked when user clicks on each option. |
 
 ***
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="list" href="/ui-kit/react/message-list">
+    Display messages with real-time updates
+  </Card>
+  <Card title="Users" icon="user" href="/ui-kit/react/users">
+    Display and manage user lists
+  </Card>
+  <Card title="Groups" icon="users" href="/ui-kit/react/groups">
+    Display and manage group lists
+  </Card>
+  <Card title="Search" icon="magnifying-glass" href="/ui-kit/react/search">
+    Search across conversations and messages
+  </Card>
+</CardGroup>

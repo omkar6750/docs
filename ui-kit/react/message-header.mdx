@@ -1,6 +1,22 @@
 ---
 title: "Message Header"
+description: "Display user/group info, typing indicators, and call buttons in the chat header"
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+// For a user chat
+<CometChatMessageHeader user={chatUser} />
+
+// For a group chat
+<CometChatMessageHeader group={chatGroup} />
+```
+</Info>
 
 ## Overview
 
@@ -9,6 +25,10 @@ title: "Message Header"
 <Frame>
   <img src="/images/af3844a0-messages_header_overview_web_screens-e2e210ec4afa809b4d4dd038df2b4073.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
 
 The `MessageHeader` is comprised of the following components:
 
@@ -22,7 +42,7 @@ The `MessageHeader` is comprised of the following components:
 ### Integration
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -44,18 +64,23 @@ export function MessageHeaderDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageHeaderDemo } from "./MessageHeaderDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageHeaderDemo />
-      </div>
-    </div>
-  );
+export function MessageHeaderDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>{chatUser && <CometChatMessageHeader user={chatUser} />}</div>
+  ) : null;
 }
 ```
 
@@ -76,7 +101,7 @@ export default function App() {
 In this example, we are employing the `onBack` action.
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -85,6 +110,36 @@ import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 export function MessageHeaderDemo() {
   const [chatUser, setChatUser] = React.useState<CometChat.User>();
   React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleOnBack() {
+    console.log("your custom on back action");
+  }
+
+  return chatUser ? (
+    <div>
+      {chatUser && (
+        <CometChatMessageHeader user={chatUser} onBack={handleOnBack} />
+      )}
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+export function MessageHeaderDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
     CometChat.getUser("uid").then((user) => {
       setChatUser(user);
     });
@@ -119,7 +174,7 @@ This action doesn't change the behavior of the component but rather listens for 
 In this example, we are employing the `onError` action.
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -148,6 +203,35 @@ export function MessageHeaderDemo() {
 
 </Tab>
 
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+export function MessageHeaderDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleError(error) {
+    throw new Error("your custom error action");
+  }
+  return chatUser ? (
+    <div>
+      {chatUser && (
+        <CometChatMessageHeader user={chatUser} onError={handleError} />
+      )}
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
 </Tabs>
 
 ***
@@ -157,8 +241,21 @@ export function MessageHeaderDemo() {
 The `onSearchOptionClicked` event is triggered when the user clicks the search option. It does not have a default behavior. However, you can override its behavior using the following code snippet.
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+const handleSearchClick = () => {
+  console.log("Search option clicked");
+};
+
+<CometChatMessageHeader onSearchOptionClicked={handleSearchClick} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
 import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
 const handleSearchClick = () => {
@@ -179,15 +276,28 @@ const handleSearchClick = () => {
 `OnItemClick` is triggered when you click on a ListItem of the `CometChatMessageHeader` component. The `OnItemClick` action doesn't have a predefined behavior. You can override this action using the following code snippet.
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
-import { MessageHeaderDemo } from "@cometchat/chat-uikit-react";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
 const getOnItemClick = () => {
   console.log("List item clicked");
 };
 
-<MessageHeaderDemo onItemClick={getOnItemClick} />;
+<CometChatMessageHeader onItemClick={getOnItemClick} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+const getOnItemClick = () => {
+  console.log("List item clicked");
+};
+
+<CometChatMessageHeader onItemClick={getOnItemClick} />;
 ```
 
 </Tab>
@@ -420,6 +530,22 @@ Use the following code to achieve the customization shown above.
 <Tabs>
 <Tab title="TypeScript">
 ```ts
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+// Custom subtitle view component
+function CustomSubtitleView() {
+  return <>{group?.getMembersCount() + " • " + group?.getDescription()}</>;
+}
+
+<CometChatMessageHeader group={groupObj} subtitleView={CustomSubtitleView()} />;
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
@@ -703,3 +829,10 @@ function getDateFormat() {
 </Note>
 
 ***
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" href="/ui-kit/react/message-list" icon="list" />
+  <Card title="Thread Header" href="/ui-kit/react/thread-header" icon="code-branch" />
+</CardGroup>
