@@ -3,9 +3,9 @@ title: "Building A Conversation List + Message View"
 sidebarTitle: "Conversation List + Message View"
 ---
 
-The **Conversation List + Message View** layout offers a seamless **two-panel chat interface**, commonly used in modern messaging applications like **WhatsApp Web, Slack, and Microsoft Teams**.
+The **Conversation List + Message View** layout provides a **sequential navigation pattern** for Android messaging applications, similar to **WhatsApp, Slack, and Telegram**.
 
-This design enables users to switch between conversations effortlessly while keeping the chat window open, ensuring a **smooth, real-time messaging experience**.
+This design allows users to view their conversation list and tap on any conversation to open a full-screen message view, providing a **familiar mobile real-time messaging experience**.
 
 ***
 
@@ -17,19 +17,29 @@ This design enables users to switch between conversations effortlessly while kee
 
 ### **Key Components**
 
-1. **Chat Header** – Displays user/group name, profile image, and status.
-2. **Message List** – Shows chat history and new messages.
-3. **Message Composer** – Allows users to send messages, media, and reactions.
+1. **Message Header** – Displays user/group name, avatar, and status.
+2. **Message List** – Shows chat history with real-time message updates.
+3. **Message Composer** – Provides input field for sending text messages, media, and attachments.
 
 ***
 
 ## **Step-by-Step Guide**
 
+### **Navigation Flow**
+
+This implementation follows Android's standard Activity navigation pattern:
+
+1. **ConversationActivity** displays the list of conversations
+2. User taps a conversation item
+3. **MessageActivity** launches with the selected user/group data passed via Intent extras
+
+***
+
 ### **Step 1: Set Up Conversation Activity**
-Create an Activity - `ConversationActivity.kt`  to manage and display the chat UI.
+Create a new Activity called `ConversationActivity` to display the list of conversations.
 
 #### **Layout**
-Define the layout using the `CometChatConversations` component:
+Define the layout using the `CometChatConversations` component in `activity_conversations.xml`:
 
 ```xml activity_conversations.xml
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -54,7 +64,7 @@ Define the layout using the `CometChatConversations` component:
 
 #### **Activity**
 
-Initialize and handle conversation clicks:
+Initialize the `CometChatConversations` component and handle conversation item clicks to navigate to the message screen:
 
 <Tabs>
 <Tab title="Kotlin">
@@ -189,9 +199,11 @@ This is necessary to properly manage the **UI Kit's lifecycle events**.
 ***
 
 ### **Step 2: Set Up Message Activity**
-Create an Activity - `MessageActivity.kt`  to manage and display the chat UI.
+Create a new Activity - `MessageActivity` to display the chat interface.
 
 #### **Layout**
+
+Define the layout with `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` in `activity_message.xml`:
 
 ```xml activity_message.xml
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -236,7 +248,7 @@ Create an Activity - `MessageActivity.kt`  to manage and display the chat UI.
 
 #### **Activity**
 
-Use the user/group passed from the conversation click:
+Retrieve the user/group ID from the Intent extras and configure the message components:
 
 <Tabs>
 <Tab title="Kotlin">
@@ -458,7 +470,7 @@ public class MessageActivity extends AppCompatActivity {
 
 ### **Step 3: Update MainActivity**
 
-Update the `MainActivity` to navigate to the `MessageActivity`:
+Update your `MainActivity` to launch `ConversationActivity` after successful login:
 
 <Tabs>
 <Tab title="Kotlin">
@@ -595,15 +607,21 @@ public class MainActivity extends ComponentActivity {
 
 ***
 
-## **Running the Project**
+## **Running the Application**
 
-Once the components are configured, build and run the app:
+Once you've completed the setup, build and run your Android application:
 
-```sh
-gradle build
+
+<Note>
+**Required Permissions**
+
+Ensure you've added the necessary permissions in your `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
-
-Ensure you've added the necessary permissions and initialized CometChat in your `Application` class.
+</Note>
 
 ***
 
