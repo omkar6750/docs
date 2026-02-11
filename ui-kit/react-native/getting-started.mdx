@@ -1,6 +1,36 @@
 ---
 title: "Getting Started"
+description: "Set up CometChat UI Kit for React Native with step-by-step installation, initialization, and your first conversation."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```bash
+# Install UI Kit and dependencies
+npm install @cometchat/chat-uikit-react-native @cometchat/chat-sdk-react-native
+```
+
+```tsx
+import { CometChatUIKit, UIKitSettings } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+// Initialize
+const settings: UIKitSettings = {
+  appId: "APP_ID",
+  authKey: "AUTH_KEY",
+  region: "REGION",
+  subscriptionType: CometChat.AppSettings.SUBSCRIPTION_TYPE_ALL_USERS,
+};
+await CometChatUIKit.init(settings);
+
+// Login
+await CometChatUIKit.login({ uid: "USER_UID" });
+```
+
+- **Components Overview** → [Components Overview](/ui-kit/react-native/components-overview)
+- **Core Features** → [Core Features](/ui-kit/react-native/core-features)
+</Info>
 
 ## Start your first conversation
 
@@ -24,6 +54,10 @@ Before installing **UI Kit for React Native**, you need to create a CometChat ap
 
 * Create a **new app**
 * Head over to the **QuickStart** or **API & Auth Keys section** and note the **App ID**, **Auth Key**, and **Region**.
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
+</Warning>
 
 <Tip>
 
@@ -247,7 +281,33 @@ useEffect(() => {
 ```
 
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React, { useEffect } from "react";
+import {
+  CometChatUIKit,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+useEffect(() => {
+  let uikitSettings = {
+    appId: "Enter your App ID here", // Replace with your CometChat App ID
+    authKey: "Enter your Auth Key here", // Replace with your App Auth Key
+    region: "Enter your App Region here", // e.g., "us", "in"
+    subscriptionType: CometChat.AppSettings.SUBSCRIPTION_TYPE_ALL_USERS,
+  };
+
+  CometChatUIKit.init(uikitSettings)
+    .then(() => {
+      console.log("CometChatUiKit successfully initialized");
+    })
+    .catch((error) => {
+      console.log("Initialization failed with exception:", error);
+    });
+}, []);
+```
+
+</Tab>
 </Tabs>
 
 Step 4
@@ -283,7 +343,24 @@ CometChatUIKit.login({ uid })
 ```
 
 </Tab>
+<Tab title="JavaScript">
+```jsx
+// Replace with the actual user ID you want to log in
+const uid = "<YOUR_USER_UID>";
 
+// Login user with CometChatUIKit
+CometChatUIKit.login({ uid })
+  .then((user) => {
+    // Login successful
+    console.log(`User logged in successfully: ${user.getName()}`);
+  })
+  .catch((error) => {
+    // Handle login error
+    console.error("Login failed with error:", error);
+  });
+```
+
+</Tab>
 </Tabs>
 
 ***
@@ -299,7 +376,7 @@ Step 5
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, ViewStyle } from "react-native";
@@ -436,7 +513,137 @@ export default App;
 ```
 
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native";
+import {
+  CometChatConversations,
+  CometChatUIKit,
+  CometChatUiKitConstants,
+  CometChatThemeProvider,
+  CometChatI18nProvider,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+import Messages from "./Messages";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+/* -------------------------------------------------------------------------- */
+/*  ⚙️  Replace the placeholders below with your own CometChat credentials.    */
+/* -------------------------------------------------------------------------- */
+const APP_ID = "<APP_ID>"; // e.g. "123456abc"
+const AUTH_KEY = "<AUTH_KEY>"; // e.g. "0b1c2d3e4f5g6h7i8j9k"
+const REGION = "<REGION>"; // e.g. "us" | "eu" | "in"
+const DEMO_UID = "<UID>"; // e.g. "john_doe"
+/* -------------------------------------------------------------------------- */
+
+/**
+ * App
+ * ---
+ * The root component:
+ *  1. Initializes the CometChat UI Kit.
+ *  2. Logs a demo user in.
+ *  3. Shows either the conversation list or an active chat screen.
+ */
+const App = () => {
+  /* ------------------------------------------------------------------ */
+  /* Local state                                                         */
+  /* ------------------------------------------------------------------ */
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [messageUser, setMessageUser] = useState();
+  const [messageGroup, setMessageGroup] = useState();
+
+  /* ------------------------------------------------------------------ */
+  /* One-time initialization                                             */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    const init = async () => {
+      // 1️⃣  Configure the UI Kit.
+      const uiKitSettings = {
+        appId: APP_ID,
+        authKey: AUTH_KEY,
+        region: REGION,
+        subscriptionType: CometChat.AppSettings.SUBSCRIPTION_TYPE_ALL_USERS,
+      };
+
+      try {
+        await CometChatUIKit.init(uiKitSettings);
+        console.log("[CometChatUIKit] initialized");
+
+        // 2️⃣  Login.
+        await CometChatUIKit.login({ uid: DEMO_UID });
+        setLoggedIn(true);
+      } catch (err) {
+        console.error("[CometChatUIKit] init/login error", err);
+      }
+    };
+
+    init();
+  }, []);
+
+  /* ------------------------------------------------------------------ */
+  /* Render                                                              */
+  /* ------------------------------------------------------------------ */
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <CometChatI18nProvider>
+        <SafeAreaView style={styles.fullScreen}>
+          <CometChatThemeProvider>
+            {/* Show conversations only after the user is logged in */}
+            {loggedIn && (
+              <>
+                {/* Conversation list (hidden when a chat is open) */}
+                <CometChatConversations
+                  style={{
+                    containerStyle: {
+                      display: messageUser || messageGroup ? "none" : "flex",
+                    },
+                  }}
+                  onItemPress={(conversation) => {
+                    if (
+                      conversation.getConversationType() ===
+                      CometChatUiKitConstants.ConversationTypeConstants.user
+                    ) {
+                      setMessageUser(conversation.getConversationWith());
+                      return;
+                    }
+                    setMessageGroup(conversation.getConversationWith());
+                  }}
+                />
+
+                {/* Active chat screen */}
+                {(messageUser || messageGroup) && (
+                  <Messages
+                    user={messageUser}
+                    group={messageGroup}
+                    onBack={() => {
+                      setMessageUser(undefined);
+                      setMessageGroup(undefined);
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </CometChatThemeProvider>
+        </SafeAreaView>
+      </CometChatI18nProvider>
+    </GestureHandlerRootView>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Styles                                                                     */
+/* -------------------------------------------------------------------------- */
+const styles = {
+  fullScreen: { flex: 1 },
+};
+
+export default App;
+```
+
+</Tab>
 </Tabs>
 
 #### Loading the Messages Component
@@ -448,7 +655,7 @@ export default App;
 * The Messages component allows users to view and send messages in both one-on-one and group conversations.
 
 <Tabs>
-<Tab title="Messages.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { View, StyleSheet } from "react-native";
@@ -511,5 +718,71 @@ export default Messages;
 ```
 
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  CometChatMessageHeader,
+  CometChatMessageList,
+  CometChatMessageComposer,
+} from "@cometchat/chat-uikit-react-native";
 
+/**
+ * Messages
+ * --------
+ * A self-contained chat screen that combines the CometChatMessageHeader, CometChatMessageList,
+ * and CometChatMessageComposer provided by the CometChat React-Native UI Kit.
+ *
+ * Props
+ * -----
+ * • user  – Target user for a 1-to-1 conversation.
+ * • group – Target group for a group conversation.
+ * • onBack— Callback fired when the back button in the header is pressed.
+ *
+ */
+const Messages = ({ user, group, onBack }) => {
+  return (
+    <View /* root container fills the entire screen */ style={styles.root}>
+      {/* Top bar: avatar, name & back button */}
+      <CometChatMessageHeader
+        user={user}
+        group={group}
+        onBack={onBack}
+        showBackButton
+      />
+
+      {/* Scrollable list of chat messages */}
+      <CometChatMessageList user={user} group={group} />
+
+      {/* Input field + action buttons (emoji, attach, send, etc.) */}
+      <CometChatMessageComposer user={user} group={group} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  /** Ensures the component stretches to use all available space */
+  root: {
+    flex: 1,
+  },
+});
+
+export default Messages;
+```
+
+</Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Core Features" icon="comments" href="/ui-kit/react-native/core-features">
+    Explore messaging features like conversations, users, and groups
+  </Card>
+  <Card title="Components Overview" icon="grid-2" href="/ui-kit/react-native/components-overview">
+    Browse all available UI components
+  </Card>
+</CardGroup>
