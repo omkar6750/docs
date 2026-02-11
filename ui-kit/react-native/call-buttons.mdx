@@ -1,6 +1,29 @@
 ---
 title: "Call Buttons"
+description: "Add voice and video call buttons to your React Native app with the CometChatCallButtons component."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage with user
+<CometChatCallButtons user={user} />
+
+// Minimal usage with group
+<CometChatCallButtons group={group} />
+
+// With common props
+<CometChatCallButtons
+  user={user}
+  hideVoiceCall={false}
+  hideVideoCall={false}
+  onError={(error) => console.log("Error:", error)}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -9,6 +32,10 @@ The `CometChatCallButtons` is a [Component](/ui-kit/react-native/components-over
 <Frame>
   <img src="/images/2338801e-call_button-90161ce159058183ff0d16adbf8f4734.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview)
+</Note>
 
 ***
 
@@ -19,15 +46,34 @@ The `CometChatCallButtons` is a [Component](/ui-kit/react-native/components-over
 The `CometChatCallButtons` is a [Component](/ui-kit/react-native/components-overview#components) provides users with the ability to make calls, access call-related functionalities, and control call settings. Clicking this button typically triggers the call to be placed to the desired recipient.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react-native";
-//code
+
+// For user calls
+const user: CometChat.User = /* your user object */;
+return <CometChatCallButtons user={user} />;
+
+// For group calls
+const group: CometChat.Group = /* your group object */;
 return <CometChatCallButtons group={group} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react-native";
 
+// For user calls
+const user = /* your user object */;
+return <CometChatCallButtons user={user} />;
+
+// For group calls
+const group = /* your group object */;
+return <CometChatCallButtons group={group} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -36,16 +82,15 @@ return <CometChatCallButtons group={group} />;
 
 [Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### onError
+##### **onError**
 
 This action doesn't change the behavior of the component but rather listens for any errors that occur in the Call Button component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react-native";
-//code
 
 const onErrorHandler = (error: CometChat.CometChatException) => {
   //handle Error
@@ -53,9 +98,19 @@ const onErrorHandler = (error: CometChat.CometChatException) => {
 
 return <CometChatCallButtons user={user} onError={onErrorHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react-native";
 
+const onErrorHandler = (error) => {
+  //handle Error
+};
+
+return <CometChatCallButtons user={user} onError={onErrorHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -81,9 +136,34 @@ The list of events emitted by the `Call Buttons` component is as follows.
 | **ccOutgoingCall** | This event is triggered when the user initiates a voice/video call.          |
 
 <Tabs>
-<Tab title="Adding Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallRejected: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccOutgoingCall: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallFailled: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   ccCallRejected: ({ call }) => {
@@ -103,23 +183,26 @@ CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   },
 });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
 
 <Tabs>
-<Tab title="Removing Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
 CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
+CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
+```
+</Tab>
 </Tabs>
 
 ***
@@ -133,15 +216,16 @@ To fit your app's design requirements, you can customize the appearance of the c
 Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatCallButtons,
   useTheme,
+  CometChatTheme,
 } from "@cometchat/chat-uikit-react-native";
-//code
+
 const theme: CometChatTheme = useTheme();
-//more code
+
 return (
   <CometChatCallButtons
     group={group}
@@ -168,9 +252,43 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatCallButtons,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
 
+const theme = useTheme();
+
+return (
+  <CometChatCallButtons
+    group={group}
+    style={{
+      audioCallButtonIconStyle: {
+        tintColor: theme.color.primary,
+      },
+      audioCallButtonIconContainerStyle: {
+        backgroundColor: theme.color.extendedPrimary100,
+        paddingHorizontal: theme.spacing.padding.p4,
+        paddingVertical: theme.spacing.padding.p2,
+        borderRadius: 8,
+      },
+      videoCallButtonIconStyle: {
+        tintColor: theme.color.primary,
+      },
+      videoCallButtonIconContainerStyle: {
+        backgroundColor: theme.color.extendedPrimary100,
+        paddingHorizontal: theme.spacing.padding.p4,
+        paddingVertical: theme.spacing.padding.p2,
+        borderRadius: 8,
+      },
+    }}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 <Frame>
@@ -215,20 +333,23 @@ The `CometChatCallButtons` component does not provide additional functionalities
 You can customize the properties of the Outgoing Call component by making use of the `OutgoingCallConfiguration`. You can accomplish this by employing the `OutgoingCallConfiguration` as demonstrated below:
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatCallButtons,
   OutgoingCallConfiguration,
+  useTheme,
+  CometChatTheme,
 } from "@cometchat/chat-uikit-react-native";
-//code
+
 const theme: CometChatTheme = useTheme();
-//more code
-const getOutgoingCallConfig = () => {
+
+const getOutgoingCallConfig = (): OutgoingCallConfiguration => {
   return new OutgoingCallConfiguration({
     disableSoundForCalls: true,
   });
 };
+
 return (
   <CometChatCallButtons
     user={user}
@@ -236,9 +357,47 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatCallButtons,
+  OutgoingCallConfiguration,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
 
+const theme = useTheme();
+
+const getOutgoingCallConfig = () => {
+  return new OutgoingCallConfiguration({
+    disableSoundForCalls: true,
+  });
+};
+
+return (
+  <CometChatCallButtons
+    user={user}
+    outgoingCallConfiguration={getOutgoingCallConfig()}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 All exposed properties of `OutgoingCallConfiguration` can be found under [Outgoing Call](/ui-kit/react-native/outgoing-call).
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Incoming Call" icon="phone-arrow-down-left" href="/ui-kit/react-native/incoming-call">
+    Display and handle incoming voice and video calls
+  </Card>
+  <Card title="Outgoing Call" icon="phone-arrow-up-right" href="/ui-kit/react-native/outgoing-call">
+    Display and manage outgoing calls
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react-native/call-logs">
+    View and manage call history
+  </Card>
+</CardGroup>

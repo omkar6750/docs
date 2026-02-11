@@ -1,6 +1,26 @@
 ---
 title: "Incoming Call"
+description: "Display and handle incoming voice and video calls with the CometChatIncomingCall component for React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage (requires call object from listener)
+<CometChatIncomingCall call={incomingCall} />
+
+// With common props
+<CometChatIncomingCall
+  call={incomingCall}
+  onAccept={(call) => handleAcceptCall(call)}
+  onDecline={(call) => handleDeclineCall(call)}
+  disableSoundForCalls={false}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -9,6 +29,10 @@ The `CometChatIncomingCall` is a [Component](/ui-kit/react-native/components-ove
 <Frame>
   <img src="/images/9737d621-Incoming_call-76e8c9c41ca422a3b1b08a7b26963b15.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview)
+</Note>
 
 ***
 
@@ -19,18 +43,64 @@ The `CometChatIncomingCall` is a [Component](/ui-kit/react-native/components-ove
 `CometChatIncomingCall` being a custom component, offers versatility in its integration. It can be seamlessly launched via button clicks or any user-triggered action, enhancing the overall user experience and facilitating smoother interactions within the application.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
+  const incomingCall = useRef<CometChat.Call | null>(null);
+  const [callReceived, setCallReceived] = useState(false);
+  const listnerID = "UNIQUE_LISTENER_ID";
+
+  useEffect(() => {
+    CometChat.addCallListener(
+      listnerID,
+      new CometChat.CallListener({
+        onIncomingCallReceived: (call: CometChat.Call) => {
+          incomingCall.current = call;
+          setCallReceived(true);
+        },
+        onOutgoingCallRejected: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+        onIncomingCallCancelled: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+      })
+    );
+  });
+
+  return (
+    <>
+      {callReceived && (
+        <CometChatIncomingCall
+          call={incomingCall.current!}
+          onDecline={(call: CometChat.Call) => {
+            setCallReceived(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
+
+function App() {
   const incomingCall = useRef(null);
   const [callReceived, setCallReceived] = useState(false);
   const listnerID = "UNIQUE_LISTENER_ID";
 
   useEffect(() => {
-    //code
     CometChat.addCallListener(
       listnerID,
       new CometChat.CallListener({
@@ -54,7 +124,7 @@ function App(): React.JSX.Element {
     <>
       {callReceived && (
         <CometChatIncomingCall
-          call={incomingCall.current!}
+          call={incomingCall.current}
           onDecline={(call) => {
             setCallReceived(false);
           }}
@@ -64,9 +134,7 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
@@ -75,35 +143,35 @@ function App(): React.JSX.Element {
 
 [Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### onAccept
+##### **onAccept**
 
 `onAccept` is triggered when you click the accept button of the `Incoming Call` component. You can override this action using the following code snippet.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
-  const incomingCall = useRef(null);
+  const incomingCall = useRef<CometChat.Call | null>(null);
   const [callReceived, setCallReceived] = useState(false);
   const listnerID = "UNIQUE_LISTENER_ID";
 
   useEffect(() => {
-    //code
     CometChat.addCallListener(
       listnerID,
       new CometChat.CallListener({
-        onIncomingCallReceived: (call) => {
+        onIncomingCallReceived: (call: CometChat.Call) => {
           incomingCall.current = call;
           setCallReceived(true);
         },
-        onOutgoingCallRejected: (call) => {
+        onOutgoingCallRejected: (call: CometChat.Call) => {
           incomingCall.current = null;
           setCallReceived(false);
         },
-        onIncomingCallCancelled: (call) => {
+        onIncomingCallCancelled: (call: CometChat.Call) => {
           incomingCall.current = null;
           setCallReceived(false);
         },
@@ -120,6 +188,57 @@ function App(): React.JSX.Element {
       {callReceived && (
         <CometChatIncomingCall
           call={incomingCall.current!}
+          onDecline={(call: CometChat.Call) => {
+            setCallReceived(false);
+          }}
+          onAccept={onAcceptHandler}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
+
+function App() {
+  const incomingCall = useRef(null);
+  const [callReceived, setCallReceived] = useState(false);
+  const listnerID = "UNIQUE_LISTENER_ID";
+
+  useEffect(() => {
+    CometChat.addCallListener(
+      listnerID,
+      new CometChat.CallListener({
+        onIncomingCallReceived: (call) => {
+          incomingCall.current = call;
+          setCallReceived(true);
+        },
+        onOutgoingCallRejected: (call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+        onIncomingCallCancelled: (call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+      })
+    );
+  });
+
+  const onAcceptHandler = (message) => {
+    //code
+  };
+
+  return (
+    <>
+      {callReceived && (
+        <CometChatIncomingCall
+          call={incomingCall.current}
           onDecline={(call) => {
             setCallReceived(false);
           }}
@@ -130,28 +249,74 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-##### onDecline
+##### **onDecline**
 
 `onDecline` is triggered when you click the Decline button of the `Incoming Call` component. This action does not have a predefined behavior. You can override this action using the following code snippet.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
+  const incomingCall = useRef<CometChat.Call | null>(null);
+  const [callReceived, setCallReceived] = useState(false);
+  const listnerID = "UNIQUE_LISTENER_ID";
+
+  useEffect(() => {
+    CometChat.addCallListener(
+      listnerID,
+      new CometChat.CallListener({
+        onIncomingCallReceived: (call: CometChat.Call) => {
+          incomingCall.current = call;
+          setCallReceived(true);
+        },
+        onOutgoingCallRejected: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+        onIncomingCallCancelled: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+      })
+    );
+  });
+
+  const onDeclineHandler = (call: CometChat.Call) => {
+    setCallReceived(false);
+  };
+
+  return (
+    <>
+      {callReceived && (
+        <CometChatIncomingCall
+          call={incomingCall.current!}
+          onDecline={onDeclineHandler}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
+
+function App() {
   const incomingCall = useRef(null);
   const [callReceived, setCallReceived] = useState(false);
   const listnerID = "UNIQUE_LISTENER_ID";
 
   useEffect(() => {
-    //code
     CometChat.addCallListener(
       listnerID,
       new CometChat.CallListener({
@@ -179,7 +344,7 @@ function App(): React.JSX.Element {
     <>
       {callReceived && (
         <CometChatIncomingCall
-          call={incomingCall.current!}
+          call={incomingCall.current}
           onDecline={onDeclineHandler}
         />
       )}
@@ -187,28 +352,77 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-##### onError
+##### **onError**
 
-This action doesn't change the behavior of the component but rather listens for any errors that occur in the Banned Members component.
+This action doesn't change the behavior of the component but rather listens for any errors that occur in the Incoming Call component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
+  const incomingCall = useRef<CometChat.Call | null>(null);
+  const [callReceived, setCallReceived] = useState(false);
+  const listnerID = "UNIQUE_LISTENER_ID";
+
+  useEffect(() => {
+    CometChat.addCallListener(
+      listnerID,
+      new CometChat.CallListener({
+        onIncomingCallReceived: (call: CometChat.Call) => {
+          incomingCall.current = call;
+          setCallReceived(true);
+        },
+        onOutgoingCallRejected: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+        onIncomingCallCancelled: (call: CometChat.Call) => {
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+      })
+    );
+  });
+
+  const onErrorHandler = (error: CometChat.CometChatException) => {
+    //code
+  };
+
+  return (
+    <>
+      {callReceived && (
+        <CometChatIncomingCall
+          call={incomingCall.current!}
+          onDecline={(call: CometChat.Call) => {
+            setCallReceived(false);
+          }}
+          onError={onErrorHandler}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { useRef, useState, useEffect } from "react";
+
+function App() {
   const incomingCall = useRef(null);
   const [callReceived, setCallReceived] = useState(false);
   const listnerID = "UNIQUE_LISTENER_ID";
 
   useEffect(() => {
-    //code
     CometChat.addCallListener(
       listnerID,
       new CometChat.CallListener({
@@ -228,7 +442,7 @@ function App(): React.JSX.Element {
     );
   });
 
-  const onErrorHandler = (error: CometChat.CometChatException) => {
+  const onErrorHandler = (error) => {
     //code
   };
 
@@ -236,7 +450,7 @@ function App(): React.JSX.Element {
     <>
       {callReceived && (
         <CometChatIncomingCall
-          call={incomingCall.current!}
+          call={incomingCall.current}
           onDecline={(call) => {
             setCallReceived(false);
           }}
@@ -247,9 +461,7 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
@@ -276,9 +488,40 @@ The list of events emitted by the Incoming Call component is as follows.
 | **ccCallFailled**  | This event is triggered when an error occurs during the intiated call.       |
 
 <Tabs>
-<Tab title="Adding Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallRejected: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallAccepted: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallEnded: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallFailled: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   ccCallRejected: ({ call }) => {
@@ -304,23 +547,26 @@ CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   },
 });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
 
 <Tabs>
-<Tab title="Removing Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
 CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
+CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
+```
+</Tab>
 </Tabs>
 
 ***
@@ -335,12 +581,19 @@ Using Style you can customize the look and feel of the component in your app, Th
 
 You can customize the appearance of the `IncomingCall` Component by applying the `IncomingCallStyle` to it using the following code snippet.
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import {
   CometChatIncomingCall,
   CometChatThemeProvider,
+  useTheme,
+  CometChatTheme,
 } from "@cometchat/chat-uikit-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
+const theme: CometChatTheme = useTheme();
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -377,6 +630,56 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatIncomingCall,
+  CometChatThemeProvider,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
+import { SafeAreaView } from "react-native";
+
+const theme = useTheme();
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        style={{
+          containerStyle: {
+            backgroundColor: theme.color.extendedPrimary100,
+          },
+          avatarStyle: {
+            containerStyle: {
+              backgroundColor: theme.color.extendedPrimary500,
+              borderRadius: 8,
+            },
+            imageStyle: {
+              borderRadius: 8,
+            },
+          },
+          declineCallButtonStyle: {
+            backgroundColor: theme.color.staticWhite,
+          },
+          declineCallTextStyle: {
+            color: theme.color.error,
+          },
+          acceptCallButtonStyle: {
+            backgroundColor: theme.color.primary,
+          },
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
 
 <Frame>
   <img src="/images/edb0ab59-incoming_call_styled-d36b6a11d6d67a3aedc24f543ac94e0d.png" />
@@ -410,10 +713,13 @@ Use Cases:
 * Display additional user details (e.g., caller ID, location).
 * Integrate custom animations for call alerts.
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -430,10 +736,35 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { SafeAreaView } from "react-native";
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        ItemView={(call) => {
+          //return JSX;
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
 
 #### LeadingView
 
-Customizes the leading section of the component, usually the caller’s avatar or profile picture.
+Customizes the leading section of the component, usually the caller's avatar or profile picture.
 
 Use Cases:
 
@@ -441,10 +772,13 @@ Use Cases:
 * Show a custom ringing animation around the avatar.
 * Replace the avatar with a caller ID card.
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -461,21 +795,49 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { SafeAreaView } from "react-native";
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        LeadingView={(call) => {
+          //return JSX;
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
 
 #### TitleView
 
-Allows setting a custom title view, typically used for the caller’s name or call type.
+Allows setting a custom title view, typically used for the caller's name or call type.
 
 Use Cases:
 
-* Display the caller’s full name with a verified badge.
+* Display the caller's full name with a verified badge.
 * Indicate the call type (Voice Call, Video Call).
 * Show real-time status ("Ringing...", "Call from Work Contact", etc.).
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -492,6 +854,31 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { SafeAreaView } from "react-native";
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        TitleView={(call) => {
+          //return JSX;
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
 
 #### SubtitleView
 
@@ -503,10 +890,13 @@ Use Cases:
 * Show network strength indicators.
 * Include a custom message like "Connecting...".
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -523,6 +913,31 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { SafeAreaView } from "react-native";
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        SubtitleView={(call) => {
+          //return JSX;
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
 
 #### TrailingView
 
@@ -532,12 +947,15 @@ Use Cases:
 
 * Add custom accept/reject buttons.
 * Show a mute button before answering.
-* Display a text response option (e.g., "Can’t talk now")
+* Display a text response option (e.g., "Can't talk now")
 
-```javascript
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+import { SafeAreaView } from "react-native";
+
 return (
   <SafeAreaView style={{ flex: 1 }}>
     {callReceived && (
@@ -554,5 +972,44 @@ return (
   </SafeAreaView>
 );
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { SafeAreaView } from "react-native";
 
-***
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    {callReceived && (
+      <CometChatIncomingCall
+        call={incomingCall.current}
+        onDecline={(call) => {
+          setCallReceived(false);
+        }}
+        TrailingView={(call) => {
+          //return JSX;
+        }}
+      />
+    )}
+  </SafeAreaView>
+);
+```
+</Tab>
+</Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Outgoing Call" icon="phone-arrow-up-right" href="/ui-kit/react-native/outgoing-call">
+    Display and manage outgoing calls
+  </Card>
+  <Card title="Call Buttons" icon="phone" href="/ui-kit/react-native/call-buttons">
+    Add voice and video call buttons to your app
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react-native/call-logs">
+    View and manage call history
+  </Card>
+</CardGroup>

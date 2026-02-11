@@ -1,6 +1,26 @@
 ---
 title: "Message Composer"
+description: "Compose and send messages with the CometChatMessageComposer component for React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage (requires user or group prop)
+<CometChatMessageComposer user={chatUser} />
+
+// With common props
+<CometChatMessageComposer
+  user={chatUser}
+  onSendButtonPress={(message) => handleSendMessage(message)}
+  hideVoiceRecordingButton={false}
+  hideAttachmentButton={false}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -12,6 +32,10 @@ Features such as **Live Reaction**, **Attachments**, and **Message Editing** are
   <img src="/images/8becc772-message_composer-0cc03defaf535f332f7f8bb1ebd65392.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview)
+</Note>
+
 ## Usage
 
 ### Integration
@@ -19,33 +43,50 @@ Features such as **Live Reaction**, **Attachments**, and **Message Editing** are
 The following code snippet illustrates how you can directly incorporate the `CometChatMessageComposer` component into your app.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+// With group
 return <CometChatMessageComposer group={group} />;
+
+// Or with user
+return <CometChatMessageComposer user={chatUser} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+// With group
+return <CometChatMessageComposer group={group} />;
+
+// Or with user
+return <CometChatMessageComposer user={chatUser} />;
+```
+</Tab>
 </Tabs>
 
 ### Actions
 
 [Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### onSendButtonPress
+##### **onSendButtonPress**
 
 The `onSendButtonPress` event gets activated when the send message button is clicked. It has a predefined function of sending messages entered in the composer `EditText`. However, you can overide this action with the following code snippet.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
 const onSendButtonPressHandler = (message: CometChat.BaseMessage) => {
   //code
 };
+
 return (
   <CometChatMessageComposer
     group={group}
@@ -53,23 +94,40 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onSendButtonPressHandler = (message) => {
+  //code
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    onSendButtonPress={onSendButtonPressHandler}
+  />
+);
+```
+</Tab>
 </Tabs>
 
-##### onError
+##### **onError**
 
 This action doesn't change the behavior of the component but rather listens for any errors that occur in the `CometChatMessageComposer` component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
 const onError = (error: CometChat.CometChatException) => {
   //handle error
 };
+
 return (
   <CometChatMessageComposer
     group={group}
@@ -77,23 +135,40 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onError = (error) => {
+  //handle error
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    onError={onError}
+  />
+);
+```
+</Tab>
 </Tabs>
 
-##### onTextChange
+##### **onTextChange**
 
 Function triggered whenever the message input's text value changes, enabling dynamic text handling.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
 const onTextChange = (text: string) => {
   //code
 };
+
 return (
   <CometChatMessageComposer
     group={group}
@@ -101,9 +176,24 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onTextChange = (text) => {
+  //code
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    onTextChange={onTextChange}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -129,8 +219,32 @@ The list of events emitted by the Messages component is as follows.
 Adding `CometChatMessageEvents` Listener's
 
 <Tabs>
+<Tab title="TypeScript">
+```tsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
+  ccMessageSent: (item: { message: CometChat.BaseMessage }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
+  ccMessageEdited: (item: { message: CometChat.BaseMessage }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
+  ccMessageLiveReaction: (item: { reaction: string }) => {
+    //code
+  },
+});
+```
+</Tab>
 <Tab title="JavaScript">
-```js
+```jsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
 CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
@@ -151,9 +265,7 @@ CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
   },
 });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
@@ -161,15 +273,20 @@ CometChatUIEventHandler.addMessageListener("MESSAGE_LISTENER_ID", {
 Removing `CometChatMessageEvents` Listener's
 
 <Tabs>
-<Tab title="JavaScript">
-```js
+<Tab title="TypeScript">
+```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
 CometChatUIEventHandler.removeMessageListener("MESSAGE_LISTENER_ID");
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
+CometChatUIEventHandler.removeMessageListener("MESSAGE_LISTENER_ID");
+```
+</Tab>
 </Tabs>
 
 ***
@@ -230,7 +347,7 @@ For advanced-level customization, you can set custom views to the component. Thi
 Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel check out [CometChatMentionsFormatter](/ui-kit/react-native/mentions-formatter-guide)
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatMessageComposer,
@@ -238,8 +355,8 @@ import {
   CometChatMentionsFormatter,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTextFomatters = () => {
+
+const getTextFomatters = (): CometChatTextFormatter[] => {
   const textFormatters: CometChatTextFormatter[] = [];
   const mentionsFormatter = new CometChatMentionsFormatter();
   mentionsFormatter.setMentionsStyle({
@@ -253,6 +370,7 @@ const getTextFomatters = () => {
   textFormatters.push(mentionsFormatter);
   return textFormatters;
 };
+
 return (
   <CometChatMessageComposer
     group={group}
@@ -260,9 +378,38 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatMessageComposer,
+  CometChatMentionsFormatter,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getTextFomatters = () => {
+  const textFormatters = [];
+  const mentionsFormatter = new CometChatMentionsFormatter();
+  mentionsFormatter.setMentionsStyle({
+    textStyle: {
+      color: "#D6409F",
+    },
+    selfTextStyle: {
+      color: "#30A46C",
+    },
+  });
+  textFormatters.push(mentionsFormatter);
+  return textFormatters;
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    textFormatters={getTextFomatters()}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 **Example**
@@ -276,15 +423,14 @@ return (
 By using `attachmentOptions`, you can set a list of custom `MessageComposerActions` for the MessageComposer Component. This will override the existing list of `MessageComposerActions`.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatMessageComposer,
-  CometChatTextFormatter,
-  CometChatMentionsFormatter,
+  CometChatMessageComposerAction,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 const getCustomAttachmentOptions = ({
   user,
   group,
@@ -306,16 +452,44 @@ const getCustomAttachmentOptions = ({
   });
   return attachmentOptions;
 };
+
 return (
   <CometChatMessageComposer
     group={group}
-    attachmentOptions={getCustomAttachmentOptions()}
+    attachmentOptions={getCustomAttachmentOptions}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatMessageComposer,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getCustomAttachmentOptions = ({ user, group, composerId }) => {
+  let attachmentOptions = [];
+  attachmentOptions.push({
+    id: "location",
+    icon: LocationIcon,
+    title: "Share Location",
+    style: { iconStyle: { tintColor: "grey" } },
+    onPress: () => {
+      //handleOnPress
+    },
+  });
+  return attachmentOptions;
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    attachmentOptions={getCustomAttachmentOptions}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 **Example**
@@ -331,11 +505,11 @@ return (
 You can insert a custom view into the MessageComposer component to add additional functionality using the following method.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { TouchableOpacity, Image, StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   button: {
@@ -356,9 +530,9 @@ const customAuxiliaryButtonView = ({
   group,
   composerId,
 }: {
-  user?: CometChat.User,
-  group?: CometChat.Group,
-  composerId: string | number,
+  user?: CometChat.User;
+  group?: CometChat.Group;
+  composerId: string | number;
 }): JSX.Element => {
   return (
     <TouchableOpacity
@@ -379,9 +553,48 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { TouchableOpacity, Image, StyleSheet } from "react-native";
 
+const styles = StyleSheet.create({
+  button: {
+    height: 25,
+    width: 25,
+    borderRadius: 0,
+    backgroundColor: "transparent",
+  },
+  image: {
+    height: 23,
+    width: 24,
+    tintColor: "#7E57C2",
+  },
+});
+
+const customAuxiliaryButtonView = ({ user, group, composerId }) => {
+  return (
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => {
+        /* code */
+      }}
+    >
+      <Image source={LocationIcon} style={styles.image} />
+    </TouchableOpacity>
+  );
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    AuxiliaryButtonView={customAuxiliaryButtonView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Please note that the MessageComposer Component utilizes the AuxiliaryButton to provide sticker functionality. Overriding the AuxiliaryButton will subsequently replace the sticker functionality.
@@ -399,11 +612,12 @@ Please note that the MessageComposer Component utilizes the AuxiliaryButton to p
 You can set a custom view in place of the already existing send button view. Using the following method.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { TouchableOpacity, Image, StyleSheet } from "react-native";
+
 const styles = StyleSheet.create({
   button: {
     height: 25,
@@ -423,9 +637,9 @@ const customSendButtonView = ({
   group,
   composerId,
 }: {
-  user?: CometChat.User,
-  group?: CometChat.Group,
-  composerId: string | number,
+  user?: CometChat.User;
+  group?: CometChat.Group;
+  composerId: string | number;
 }): JSX.Element => {
   return (
     <TouchableOpacity
@@ -446,9 +660,48 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { TouchableOpacity, Image, StyleSheet } from "react-native";
 
+const styles = StyleSheet.create({
+  button: {
+    height: 25,
+    width: 25,
+    borderRadius: 0,
+    backgroundColor: "transparent",
+  },
+  image: {
+    height: 23,
+    width: 24,
+    tintColor: "#7E57C2",
+  },
+});
+
+const customSendButtonView = ({ user, group, composerId }) => {
+  return (
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => {
+        /* code */
+      }}
+    >
+      <Image source={SendButtonIcon} style={styles.image} />
+    </TouchableOpacity>
+  );
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    SendButtonView={customSendButtonView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 **Example**
@@ -464,11 +717,12 @@ return (
 You can set custom headerView to the MessageComposer component using the following method
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
-//code
+import { View, Text, StyleProp, ViewStyle } from "react-native";
+
 const viewStyle: StyleProp<ViewStyle> = {
   flexDirection: "row",
   alignItems: "flex-start",
@@ -488,8 +742,8 @@ const customHeaderView = ({
   user,
   group,
 }: {
-  user?: CometChat.User,
-  group?: CometChat.Group,
+  user?: CometChat.User;
+  group?: CometChat.Group;
 }) => {
   return (
     <View style={viewStyle}>
@@ -505,9 +759,44 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { View, Text } from "react-native";
 
+const viewStyle = {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  justifyContent: "center",
+  padding: 5,
+  borderColor: "black",
+  borderWidth: 1,
+  backgroundColor: "white",
+  borderRadius: 10,
+  margin: 2,
+  marginLeft: 7.4,
+  height: 30,
+  width: "95.5%",
+};
+
+const customHeaderView = ({ user, group }) => {
+  return (
+    <View style={viewStyle}>
+      <Text style={{ color: "#6851D6", fontWeight: "bold" }}>Chat Bot</Text>
+    </View>
+  );
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    HeaderView={customHeaderView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 **Example**
@@ -515,3 +804,16 @@ return (
 <Frame>
   <img src="/images/dbb04a8b-message_composer_header_view-11ddf1d50aa74a8868351007037451f9.png" />
 </Frame>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Display and manage messages in a conversation
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react-native/message-header">
+    Display conversation header with user/group info
+  </Card>
+</CardGroup>

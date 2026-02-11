@@ -1,6 +1,25 @@
 ---
 title: "Outgoing Call"
+description: "Display and manage outgoing voice and video calls with the CometChatOutgoingCall component for React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage (requires call object from initiateCall)
+<CometChatOutgoingCall call={outgoingCall} />
+
+// With common props
+<CometChatOutgoingCall
+  call={outgoingCall}
+  onEndCallButtonPressed={(call) => handleEndCall(call)}
+  disableSoundForCalls={false}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -9,6 +28,10 @@ The `CometChatOutgoingCall` [Component](/ui-kit/react-native/components-overview
 <Frame>
   <img src="/images/703120eb-outgoing_call-c24eb1936c04bb40ea873ac19b973b56.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview)
+</Note>
 
 ***
 
@@ -19,13 +42,14 @@ The `CometChatOutgoingCall` [Component](/ui-kit/react-native/components-overview
 `CometChatOutgoingCall` being a custom component, offers versatility in its integration. It can be seamlessly launched via button clicks or any user-triggered action, enhancing the overall user experience and facilitating smoother interactions within the application.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -48,9 +72,38 @@ function App(): React.JSX.Element {
   return <>{call && <CometChatOutgoingCall call={call} />}</>;
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  return <>{call && <CometChatOutgoingCall call={call} />}</>;
+}
+```
+</Tab>
 </Tabs>
 
 ***
@@ -59,18 +112,19 @@ function App(): React.JSX.Element {
 
 [Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### onEndCallButtonPressed
+##### **onEndCallButtonPressed**
 
 The `onEndCallButtonPressed` action is typically triggered when the end call button is pressed, carrying out default actions. However, with the following code snippet, you can effortlessly customize or override this default behavior to meet your specific needs.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -109,25 +163,71 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 ***
 
-##### onError
+##### **onError**
 
 You can customize this behavior by using the provided code snippet to override the onError and improve error handling.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -154,24 +254,76 @@ function App(): React.JSX.Element {
     });
   };
 
+  const onErrorHandler = (error: CometChat.CometChatException) => {
+    console.log("Handle error:", error);
+  };
+
   return (
     <>
       {call && (
         <CometChatOutgoingCall
           call={call}
           onEndCallButtonPressed={cancelCall}
-          onError={err => {
-            console.log('Handle error:', err);
-          }
+          onError={onErrorHandler}
         />
       )}
     </>
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  const onErrorHandler = (error) => {
+    console.log("Handle error:", error);
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          onError={onErrorHandler}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 ***
@@ -196,9 +348,28 @@ The list of events emitted by the Incoming Call component is as follows.
 | **ccCallFailled** | This event is triggered when an error occurs during the intiated call. |
 
 <Tabs>
-<Tab title="Adding Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallEnded: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+
+CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
+  ccCallFailled: ({ call }: { call: CometChat.Call }) => {
+    //code
+  },
+});
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   ccCallEnded: ({ call }) => {
@@ -212,23 +383,26 @@ CometChatUIEventHandler.addCallListener("CALL_LISTENER_ID", {
   },
 });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
 
 <Tabs>
-<Tab title="Removing Listeners">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
 CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
+CometChatUIEventHandler.removeCallListener("CALL_LISTENER_ID");
+```
+</Tab>
 </Tabs>
 
 ***
@@ -242,13 +416,14 @@ To fit your app's design requirements, you can customize the appearance of the c
 Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -300,9 +475,67 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          style={{
+            avatarStyle: {
+              containerStyle: {
+                borderRadius: 8,
+              },
+              imageStyle: {
+                borderRadius: 8,
+              },
+            },
+            endCallButtonStyle: {
+              borderRadius: 8,
+            },
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 <Frame>
@@ -341,13 +574,14 @@ Use Cases:
 * Add status text like "Calling..." or "Ringing...".
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -389,9 +623,57 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          TitleView={(call) => {
+            //return jsx;
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 #### SubtitleView
@@ -405,13 +687,14 @@ Use Cases:
 * Include a custom message like "Connecting...".
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -453,9 +736,57 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          SubtitleView={(call) => {
+            //return jsx;
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 #### AvatarView
@@ -469,13 +800,14 @@ Use Cases:
 * Use an animated ring effect around the avatar when calling.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -517,9 +849,57 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          AvatarView={(call) => {
+            //return jsx;
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 #### EndCallView
@@ -533,13 +913,14 @@ Use Cases:
 * Display different icons based on call status (Active, On Hold).
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatOutgoingCall,
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
 function App(): React.JSX.Element {
   const [call, setCall] = useState<CometChat.Call>();
@@ -581,7 +962,71 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatOutgoingCall,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [call, setCall] = useState();
+
+  useEffect(() => {
+    //login
+    const callObject = new CometChat.Call(
+      "receiver-uid",
+      CometChatUiKitConstants.MessageTypeConstants.audio,
+      CometChatUiKitConstants.ReceiverTypeConstants.user
+    );
+
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  const cancelCall = (c) => {
+    //code
+    CometChat.endCall(c.getSessionId()).then(() => {
+      setCall(undefined);
+    });
+  };
+
+  return (
+    <>
+      {call && (
+        <CometChatOutgoingCall
+          call={call}
+          onEndCallButtonPressed={cancelCall}
+          EndCallView={(call) => {
+            //return jsx;
+          }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Incoming Call" icon="phone-arrow-down-left" href="/ui-kit/react-native/incoming-call">
+    Display and handle incoming calls
+  </Card>
+  <Card title="Call Buttons" icon="phone" href="/ui-kit/react-native/call-buttons">
+    Add voice and video call buttons to your app
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react-native/call-logs">
+    View and manage call history
+  </Card>
+</CardGroup>

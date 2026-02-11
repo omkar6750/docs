@@ -1,6 +1,27 @@
 ---
 title: "Mentions Formatter"
+description: "Learn how to use CometChatMentionsFormatter to format and handle @mentions in your React Native chat application."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMentionsFormatter, CometChatTextFormatter } from "@cometchat/chat-uikit-react-native";
+
+// Initialize mentions formatter
+const mentionsFormatter = new CometChatMentionsFormatter();
+
+// Add to text formatters array
+const textFormatters: Array<CometChatTextFormatter> = [mentionsFormatter];
+
+// Use with Message List or Message Composer
+<CometChatMessageList textFormatters={textFormatters} />
+<CometChatMessageComposer textFormatters={textFormatters} />
+```
+
+This guide covers: [Mentions Formatter Setup](#usage) | [Click Handling](#setOnMentionClick) | [Styling](#mentionTextStyle)
+</Info>
 
 ## Overview
 
@@ -28,24 +49,36 @@ Below is an example demonstrating how to use the `CometChatMentionsFormatter` cl
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
+import { CometChatMentionsFormatter, CometChatTextFormatter } from "@cometchat/chat-uikit-react-native";
+
 // Initialize CometChatMentionsFormatter
-const mentionsFormatter: CometChatMentionsFormatter =
-  new CometChatMentionsFormatter();
+const mentionsFormatter: CometChatMentionsFormatter = new CometChatMentionsFormatter();
 const textFormatters: Array<CometChatTextFormatter> = [mentionsFormatter];
-textFormatters.push(mentionsFormatter);
+
 // This can be passed as an array of formatter in CometChatConversations, MessageList or Message Composer by using textFormatters prop.
+<CometChatMessageList textFormatters={textFormatters} />
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatMentionsFormatter } from "@cometchat/chat-uikit-react-native";
 
+// Initialize CometChatMentionsFormatter
+const mentionsFormatter = new CometChatMentionsFormatter();
+const textFormatters = [mentionsFormatter];
+
+// This can be passed as an array of formatter in CometChatConversations, MessageList or Message Composer by using textFormatters prop.
+<CometChatMessageList textFormatters={textFormatters} />
+```
+</Tab>
 </Tabs>
 
 ## Actions
 
 [Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### setOnMentionClick
+##### **setOnMentionClick**
 
 Setting a listener for mention-click events in Message Bubbles enhances interactivity within the chat. This listener is activated when a mention is clicked, returning the corresponding user object. This feature transforms mentions into interactive links, enabling more in-depth and contextual engagement with the user associated with the clicked mention.
 
@@ -65,16 +98,15 @@ Setting a listener for mention-click events in Message Bubbles enhances interact
 </Tabs>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-
 import React from "react";
 import { CometChat } from '@cometchat/chat-sdk-react-native';
 import { CometChatMessages, CometChatMentionsFormatter } from '@cometchat/chat-uikit-react-native';
 import Toast from 'react-native-toast-message';
 
 function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
+    const [chatUser, setChatUser] = React.useState<CometChat.User | undefined>();
 
     React.useEffect(() => {
         CometChat.getUser("uid").then((user) => {
@@ -107,11 +139,57 @@ function App(): React.JSX.Element {
         <Toast />
      </>
    );
-  }
+}
+
+export default App;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React from "react";
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { CometChatMessages, CometChatMentionsFormatter } from '@cometchat/chat-uikit-react-native';
+import Toast from 'react-native-toast-message';
 
+function App() {
+    const [chatUser, setChatUser] = React.useState();
+
+    React.useEffect(() => {
+        CometChat.getUser("uid").then((user) => {
+            setChatUser(user);
+        })
+    }, []);
+
+    const mentionsFormatter = new CometChatMentionsFormatter();
+
+    mentionsFormatter.setOnMentionClick((message, uid) => {
+       const mentionedUsers = message.getMentionedUsers();
+       let user;
+       for(let i = 0; i < mentionedUsers.length; i++) {
+           if(uid == mentionedUsers[i].getUid()) {
+              user = mentionedUsers[i];
+           }
+        }
+        Toast.show({
+          text1: user?.getName(),
+          text2: "mention"
+        });
+    })
+
+    return (
+     <>
+        { chatUser && <CometChatMessages
+             user={chatUser}
+             messageListConfiguration={{textFormatters: [mentionsFormatter]}}
+        />}
+        <Toast />
+     </>
+   );
+}
+
+export default App;
+```
+</Tab>
 </Tabs>
 
 ## Customization
@@ -136,15 +214,14 @@ MentionTextStyle is a class that is used to provide over all styling to a partic
 | **loggedInUserTextStyle** | TextStyle | The text style to be applied to the logged-in user's mentions |
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-
 import React from "react";
 import { CometChat } from '@cometchat/chat-sdk-react-native';
 import { CometChatMessages, CometChatMentionsFormatter, TextStyle, MentionTextStyle } from '@cometchat/chat-uikit-react-native';
 
 function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
+    const [chatUser, setChatUser] = React.useState<CometChat.User | undefined>();
 
     React.useEffect(() => {
         CometChat.getUser("uid").then((user) => {
@@ -154,21 +231,21 @@ function App(): React.JSX.Element {
 
     const mentionsFormatter = new CometChatMentionsFormatter();
 
-    const loggedInUserTextStyle : TextStyle = {
+    const loggedInUserTextStyle: TextStyle = {
       color: "red",
       fontWeight: "bold"
     }
 
-    const otherUsersStyle :TextStyle  = {
+    const otherUsersStyle: TextStyle = {
       color: "red",
     }
 
-    const mentiontextStyle : MentionTextStyle = {
+    const mentionTextStyle: MentionTextStyle = {
       loggedInUserTextStyle: loggedInUserTextStyle,
       textStyle: otherUsersStyle
     }
 
-  mentionsFormatter.setMentionsStyle(mentiontextStyle);
+    mentionsFormatter.setMentionsStyle(mentionTextStyle);
 
     return (
      <>
@@ -176,12 +253,71 @@ function App(): React.JSX.Element {
              user={chatUser}
              messageListConfiguration={{textFormatters: [mentionsFormatter]}}
         />}
-        <Toast />
      </>
    );
-  }
+}
+
+export default App;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React from "react";
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { CometChatMessages, CometChatMentionsFormatter } from '@cometchat/chat-uikit-react-native';
 
+function App() {
+    const [chatUser, setChatUser] = React.useState();
+
+    React.useEffect(() => {
+        CometChat.getUser("uid").then((user) => {
+            setChatUser(user);
+        })
+    }, []);
+
+    const mentionsFormatter = new CometChatMentionsFormatter();
+
+    const loggedInUserTextStyle = {
+      color: "red",
+      fontWeight: "bold"
+    }
+
+    const otherUsersStyle = {
+      color: "red",
+    }
+
+    const mentionTextStyle = {
+      loggedInUserTextStyle: loggedInUserTextStyle,
+      textStyle: otherUsersStyle
+    }
+
+    mentionsFormatter.setMentionsStyle(mentionTextStyle);
+
+    return (
+     <>
+        { chatUser && <CometChatMessages
+             user={chatUser}
+             messageListConfiguration={{textFormatters: [mentionsFormatter]}}
+        />}
+     </>
+   );
+}
+
+export default App;
+```
+</Tab>
 </Tabs>
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Shortcut Formatter Guide" icon="keyboard" href="/ui-kit/react-native/shortcut-formatter-guide">
+    Create custom keyboard shortcuts for text formatting
+  </Card>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Display messages with formatted mentions
+  </Card>
+</CardGroup>

@@ -1,6 +1,32 @@
 ---
 title: "ShortCut Formatter"
+description: "Learn how to use ShortCutFormatter to handle keyboard shortcuts and message shortcuts in your React Native chat application."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatTextFormatter, SuggestionItem } from "@cometchat/chat-uikit-react-native";
+
+// Create custom ShortCutFormatter extending CometChatTextFormatter
+class ShortCutFormatter extends CometChatTextFormatter {
+  constructor() {
+    super();
+    this.trackCharacter = "!"; // Trigger character for shortcuts
+  }
+}
+
+// Use with Message Composer
+const shortcutFormatter = new ShortCutFormatter();
+<CometChatMessages
+  user={chatUser}
+  messageComposerConfiguration={{ textFormatters: [shortcutFormatter] }}
+/>
+```
+
+This guide covers: [ShortCutFormatter Setup](#setup) | [Search Method Override](#setup) | [Usage with Messages](#usage)
+</Info>
 
 ## Introduction
 
@@ -26,9 +52,23 @@ export class ShortCutFormatter extends CometChatTextFormatter {
   }
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```js
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatTextFormatter,
+  SuggestionItem,
+} from "@cometchat/chat-uikit-react-native";
 
+export class ShortCutFormatter extends CometChatTextFormatter {
+  constructor() {
+    super();
+    this.trackCharacter = "!";
+  }
+}
+```
+</Tab>
 </Tabs>
 
 2. **Override Search Method**: Override the search() method to search for shortcuts based on the entered search text.
@@ -66,9 +106,40 @@ fetchNext = () => {
   return null;
 };
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```js
+search = (searchKey) => {
+  let data = [];
 
+  CometChat.callExtension("message-shortcuts", "GET", "v1/fetch", undefined)
+    .then((data) => {
+      if (data && data?.shortcuts) {
+        let suggestionData = Object.keys(data.shortcuts).map((key) => {
+          return new SuggestionItem({
+            id: key,
+            name: data.shortcuts[key],
+            promptText: data.shortcuts[key],
+            trackingCharacter: "!",
+            underlyingText: data.shortcuts[key],
+          });
+        });
+        this.setSearchData(suggestionData); // setting data in setSearchData();
+      }
+    })
+    .catch((error) => {
+      // Some error occured
+    });
+
+  this.setSearchData(data);
+};
+
+// return null in fetchNext, if there's no pagination.
+fetchNext = () => {
+  return null;
+};
+```
+</Tab>
 </Tabs>
 
 ## Usage
@@ -76,7 +147,7 @@ fetchNext = () => {
 1. **Initialization**: Initialize an instance of `ShortCutFormatter` in your application.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
@@ -108,9 +179,40 @@ function App(): React.JSX.Element {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatMessages,
+  CometChatMentionsFormatter,
+} from "@cometchat/chat-uikit-react-native";
 
+function App() {
+  const [chatUser, setChatUser] = React.useState();
+
+  React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  const shortcutFormatter = new ShortCutFormatter();
+
+  return (
+    <>
+      {chatUser && (
+        <CometChatMessages
+          user={chatUser}
+          messageComposerConfiguration={{ textFormatters: [shortcutFormatter] }}
+        />
+      )}
+    </>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 ## Example
@@ -127,3 +229,16 @@ function App(): React.JSX.Element {
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Mentions Formatter Guide" icon="at" href="/ui-kit/react-native/mentions-formatter-guide">
+    Format and handle @mentions in messages
+  </Card>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Display messages with formatted shortcuts
+  </Card>
+</CardGroup>

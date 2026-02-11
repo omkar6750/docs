@@ -1,6 +1,33 @@
 ---
 title: "Localize"
+description: "Learn how to customize language localization in CometChat UI Kit for React Native to support multiple languages and custom translations."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatI18nProvider } from "@cometchat/chat-uikit-react-native";
+
+// Auto-detect device language
+<CometChatI18nProvider autoDetectLanguage={true}>
+  {/* Your CometChat components */}
+</CometChatI18nProvider>
+
+// Override translations
+<CometChatI18nProvider
+  selectedLanguage="en-US"
+  translations={{
+    "en-US": { CHATS: "Welcome to CometChat" },
+  }}
+>
+  {/* Your CometChat components */}
+</CometChatI18nProvider>
+```
+
+- **Theme Provider** → [Theme](/ui-kit/react-native/theme)
+- **Sound Manager** → [Sound Manager](/ui-kit/react-native/sound-manager)
+</Info>
 
 ## Overview
 
@@ -66,7 +93,31 @@ Here is how you can implement custom localization:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
+import React from 'react';
+import { SafeAreaView } from 'react-native';
+import { 
+  CometChatThemeProvider, 
+  CometChatI18nProvider, 
+} from '@cometchat/chat-uikit-react-native';
+
+const App = () => {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <CometChatThemeProvider theme={{ mode: 'light' }}>
+        <CometChatI18nProvider
+         autoDetectLanguage={true}
+        >
+          {/* Other Components */}
+        </CometChatI18nProvider>
+      </CometChatThemeProvider>
+    </SafeAreaView>
+  );
+};
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { 
@@ -95,7 +146,44 @@ const App = () => {
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
+import React from 'react';
+import { SafeAreaView } from 'react-native';
+import { 
+  CometChatThemeProvider, 
+  CometChatI18nProvider, 
+} from '@cometchat/chat-uikit-react-native';
+
+const App = () => {
+  const translations = {
+    // Overridden translations
+    "en-US": {
+      CHATS: 'Welcome to the CometChat App',
+    },
+    "en-GB": {
+      CHATS: 'Welcome to CometChat',
+    },
+    custom: {
+      CHATS: "Welcome"
+    },
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <CometChatThemeProvider theme={{ mode: 'light' }}>
+        <CometChatI18nProvider
+          selectedLanguage="custom"
+          translations={translations}>
+          {/* Other Components */}
+        </CometChatI18nProvider>
+      </CometChatThemeProvider>
+    </SafeAreaView>
+  );
+};
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { 
@@ -137,7 +225,37 @@ const App = () => {
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { 
+  useCometChatTranslation 
+} from '@cometchat/chat-uikit-react-native';
+
+const CustomComponent = () => {
+  const { t } = useCometChatTranslation();
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+        {t("WELCOME_MESSAGE")}
+      </Text>
+      <TouchableOpacity 
+        style={{ marginTop: 10, padding: 10, backgroundColor: '#007bff' }}
+        onPress={() => {
+          console.log(t("BUTTON_CLICKED"));
+        }}>
+        <Text style={{ color: 'white', textAlign: 'center' }}>
+          {t("CLICK_HERE")}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+```
+</Tab>
+<Tab title="JavaScript">
+```jsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { 
@@ -184,3 +302,15 @@ Below are the things which the developer can customize:
 
 By using the `CometChatI18nProvider` component and `useCometChatTranslation` hook, you can provide a user-friendly, localized experience to your users, enhancing the overall user experience within your application.
 
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Theme" icon="palette" href="/ui-kit/react-native/theme">
+    Customize the visual appearance of UI Kit components
+  </Card>
+  <Card title="Sound Manager" icon="volume-high" href="/ui-kit/react-native/sound-manager">
+    Configure audio cues for chat interactions
+  </Card>
+</CardGroup>

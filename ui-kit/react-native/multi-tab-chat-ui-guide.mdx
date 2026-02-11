@@ -1,6 +1,26 @@
 ---
 title: "Multi Tab Chat UI Guide"
+description: "Learn how to create a tabbed chat interface using CometChatTabs with Conversations, Users, and Groups components in React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+This guide covers:
+- Creating a tabbed chat UI with `CometChatTabs`
+- Integrating [CometChatConversationsWithMessages](/ui-kit/react-native/conversations), [CometChatUsersWithMessages](/ui-kit/react-native/users-with-messages), and [CometChatGroupsWithMessages](/ui-kit/react-native/groups-with-messages)
+- Customizing tab styles and appearance
+
+```tsx
+import { CometChatTabs, CometChatConversationsWithMessages } from "@cometchat/chat-uikit-react-native";
+
+const tabs = [
+  { id: "chats", title: "Chats", isActive: true, childView: () => <CometChatConversationsWithMessages /> },
+];
+
+<CometChatTabs tabs={tabs} tabAlignment="top" keepAlive={true} />
+```
+</Info>
 
 This guide will help you achieve a tabbed layout (aka Multi-Tab Chat UI) of the components available in CometChatUIKit for React-native.
 
@@ -9,22 +29,32 @@ We’ll use the [CometChatConversationsWithMessages](/ui-kit/react-native/conver
 Step 1: Create a new component CometChatUI
 
 <Tabs>
-<Tab title="CometChatUI.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { View } from "react-native";
+
 export function CometChatUI() {
   return <View></View>;
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { View } from "react-native";
 
+export function CometChatUI() {
+  return <View></View>;
+}
+```
+</Tab>
 </Tabs>
 
 Step 2: Import the `CometChatTabs` component from the UI Kit.
 
 <Tabs>
-<Tab title="CometChatUI.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { View } from "react-native";
 import { CometChatTabs } from "@cometchat/chat-uikit-react-native";
 
 export function CometChatUI() {
@@ -35,21 +65,37 @@ export function CometChatUI() {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { View } from "react-native";
+import { CometChatTabs } from "@cometchat/chat-uikit-react-native";
 
+export function CometChatUI() {
+  return (
+    <View style={{ marginTop: 10, height: "100%", width: "100%" }}>
+      <CometChatTabs />
+    </View>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 Step 3: Pass [CometChatConversationsWithMessages](/ui-kit/react-native/conversations), [CometChatUsersWithMessages](/ui-kit/react-native/users-with-messages), [CometChatGroupsWithMessages](/ui-kit/react-native/groups-with-messages) components to the Tabs components to launch them as individual tab item. We will also make the `CometChatConversationsWithMessages` tab the active tab by default.
 
 <Tabs>
-<Tab title="CometChatUI.tsx">
+<Tab title="TypeScript">
 ```tsx
+import { View, SafeAreaView } from "react-native";
 import {
   CometChatUsersWithMessages,
   CometChatGroupsWithMessages,
   CometChatConversationsWithMessages,
   CometChatTabs,
+  CometChatContextProvider,
+  TabItem,
+  TabItemStyleInterface,
 } from "@cometchat/chat-uikit-react-native";
 
 export function CometChatUI() {
@@ -116,16 +162,117 @@ export function CometChatUI() {
   );
 }
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { View, SafeAreaView } from "react-native";
+import {
+  CometChatUsersWithMessages,
+  CometChatGroupsWithMessages,
+  CometChatConversationsWithMessages,
+  CometChatTabs,
+  CometChatContextProvider,
+} from "@cometchat/chat-uikit-react-native";
 
+export function CometChatUI() {
+  const tabItemStyle = {
+    activeBackgroundColor: "#6851D6",
+  };
+
+  const chatsTab = {
+    id: "chats",
+    //iconURL: <custom icon>,
+    title: "Chats",
+    style: tabItemStyle,
+    isActive: true,
+    childView: () => <CometChatConversationsWithMessages />,
+  };
+
+  const usersTab = {
+    id: "users",
+    //iconURL: <custom icon>,
+    title: "Users",
+    style: tabItemStyle,
+    childView: () => <CometChatUsersWithMessages />,
+  };
+
+  const groupsTab = {
+    id: "groups",
+    title: "Groups",
+    //iconURL: <custom icon>,
+    style: tabItemStyle,
+    childView: () => <CometChatGroupsWithMessages />,
+  };
+
+  const tabs = [chatsTab, usersTab, groupsTab];
+
+  const tabsStyle = {
+    titleTextFont: theme.typography.heading,
+    titleTextColor: theme.palette.getAccent(),
+    tabHeight: 36,
+    tabBorderRadius: 18,
+    activeTabBackgroundColor: theme.palette.getPrimary(),
+    activeTabTitleTextColor: theme.palette.getSecondary(),
+    backgroundColor: theme.palette.getBackgroundColor(),
+    borderRadius: 18,
+    backIconTint: theme.palette.getPrimary(),
+    selectionIconTint: theme.palette.getPrimary(),
+    tabBackgroundColor: theme.palette.getAccent200(),
+    tabTitleTextColor: theme.palette.getAccent(),
+    tabTitleTextFont: theme.typography.text1,
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <CometChatContextProvider theme={theme}>
+        <View style={{ marginTop: 10, height: "100%", width: "100%" }}>
+          <CometChatTabs
+            tabs={tabs}
+            tabAlignment="top"
+            keepAlive={true}
+            style={tabsStyle}
+          ></CometChatTabs>
+        </View>
+      </CometChatContextProvider>
+    </SafeAreaView>
+  );
+}
+```
+</Tab>
 </Tabs>
 
 Step 4: Import the CometChatUI component into your App component.
 
 <Tabs>
-<Tab title="App.jsx">
+<Tab title="TypeScript">
+```tsx
+import React, { useState } from "react";
+import { SafeAreaView } from "react-native";
+import { CometChatContextProvider, CometChatTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChatUI } from "./CometChatUI";
+
+function App() {
+  const theme = new CometChatTheme({});
+  theme.palette.setPrimary({ light: "#6851D6", dark: "#6851D6" });
+  const [currentTheme, setCurrentTheme] = useState<CometChatTheme>(theme);
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <CometChatContextProvider theme={currentTheme}>
+        <CometChatUI />
+      </CometChatContextProvider>
+    </SafeAreaView>
+  );
+}
+
+export default App;
+```
+</Tab>
+<Tab title="JavaScript">
 ```jsx
+import React, { useState } from "react";
+import { SafeAreaView } from "react-native";
+import { CometChatContextProvider, CometChatTheme } from "@cometchat/chat-uikit-react-native";
 import { CometChatUI } from "./CometChatUI";
 
 function App() {
@@ -144,9 +291,7 @@ function App() {
 
 export default App;
 ```
-
 </Tab>
-
 </Tabs>
 
 You can now see chats, users and group components each as tab items. This is how you can launch CometChat UIKit’s individual component in a tabbed layout. 🎉
@@ -163,3 +308,16 @@ You can now see chats, users and group components each as tab items. This is how
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Conversations" icon="comments" href="/ui-kit/react-native/conversations">
+    Display and manage user conversations
+  </Card>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Show messages within a conversation
+  </Card>
+</CardGroup>

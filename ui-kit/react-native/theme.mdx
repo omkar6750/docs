@@ -1,6 +1,37 @@
 ---
 title: "Introduction"
+description: "Learn how to customize the visual appearance of CometChat UI Kit components using theming in React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatThemeProvider } from "@cometchat/chat-uikit-react-native";
+
+// Wrap your app with the theme provider
+<CometChatThemeProvider theme={{ mode: "light" }}>
+  {/* Your CometChat components */}
+</CometChatThemeProvider>
+
+// Customize primary color
+<CometChatThemeProvider
+  theme={{
+    light: {
+      color: {
+        primary: "#F76808",
+      },
+    },
+  }}
+>
+  {/* Your CometChat components */}
+</CometChatThemeProvider>
+```
+
+- **Theme Provider** → [CometChatThemeProvider](#using-theming-in-your-project)
+- **Colors** → [Colors](/ui-kit/react-native/colors)
+- **Message Bubble Styling** → [Message Bubble Styling](/ui-kit/react-native/message-bubble-styling)
+</Info>
 
 ## Overview
 
@@ -24,7 +55,7 @@ Here’s an example of how to explicitly set the theme mode to `light`:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
 return (
   <SafeAreaView style={{ flex: 1 }}>
     <CometChatThemeProvider theme={{ mode: "light" }}>
@@ -33,9 +64,18 @@ return (
   </SafeAreaView>
 );
 ```
-
 </Tab>
-
+<Tab title="JavaScript">
+```jsx
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <CometChatThemeProvider theme={{ mode: "light" }}>
+      {/* Component */}
+    </CometChatThemeProvider>
+  </SafeAreaView>
+);
+```
+</Tab>
 </Tabs>
 
 <Frame>
@@ -48,7 +88,7 @@ To customize the primary color in your app, you can override the primary color a
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```tsx
 return (
   <SafeAreaView style={{ flex: 1 }}>
     <CometChatThemeProvider
@@ -65,9 +105,26 @@ return (
   </SafeAreaView>
 );
 ```
-
 </Tab>
-
+<Tab title="JavaScript">
+```jsx
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <CometChatThemeProvider
+      theme={{
+        light: {
+          color: {
+            primary: "#F76808",
+          },
+        },
+      }}
+    >
+      {/* Component */}
+    </CometChatThemeProvider>
+  </SafeAreaView>
+);
+```
+</Tab>
 </Tabs>
 
 <Frame>
@@ -97,7 +154,7 @@ ImageSourcePropType (e.g., PNG, JPEG): The entire imageStyle passed will be appl
 Following is an example of how the light theme for the CometChatConversations component is overridden directly by setting custom theme properties within the CometChatThemeProvider. This ensures that the CometChatConversations component uses a specific light theme, independent of the global theme applied to the rest of the app. The light theme is customized further by defining specific styles, such as the background color for the conversation container. This approach allows you to customize the theme for specific components while keeping the global theme intact.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -161,9 +218,72 @@ return (
   </SafeAreaView>
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  CometChatUIKit,
+  CometChatUiKitConstants,
+  UIKitSettings,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChatThemeProvider } from "@cometchat/chat-uikit-react-native/src/theme/provider";
+import Messages from "./src/Messages";
 
+//other code
+
+const theme = useTheme();
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <CometChatThemeProvider
+      theme={{
+        light: {
+          conversationStyles: {
+            containerStyle: {
+              backgroundColor: theme.color.extendedPrimary500,
+            },
+          },
+        },
+      }}
+    >
+      {loggedIn && (
+        <>
+          <CometChatConversations
+            style={{
+              containerStyle: {
+                display: messageUser || messageGroup ? "none" : "flex",
+              },
+            }}
+            onItemPress={(item) => {
+              if (
+                item.getConversationType() ==
+                CometChatUiKitConstants.ConversationTypeConstants.user
+              ) {
+                setMessageUser(item.getConversationWith());
+                return;
+              }
+              setMessageGroup(item.getConversationWith());
+            }}
+          ></CometChatConversations>
+          {(messageUser || messageGroup) && (
+            <Messages
+              user={messageUser}
+              group={messageGroup}
+              onBack={() => {
+                setMessageUser(undefined);
+                setMessageGroup(undefined);
+              }}
+            />
+          )}
+        </>
+      )}
+    </CometChatThemeProvider>
+  </SafeAreaView>
+);
+```
+</Tab>
 </Tabs>
 
 ### Supplying Custom Theme to Specific Components by wrapping them in a separate CometChatThemeProvider
@@ -171,7 +291,7 @@ return (
 Following is an example of how the theme for the CometChatConversations component is specifically overridden by wrapping it in a separate CometChatThemeProvider. This allows the CometChatConversations component to use a dark mode theme, independent of the global theme applied to the rest of the app. Additionally, the dark theme is further customized for the component by defining specific styles, such as the background color for the conversation container. This approach enables you to tailor the theme for specific components while maintaining the overall consistency of the global theme.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -238,9 +358,75 @@ return (
   </SafeAreaView>
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  CometChatUIKit,
+  CometChatUiKitConstants,
+  UIKitSettings,
+  useTheme,
+  CometChatThemeProvider,
+} from "@cometchat/chat-uikit-react-native";
+import Messages from "./src/Messages";
 
+//other code
+
+const theme = useTheme();
+
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <CometChatThemeProvider>
+      {loggedIn && (
+        <>
+          <CometChatThemeProvider
+            theme={{
+              mode: "dark",
+              dark: {
+                conversationStyles: {
+                  containerStyle: {
+                    backgroundColor: theme.color.extendedPrimary600,
+                  },
+                },
+              },
+            }}
+          >
+            <CometChatConversations
+              style={{
+                containerStyle: {
+                  display: messageUser || messageGroup ? "none" : "flex",
+                },
+              }}
+              onItemPress={(item) => {
+                if (
+                  item.getConversationType() ==
+                  CometChatUiKitConstants.ConversationTypeConstants.user
+                ) {
+                  setMessageUser(item.getConversationWith());
+                  return;
+                }
+                setMessageGroup(item.getConversationWith());
+              }}
+            ></CometChatConversations>
+          </CometChatThemeProvider>
+          {(messageUser || messageGroup) && (
+            <Messages
+              user={messageUser}
+              group={messageGroup}
+              onBack={() => {
+                setMessageUser(undefined);
+                setMessageGroup(undefined);
+              }}
+            />
+          )}
+        </>
+      )}
+    </CometChatThemeProvider>
+  </SafeAreaView>
+);
+```
+</Tab>
 </Tabs>
 
 <Note>
@@ -265,3 +451,16 @@ const finalConversationsStyle = internalDeepMergeImplementation(
 ```
 
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Colors" icon="palette" href="/ui-kit/react-native/colors">
+    Customize color resources for light and dark themes
+  </Card>
+  <Card title="Message Bubble Styling" icon="message" href="/ui-kit/react-native/message-bubble-styling">
+    Style incoming and outgoing message bubbles
+  </Card>
+</CardGroup>

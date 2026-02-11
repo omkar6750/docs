@@ -1,6 +1,25 @@
 ---
 title: "Conversations"
+description: "Display and manage conversation lists with the CometChatConversations component for React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage
+<CometChatConversations />
+
+// With common props
+<CometChatConversations
+  onItemPress={(conversation) => handleConversationSelect(conversation)}
+  receiptsVisibility={true}
+  selectionMode="none"
+/>
+```
+</Info>
 
 ## Overview
 
@@ -10,17 +29,32 @@ title: "Conversations"
   <img src="/images/f2c77c5b-Conversation-ac41cc6650fbb941c64f389aee910dbc.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview) | [REST API](https://api-explorer.cometchat.com)
+</Note>
+
 ## Usage
 
 ### Integration
 
 To use Conversations in your component, use the following code snippet:
 
-```tsx App.tsx
+<Tabs>
+<Tab title="TypeScript">
+```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+
 return <CometChatConversations />;
 ```
+</Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+
+return <CometChatConversations />;
+```
+</Tab>
+</Tabs>
 
 ### Actions
 
@@ -31,19 +65,30 @@ return <CometChatConversations />;
 Function executed when an item is long-pressed in the conversation list, commonly used to initiate actions like delete, selection, or entering multi-select mode.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 const onPressHandler = (conversationClicked: CometChat.Conversation) => {
-  //code
+  console.log("Selected:", conversationClicked);
 };
 
 return <CometChatConversations onItemPress={onPressHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onPressHandler = (conversationClicked) => {
+  console.log("Selected:", conversationClicked);
+};
+
+return <CometChatConversations onItemPress={onPressHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -53,19 +98,30 @@ return <CometChatConversations onItemPress={onPressHandler} />;
 Function executed when a conversation item is long-pressed, allowing additional actions like delete or select.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 const onLongPressHandler = (conversationClicked: CometChat.Conversation) => {
-  //code
+  console.log("Long pressed:", conversationClicked);
 };
 
 return <CometChatConversations onItemLongPress={onLongPressHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onLongPressHandler = (conversationClicked) => {
+  console.log("Long pressed:", conversationClicked);
+};
+
+return <CometChatConversations onItemLongPress={onLongPressHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -75,19 +131,28 @@ return <CometChatConversations onItemLongPress={onLongPressHandler} />;
 `onBack` is triggered when you press the back button in the app bar. It does not have a default behavior. However, you can override its behavior using the following code snippet.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
 const onBackHandler = () => {
-  //code
+  console.log("Back pressed");
 };
 
 return <CometChatConversations hideBackButton={false} onBack={onBackHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const onBackHandler = () => {
+  console.log("Back pressed");
+};
+
+return <CometChatConversations hideBackButton={false} onBack={onBackHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -97,12 +162,13 @@ return <CometChatConversations hideBackButton={false} onBack={onBackHandler} />;
 Called when a item from the fetched list is selected useful for multi-selection features.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 const onSelectionHandler = (selection: Array<CometChat.Conversation>) => {
-  //code
+  console.log("Selected conversations:", selection);
 };
 
 return (
@@ -112,9 +178,24 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onSelectionHandler = (selection) => {
+  console.log("Selected conversations:", selection);
+};
+
+return (
+  <CometChatConversations
+    selectionMode={"single"}
+    onSelection={onSelectionHandler}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -124,19 +205,30 @@ return (
 This action doesn't change the behavior of the component but rather listens for any errors that occur in the Conversations component.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 const onErrorHandler = (error: CometChat.CometChatException) => {
-  console.log("Error");
+  console.log("Error:", error);
 };
 
 return <CometChatConversations onError={onErrorHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onErrorHandler = (error) => {
+  console.log("Error:", error);
+};
+
+return <CometChatConversations onError={onErrorHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -146,7 +238,7 @@ return <CometChatConversations onError={onErrorHandler} />;
 Called when the list is empty, enabling custom handling such as showing a placeholder message
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
@@ -156,9 +248,18 @@ const onEmptyHandler = () => {
 
 return <CometChatConversations onEmpty={onEmptyHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const onEmptyHandler = () => {
+  console.log("Empty");
+};
+
+return <CometChatConversations onEmpty={onEmptyHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -168,7 +269,7 @@ return <CometChatConversations onEmpty={onEmptyHandler} />;
 Invoked when the list is successfully fetched and loaded, helping track component readiness.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
@@ -178,9 +279,18 @@ const onLoadHandler = () => {
 
 return <CometChatConversations onLoad={onLoadHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const onLoadHandler = () => {
+  console.log("Loading");
+};
+
+return <CometChatConversations onLoad={onLoadHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -190,19 +300,30 @@ return <CometChatConversations onLoad={onLoadHandler} />;
 Called when submit selection button is pressed.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-const onSubmitHandler = (list:Array<CometChat.Conversation>) => {
-  console.log('Submit', list);
+const onSubmitHandler = (list: Array<CometChat.Conversation>) => {
+  console.log("Submit", list);
 };
 
 return <CometChatConversations onSubmit={onSubmitHandler} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const onSubmitHandler = (list) => {
+  console.log("Submit", list);
+};
+
+return <CometChatConversations onSubmit={onSubmitHandler} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -221,7 +342,7 @@ You can set filters using the following parameters.
 6. **GroupTags:** Filters on specific Group `Tag`
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
@@ -235,9 +356,22 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const conversationsRequestBuilder = new CometChat.ConversationsRequestBuilder();
+conversationsRequestBuilder.setLimit(30);
+
+return (
+  <CometChatConversations
+    conversationsRequestBuilder={conversationsRequestBuilder}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -251,36 +385,59 @@ return (
 This event will be emitted when the user deletes a conversation
 
 <Tabs>
-<Tab title="Add Listener">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 CometChatUIEventHandler.addConversationListener("SOME_UNIQUE_ID", {
   ccConversationDeleted: (conversation: CometChat.Conversation) => {
-    //code
+    console.log("Conversation deleted:", conversation);
   },
 });
 
 return {
-  /* your view*/
+  /* your view */
 };
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+CometChatUIEventHandler.addConversationListener("SOME_UNIQUE_ID", {
+  ccConversationDeleted: (conversation) => {
+    console.log("Conversation deleted:", conversation);
+  },
+});
+
+return {
+  /* your view */
+};
+```
+</Tab>
 </Tabs>
 
 ***
 
+To remove the listener, use the following code:
+
 <Tabs>
-<Tab title="Remove Listener">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+
 CometChatUIEventHandler.removeListener("SOME_UNIQUE_ID");
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
 
+CometChatUIEventHandler.removeListener("SOME_UNIQUE_ID");
+```
+</Tab>
 </Tabs>
 
 ## Customization
@@ -300,10 +457,10 @@ You can pass a styling object as a prop to the `CometChatConversations` componen
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+
 return (
   <CometChatConversations
     style={{
@@ -327,9 +484,35 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+return (
+  <CometChatConversations
+    style={{
+      itemStyle: {
+        avatarStyle: {
+          containerStyle: {
+            borderRadius: 8,
+            backgroundColor: "#FBAA75",
+          },
+          imageStyle: {
+            borderRadius: 8,
+          },
+        },
+        badgeStyle: {
+          containerStyle: {
+            backgroundColor: "#F76808",
+          },
+        },
+      },
+    }}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ### Functionality
@@ -371,19 +554,28 @@ This method disables sound notifications for incoming messages. When activated, 
 By providing this option, the app allows users to tailor their notification preferences.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+
 return (
   <CometChatConversations
     disableSoundForMessages={true}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+return (
+  <CometChatConversations
+    disableSoundForMessages={true}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -399,20 +591,30 @@ This method enables users to personalize their chat experience by setting a cust
 By allowing sound customization, this feature enhances personalization and improves user engagement.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import customMessageSound from "./customMessageSound.wav";
-//code
+
 return (
   <CometChatConversations
     customSoundForMessages={customMessageSound}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import customMessageSound from "./customMessageSound.wav";
 
+return (
+  <CometChatConversations
+    customSoundForMessages={customMessageSound}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -428,23 +630,38 @@ Use cases:
 * Providing an animated loading experience for a more engaging UI
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+
 const getLoadingView = (): JSX.Element => {
-  //your custom Loading View
-  //return jsx;
+  // Your custom Loading View
+  // return jsx;
 };
+
 return (
   <CometChatConversations
     LoadingView={getLoadingView}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const getLoadingView = () => {
+  // Your custom Loading View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations
+    LoadingView={getLoadingView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -460,21 +677,34 @@ Examples:
 * Providing a button to start a new conversation
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+
 const getEmptyView = (): JSX.Element => {
-  //your custom Empty View
-  //return jsx;
+  // Your custom Empty View
+  // return jsx;
 };
+
 return (
   <CometChatConversations EmptyView={getEmptyView} />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const getEmptyView = () => {
+  // Your custom Empty View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations EmptyView={getEmptyView} />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -490,21 +720,34 @@ Common use cases:
 * Providing troubleshooting steps for the error
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+
 const getErrorView = (): JSX.Element => {
-  //your custom Error View
-  //return jsx;
+  // Your custom Error View
+  // return jsx;
 };
+
 return (
   <CometChatConversations ErrorView={getErrorView} />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
+const getErrorView = () => {
+  // Your custom Error View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations ErrorView={getErrorView} />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -523,22 +766,36 @@ Examples:
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 const getLeadingView = (conversation: CometChat.Conversation): JSX.Element => {
-  //your custom Leading View
-  //return jsx;
+  // Your custom Leading View
+  // return jsx;
 };
+
 return (
   <CometChatConversations LeadingView={getLeadingView} />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getLeadingView = (conversation) => {
+  // Your custom Leading View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations LeadingView={getLeadingView} />
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -554,22 +811,36 @@ Examples:
 * Adding icons or indicators next to titles
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTitleView = (user: CometChat.Conversation): JSX.Element => {
-  //your custom Title View
-  //return jsx;
+
+const getTitleView = (conversation: CometChat.Conversation): JSX.Element => {
+  // Your custom Title View
+  // return jsx;
 };
+
 return (
   <CometChatConversations TitleView={getTitleView} />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getTitleView = (conversation) => {
+  // Your custom Title View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations TitleView={getTitleView} />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -591,24 +862,40 @@ Examples:
 * Showing unread message counts or notification badges
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 const getTrailingView = (conversation: CometChat.Conversation): JSX.Element => {
-  //your custom Trailing View
-  //return jsx;
+  // Your custom Trailing View
+  // return jsx;
 };
+
 return (
   <CometChatConversations
     TrailingView={getTrailingView}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getTrailingView = (conversation) => {
+  // Your custom Trailing View
+  // return jsx;
+};
+
+return (
+  <CometChatConversations
+    TrailingView={getTrailingView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -630,20 +917,32 @@ Use cases:
 * Fully customizing how messages are displayed in the list
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 const getItemView = (conversation: CometChat.Conversation): JSX.Element => {
-  //your custom Item View
-  //return jsx;
+  // Your custom Item View
+  // return jsx;
 };
+
 return <CometChatConversations ItemView={getItemView} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getItemView = (conversation) => {
+  // Your custom Item View
+  // return jsx;
+};
+
+return <CometChatConversations ItemView={getItemView} />;
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -653,7 +952,7 @@ Demonstration
 </Frame>
 
 <Tabs>
-<Tab title="ConversationsComponent.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -664,98 +963,208 @@ import {
   useTheme,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//other imports
-const theme: CometChatTheme = useTheme();
-//code
-const getItemView = (conversation: CometChat.Conversation): JSX.Element => {
-    const conversationWith = conversation.getConversationWith();
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          flex: 1,
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: theme.color.borderLight,
-        }}>
-        <View style={{flexDirection: 'row'}}>
-          <CometChatAvatar
-            name={conversationWith.getName()}
-            image={{
-              uri:
-                conversationWith instanceof CometChat.User
-                  ? conversationWith.getAvatar()
-                  : conversationWith.getIcon(),
-            }}
-            style={{
-              containerStyle: {
-                borderRadius: 8,
-              },
-              imageStyle: {
-                borderRadius: 8,
-              },
-            }}></CometChatAvatar>
-          {conversationWith instanceof CometChat.User && (
-            <CometChatStatusIndicator
-              style={{
-                containerStyleOnline: {
-                  height: 12,
-                  width: 12,
-                },
-                containerStylePrivate: {
-                  height: 12,
-                  width: 12,
-                },
-                containerStyleProtected: {
-                  height: 12,
-                  width: 12,
-                },
-                imageStylePrivate: {
-                  height: 12,
-                  width: 12,
-                },
-                imageStyleProtected: {
-                  height: 12,
-                  width: 12,
-                },
-              }}
-              type={
-                conversationWith.getStatus() as keyof CometChatStatusIndicatorInterface['type']
-              }
-            />
-          )}
-        </View>
-        <Text
-          style={{
-            flex: 1,
-            color: theme.color.textPrimary,
-            fontSize: 16,
-            marginLeft: 12,
-            fontWeight: 500,
-          }}
-          numberOfLines={1}
-          ellipsizeMode="tail">
-          {conversationWith.getName()}
-        </Text>
-        <Text style={{color:'pink'}}>{getDateView(conversation)}</Text>
-      </View>
-    );
-  };
+import { View, Text } from "react-native";
 
-  const getDateView = (conversation: CometChat.Conversation) => {
-    const timestamp = conversation.getLastMessage()?.getSentAt();
-    return (
-      <CometChatDate timeStamp={timestamp * 1000} pattern={"dayWeekDayDateTimeFormat"} />
-    );
-  };
+const theme: CometChatTheme = useTheme();
+
+const getItemView = (conversation: CometChat.Conversation): JSX.Element => {
+  const conversationWith = conversation.getConversationWith();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: theme.color.borderLight,
+      }}
+    >
+      <View style={{ flexDirection: "row" }}>
+        <CometChatAvatar
+          name={conversationWith.getName()}
+          image={{
+            uri:
+              conversationWith instanceof CometChat.User
+                ? conversationWith.getAvatar()
+                : conversationWith.getIcon(),
+          }}
+          style={{
+            containerStyle: {
+              borderRadius: 8,
+            },
+            imageStyle: {
+              borderRadius: 8,
+            },
+          }}
+        />
+        {conversationWith instanceof CometChat.User && (
+          <CometChatStatusIndicator
+            style={{
+              containerStyleOnline: {
+                height: 12,
+                width: 12,
+              },
+              containerStylePrivate: {
+                height: 12,
+                width: 12,
+              },
+              containerStyleProtected: {
+                height: 12,
+                width: 12,
+              },
+              imageStylePrivate: {
+                height: 12,
+                width: 12,
+              },
+              imageStyleProtected: {
+                height: 12,
+                width: 12,
+              },
+            }}
+            type={
+              conversationWith.getStatus() as keyof CometChatStatusIndicatorInterface["type"]
+            }
+          />
+        )}
+      </View>
+      <Text
+        style={{
+          flex: 1,
+          color: theme.color.textPrimary,
+          fontSize: 16,
+          marginLeft: 12,
+          fontWeight: "500",
+        }}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {conversationWith.getName()}
+      </Text>
+      <Text style={{ color: "pink" }}>{getDateView(conversation)}</Text>
+    </View>
+  );
+};
+
+const getDateView = (conversation: CometChat.Conversation) => {
+  const timestamp = conversation.getLastMessage()?.getSentAt();
+  return (
+    <CometChatDate
+      timeStamp={timestamp * 1000}
+      pattern={"dayWeekDayDateTimeFormat"}
+    />
+  );
+};
 
 return <CometChatConversations ItemView={getItemView} />;
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  CometChatDate,
+  CometChatAvatar,
+  CometChatStatusIndicator,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text } from "react-native";
 
+const theme = useTheme();
+
+const getItemView = (conversation) => {
+  const conversationWith = conversation.getConversationWith();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: theme.color.borderLight,
+      }}
+    >
+      <View style={{ flexDirection: "row" }}>
+        <CometChatAvatar
+          name={conversationWith.getName()}
+          image={{
+            uri:
+              conversationWith instanceof CometChat.User
+                ? conversationWith.getAvatar()
+                : conversationWith.getIcon(),
+          }}
+          style={{
+            containerStyle: {
+              borderRadius: 8,
+            },
+            imageStyle: {
+              borderRadius: 8,
+            },
+          }}
+        />
+        {conversationWith instanceof CometChat.User && (
+          <CometChatStatusIndicator
+            style={{
+              containerStyleOnline: {
+                height: 12,
+                width: 12,
+              },
+              containerStylePrivate: {
+                height: 12,
+                width: 12,
+              },
+              containerStyleProtected: {
+                height: 12,
+                width: 12,
+              },
+              imageStylePrivate: {
+                height: 12,
+                width: 12,
+              },
+              imageStyleProtected: {
+                height: 12,
+                width: 12,
+              },
+            }}
+            type={conversationWith.getStatus()}
+          />
+        )}
+      </View>
+      <Text
+        style={{
+          flex: 1,
+          color: theme.color.textPrimary,
+          fontSize: 16,
+          marginLeft: 12,
+          fontWeight: "500",
+        }}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {conversationWith.getName()}
+      </Text>
+      <Text style={{ color: "pink" }}>{getDateView(conversation)}</Text>
+    </View>
+  );
+};
+
+const getDateView = (conversation) => {
+  const timestamp = conversation.getLastMessage()?.getSentAt();
+  return (
+    <CometChatDate
+      timeStamp={timestamp * 1000}
+      pattern={"dayWeekDayDateTimeFormat"}
+    />
+  );
+};
+
+return <CometChatConversations ItemView={getItemView} />;
+```
+</Tab>
 </Tabs>
 
 ***
@@ -778,7 +1187,7 @@ By utilizing this method, developers can enhance readability, usability, and com
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
@@ -786,8 +1195,8 @@ import {
   CometChatMentionsFormatter,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTextFomatters = () => {
+
+const getTextFormatters = (): CometChatTextFormatter[] => {
   const textFormatters: CometChatTextFormatter[] = [];
   const mentionsFormatter = new CometChatMentionsFormatter();
   mentionsFormatter.setMentionsStyle({
@@ -801,15 +1210,44 @@ const getTextFomatters = () => {
   textFormatters.push(mentionsFormatter);
   return textFormatters;
 };
+
 return (
   <CometChatConversations
-    textFormatters={getTextFomatters()}
+    textFormatters={getTextFormatters()}
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  CometChatMentionsFormatter,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const getTextFormatters = () => {
+  const textFormatters = [];
+  const mentionsFormatter = new CometChatMentionsFormatter();
+  mentionsFormatter.setMentionsStyle({
+    textStyle: {
+      color: "#D6409F",
+    },
+    selfTextStyle: {
+      color: "#30A46C",
+    },
+  });
+  textFormatters.push(mentionsFormatter);
+  return textFormatters;
+};
+
+return (
+  <CometChatConversations
+    textFormatters={getTextFormatters()}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 #### AppBarOptions
@@ -823,17 +1261,18 @@ Use Cases:
 * Delete Conversations
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+import { TouchableOpacity, Text } from "react-native";
+
 return (
   <CometChatConversations
     AppBarOptions={() => {
       return (
         <TouchableOpacity
           onPress={() => {
-            //do something
+            // Do something
           }}
         >
           <Text>Custom App Bar Options</Text>
@@ -843,9 +1282,29 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { TouchableOpacity, Text } from "react-native";
 
+return (
+  <CometChatConversations
+    AppBarOptions={() => {
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            // Do something
+          }}
+        >
+          <Text>Custom App Bar Options</Text>
+        </TouchableOpacity>
+      );
+    }}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -867,15 +1326,15 @@ This method customizes the date format used for displaying timestamps in convers
 Custom date patterns improve the localization and readability of time-sensitive messages, catering to different regional preferences.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatConversations,
   CometChatConversationUtils,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const generateDateString = (conversation: CometChat.Conversation) => {
+
+const generateDateString = (conversation: CometChat.Conversation): string => {
   const lastMessage: any =
     CometChatConversationUtils.getLastMessage(conversation);
   const conversationWith: any = conversation.getConversationWith();
@@ -906,9 +1365,46 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatConversations,
+  CometChatConversationUtils,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const generateDateString = (conversation) => {
+  const lastMessage = CometChatConversationUtils.getLastMessage(conversation);
+  const conversationWith = conversation.getConversationWith();
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const timeStamp =
+    (lastMessage && lastMessage["updatedAt"]) ||
+    conversationWith["createdAt"] ||
+    conversationWith["lastActiveAt"];
+  let timeStampInSeconds = new Date(timeStamp * 1000);
+  const day = days[timeStampInSeconds.getUTCDay()].substring(0, 3);
+  const hours = timeStampInSeconds.getUTCHours();
+  const minutes = String(timeStampInSeconds.getUTCMinutes()).padStart(2, "0");
+
+  return `${day}, ${hours}:${minutes}`;
+};
+
+return (
+  <CometChatConversations
+    datePattern={generateDateString}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -928,10 +1424,14 @@ Use Cases:
 * Typing Indicators – Display "User is typing..." in real time.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { Text } from "react-native";
+
+const theme = useTheme();
+
 const getSubtitleView = (conversation: CometChat.Conversation) => {
   const conversationWith: any = conversation.getConversationWith();
   if (conversationWith instanceof CometChat.User) {
@@ -973,7 +1473,7 @@ const getSubtitleView = (conversation: CometChat.Conversation) => {
   }
 };
 
-function formatTime(timestamp: number) {
+function formatTime(timestamp: number): string {
   const date = new Date(timestamp * 1000);
   return date.toLocaleString("en-GB", {
     hour12: false,
@@ -992,9 +1492,76 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { Text } from "react-native";
 
+const theme = useTheme();
+
+const getSubtitleView = (conversation) => {
+  const conversationWith = conversation.getConversationWith();
+  if (conversationWith instanceof CometChat.User) {
+    return (
+      <Text
+        style={{
+          fontSize: 12,
+          color: theme.color.textSecondary,
+        }}
+      >
+        Last Active at:{" "}
+        {conversationWith.getLastActiveAt()
+          ? formatTime(conversationWith.getLastActiveAt())
+          : "--"}
+      </Text>
+    );
+  } else if (conversationWith instanceof CometChat.Group) {
+    return (
+      <Text
+        style={{
+          fontSize: 12,
+          color: theme.color.textSecondary,
+        }}
+      >
+        Created at: {formatTime(conversationWith.getCreatedAt())}
+      </Text>
+    );
+  } else {
+    return (
+      <Text
+        style={{
+          fontSize: 12,
+          color: theme.color.textSecondary,
+        }}
+      >
+        Click To View Chat
+      </Text>
+    );
+  }
+};
+
+function formatTime(timestamp) {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString("en-GB", {
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+return (
+  <CometChatConversations
+    SubtitleView={getSubtitleView}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -1017,17 +1584,16 @@ Use Cases:
 By customizing these options, developers can provide a streamlined and contextually relevant user experience.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-const setMyOptions = (_conversation: CometChat.Conversation) => {
-    return [
-      //options
-    ];
-  };
-
+const setMyOptions = (conversation: CometChat.Conversation) => {
+  return [
+    // Options
+  ];
+};
 
 return (
   <CometChatConversations
@@ -1035,9 +1601,25 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const setMyOptions = (conversation) => {
+  return [
+    // Options
+  ];
+};
+
+return (
+  <CometChatConversations
+    options={setMyOptions}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -1047,31 +1629,32 @@ Demonstration
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//import your delete icon 
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+// Import your delete icon
 
+const theme = useTheme();
 
-//code
-const setMyOptions = (_conversation: CometChat.Conversation) => {
-    return [
-      {
-        text: "Delete",
-        onPress: () => {
-          
-        },
-        icon: (
-          <Delete
-            color={theme.color.error}
-            height={theme.spacing.spacing.s6}
-            width={theme.spacing.spacing.s6}
-          />
-        ),
-        textStyle: { color: theme.color.error },
+const setMyOptions = (conversation: CometChat.Conversation) => {
+  return [
+    {
+      text: "Delete",
+      onPress: () => {
+        // Handle delete
       },
-    ];
-  };
+      icon: (
+        <Delete
+          color={theme.color.error}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.error },
+    },
+  ];
+};
 
 return (
   <CometChatConversations
@@ -1079,9 +1662,41 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+// Import your delete icon
 
+const theme = useTheme();
+
+const setMyOptions = (conversation) => {
+  return [
+    {
+      text: "Delete",
+      onPress: () => {
+        // Handle delete
+      },
+      icon: (
+        <Delete
+          color={theme.color.error}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.error },
+    },
+  ];
+};
+
+return (
+  <CometChatConversations
+    options={setMyOptions}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 #### addOptions
@@ -1097,17 +1712,16 @@ Use Cases:
 This method provides flexibility in modifying user interaction capabilities.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//code
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-const addOptions = (_conversation: CometChat.Conversation) => {
-    return [
-      //options
-    ];
-  };
-
+const addOptions = (conversation: CometChat.Conversation) => {
+  return [
+    // Options
+  ];
+};
 
 return (
   <CometChatConversations
@@ -1115,9 +1729,25 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+const addOptions = (conversation) => {
+  return [
+    // Options
+  ];
+};
+
+return (
+  <CometChatConversations
+    addOptions={addOptions}
+  />
+);
+```
+</Tab>
 </Tabs>
 
 Demonstration
@@ -1127,61 +1757,60 @@ Demonstration
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-//import your icons
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+// Import your icons
 
+const theme = useTheme();
 
-//code
-const addOptions = (_conversation: CometChat.Conversation) => {
-    return [
-      {
-        text: "Archive",
-        onPress: () => {
-          
-        },
-        icon: (
-          <Archive
-            color={theme.color.iconSecondary}
-            height={theme.spacing.spacing.s6}
-            width={theme.spacing.spacing.s6}
-          />
-        ),
-        textStyle: { color: theme.color.staticBlack },
+const addOptions = (conversation: CometChat.Conversation) => {
+  return [
+    {
+      text: "Archive",
+      onPress: () => {
+        // Handle archive
       },
-      {
-        text: "Pin",
-        onPress: () => {
-          
-        },
-        icon: (
-          <Pin
-            color={theme.color.iconSecondary}
-            height={theme.spacing.spacing.s6}
-            width={theme.spacing.spacing.s6}
-          />
-        ),
-        textStyle: { color: theme.color.staticBlack },
+      icon: (
+        <Archive
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+    {
+      text: "Pin",
+      onPress: () => {
+        // Handle pin
       },
-      {
-        text: "Mark as unread",
-        onPress: () => {
-          
-        },
-        icon: (
-          <UnreadIcon
-            color={theme.color.iconSecondary}
-            height={theme.spacing.spacing.s6}
-            width={theme.spacing.spacing.s6}
-          />
-        ),
-        textStyle: { color: theme.color.staticBlack },
+      icon: (
+        <Pin
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+    {
+      text: "Mark as unread",
+      onPress: () => {
+        // Handle mark as unread
       },
-
-    ];
-  };
-
+      icon: (
+        <UnreadIcon
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+  ];
+};
 
 return (
   <CometChatConversations
@@ -1189,7 +1818,83 @@ return (
   />
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChatConversations, useTheme } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+// Import your icons
 
+const theme = useTheme();
+
+const addOptions = (conversation) => {
+  return [
+    {
+      text: "Archive",
+      onPress: () => {
+        // Handle archive
+      },
+      icon: (
+        <Archive
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+    {
+      text: "Pin",
+      onPress: () => {
+        // Handle pin
+      },
+      icon: (
+        <Pin
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+    {
+      text: "Mark as unread",
+      onPress: () => {
+        // Handle mark as unread
+      },
+      icon: (
+        <UnreadIcon
+          color={theme.color.iconSecondary}
+          height={theme.spacing.spacing.s6}
+          width={theme.spacing.spacing.s6}
+        />
+      ),
+      textStyle: { color: theme.color.staticBlack },
+    },
+  ];
+};
+
+return (
+  <CometChatConversations
+    addOptions={addOptions}
+  />
+);
+```
+</Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Display messages in a conversation
+  </Card>
+  <Card title="Users" icon="users" href="/ui-kit/react-native/users">
+    Browse and select users to chat with
+  </Card>
+  <Card title="Groups" icon="user-group" href="/ui-kit/react-native/groups">
+    Create and manage group conversations
+  </Card>
+</CardGroup>

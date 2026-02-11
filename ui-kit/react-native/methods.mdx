@@ -1,6 +1,36 @@
 ---
 title: "Methods"
+description: "API reference for CometChatUIKit class methods including initialization, authentication, and messaging functions."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatUIKit, UIKitSettings } from "@cometchat/chat-uikit-react-native";
+
+// Initialize the UI Kit
+const uiKitSettings = new UIKitSettings({
+  appId: "APP_ID",
+  region: "REGION",
+  authKey: "AUTH_KEY", // Development only
+});
+await CometChatUIKit.init(uiKitSettings);
+
+// Login with UID (development only)
+await CometChatUIKit.login({ uid: "user_uid" });
+
+// Login with Auth Token (production)
+await CometChatUIKit.login({ authToken: "auth_token" });
+
+// Logout
+await CometChatUIKit.logout();
+```
+</Info>
+
+<Warning>
+**Security Note:** The `authKey` should only be used during development. In production, use [Auth Tokens](https://www.cometchat.com/docs/chat-apis/ref#createauthtoken) generated from your backend server for secure authentication.
+</Warning>
 
 `CometChatUIKit` is a class that contains all necessary methods to help initialize the [CometChat SDK](/sdk/react-native/overview) with valid credentials for the ui kit to utilize.
 
@@ -35,6 +65,30 @@ import {
   CometChatUiKitConstants,
 } from "@cometchat/chat-uikit-react-native";
 
+const receiverID: string = "uid";
+const messageText: string = "Hello world!";
+const receiverType: string = CometChatUiKitConstants.ReceiverTypeConstants.user;
+const textMessage: CometChat.TextMessage = new CometChat.TextMessage(
+  receiverID,
+  messageText,
+  receiverType
+);
+
+CometChatUIKit.sendTextMessage(textMessage)
+  .then((message: CometChat.TextMessage) => {
+    console.log("Message sent successfully:", message);
+  })
+  .catch(console.log);
+```
+</Tab>
+<Tab title="JavaScript">
+```js
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatUIKit,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+
 const receiverID = "uid";
 const messageText = "Hello world!";
 const receiverType = CometChatUiKitConstants.ReceiverTypeConstants.user;
@@ -50,9 +104,7 @@ CometChatUIKit.sendTextMessage(textMessage)
   })
   .catch(console.log);
 ```
-
 </Tab>
-
 </Tabs>
 
 ### sendMediaMessage
@@ -62,6 +114,31 @@ used to send media messages
 <Tabs>
 <Tab title="TypeScript">
 ```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatUIKit,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+
+const receiverID: string = "uid";
+const messageType: string = CometChatUiKitConstants.MessageTypeConstants.file;
+const receiverType: string = CometChatUiKitConstants.ReceiverTypeConstants.user;
+const mediaMessage: CometChat.MediaMessage = new CometChat.MediaMessage(
+  receiverID,
+  `INPUT FILE OBJECT`,
+  messageType,
+  receiverType
+);
+
+CometChatUIKit.sendMediaMessage(mediaMessage)
+  .then((message: CometChat.MediaMessage) => {
+    console.log("Media message sent successfully", message);
+  })
+  .catch(console.log);
+```
+</Tab>
+<Tab title="JavaScript">
+```js
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatUIKit,
@@ -84,9 +161,7 @@ CometChatUIKit.sendMediaMessage(mediaMessage)
   })
   .catch(console.log);
 ```
-
 </Tab>
-
 </Tabs>
 
 ### sendCustomMessage
@@ -96,6 +171,35 @@ Used to send custom messages.
 <Tabs>
 <Tab title="TypeScript">
 ```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatUIKit,
+  CometChatUiKitConstants,
+} from "@cometchat/chat-uikit-react-native";
+
+const receiverID: string = "uid";
+const customData: object = {
+  latitude: "50.6192171633316",
+  longitude: "-72.68182268750002",
+};
+const customType: string = "location";
+const receiverType: string = CometChatUiKitConstants.ReceiverTypeConstants.user;
+const customMessage: CometChat.CustomMessage = new CometChat.CustomMessage(
+  receiverID,
+  receiverType,
+  customType,
+  customData
+);
+
+CometChatUIKit.sendCustomMessage(customMessage)
+  .then((message: CometChat.CustomMessage) => {
+    console.log("custom message sent successfully", message);
+  })
+  .catch(console.log);
+```
+</Tab>
+<Tab title="JavaScript">
+```js
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatUIKit,
@@ -122,9 +226,7 @@ CometChatUIKit.sendCustomMessage(customMessage)
   })
   .catch(console.log);
 ```
-
 </Tab>
-
 </Tabs>
 
 ### Send Form message
@@ -385,29 +487,48 @@ Make sure you replace the **APP\_ID**, **REGION** and **AUTH\_KEY** with your Co
 </Note>
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+//CometChatUIKit should be initialized at the start of application. No need to initialize it again
+
+import { CometChatUIKit, UIKitSettings } from "@cometchat/chat-uikit-react-native";
+
+const uikitSettings: UIKitSettings = new UIKitSettings({
+  appId: "APP_ID", // Replace with your App ID
+  region: "REGION", // Replace with your App Region ("eu" or "us")
+  authKey: "AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
+});
+
+CometChatUIKit.init(uikitSettings)
+  .then((user: boolean) => {
+    console.log("Initialization completed successfully");
+  })
+  .catch((error: any) => {
+    console.log("Initialization failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
 //CometChatUIKit should be initialized at the start of application. No need to initialize it again
 
-import {CometChatUIKit} from "@cometchat/chat-uikit-react-native";
+import { CometChatUIKit, UIKitSettings } from "@cometchat/chat-uikit-react-native";
 
-let uikitSettings = UIKitSettings({
-			APP_ID: "APP_ID", // Replace with your App ID
-      REGION: "REGION", // Replace with your App Region ("eu" or "us")
-      AUTH_KEY: "AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
-		})
+const uikitSettings = new UIKitSettings({
+  appId: "APP_ID", // Replace with your App ID
+  region: "REGION", // Replace with your App Region ("eu" or "us")
+  authKey: "AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
+});
 
 CometChatUIKit.init(uikitSettings)
-		.then(user => {
-         console.log("Initialization completed successfully")
-    })
-		.catch(error => {
-          console.log( "Initialization failed with exception:",error)
-    })
+  .then((user) => {
+    console.log("Initialization completed successfully");
+  })
+  .catch((error) => {
+    console.log("Initialization failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
@@ -417,20 +538,37 @@ CometChatUIKit.init(uikitSettings)
 Only the `UID` of a user is needed to log in. This simple authentication procedure is useful when you are creating a POC or if you are in the development phase. For production apps, we suggest you use [AuthToken](#how-to-login-a-user-with-auth-token) instead of Auth Key.
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+
+const uid: string = "user_uid"; // Enter User's UID Here
+
+CometChatUIKit.login({ uid: uid })
+  .then((user: CometChat.User) => {
+    console.log("User logged in successfully", user);
+  })
+  .catch((error: any) => {
+    console.log("Login failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
-let uid = <# Enter User's UID Here #>
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
 
-CometChatUIKit.login({uid: uid})
-			.then(user => {
-                console.log("User logged in successfully")
-			catch(error => {
-                console.log("Login failed with exception:", error)
-            })
+const uid = "user_uid"; // Enter User's UID Here
+
+CometChatUIKit.login({ uid: uid })
+  .then((user) => {
+    console.log("User logged in successfully", user);
+  })
+  .catch((error) => {
+    console.log("Login failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
 
 ***
@@ -444,20 +582,37 @@ This advanced authentication procedure does not use the Auth Key directly in you
 3. Load the Auth Token in your client and pass it to the `login({authToken: authToken})` method.
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+
+const authToken: string = "user_auth_token"; // Enter User's AuthToken Here
+
+CometChatUIKit.login({ authToken: authToken })
+  .then((user: CometChat.User) => {
+    console.log("User logged in successfully", user);
+  })
+  .catch((error: any) => {
+    console.log("Login failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
-let authToken = <# Enter User's AuthToken Here #>
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
 
-CometChatUIKit.login({authToken: authToken})
-		.then(user => {
-                console.log("User logged in successfully")
-      .catch(error => {
-        console.log("Login failed with exception:", error)
-            })
+const authToken = "user_auth_token"; // Enter User's AuthToken Here
+
+CometChatUIKit.login({ authToken: authToken })
+  .then((user) => {
+    console.log("User logged in successfully", user);
+  })
+  .catch((error) => {
+    console.log("Login failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
 
 ## How to create a new user for your App?
@@ -465,25 +620,48 @@ CometChatUIKit.login({authToken: authToken})
 Create an object the new user that needs to created with as little information as the name of the user and a uid and pass it to the create(user: User) method
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+
+const uid: string = "user_uid"; // Enter User's UID Here
+const name: string = "User Name"; // Enter User Name Here
+const avatar: string = "https://example.com/avatar.png"; // Enter User's Avatar URL Here
+
+const user: CometChat.User = new CometChat.User(uid, name);
+user.setAvatar(avatar);
+
+CometChatUIKit.createUser(user)
+  .then((user: CometChat.User) => {
+    console.log("User created successfully", user);
+  })
+  .catch((error: any) => {
+    console.log("Creating new user failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
-let uid = <# Enter User's UID Here #>
-let name = <# Enter User Name Here #>
-let avatar = <# Enter User's Avatar URL Here #>
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
 
-let user = new CometChat.User(uid,name)
-user.setAvatar(avatar)
+const uid = "user_uid"; // Enter User's UID Here
+const name = "User Name"; // Enter User Name Here
+const avatar = "https://example.com/avatar.png"; // Enter User's Avatar URL Here
 
-CometChatUIKit.create(user)
-			.then(user => {
-                console.log("User created successfully")
-      .catch(error => {
-        	console.log("Creating new user failed with exception:", error)
-            })
+const user = new CometChat.User(uid, name);
+user.setAvatar(avatar);
+
+CometChatUIKit.createUser(user)
+  .then((user) => {
+    console.log("User created successfully", user);
+  })
+  .catch((error) => {
+    console.log("Creating new user failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
 
 ## How to update a user for your App?
@@ -491,26 +669,48 @@ CometChatUIKit.create(user)
 Update an object the user that needs to updated with as little information as the name of the user and a uid and pass it to the `update(user: User)` method
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+
+const uid: string = "user_uid"; // Enter User's UID Here
+const name: string = "Updated User Name"; // Enter Updated User Name Here
+const avatar: string = "https://example.com/new-avatar.png"; // Enter Updated User's Avatar URL Here
+
+const user: CometChat.User = new CometChat.User(uid, name);
+user.setAvatar(avatar);
+
+CometChatUIKit.updateUser(user)
+  .then((user: CometChat.User) => {
+    console.log("User updated successfully", user);
+  })
+  .catch((error: any) => {
+    console.log("Updating user failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
-let uid = <# Enter User's UID Here #>
-let name = <# Enter Updated User Name Here #>
-let avatar = <# Enter Updated User's Avatar URL Here #>
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
 
-let user = new CometChat.User(uidname)
-user.setAvatar(avatar)
+const uid = "user_uid"; // Enter User's UID Here
+const name = "Updated User Name"; // Enter Updated User Name Here
+const avatar = "https://example.com/new-avatar.png"; // Enter Updated User's Avatar URL Here
 
-CometChatUIKit.update(user)
-		.then(user => {
-                console.log("User updated successfully");
-    })
-      .catch(error => {
-        	console.log("Updating  user failed with exception:",error)
-            })
+const user = new CometChat.User(uid, name);
+user.setAvatar(avatar);
+
+CometChatUIKit.updateUser(user)
+  .then((user) => {
+    console.log("User updated successfully", user);
+  })
+  .catch((error) => {
+    console.log("Updating user failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
 
 
@@ -519,13 +719,43 @@ CometChatUIKit.update(user)
 just pass the loggedIn-user to the logout method
 
 <Tabs>
+<Tab title="TypeScript">
+```ts
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+
+CometChatUIKit.logout()
+  .then(() => {
+    console.log("User logged out successfully");
+  })
+  .catch((error: any) => {
+    console.log("Logout failed with exception:", error);
+  });
+```
+</Tab>
 <Tab title="JavaScript">
 ```js
-import { CometChatUIKit } from '@cometchat/chat-uikit-react-native'; //import uikit package
+import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
 
-CometChatUIKit.logout();
+CometChatUIKit.logout()
+  .then(() => {
+    console.log("User logged out successfully");
+  })
+  .catch((error) => {
+    console.log("Logout failed with exception:", error);
+  });
 ```
-
 </Tab>
-
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="bell" href="/ui-kit/react-native/events">
+    Listen to UI Kit events and handle user interactions
+  </Card>
+  <Card title="Components Overview" icon="grid-2" href="/ui-kit/react-native/components-overview">
+    Explore all available UI components
+  </Card>
+</CardGroup>

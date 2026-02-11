@@ -1,6 +1,26 @@
 ---
 title: "Threaded Messages Header"
+description: "Display the parent message and reply count in threaded message views with the CometChatThreadHeader component for React Native."
 ---
+
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react-native";
+
+// Minimal usage
+<CometChatThreadHeader parentMessage={parentMessage} />
+
+// With common props
+<CometChatThreadHeader
+  parentMessage={parentMessage}
+  replyCountVisibility={true}
+  replyCountBarVisibility={true}
+  receiptsVisibility={true}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -10,6 +30,10 @@ title: "Threaded Messages Header"
   <img src="/images/ccfded5e-thread_header-02deacd1056bec41b2d4862bc713a4df.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/overview)
+</Note>
+
 ## Usage
 
 ### Integration
@@ -17,14 +41,14 @@ title: "Threaded Messages Header"
 The following code snippet illustrates how you can directly incorporate the `CometChatMessageList` component into your app.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatMessageList,
   CometChatThreadHeader,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 return (
   <>
     {!parentMessage && (
@@ -40,9 +64,31 @@ return (
   </>
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatMessageList,
+  CometChatThreadHeader,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+return (
+  <>
+    {!parentMessage && (
+      <CometChatMessageList
+        group={group}
+        onThreadRepliesPress={(message) => {
+          // Set Parent Message
+          setParentMessage(message);
+        }}
+      />
+    )}
+    {parentMessage && <CometChatThreadHeader parentMessage={parentMessage} />}
+  </>
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -66,14 +112,14 @@ The `CometChatThreadHeader` is used in threaded message views, displaying inform
 </Frame>
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import {
   CometChatMessageList,
   CometChatThreadHeader,
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
+
 return (
   <>
     {!parentMessage && (
@@ -112,9 +158,54 @@ return (
   </>
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import {
+  CometChatMessageList,
+  CometChatThreadHeader,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
+return (
+  <>
+    {!parentMessage && (
+      <CometChatMessageList
+        group={group}
+        onThreadRepliesPress={(message) => {
+          // Set Parent Message
+          setParentMessage(message);
+        }}
+      />
+    )}
+    {parentMessage && (
+      <CometChatThreadHeader
+        parentMessage={parentMessage}
+        style={{
+        containerStyle: {
+          backgroundColor: "#FEEDE1",
+        },
+        messageBubbleContainerStyle: {
+          backgroundColor: "#FEEDE1",
+        },
+        replyCountBarStyle: {
+          backgroundColor: "#FBA46B",
+        },
+        replyCountTextStyle: {
+          color: "#FFFFFF",
+        },
+        outgoingMessageBubbleStyles: {
+          containerStyle: {
+            backgroundColor: "#F76808",
+          },
+        },
+       }}
+      />
+    )}
+  </>
+);
+```
+</Tab>
 </Tabs>
 
 ***
@@ -130,9 +221,9 @@ Below is a list of customizations along with corresponding code snippets
 | **parentMessage**           | Used to to set the message for which the replies need to be fetched | `parentMessage={messageObject}` |
 | **template**                | Used to to set custom template for the parent message               | `template={templateObject}`     |
 | **replyCountVisibility**    | Used to toggle reply count visibility                               | `replyCountVisibility={true}`   |
-| **replyCountBarVisibility** | Used to to toggle reply count bar visibility                        | `template={templateObject}`     |
-| **receiptsVisibility**      | Used to to toggle receipts Visibility                               | `template={templateObject}`     |
-| **avatarVisibility**        | Used to to toggle avatarVisibility                                  | `template={templateObject}`     |
+| **replyCountBarVisibility** | Used to to toggle reply count bar visibility                        | `replyCountBarVisibility={true}`|
+| **receiptsVisibility**      | Used to to toggle receipts Visibility                               | `receiptsVisibility={true}`     |
+| **avatarVisibility**        | Used to to toggle avatarVisibility                                  | `avatarVisibility={true}`       |
 
 ***
 
@@ -145,15 +236,17 @@ For advanced-level customization, you can set custom views to the component. Thi
 The `template` property is used to configure and set a custom template for parent message bubble. It allows for dynamic customization of message appearance, content, or other predefined settings based on the template provided.
 
 <Tabs>
-<Tab title="App.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatMessageList,
-  BorderStyleInterface,
-  AvatarStyleInterface,
+  CometChatThreadHeader,
+  CometChatMessageTemplate,
+  ChatConfigurator,
+  MessageBubbleAlignmentType,
 } from "@cometchat/chat-uikit-react-native";
-//code
+import { Text } from "react-native";
 
 const getTemplate = () => {
   //for example customizing text message template
@@ -199,7 +292,68 @@ return (
   </>
 );
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatMessageList,
+  CometChatThreadHeader,
+  ChatConfigurator,
+} from "@cometchat/chat-uikit-react-native";
+import { Text } from "react-native";
 
+const getTemplate = () => {
+  //for example customizing text message template
+  let templates = ChatConfigurator.getDataSource().getAllMessageTemplates(theme);
+  const textTemplate = templates.find((template) => {
+    if (template.type == "text") {
+      template.ContentView = (messageObject, alignment) => {
+        const textMessage = messageObject;
+        return (
+          <Text style={{ backgroundColor: "#fff5fd", padding: 10 }}>
+            {textMessage.getText()}
+          </Text>
+        );
+      };
+      return template;
+    }
+  });
+  return textTemplate;
+};
+
+return (
+  <>
+    {!parentMessage && (
+      <CometChatMessageList
+        group={group}
+        onThreadRepliesPress={(message) => {
+          // Set Parent Message
+          setParentMessage(message);
+        }}
+      />
+    )}
+    {parentMessage && (
+      <CometChatThreadHeader
+        parentMessage={parentMessage}
+        template={getTemplate()}
+      />
+    )}
+  </>
+);
+```
+</Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="list" href="/ui-kit/react-native/message-list">
+    Display messages in a conversation
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react-native/message-header">
+    Display user or group details in the message toolbar
+  </Card>
+</CardGroup>
