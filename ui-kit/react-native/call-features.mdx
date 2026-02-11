@@ -228,9 +228,74 @@ const App = (): React.ReactElement => {
   );
 };
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```jsx
+import React, { useEffect, useRef, useState } from "react";
+import { SafeAreaView } from "react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react-native";
 
+// Track whether the user is logged in
+const [loggedIn, setLoggedIn] = useState(false);
+// Track if there is an incoming call to display
+const [callReceived, setCallReceived] = useState(false);
+// Store the incoming call object for use in the UI
+const incomingCall = useRef(null);
+// Unique ID for registering and removing the call listener
+var listenerID = "UNIQUE_LISTENER_ID";
+
+const App = () => {
+  useEffect(() => {
+    // Register the call listener when the component mounts or when login state changes
+    CometChat.addCallListener(
+      listenerID,
+      new CometChat.CallListener({
+        // Fired when an incoming call is received
+        onIncomingCallReceived: (call) => {
+          // Store the incoming call and update state.
+          incomingCall.current = call;
+          // Trigger UI to show incoming call screen
+          setCallReceived(true);
+        },
+        // Fired when an outgoing call is rejected by the recipient
+        onOutgoingCallRejected: () => {
+          // Clear the call state if outgoing call is rejected.
+          incomingCall.current = null; // Clear the call object
+          setCallReceived(false); // Hide any call UI
+        },
+        onIncomingCallCancelled: () => {
+          // Clear the call state if the incoming call is cancelled.
+          incomingCall.current = null;
+          setCallReceived(false);
+        },
+      })
+    );
+
+    // Cleanup: remove the call listener when the component unmounts or before re-running
+    return () => {
+      CometChat.removeCallListener(listenerID);
+    };
+  }, [loggedIn]); // Re-run effect if the login state changes
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Render the incoming call UI when logged in and a call has been received */}
+      {loggedIn && callReceived && incomingCall.current ? (
+        <CometChatIncomingCall
+          call={incomingCall.current}
+          onDecline={() => {
+            // Handle call decline by clearing the incoming call state.
+            incomingCall.current = null; // Clear the call object
+            setCallReceived(false); // Hide the incoming call UI
+          }}
+        />
+      ) : null}
+    </SafeAreaView>
+  );
+};
+```
+</Tab>
 </Tabs>
 
 ## Features
