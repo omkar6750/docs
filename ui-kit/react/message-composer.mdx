@@ -1,6 +1,30 @@
 ---
 title: "Message Composer"
+description: "A component that enables users to write and send text, media, and custom messages with attachments and editing support."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+// For user chat
+<CometChatMessageComposer user={chatUser} />
+
+// For group chat
+<CometChatMessageComposer group={chatGroup} />
+
+// With common props
+<CometChatMessageComposer
+  user={chatUser}
+  disableTypingEvents={false}
+  hideLiveReaction={false}
+  onSendButtonClick={(message) => handleSend(message)}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -12,6 +36,10 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
   <img src="/images/6c67574d-wGdWG0FDGDEYQAAAABJRU5ErkJggg.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
 ## Usage
 
 ### Integration
@@ -19,7 +47,7 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
 The following code snippet illustrates how you can directly incorporate the MessageComposer component into your app.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="MessageComposerDemo (TypeScript)">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -43,18 +71,25 @@ export function MessageComposerDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageComposerDemo } from "./MessageComposerDemo";
+<Tab title="MessageComposerDemo (JavaScript)">
+```jsx
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageComposerDemo />
-      </div>
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = React.useState(null);
+  React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer user={chatUser} />
     </div>
-  );
+  ) : null;
 }
 ```
 
@@ -71,7 +106,7 @@ export default function App() {
 The `OnSendButtonClick` event gets activated when the send message button is clicked. It has a predefined function of sending messages entered in the composer `EditText`. However, you can overide this action with the following code snippet.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="MessageComposerDemo (TypeScript)">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -87,6 +122,35 @@ export function MessageComposerDemo() {
   }, []);
 
   function handleSendButtonClick(message: CometChat.BaseMessage): void {
+    console.log("your custom on send buttonclick action");
+  }
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer onSendButtonClick={handleSendButtonClick} />
+    </div>
+  ) : null;
+}
+```
+
+</Tab>
+
+<Tab title="MessageComposerDemo (JavaScript)">
+```jsx
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = React.useState(null);
+
+  React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  function handleSendButtonClick(message) {
     console.log("your custom on send buttonclick action");
   }
 
@@ -920,3 +984,23 @@ export function MessageComposerDemo() {
 </Tabs>
 
 ***
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Display messages in a conversation
+  </Card>
+  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
+    Customize message bubble appearance
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Display conversation header with user/group info
+  </Card>
+  <Card title="Mentions Formatter" icon="at" href="/ui-kit/react/mentions-formatter-guide">
+    Enable @mentions in messages
+  </Card>
+</CardGroup>
