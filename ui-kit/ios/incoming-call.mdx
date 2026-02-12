@@ -1,5 +1,6 @@
 ---
 title: "Incoming Call"
+description: "Display and handle incoming voice and video calls"
 ---
 
 ## Overview
@@ -10,37 +11,36 @@ The `Incoming call` is a [Component](/ui-kit/ios/components-overview#components)
   <img src="/images/6525dce0-incoming_calls-8346d43a997a18a002a647504faa7760.png" />
 </Frame>
 
-***
+---
 
 ## Usage
 
 ### Integration
 
-`CometChatIncomingCall` being a custom **view controller**, offers versatility in its integration. It can be seamlessly launched via button clicks or any user-triggered action, enhancing the overall user experience and facilitating smoother interactions within the application.
+`CometChatIncomingCall` is a custom view controller that offers versatility in its integration. It can be seamlessly launched via button clicks or any user-triggered action, enhancing the overall user experience and facilitating smoother interactions within the application.
 
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create and configure incoming call view controller
 let cometChatIncomingCall = CometChatIncomingCall().set(call: call)
+
+// Present full screen
 cometChatIncomingCall.modalPresentationStyle = .fullScreen
 self.present(cometChatIncomingCall, animated: true)
 ```
-
 </Tab>
-
 </Tabs>
 
 <Note>
-
 If you are already using a navigation controller, you can use the `pushViewController` function instead of presenting the view controller.
-
 </Note>
 
 ### Actions
 
 [Actions](/ui-kit/ios/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### 1. SetOnAcceptClick
+#### 1. SetOnAcceptClick
 
 The `setOnAcceptClick` action is typically triggered when the user clicks on the accept button, initiating a predefined action. However, by implementing the following code snippet, you can easily customize or override this default behavior to suit your specific requirements.
 
@@ -48,17 +48,14 @@ The `setOnAcceptClick` action is typically triggered when the user clicks on the
 <Tab title="Swift">
 ```swift
 let cometChatIncomingCall = CometChatIncomingCall()
-.set(onAcceptClick: { call, controller in
-//Perform Your Action
-
-})
+    .set(onAcceptClick: { call, controller in
+        // Perform your custom action when call is accepted
+    })
 ```
-
 </Tab>
-
 </Tabs>
 
-##### 2. SetOnCancelClick
+#### 2. SetOnCancelClick
 
 The `setOnCancelClick` action is typically triggered when the user clicks on the reject button, initiating a predefined action. However, by implementing the following code snippet, you can easily customize or override this default behavior to suit your specific requirements.
 
@@ -66,118 +63,110 @@ The `setOnCancelClick` action is typically triggered when the user clicks on the
 <Tab title="Swift">
 ```swift
 let cometChatIncomingCall = CometChatIncomingCall()
-.set(onCancelClick: { call, controller in
-    //Perform Your Action
-
-})
+    .set(onCancelClick: { call, controller in
+        // Perform your custom action when call is rejected
+    })
 ```
-
 </Tab>
-
 </Tabs>
 
-##### 3. OnError
+#### 3. OnError
 
 You can customize this behavior by using the provided code snippet to override the `On Error` and improve error handling.
 
 <Tabs>
 <Tab title="Swift">
 ```swift
-
 let incomingCallConfiguration = IncomingCallConfiguration()
-.set(onError:{ error in
-//Perform Your Action
-
-})
+    .set(onError: { error in
+        // Perform your custom error handling action
+    })
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 ### Filters
 
-**Filters** allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria, allowing for a more customized. Filters can be applied using RequestBuilders of Chat SDK.
+Filters allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria, allowing for a more customized experience. Filters can be applied using RequestBuilders of Chat SDK.
 
 The IncomingCall component does not have any exposed filters.
 
-***
+---
 
 ### Events
 
-[Events](/ui-kit/ios/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
+[Events](/ui-kit/ios/components-overview#events) are emitted by a Component. By using events you can extend existing functionality. Being global events, they can be applied in multiple locations and are capable of being added or removed.
 
-Events emitted by the Incoming Call component is as follows.
+Events emitted by the Incoming Call component are as follows:
 
-| Event                      | Description                                                                |
-| -------------------------- | -------------------------------------------------------------------------- |
-| **onIncomingCallAccepted** | Triggers when the logged-in user accepts the incoming call.                |
-| **onIncomingCallRejected** | This event is triggered when the logged-in user rejects the incoming call. |
-| **onCallEnded**            | This event is triggered when the initiated call successfully ends.         |
+| Event | Description |
+|-------|-------------|
+| `onIncomingCallAccepted` | Triggers when the logged-in user accepts the incoming call |
+| `onIncomingCallRejected` | Triggers when the logged-in user rejects the incoming call |
+| `onCallEnded` | Triggers when the initiated call successfully ends |
 
 <Tabs>
 <Tab title="Add Listener">
 ```swift
-// View controller from your project where you want to listen events.
+// View controller from your project where you want to listen to events
 public class ViewController: UIViewController {
 
-   public override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
 
-       // Subscribing for the listener to listen events from user module
+        // Subscribe to call events
         CometChatCallEvents.addListener("UNIQUE_ID", self as CometChatCallEventListener)
     }
-
 }
- // Listener events from user module
-extension  ViewController: CometChatCallEventListener {
+
+// Listener events from call module
+extension ViewController: CometChatCallEventListener {
 
     func onIncomingCallAccepted(call: Call) {
-        // Do Stuff
+        // Handle accepted call
     }
-    func onIncomingCallRejected(call: Call){
-        // Do Stuff
+    
+    func onIncomingCallRejected(call: Call) {
+        // Handle rejected call
     }
 
     func onCallEnded(call: Call) {
-        // Do Stuff
+        // Handle ended call
     }
 }
 ```
 
-```swift Emitting Group Events
-//emit this when logged in user accepts the incoming call
+```swift
+// Emitting Call Events
+
+// Emit when logged in user accepts the incoming call
 CometChatCallEvents.emitOnIncomingCallAccepted(call: Call)
 
-//emit this when logged in user rejects the incoming call
+// Emit when logged in user rejects the incoming call
 CometChatCallEvents.emitOnIncomingCallRejected(call: Call)
 
-//emit this when logged in user cancels a call
+// Emit when logged in user ends a call
 CometChatCallEvents.emitOnCallEnded(call: Call)
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 <Tabs>
 <Tab title="Remove Listener">
-```swift View Controller
+```swift
 public override func viewWillDisappear(_ animated: Bool) {
-      // Uncubscribing for the listener to listen events from user module
-      CometChatCallEvents.removeListener("LISTENER_ID_USED_FOR_ADDING_THIS_LISTENER")
+    // Unsubscribe from call events
+    CometChatCallEvents.removeListener("LISTENER_ID_USED_FOR_ADDING_THIS_LISTENER")
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 ## Customization
 
@@ -185,9 +174,9 @@ To fit your app's design requirements, you can customize the appearance of the c
 
 ### Style
 
-Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component.
+Using Style you can customize the look and feel of the component in your app. These parameters typically control elements such as the color, size, shape, and fonts used within the component.
 
-##### 1. IncomingCall Style
+#### 1. IncomingCall Style
 
 You can customize the appearance of the `IncomingCall` Component by applying the `IncomingCallStyle` to it using the following code snippet.
 
@@ -196,19 +185,19 @@ You can customize the appearance of the `IncomingCall` Component by applying the
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom avatar style
 let customAvatarStyle = AvatarStyle()
 customAvatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
 customAvatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
-                
+
+// Apply global incoming call styles
 CometChatIncomingCall.style.nameLabelFont = UIFont(name: "Times-New-Roman", size: 20)
 CometChatIncomingCall.style.callLabelFont = UIFont(name: "Times-New-Roman", size: 14)
 CometChatIncomingCall.style.acceptButtonCornerRadius = .init(cornerRadius: 8)
 CometChatIncomingCall.style.rejectButtonCornerRadius = .init(cornerRadius: 8)
 CometChatIncomingCall.avatarStyle = customAvatarStyle
 ```
-
 </Tab>
-
 </Tabs>
 
 **Instance level styling**
@@ -216,65 +205,66 @@ CometChatIncomingCall.avatarStyle = customAvatarStyle
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom avatar style
 var customAvatarStyle = AvatarStyle()
 customAvatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
 customAvatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
-                
+
+// Create custom incoming call style
 var incomingCallStyle = IncomingCallStyle()
 incomingCallStyle.nameLabelFont = UIFont(name: "Times-New-Roman", size: 20)
 incomingCallStyle.callLabelFont = UIFont(name: "Times-New-Roman", size: 14)
 incomingCallStyle.acceptButtonCornerRadius = .init(cornerRadius: 8)
 incomingCallStyle.rejectButtonCornerRadius = .init(cornerRadius: 8)
-                        
+
+// Apply styles to instance
 let incomingCall = CometChatIncomingCall()
 incomingCall.style = incomingCallStyle
 incomingCall.avatarStyle = customAvatarStyle
 ```
-
 </Tab>
-
 </Tabs>
 
 <Frame>
   <img src="/images/2dded815-incoming_call_style-e41f894682eb0af5320d0b30e20f7d91.png" />
 </Frame>
 
-List of properties exposed by IncomingCallStyle
+List of properties exposed by IncomingCallStyle:
 
-| Property                      | Description                             | Code                                              |
-| ----------------------------- | --------------------------------------- | ------------------------------------------------- |
-| `overlayBackgroundColor`      | Background color for the overlay.       | `overlayBackgroundColor: UIColor`                 |
-| `acceptButtonBackgroundColor` | Background color for the accept button. | `acceptButtonBackgroundColor: UIColor`            |
-| `rejectButtonBackgroundColor` | Background color for the reject button. | `rejectButtonBackgroundColor: UIColor`            |
-| `acceptButtonTintColor`       | Tint color for the accept button.       | `acceptButtonTintColor: UIColor`                  |
-| `rejectButtonTintColor`       | Tint color for the reject button.       | `rejectButtonTintColor: UIColor`                  |
-| `acceptButtonImage`           | Icon image for the accept button.       | `acceptButtonImage: UIImage`                      |
-| `rejectButtonImage`           | Icon image for the reject button.       | `rejectButtonImage: UIImage`                      |
-| `acceptButtonCornerRadius`    | Sets corner radius for accept button    | `acceptButtonCornerRadius: CometChatCornerStyle?` |
-| `rejectButtonCornerRadius`    | Sets corner radius for reject button    | `rejectButtonCornerRadius: CometChatCornerStyle?` |
-| `acceptButtonBorderWidth`     | Sets border width for accept button     | `acceptButtonBorderWidth: CGFloat?`               |
-| `rejectButtonBorderWidth`     | Sets border width for reject button     | `rejectButtonBorderWidth: CGFloat?`               |
-| `acceptButtonBorderColor`     | Sets border color for accept button     | `acceptButtonBorderColor: UIColor?`               |
-| `rejectButtonBorderColor`     | Sets border color for reject button     | `rejectButtonBorderColor: UIColor?`               |
-| `backgroundColor`             | Background color for the call view.     | `backgroundColor: UIColor`                        |
-| `cornerRadius`                | Corner radius for the view.             | `cornerRadius: nil`                               |
-| `borderColor`                 | Border color for the view.              | `borderColor: UIColor`                            |
-| `borderWidth`                 | Border width for the view.              | `borderWidth: CGFloat`                            |
-| `callLabelColor`              | Text color for the call label.          | `callLabelColor: UIColor`                         |
-| `callLabelFont`               | Font for the call label.                | `callLabelFont: UIFont`                           |
-| `nameLabelColor`              | Text color for the name label.          | `nameLabelColor: UIColor`                         |
-| `nameLabelFont`               | Font for the name label.                | `nameLabelFont: UIFont`                           |
+| Property | Description | Code |
+|----------|-------------|------|
+| `overlayBackgroundColor` | Background color for the overlay | `overlayBackgroundColor: UIColor` |
+| `acceptButtonBackgroundColor` | Background color for the accept button | `acceptButtonBackgroundColor: UIColor` |
+| `rejectButtonBackgroundColor` | Background color for the reject button | `rejectButtonBackgroundColor: UIColor` |
+| `acceptButtonTintColor` | Tint color for the accept button | `acceptButtonTintColor: UIColor` |
+| `rejectButtonTintColor` | Tint color for the reject button | `rejectButtonTintColor: UIColor` |
+| `acceptButtonImage` | Icon image for the accept button | `acceptButtonImage: UIImage` |
+| `rejectButtonImage` | Icon image for the reject button | `rejectButtonImage: UIImage` |
+| `acceptButtonCornerRadius` | Sets corner radius for accept button | `acceptButtonCornerRadius: CometChatCornerStyle?` |
+| `rejectButtonCornerRadius` | Sets corner radius for reject button | `rejectButtonCornerRadius: CometChatCornerStyle?` |
+| `acceptButtonBorderWidth` | Sets border width for accept button | `acceptButtonBorderWidth: CGFloat?` |
+| `rejectButtonBorderWidth` | Sets border width for reject button | `rejectButtonBorderWidth: CGFloat?` |
+| `acceptButtonBorderColor` | Sets border color for accept button | `acceptButtonBorderColor: UIColor?` |
+| `rejectButtonBorderColor` | Sets border color for reject button | `rejectButtonBorderColor: UIColor?` |
+| `backgroundColor` | Background color for the call view | `backgroundColor: UIColor` |
+| `cornerRadius` | Corner radius for the view | `cornerRadius: nil` |
+| `borderColor` | Border color for the view | `borderColor: UIColor` |
+| `borderWidth` | Border width for the view | `borderWidth: CGFloat` |
+| `callLabelColor` | Text color for the call label | `callLabelColor: UIColor` |
+| `callLabelFont` | Font for the call label | `callLabelFont: UIFont` |
+| `nameLabelColor` | Text color for the name label | `nameLabelColor: UIColor` |
+| `nameLabelFont` | Font for the name label | `nameLabelFont: UIFont` |
 
-***
+---
 
 ### Functionality
 
 These are a set of small functional customizations that allow you to fine-tune the overall experience of the component.
 
-| Property               | Description                             | Code                            |
-| ---------------------- | --------------------------------------- | ------------------------------- |
-| disableSoundForCalls   | Disables sound for incoming calls.      | `disableSoundForCalls = true`   |
-| setCustomSoundForCalls | Sets a custom sound for incoming calls. | `set(customSoundForCalls: URL)` |
+| Property | Description | Code |
+|----------|-------------|------|
+| `disableSoundForCalls` | Disables sound for incoming calls | `disableSoundForCalls = true` |
+| `setCustomSoundForCalls` | Sets a custom sound for incoming calls | `set(customSoundForCalls: URL)` |
 
 ### Advanced
 
@@ -292,20 +282,18 @@ cometChatIncomingCall.set(listItemView: { call in
     return customView
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-Demonstration
+Demonstration:
 
 <Frame>
   <img src="/images/40b34830-incomingListItem-c64bca25cd22223a9cc4c74cb1a59370.png" />
 </Frame>
 
-You can create a CustomListItemView as a custom `UIView`.
+You can create a CustomListItemView as a custom `UIView`:
 
-```swift swift
+```swift
 import UIKit
 
 class CustomListItemView: UIView {
@@ -405,11 +393,11 @@ class CustomListItemView: UIView {
 }
 ```
 
-***
+---
 
 #### SetLeadingView
 
-You can modify the leading view of a Incoming call component using the property below.
+You can modify the leading view of an Incoming call component using the property below.
 
 <Tabs>
 <Tab title="Swift">
@@ -419,18 +407,16 @@ cometChatIncomingCall.set(leadingView: { call in
     return view
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-Demonstration
+Demonstration:
 
 <Frame>
   <img src="/images/a8f3c67b-incomingLeading-b70fbea174f8314b07113482f1a481a0.png" />
 </Frame>
 
-You can create a CustomLeadingView as a custom `UIView`.
+You can create a CustomLeadingView as a custom `UIView`:
 
 <Tabs>
 <Tab title="Swift">
@@ -453,7 +439,7 @@ class CustomLeadingView: UIView {
         label.text = "PRO USER"
         label.font = UIFont.boldSystemFont(ofSize: 14)
         label.textColor = .white
-        text.textAlignment = .center
+        label.textAlignment = .center
         return label
     }()
     
@@ -489,16 +475,14 @@ class CustomLeadingView: UIView {
     }
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 #### SetTitleView
 
-You can customize the title view of a incoming call component using the property below.
+You can customize the title view of an incoming call component using the property below.
 
 <Tabs>
 <Tab title="Swift">
@@ -508,25 +492,23 @@ cometChatIncomingCall.set(titleView: { call in
     return view
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-Demonstration
+Demonstration:
 
 <Frame>
   <img src="/images/91c0b857-incomingTitle-109530b696995eed7a6f86511c640dac.png" />
 </Frame>
 
-You can create a `CustomTitleView` as a custom `UIView`. Which we will inflate in `setTitleView()`
+You can create a `CustomTitleView` as a custom `UIView` which we will inflate in `setTitleView()`:
 
 <Tabs>
 <Tab title="Swift">
 ```swift
 import UIKit
 
-class `CustomTitleView`: UIView {
+class CustomTitleView: UIView {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -597,9 +579,13 @@ class `CustomTitleView`: UIView {
     }
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
+
+## Related Components
+
+- [Outgoing Call](/ui-kit/ios/outgoing-call) - Display outgoing call interface
+- [Ongoing Call](/ui-kit/ios/ongoing-call) - Display active call interface
+- [Call Logs](/ui-kit/ios/call-logs) - Display call history
