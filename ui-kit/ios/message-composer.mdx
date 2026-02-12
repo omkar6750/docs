@@ -1,5 +1,7 @@
 ---
 title: "Message Composer"
+sidebarTitle: "Message Composer"
+description: "Enable users to write and send text, media, and custom messages using CometChat UI Kit for iOS"
 ---
 
 ## Overview
@@ -12,65 +14,62 @@ MessageComposer is a [Component](/ui-kit/ios/components-overview#components) tha
 
 MessageComposer is comprised of the following [Base Components](/ui-kit/ios/components-overview#base-components):
 
-| Base Components                                | Description                                                                                                            |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [MessageInput](/ui-kit/ios/message-input) | This provides a basic layout for the contents of this component, such as the TextField and buttons                     |
-| [ActionSheet](/ui-kit/ios/action-sheet)   | The ActionSheet component presents a list of options in either a list or grid mode, depending on the user's preference |
+| Base Components | Description |
+|-----------------|-------------|
+| [MessageInput](/ui-kit/ios/message-input) | Provides a basic layout for the contents of this component, such as the TextField and buttons |
+| [ActionSheet](/ui-kit/ios/action-sheet) | Presents a list of options in either a list or grid mode, depending on the user's preference |
+
+---
 
 ## Usage
 
 ### Integration
 
-The following code snippet illustrates how you can directly incorporate the MessageComposer component into your file.
+The following code snippet illustrates how you can directly incorporate the MessageComposer component into your application:
 
-```csharp
-// syntax for set(user: User)
+```swift
+// Create and configure the message composer
 let messageComposer = CometChatMessageComposer()
 messageComposer.set(user: user)
 messageComposer.set(parentMessageId: 20)
 ```
 
+---
+
 ### Actions
 
 [Actions](/ui-kit/ios/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### 1. onSendButtonClick
+#### 1. onSendButtonClick
 
-The `set(onSendButtonClick:)` event gets activated when the send message button is clicked. The following code snippet Overrides the action of the send button in CometChatMessageComposer.
+The `set(onSendButtonClick:)` event gets activated when the send message button is clicked. The following code snippet overrides the action of the send button in CometChatMessageComposer.
 
 <Tabs>
 <Tab title="Swift">
 ```swift
 messageComposer.set(onSendButtonClick: { message in
-// return custom action here
+    // Handle custom send action here
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+#### 2. OnTextChanged
 
-##### 2. OnTextChanged:
-
-The `set(onTextChanged:)` event gets activated when the user starts typing in message composer. This will return the text entered by the user.
+The `set(onTextChanged:)` event gets activated when the user starts typing in the message composer. This returns the text entered by the user.
 
 <Tabs>
 <Tab title="Swift">
 ```swift
-messageComposer.set(onTextChanged: { error in
-    // Handle action
+messageComposer.set(onTextChanged: { text in
+    // Handle text change action
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-***
 
-##### 3. SetOnError
+#### 3. SetOnError
 
 This method proves helpful when a user needs to customize the action taken upon encountering an error in CometChatMessageComposer.
 
@@ -78,29 +77,27 @@ This method proves helpful when a user needs to customize the action taken upon 
 <Tab title="Swift">
 ```swift
 messageComposer.set(onError { error in
-    // Override on error
+    // Handle error
 })
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 ### Filters
 
 MessageComposer component does not have any available filters.
 
-***
+---
 
 ### Events
 
-[Events](/ui-kit/ios/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
+[Events](/ui-kit/ios/components-overview#events) are emitted by a `Component`. By using events you can extend existing functionality. Being global events, they can be applied in multiple locations and are capable of being added or removed.
 
 The MessageComposer Component does not emit any events of its own.
 
-***
+---
 
 ## Customization
 
@@ -108,9 +105,9 @@ To fit your app's design requirements, you can customize the appearance of the M
 
 ### Style
 
-Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component.
+Using Style you can customize the look and feel of the component in your app. These parameters typically control elements such as the color, size, shape, and fonts used within the component.
 
-##### 1. MessageComposer Style
+#### 1. MessageComposer Style
 
 To customize the styling, you can apply the `MessageComposerStyle` to the `MessageComposer` component.
 
@@ -125,9 +122,7 @@ CometChatMessageComposer.style.voiceRecordingImageTint = UIColor(hex: "#F76808")
 CometChatMessageComposer.style.stickerTint = UIColor(hex: "#F76808")
 CometChatMessageComposer.style.aiImageTint = UIColor(hex: "#F76808")
 ```
-
 </Tab>
-
 </Tabs>
 
 **Instance level styling**
@@ -135,75 +130,77 @@ CometChatMessageComposer.style.aiImageTint = UIColor(hex: "#F76808")
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom composer style
 let customComposerStyle = MessageComposerStyle()
 customComposerStyle.activeSendButtonImageBackgroundColor = UIColor(hex: "#F76808")
 customComposerStyle.attachmentImageTint = UIColor(hex: "#F76808")
 customComposerStyle.voiceRecordingImageTint = UIColor(hex: "#F76808")
 customComposerStyle.stickerTint = UIColor(hex: "#F76808")
 customComposerStyle.aiImageTint = UIColor(hex: "#F76808")
-                
+
+// Apply to message composer instance
 let messageComposer = CometChatMessageComposer()
 messageComposer.style = customComposerStyle
 ```
-
 </Tab>
-
 </Tabs>
 
 <Frame>
   <img src="/images/26eef3a8-composer-style-5a5323348b7b81745af3c1995036d6e7.png" />
 </Frame>
 
+
 The following properties are exposed by MessageComposerStyle:
 
-| **Property**                              | **Description**                                                | **Code**                                                                                                                 |
-| ----------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Placeholder Text Font**                 | Font for the placeholder text in the input field.              | `CometChatMessageComposer.style.placeHolderTextFont = CometChatTypography.Body.regular`                                  |
-| **Placeholder Text Color**                | Color for the placeholder text in the input field.             | `CometChatMessageComposer.style.placeHolderTextColor = CometChatTheme.textColorTertiary`                                 |
-| **Text Field Color**                      | Text color for the input field.                                | `CometChatMessageComposer.style.textFiledColor = CometChatTheme.textColorPrimary`                                        |
-| **Text Field Font**                       | Font for the input field text.                                 | `CometChatMessageComposer.style.textFiledFont = CometChatTypography.Body.regular`                                        |
-| **Background Color**                      | Background color with dynamic support for light and dark mode. | `CometChatMessageComposer.style.backgroundColor = UIColor.dynamicColor(lightModeColor: ..., darkModeColor: ...)`         |
-| **Corner Radius**                         | Corner radius for the composer.                                | `CometChatMessageComposer.style.cornerRadius = CometChatCornerStyle?`                                                    |
-| **Border Width**                          | Border width for the composer.                                 | `CometChatMessageComposer.style.borderWidth = 0`                                                                         |
-| **Border Color**                          | Border color for the composer.                                 | `CometChatMessageComposer.style.borderColor = .clear`                                                                    |
-| **Send Button Image**                     | Icon for the send button.                                      | `CometChatMessageComposer.style.sendButtonImage = UIImage(named: "custom-send")`                                         |
-| **Send Button Tint Color**                | Tint color for the send button image.                          | `CometChatMessageComposer.style.sendButtonImageTint = CometChatTheme.white`                                              |
-| **Active Send Button Background Color**   | Background color for the send button when active.              | `CometChatMessageComposer.style.activeSendButtonImageBackgroundColor = CometChatTheme.primaryColor`                      |
-| **Inactive Send Button Background Color** | Background color for the send button when inactive.            | `CometChatMessageComposer.style.inactiveSendButtonImageBackgroundColor = CometChatTheme.neutralColor300`                 |
-| **Compose Box Background Color**          | Background color for the compose box.                          | `CometChatMessageComposer.style.composeBoxBackgroundColor = CometChatTheme.backgroundColor01`                            |
-| **Compose Box Border Color**              | Border color for the compose box.                              | `CometChatMessageComposer.style.composeBoxBorderColor = CometChatTheme.borderColorDefault`                               |
-| **Compose Box Border Width**              | Border width for the compose box.                              | `CometChatMessageComposer.style.composeBoxBorderWidth = 1`                                                               |
-| **Compose Box Corner Radius**             | Corner radius for the compose box.                             | `CometChatMessageComposer.style.composerBoxCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r2)`               |
-| **Compose Box Separator Color**           | Color for the separator in the compose box.                    | `CometChatMessageComposer.style.composerSeparatorColor = CometChatTheme.borderColorLight`                                |
-| **Attachment Image**                      | Icon for the attachment button.                                | `CometChatMessageComposer.style.attachmentImage = UIImage(systemName: "plus.circle")`                                    |
-| **Attachment Image Tint**                 | Tint color for the attachment image.                           | `CometChatMessageComposer.style.attachmentImageTint = CometChatTheme.iconColorSecondary`                                 |
-| **Voice Recording Image**                 | Icon for the voice recording button.                           | `CometChatMessageComposer.style.voiceRecordingImage = UIImage(systemName: "mic")?.withRenderingMode(.alwaysTemplate)`    |
-| **Voice Recording Image Tint**            | Tint color for the voice recording image.                      | `CometChatMessageComposer.style.voiceRecordingImageTint = CometChatTheme.iconColorSecondary`                             |
-| **AI Image**                              | Icon for the AI button.                                        | `CometChatMessageComposer.style.aiImage = UIImage(named: "ai-image")`                                                    |
-| **AI Image Tint**                         | Tint color for the AI image.                                   | `CometChatMessageComposer.style.aiImageTint = CometChatTheme.iconColorSecondary`                                         |
-| **Sticker Image**                         | Icon for the sticker button.                                   | `CometChatMessageComposer.style.stickerImage = UIImage(named: "sticker-image")`                                          |
-| **Sticker Image Tint**                    | Tint color for the sticker image.                              | `CometChatMessageComposer.style.stickerTint = CometChatTheme.iconColorSecondary`                                         |
-| **Edit Preview Title Font**               | Font for the title in the edit preview.                        | `CometChatMessageComposer.style.editPreviewTitleTextFont = CometChatTypography.Body.regular`                             |
-| **Edit Preview Message Font**             | Font for the message text in the edit preview.                 | `CometChatMessageComposer.style.editPreviewMessageTextFont = CometChatTypography.Caption1.regular`                       |
-| **Edit Preview Title Color**              | Text color for the title in the edit preview.                  | `CometChatMessageComposer.style.editPreviewTitleTextColor = CometChatTheme.textColorPrimary`                             |
-| **Edit Preview Message Color**            | Text color for the message in the edit preview.                | `CometChatMessageComposer.style.editPreviewMessageTextColor = CometChatTheme.textColorSecondary`                         |
-| **Edit Preview Background Color**         | Background color for the edit preview.                         | `CometChatMessageComposer.style.editPreviewBackgroundColor = CometChatTheme.backgroundColor03`                           |
-| **Edit Preview Corner Radius**            | Corner radius for the edit preview.                            | `CometChatMessageComposer.style.editPreviewCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r1)`               |
-| **Edit Preview Border Color**             | Border color for the edit preview.                             | `CometChatMessageComposer.style.editPreviewBorderColor = .clear`                                                         |
-| **Edit Preview Border Width**             | Border width for the edit preview.                             | `CometChatMessageComposer.style.editPreviewBorderWidth = 0`                                                              |
-| **Edit Preview Close Icon**               | Icon for closing the edit preview.                             | `CometChatMessageComposer.style.editPreviewCloseIcon = UIImage(systemName: "xmark")?.withRenderingMode(.alwaysTemplate)` |
-| **Edit Preview Close Icon Tint**          | Tint color for the close icon in the edit preview.             | `CometChatMessageComposer.style.editPreviewCloseIconTint = CometChatTheme.iconColorPrimary`                              |
-| **Info Icon**                             | Icon for the info button.                                      | `CometChatMessageComposer.style.infoIcon = UIImage(systemName: "info.circle")`                                           |
-| **Info Icon Tint**                        | Tint color for the info icon.                                  | `CometChatMessageComposer.style.infoIconTint = CometChatTheme.errorColor`                                                |
-| **Info Text Color**                       | Text color for the info text.                                  | `CometChatMessageComposer.style.infoTextColor = CometChatTheme.errorColor`                                               |
-| **Info Text Font**                        | Font for the info text.                                        | `CometChatMessageComposer.style.infoTextFont = CometChatTypography.Caption1.regular`                                     |
-| **Info Separator Color**                  | Color for the separator in the info section.                   | `CometChatMessageComposer.style.infoSeparatorColor = CometChatTheme.borderColorLight`                                    |
-| **Info Background Color**                 | Background color for the info section.                         | `CometChatMessageComposer.style.infoBackgroundColor = CometChatTheme.backgroundColor02`                                  |
-| **Info Corner Radius**                    | Corner radius for the info section.                            | `CometChatMessageComposer.style.infoCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r1)`                      |
-| **Info Border Color**                     | Border color for the info section.                             | `CometChatMessageComposer.style.infoBorderColor = .clear`                                                                |
-| **Info Border Width**                     | Border width for the info section.                             | `CometChatMessageComposer.style.infoBorderWidth = 0`                                                                     |
+| Property | Description | Code |
+|----------|-------------|------|
+| **Placeholder Text Font** | Font for the placeholder text in the input field | `CometChatMessageComposer.style.placeHolderTextFont = CometChatTypography.Body.regular` |
+| **Placeholder Text Color** | Color for the placeholder text in the input field | `CometChatMessageComposer.style.placeHolderTextColor = CometChatTheme.textColorTertiary` |
+| **Text Field Color** | Text color for the input field | `CometChatMessageComposer.style.textFiledColor = CometChatTheme.textColorPrimary` |
+| **Text Field Font** | Font for the input field text | `CometChatMessageComposer.style.textFiledFont = CometChatTypography.Body.regular` |
+| **Background Color** | Background color with dynamic support for light and dark mode | `CometChatMessageComposer.style.backgroundColor = UIColor.dynamicColor(lightModeColor: ..., darkModeColor: ...)` |
+| **Corner Radius** | Corner radius for the composer | `CometChatMessageComposer.style.cornerRadius = CometChatCornerStyle?` |
+| **Border Width** | Border width for the composer | `CometChatMessageComposer.style.borderWidth = 0` |
+| **Border Color** | Border color for the composer | `CometChatMessageComposer.style.borderColor = .clear` |
+| **Send Button Image** | Icon for the send button | `CometChatMessageComposer.style.sendButtonImage = UIImage(named: "custom-send")` |
+| **Send Button Tint Color** | Tint color for the send button image | `CometChatMessageComposer.style.sendButtonImageTint = CometChatTheme.white` |
+| **Active Send Button Background Color** | Background color for the send button when active | `CometChatMessageComposer.style.activeSendButtonImageBackgroundColor = CometChatTheme.primaryColor` |
+| **Inactive Send Button Background Color** | Background color for the send button when inactive | `CometChatMessageComposer.style.inactiveSendButtonImageBackgroundColor = CometChatTheme.neutralColor300` |
+| **Compose Box Background Color** | Background color for the compose box | `CometChatMessageComposer.style.composeBoxBackgroundColor = CometChatTheme.backgroundColor01` |
+| **Compose Box Border Color** | Border color for the compose box | `CometChatMessageComposer.style.composeBoxBorderColor = CometChatTheme.borderColorDefault` |
+| **Compose Box Border Width** | Border width for the compose box | `CometChatMessageComposer.style.composeBoxBorderWidth = 1` |
+| **Compose Box Corner Radius** | Corner radius for the compose box | `CometChatMessageComposer.style.composerBoxCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r2)` |
+| **Compose Box Separator Color** | Color for the separator in the compose box | `CometChatMessageComposer.style.composerSeparatorColor = CometChatTheme.borderColorLight` |
+| **Attachment Image** | Icon for the attachment button | `CometChatMessageComposer.style.attachmentImage = UIImage(systemName: "plus.circle")` |
+| **Attachment Image Tint** | Tint color for the attachment image | `CometChatMessageComposer.style.attachmentImageTint = CometChatTheme.iconColorSecondary` |
+| **Voice Recording Image** | Icon for the voice recording button | `CometChatMessageComposer.style.voiceRecordingImage = UIImage(systemName: "mic")?.withRenderingMode(.alwaysTemplate)` |
+| **Voice Recording Image Tint** | Tint color for the voice recording image | `CometChatMessageComposer.style.voiceRecordingImageTint = CometChatTheme.iconColorSecondary` |
+| **AI Image** | Icon for the AI button | `CometChatMessageComposer.style.aiImage = UIImage(named: "ai-image")` |
+| **AI Image Tint** | Tint color for the AI image | `CometChatMessageComposer.style.aiImageTint = CometChatTheme.iconColorSecondary` |
+| **Sticker Image** | Icon for the sticker button | `CometChatMessageComposer.style.stickerImage = UIImage(named: "sticker-image")` |
+| **Sticker Image Tint** | Tint color for the sticker image | `CometChatMessageComposer.style.stickerTint = CometChatTheme.iconColorSecondary` |
+| **Edit Preview Title Font** | Font for the title in the edit preview | `CometChatMessageComposer.style.editPreviewTitleTextFont = CometChatTypography.Body.regular` |
+| **Edit Preview Message Font** | Font for the message text in the edit preview | `CometChatMessageComposer.style.editPreviewMessageTextFont = CometChatTypography.Caption1.regular` |
+| **Edit Preview Title Color** | Text color for the title in the edit preview | `CometChatMessageComposer.style.editPreviewTitleTextColor = CometChatTheme.textColorPrimary` |
+| **Edit Preview Message Color** | Text color for the message in the edit preview | `CometChatMessageComposer.style.editPreviewMessageTextColor = CometChatTheme.textColorSecondary` |
+| **Edit Preview Background Color** | Background color for the edit preview | `CometChatMessageComposer.style.editPreviewBackgroundColor = CometChatTheme.backgroundColor03` |
+| **Edit Preview Corner Radius** | Corner radius for the edit preview | `CometChatMessageComposer.style.editPreviewCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r1)` |
+| **Edit Preview Border Color** | Border color for the edit preview | `CometChatMessageComposer.style.editPreviewBorderColor = .clear` |
+| **Edit Preview Border Width** | Border width for the edit preview | `CometChatMessageComposer.style.editPreviewBorderWidth = 0` |
+| **Edit Preview Close Icon** | Icon for closing the edit preview | `CometChatMessageComposer.style.editPreviewCloseIcon = UIImage(systemName: "xmark")?.withRenderingMode(.alwaysTemplate)` |
+| **Edit Preview Close Icon Tint** | Tint color for the close icon in the edit preview | `CometChatMessageComposer.style.editPreviewCloseIconTint = CometChatTheme.iconColorPrimary` |
+| **Info Icon** | Icon for the info button | `CometChatMessageComposer.style.infoIcon = UIImage(systemName: "info.circle")` |
+| **Info Icon Tint** | Tint color for the info icon | `CometChatMessageComposer.style.infoIconTint = CometChatTheme.errorColor` |
+| **Info Text Color** | Text color for the info text | `CometChatMessageComposer.style.infoTextColor = CometChatTheme.errorColor` |
+| **Info Text Font** | Font for the info text | `CometChatMessageComposer.style.infoTextFont = CometChatTypography.Caption1.regular` |
+| **Info Separator Color** | Color for the separator in the info section | `CometChatMessageComposer.style.infoSeparatorColor = CometChatTheme.borderColorLight` |
+| **Info Background Color** | Background color for the info section | `CometChatMessageComposer.style.infoBackgroundColor = CometChatTheme.backgroundColor02` |
+| **Info Corner Radius** | Corner radius for the info section | `CometChatMessageComposer.style.infoCornerRadius = .init(cornerRadius: CometChatSpacing.Radius.r1)` |
+| **Info Border Color** | Border color for the info section | `CometChatMessageComposer.style.infoBorderColor = .clear` |
+| **Info Border Width** | Border width for the info section | `CometChatMessageComposer.style.infoBorderWidth = 0` |
 
-##### 2. MediaRecorder Style
+
+#### 2. MediaRecorder Style
 
 To customize the media recording styling, you can apply the `MediaRecorderStyle` to the `MessageComposer` component. For more details, please refer to [MediaRecorder](/ui-kit/ios/component-styling#media-recorder) styles.
 
@@ -218,9 +215,7 @@ CometChatMessageComposer.mediaRecorderStyle.stopButtonCornerRadius = .init(corne
 CometChatMessageComposer.mediaRecorderStyle.recordingButtonCornerRadius = .init(cornerRadius: 8)
 CometChatMessageComposer.mediaRecorderStyle.recordingButtonBackgroundColor = UIColor(hex: "#F44649")
 ```
-
 </Tab>
-
 </Tabs>
 
 **Instance level styling**
@@ -228,6 +223,7 @@ CometChatMessageComposer.mediaRecorderStyle.recordingButtonBackgroundColor = UIC
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom media recorder style
 var mediaRecorderStyle = MediaRecorderStyle()
 mediaRecorderStyle.deleteButtonCornerRadius = .init(cornerRadius: 8)
 mediaRecorderStyle.pauseButtonCornerRadius = .init(cornerRadius: 8)
@@ -235,12 +231,11 @@ mediaRecorderStyle.stopButtonCornerRadius = .init(cornerRadius: 8)
 mediaRecorderStyle.recordingButtonCornerRadius = .init(cornerRadius: 8)
 mediaRecorderStyle.recordingButtonBackgroundColor = UIColor(hex: "#F44649")
 
+// Apply to message composer instance
 let messageComposer = CometChatMessageComposer()
 messageComposer.mediaRecorderStyle = mediaRecorderStyle
 ```
-
 </Tab>
-
 </Tabs>
 
 <Frame>
@@ -249,28 +244,29 @@ messageComposer.mediaRecorderStyle = mediaRecorderStyle
 
 The following properties are exposed by Media Recorder Style:
 
-| **Property**                       | **Description**                                         | **Code**                                                                                          |
-| ---------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **backgroundColor**                | Sets the background color of the media recorder.        | `mediaRecorderStyle.backgroundColor: UIColor = CometChatTheme.backgroundColor01`                  |
-| **borderWidth**                    | Defines the width of the border for the media recorder. | `mediaRecorderStyle.borderWidth: CGFloat = 1`                                                     |
-| **borderColor**                    | Specifies the border color of the media recorder.       | `mediaRecorderStyle.borderColor: UIColor = CometChatTheme.borderColorLight`                       |
-| **cornerRadius**                   | Configures the corner radius of the media recorder.     | `mediaRecorderStyle.cornerRadius: CometChatCornerStyle? = nil`                                    |
-| **recordingButtonBackgroundColor** | Sets the background color of the recording button.      | `mediaRecorderStyle.recordingButtonBackgroundColor: UIColor = CometChatTheme.iconColorHighlight`  |
-| **recordingButtonCornerRadius**    | Configures the corner radius of the recording button.   | `mediaRecorderStyle.recordingButtonCornerRadius: CometChatCornerStyle? = nil`                     |
-| **recordingButtonBorderWidth**     | Sets the border width of the recording button.          | `mediaRecorderStyle.recordingButtonBorderWidth: CGFloat = 0`                                      |
-| **recordingButtonBorderColor**     | Sets the border color of the recording button.          | `mediaRecorderStyle.recordingButtonBorderColor: UIColor = .clear`                                 |
-| **recordingButtonImageTintColor**  | Specifies the tint color of the recording button image. | `mediaRecorderStyle.recordingButtonImageTintColor: UIColor = CometChatTheme.white`                |
-| **recordingButtonImage**           | The image displayed on the recording button.            | `mediaRecorderStyle.recordingButtonImage: UIImage = UIImage(systemName: "mic.fill") ?? UIImage()` |
-| **deleteButtonBackgroundColor**    | Sets the background color of the delete button.         | `mediaRecorderStyle.deleteButtonBackgroundColor: UIColor = CometChatTheme.backgroundColor01`      |
-| **deleteButtonImageTintColor**     | Specifies the tint color of the delete button image.    | `mediaRecorderStyle.deleteButtonImageTintColor: UIColor = CometChatTheme.iconColorSecondary`      |
-| **deleteButtonImage**              | The image displayed on the delete button.               | `mediaRecorderStyle.deleteButtonImage: UIImage = UIImage(systemName: "trash.fill") ?? UIImage()`  |
-| **deleteButtonCornerRadius**       | Configures the corner radius of the delete button.      | `mediaRecorderStyle.deleteButtonCornerRadius: CometChatCornerStyle? = nil`                        |
-| **deleteButtonBorderWidth**        | Sets the border width of the delete button.             | `mediaRecorderStyle.deleteButtonBorderWidth: CGFloat = 1`                                         |
-| **deleteButtonBorderColor**        | Specifies the border color of the delete button.        | `mediaRecorderStyle.deleteButtonBorderColor: UIColor = CometChatTheme.borderColorLight`           |
+| Property | Description | Code |
+|----------|-------------|------|
+| **backgroundColor** | Sets the background color of the media recorder | `mediaRecorderStyle.backgroundColor: UIColor = CometChatTheme.backgroundColor01` |
+| **borderWidth** | Defines the width of the border for the media recorder | `mediaRecorderStyle.borderWidth: CGFloat = 1` |
+| **borderColor** | Specifies the border color of the media recorder | `mediaRecorderStyle.borderColor: UIColor = CometChatTheme.borderColorLight` |
+| **cornerRadius** | Configures the corner radius of the media recorder | `mediaRecorderStyle.cornerRadius: CometChatCornerStyle? = nil` |
+| **recordingButtonBackgroundColor** | Sets the background color of the recording button | `mediaRecorderStyle.recordingButtonBackgroundColor: UIColor = CometChatTheme.iconColorHighlight` |
+| **recordingButtonCornerRadius** | Configures the corner radius of the recording button | `mediaRecorderStyle.recordingButtonCornerRadius: CometChatCornerStyle? = nil` |
+| **recordingButtonBorderWidth** | Sets the border width of the recording button | `mediaRecorderStyle.recordingButtonBorderWidth: CGFloat = 0` |
+| **recordingButtonBorderColor** | Sets the border color of the recording button | `mediaRecorderStyle.recordingButtonBorderColor: UIColor = .clear` |
+| **recordingButtonImageTintColor** | Specifies the tint color of the recording button image | `mediaRecorderStyle.recordingButtonImageTintColor: UIColor = CometChatTheme.white` |
+| **recordingButtonImage** | The image displayed on the recording button | `mediaRecorderStyle.recordingButtonImage: UIImage = UIImage(systemName: "mic.fill") ?? UIImage()` |
+| **deleteButtonBackgroundColor** | Sets the background color of the delete button | `mediaRecorderStyle.deleteButtonBackgroundColor: UIColor = CometChatTheme.backgroundColor01` |
+| **deleteButtonImageTintColor** | Specifies the tint color of the delete button image | `mediaRecorderStyle.deleteButtonImageTintColor: UIColor = CometChatTheme.iconColorSecondary` |
+| **deleteButtonImage** | The image displayed on the delete button | `mediaRecorderStyle.deleteButtonImage: UIImage = UIImage(systemName: "trash.fill") ?? UIImage()` |
+| **deleteButtonCornerRadius** | Configures the corner radius of the delete button | `mediaRecorderStyle.deleteButtonCornerRadius: CometChatCornerStyle? = nil` |
+| **deleteButtonBorderWidth** | Sets the border width of the delete button | `mediaRecorderStyle.deleteButtonBorderWidth: CGFloat = 1` |
+| **deleteButtonBorderColor** | Specifies the border color of the delete button | `mediaRecorderStyle.deleteButtonBorderColor: UIColor = CometChatTheme.borderColorLight` |
 
-##### 3. AI Options Style
 
-To customize the media recording styling, you can apply the `AIOptionsStyle` to the `MessageComposer` component. For more details, please refer to [MediaRecorder](/ui-kit/ios/component-styling#media-recorder) styles.
+#### 3. AI Options Style
+
+To customize the AI options styling, you can apply the `AIOptionsStyle` to the `MessageComposer` component. For more details, please refer to [AIOptions](/ui-kit/ios/component-styling#media-recorder) styles.
 
 **Global level styling**
 
@@ -281,9 +277,7 @@ CometChatMessageComposer.aiOptionsStyle.backgroundColor = UIColor(hex: "#FFF9F5"
 CometChatMessageComposer.aiOptionsStyle.textColor = .black
 CometChatMessageComposer.aiOptionsStyle.aiImageTintColor = UIColor(hex: "#F76808")
 ```
-
 </Tab>
-
 </Tabs>
 
 **Instance level styling**
@@ -291,17 +285,17 @@ CometChatMessageComposer.aiOptionsStyle.aiImageTintColor = UIColor(hex: "#F76808
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom AI options style
 var aIOptionsStyle = AIOptionsStyle()
 aIOptionsStyle.backgroundColor = UIColor(hex: "#FFF9F5")
 aIOptionsStyle.textColor = .black
 aIOptionsStyle.aiImageTintColor = UIColor(hex: "#F76808")
 
+// Apply to message composer instance
 let messageComposer = CometChatMessageComposer()
 messageComposer.aiOptionsStyle = aIOptionsStyle
 ```
-
 </Tab>
-
 </Tabs>
 
 <Frame>
@@ -310,56 +304,57 @@ messageComposer.aiOptionsStyle = aIOptionsStyle
 
 The following properties are exposed by AI Options Style:
 
-| **Property**           | **Description**                                         | **Code**                                                                       |
-| ---------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **errorViewTextFont**  | Specifies the font used for the text in the error view. | `aIOptionsStyle.errorViewTextFont: UIFont?`                                    |
-| **errorViewTextColor** | Sets the color of the text in the error view.           | `aIOptionsStyle.errorViewTextColor: UIColor?`                                  |
-| **emptyViewTextFont**  | Specifies the font used for the text in the empty view. | `aIOptionsStyle.emptyViewTextFont: UIFont?`                                    |
-| **emptyViewTextColor** | Sets the color of the text in the empty view.           | `aIOptionsStyle.emptyViewTextColor: UIColor?`                                  |
-| **aiImageTintColor**   | Configures the tint color for AI-related images.        | `aIOptionsStyle.aiImageTintColor: UIColor = CometChatTheme.iconColorHighlight` |
-| **textColor**          | Sets the color of the text.                             | `aIOptionsStyle.textColor: UIColor = CometChatTheme.textColorPrimary`          |
-| **textFont**           | Specifies the font for the text.                        | `aIOptionsStyle.textFont: UIFont = CometChatTypography.Heading4.regular`       |
-| **backgroundColor**    | Sets the background color.                              | `aIOptionsStyle.backgroundColor: UIColor = CometChatTheme.backgroundColor01`   |
-| **borderWidth**        | Sets the width of the border.                           | `aIOptionsStyle.borderWidth: CGFloat = 0`                                      |
-| **borderColor**        | Sets the color of the border.                           | `aIOptionsStyle.borderColor: UIColor = .clear`                                 |
-| **cornerRadius**       | Configures the corner radius of the view.               | `aIOptionsStyle.cornerRadius: CometChatCornerStyle? = nil`                     |
+| Property | Description | Code |
+|----------|-------------|------|
+| **errorViewTextFont** | Specifies the font used for the text in the error view | `aIOptionsStyle.errorViewTextFont: UIFont?` |
+| **errorViewTextColor** | Sets the color of the text in the error view | `aIOptionsStyle.errorViewTextColor: UIColor?` |
+| **emptyViewTextFont** | Specifies the font used for the text in the empty view | `aIOptionsStyle.emptyViewTextFont: UIFont?` |
+| **emptyViewTextColor** | Sets the color of the text in the empty view | `aIOptionsStyle.emptyViewTextColor: UIColor?` |
+| **aiImageTintColor** | Configures the tint color for AI-related images | `aIOptionsStyle.aiImageTintColor: UIColor = CometChatTheme.iconColorHighlight` |
+| **textColor** | Sets the color of the text | `aIOptionsStyle.textColor: UIColor = CometChatTheme.textColorPrimary` |
+| **textFont** | Specifies the font for the text | `aIOptionsStyle.textFont: UIFont = CometChatTypography.Heading4.regular` |
+| **backgroundColor** | Sets the background color | `aIOptionsStyle.backgroundColor: UIColor = CometChatTheme.backgroundColor01` |
+| **borderWidth** | Sets the width of the border | `aIOptionsStyle.borderWidth: CGFloat = 0` |
+| **borderColor** | Sets the color of the border | `aIOptionsStyle.borderColor: UIColor = .clear` |
+| **cornerRadius** | Configures the corner radius of the view | `aIOptionsStyle.cornerRadius: CometChatCornerStyle? = nil` |
 
-***
+---
 
 ### Functionality
 
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can set maximum lines text area will show before scrolling in the composer, edit a message, add header view and footer view to the composer, etc.
+These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can set maximum lines the text area will show before scrolling in the composer, edit a message, add header view and footer view to the composer, and more.
 
-Below is a list of customizations along with corresponding code snippets message composer offers
+Below is a list of customizations along with corresponding code snippets that the message composer offers:
 
-| Property                          | Description                                              | Code                                       |
-| --------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
-| setInitialComposerText            | Sets the initial text in the composer when it loads.     | `setInitialComposerText("Hello")`          |
-| disableTypingEvents               | Disables sending typing indicators when the user types.  | `disableTypingEvents = true`               |
-| disableMentions                   | Disables the mention feature in the composer.            | `disableMentions = true`                   |
-| hideImageAttachmentOption         | Hides the option to attach images.                       | `hideImageAttachmentOption = true`         |
-| hideVideoAttachmentOption         | Hides the option to attach videos.                       | `hideVideoAttachmentOption = true`         |
-| hideAudioAttachmentOption         | Hides the option to attach audio files.                  | `hideAudioAttachmentOption = true`         |
-| hideFileAttachmentOption          | Hides the option to attach files.                        | `hideFileAttachmentOption = true`          |
-| hidePollsOption                   | Hides the option to create polls.                        | `hidePollsOption = true`                   |
-| hideCollaborativeDocumentOption   | Hides the option for collaborative documents.            | `hideCollaborativeDocumentOption = true`   |
-| hideCollaborativeWhiteboardOption | Hides the option for collaborative whiteboards.          | `hideCollaborativeWhiteboardOption = true` |
-| hideAttachmentButton              | Hides the attachment button in the composer.             | `hideAttachmentButton = true`              |
-| hideVoiceRecordingButton          | Hides the voice recording button.                        | `hideVoiceRecordingButton = true`          |
-| hideStickersButton                | Hides the stickers button.                               | `hideStickersButton = true`                |
-| hideSendButton                    | Hides the send button.                                   | `hideSendButton = true`                    |
-| setUser                           | Sets the user for direct messaging.                      | `set(user: User)`                          |
-| setGroup                          | Sets the group for group messaging.                      | `set(group: Group)`                        |
-| setParentMessageId                | Sets the parent message ID for replying in a thread.     | `set(parentMessageId: 12345)`              |
-| setMaxLine                        | Sets the maximum number of lines for the composer input. | `set(maxLine: 3)`                          |
-| setCustomSoundForMessages         | Sets a custom sound for sending messages.                | `set(customSoundForMessages: URL?)`        |
-| disableSoundForMessages           | Disables sound while sending messages.                   | `disableSoundForMessages = true`           |
+| Property | Description | Code |
+|----------|-------------|------|
+| setInitialComposerText | Sets the initial text in the composer when it loads | `setInitialComposerText("Hello")` |
+| disableTypingEvents | Disables sending typing indicators when the user types | `disableTypingEvents = true` |
+| disableMentions | Disables the mention feature in the composer | `disableMentions = true` |
+| hideImageAttachmentOption | Hides the option to attach images | `hideImageAttachmentOption = true` |
+| hideVideoAttachmentOption | Hides the option to attach videos | `hideVideoAttachmentOption = true` |
+| hideAudioAttachmentOption | Hides the option to attach audio files | `hideAudioAttachmentOption = true` |
+| hideFileAttachmentOption | Hides the option to attach files | `hideFileAttachmentOption = true` |
+| hidePollsOption | Hides the option to create polls | `hidePollsOption = true` |
+| hideCollaborativeDocumentOption | Hides the option for collaborative documents | `hideCollaborativeDocumentOption = true` |
+| hideCollaborativeWhiteboardOption | Hides the option for collaborative whiteboards | `hideCollaborativeWhiteboardOption = true` |
+| hideAttachmentButton | Hides the attachment button in the composer | `hideAttachmentButton = true` |
+| hideVoiceRecordingButton | Hides the voice recording button | `hideVoiceRecordingButton = true` |
+| hideStickersButton | Hides the stickers button | `hideStickersButton = true` |
+| hideSendButton | Hides the send button | `hideSendButton = true` |
+| setUser | Sets the user for direct messaging | `set(user: User)` |
+| setGroup | Sets the group for group messaging | `set(group: Group)` |
+| setParentMessageId | Sets the parent message ID for replying in a thread | `set(parentMessageId: 12345)` |
+| setMaxLine | Sets the maximum number of lines for the composer input | `set(maxLine: 3)` |
+| setCustomSoundForMessages | Sets a custom sound for sending messages | `set(customSoundForMessages: URL?)` |
+| disableSoundForMessages | Disables sound while sending messages | `disableSoundForMessages = true` |
 
-***
+
+---
 
 ### Advanced
 
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
+For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your own views, layouts, and UI elements and then incorporate those into the component.
 
 #### AttachmentOptions
 
@@ -373,9 +368,7 @@ messageComposer.set(attachmentOptions: { user, group, controller in
     return [CometChatMessageComposerAction]
 })
 ```
-
 </Tab>
-
 </Tabs>
 
 **Demonstration**
@@ -384,63 +377,69 @@ messageComposer.set(attachmentOptions: { user, group, controller in
   <img src="/images/a6158e99-attachment-option-786863a09e2a8534c9860cfbae81995c.png" />
 </Frame>
 
-In this example, we are overriding the existing MessageComposerActions List with Capture Photo actions.
+In this example, we are overriding the existing MessageComposerActions List with custom actions:
 
 <Tabs>
 <Tab title="Swift">
 ```swift
-let messageComposer  = CometChatMessageComposer()
+let messageComposer = CometChatMessageComposer()
 messageComposer.setAttachmentOptions { user, group, controller in
+    // Create custom action 1
     let customComposerAction1 = CometChatMessageComposerAction(
-                        id: "customAction1",
-                        text: "Custom Option 1",
-                        startIcon: UIImage(systemName: "play_circle"),
-                        startIconTint: .black,
-                        textColor: .black,
-                        onActionClick: {
-                            print("Custom Action 1 clicked!")
-                        }
-                    )
+        id: "customAction1",
+        text: "Custom Option 1",
+        startIcon: UIImage(systemName: "play_circle"),
+        startIconTint: .black,
+        textColor: .black,
+        onActionClick: {
+            print("Custom Action 1 clicked!")
+        }
+    )
+    
+    // Create custom action 2
     let customComposerAction2 = CometChatMessageComposerAction(
-                        id: "customAction2",
-                        text: "Custom Option 2",
-                        startIcon: UIImage(systemName: "add_box"),
-                        startIconTint: .black,
-                        textColor: .black,
-                        onActionClick: {
-                            print("Custom Action 2 clicked!")
-                        }
-                    )
+        id: "customAction2",
+        text: "Custom Option 2",
+        startIcon: UIImage(systemName: "add_box"),
+        startIconTint: .black,
+        textColor: .black,
+        onActionClick: {
+            print("Custom Action 2 clicked!")
+        }
+    )
+    
+    // Create custom action 3
     let customComposerAction3 = CometChatMessageComposerAction(
-                        id: "customAction3",
-                        text: "Custom Option 3",
-                        startIcon: UIImage(systemName: "change_circle"),
-                        startIconTint: .black,
-                        textColor: .black,
-                        onActionClick: {
-                            print("Custom Action 3 clicked!")
-                        }
-                    )
+        id: "customAction3",
+        text: "Custom Option 3",
+        startIcon: UIImage(systemName: "change_circle"),
+        startIconTint: .black,
+        textColor: .black,
+        onActionClick: {
+            print("Custom Action 3 clicked!")
+        }
+    )
+    
+    // Create custom action 4
     let customComposerAction4 = CometChatMessageComposerAction(
-                        id: "customAction4",
-                        text: "Custom Option 4",
-                        startIcon: UIImage(systemName: "sunny"),
-                        startIconTint: .black,
-                        textColor: .black,
-                        onActionClick: {
-                            print("Custom Action 4 clicked!")
-                        }
-                    )
+        id: "customAction4",
+        text: "Custom Option 4",
+        startIcon: UIImage(systemName: "sunny"),
+        startIconTint: .black,
+        textColor: .black,
+        onActionClick: {
+            print("Custom Action 4 clicked!")
+        }
+    )
 
-    return [customComposerAction1 , customComposerAction2, customComposerAction3, customComposerAction4]
-} 
+    return [customComposerAction1, customComposerAction2, customComposerAction3, customComposerAction4]
+}
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+
+---
 
 #### SendButtonView
 
@@ -449,15 +448,13 @@ By using `set(sendButtonView:)`, you can set a custom send button for the Messag
 <Tabs>
 <Tab title="Swift">
 ```swift
-let messageComposer = CustomSendButton()
+let messageComposer = CometChatMessageComposer()
 messageComposer.set(sendButtonView: { user, group in
     let view = CustomSendButton()
     return view
 })
 ```
-
 </Tab>
-
 </Tabs>
 
 **Demonstration**
@@ -483,7 +480,8 @@ class CustomSendButton: UIView {
         return button
     }()
 
-    var onPlayTapped: (() -> Void)? // Closure to handle button tap
+    // Closure to handle button tap
+    var onPlayTapped: (() -> Void)?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -509,16 +507,14 @@ class CustomSendButton: UIView {
     }
 
     @objc private func playButtonTapped() {
-        onPlayTapped?() // Executes the closure when tapped
+        onPlayTapped?()
     }
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 #### HeaderView
 
@@ -533,9 +529,7 @@ messageComposer.set(headerView: { user, group in
     return view
 })
 ```
-
 </Tab>
-
 </Tabs>
 
 **Demonstration**
@@ -553,7 +547,7 @@ class CustomHeaderView: UIView {
 
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "bell.slash.fill") // Replace with the actual image if needed
+        imageView.image = UIImage(systemName: "bell.slash.fill")
         imageView.tintColor = .purple
         imageView.contentMode = .scaleAspectFit
         return imageView
@@ -599,63 +593,66 @@ class CustomHeaderView: UIView {
     }
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+
+---
 
 #### SetTextFormatters
 
-Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel check out [CometChatMentionsFormatter](/ui-kit/ios/mentions-formatter-guide)
-
-**Example**
+Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel, check out [CometChatMentionsFormatter](/ui-kit/ios/mentions-formatter-guide).
 
 <Tabs>
 <Tab title="Swift">
 ```swift
+// Create custom composer text style for mentions
 let composerTextStyle = MentionTextStyle()
-.set(textBackgroundColor: .white)
-.set(textColor: UIColor.black)
-.set(textFont: UIFont.systemFont(ofSize: 18, weight: .heavy))
-.set(loggedInUserTextColor: UIColor.systemTeal)
-.set(loggedInUserTextFont: UIFont.systemFont(ofSize: 18, weight: .bold))
+    .set(textBackgroundColor: .white)
+    .set(textColor: UIColor.black)
+    .set(textFont: UIFont.systemFont(ofSize: 18, weight: .heavy))
+    .set(loggedInUserTextColor: UIColor.systemTeal)
+    .set(loggedInUserTextFont: UIFont.systemFont(ofSize: 18, weight: .bold))
 
+// Create custom mention formatter with the style
 let customMentionFormatter = CometChatMentionsFormatter()
-.set(composerTextStyle: composerTextStyle)
+    .set(composerTextStyle: composerTextStyle)
 
+// Configure message composer with the formatter
 let messageComposerConfiguration = MessageComposerConfiguration()
-.set(textFormatter: [customMentionFormatter])
+    .set(textFormatter: [customMentionFormatter])
 
+// Apply to CometChatMessages
 let cometChatMessages = CometChatMessages()
-.set(user: user)
-.set(messageComposerConfiguration: messageComposerConfiguration)
+    .set(user: user)
+    .set(messageComposerConfiguration: messageComposerConfiguration)
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+---
 
 <Note>
-
 To ensure that the `MessageComposer` is properly configured, passing the controller is mandatory.
-
-* Swift
 
 ```swift
 let composerView = CometChatMessageComposer()
 composerView.set(controller: UIViewController) // Passing the controller is required
 ```
-
 </Note>
 
-***
+---
 
 <Note>
-
 Ensure to pass and present `cometChatMessages`. If a navigation controller is already in use, utilize the pushViewController function instead of directly presenting the view controller.
-
 </Note>
+
+---
+
+## Next Steps
+
+- [Message List](/ui-kit/ios/message-list) — Display and customize the message list
+- [Message Header](/ui-kit/ios/message-header) — Customize the conversation header
+- [Mentions Formatter](/ui-kit/ios/mentions-formatter-guide) — Configure @mention formatting
+
+---
