@@ -1,7 +1,7 @@
 ---
 title: "Getting Started With CometChat React UI Kit"
 sidebarTitle: "Integration"
-description: "Step-by-step guide to integrate CometChat UI Kit into your React.js application with prebuilt chat components."
+description: "Step-by-step guide to integrate CometChat React UI Kit with prebuilt components, theming options, and support for one-to-one and group conversations."
 ---
 
 {/* TL;DR for Agents and Quick Reference */}
@@ -15,24 +15,23 @@ npm install @cometchat/chat-uikit-react
 
 ```tsx
 import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
-// Initialize
+// 1. Initialize
 const UIKitSettings = new UIKitSettingsBuilder()
   .setAppId("APP_ID")
   .setRegion("REGION")
   .setAuthKey("AUTH_KEY")
+  .subscribePresenceForAllUsers()
   .build();
 
-CometChatUIKit.init(UIKitSettings);
+await CometChatUIKit.init(UIKitSettings);
 
-// Login
-CometChatUIKit.login("UID");
+// 2. Login
+await CometChatUIKit.login("cometchat-uid-1");
 
-// Render components
-import { CometChatConversations, CometChatMessageList, CometChatMessageComposer } from "@cometchat/chat-uikit-react";
-<CometChatConversations onItemClick={(conversation) => setActiveChat(conversation)} />
-<CometChatMessageList user={selectedUser} />
-<CometChatMessageComposer user={selectedUser} />
+// 3. Render component
+<CometChatConversations onItemClick={(conversation) => console.log(conversation)} />
 ```
 </Info>
 
@@ -202,6 +201,14 @@ The **Auth Key** is an **optional property** of the `UIKitSettings` class. It is
 For secure authentication, use the [`Auth Token`](/ui-kit/react/methods#login-using-auth-token) method instead.
 
 </Note>
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
+</Warning>
+
+<Warning>
+You must call `CometChatUIKit.init(UIKitSettings)` before rendering any UI Kit components or calling any SDK methods. Initialization must complete before login.
+</Warning>
 
 <Tabs>
 <Tab title="TypeScript">
@@ -528,9 +535,19 @@ import { CometChatFrameProvider } from "@cometchat/ui-kit";
 
 Now that you’ve selected your **chat experience**, proceed to the **integration guide**:
 
-* **[Integrate Conversation List + Message](/ui-kit/react/react-conversation)**
-* **[Integrate One-to-One Chat](/ui-kit/react/react-one-to-one-chat)**
-* **[Integrate Tab-Based Chat](/ui-kit/react/react-tab-based-chat)**
-* **[Advanced Customizations](/ui-kit/react/theme)**
+<CardGroup cols={2}>
+  <Card title="Conversation List + Message" icon="comments" href="/ui-kit/react/react-conversation">
+    Build a two-panel layout with sidebar and message view
+  </Card>
+  <Card title="One-to-One Chat" icon="user" href="/ui-kit/react/react-one-to-one-chat">
+    Create a focused direct messaging experience
+  </Card>
+  <Card title="Tab-Based Chat" icon="table-columns" href="/ui-kit/react/react-tab-based-chat">
+    Build a multi-tab navigation interface
+  </Card>
+  <Card title="Advanced Customizations" icon="palette" href="/ui-kit/react/theme">
+    Customize themes, colors, and styling
+  </Card>
+</CardGroup>
 
-***
+---
