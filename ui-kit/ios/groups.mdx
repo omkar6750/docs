@@ -1,560 +1,583 @@
 ---
 title: "Groups"
+description: "Display and manage group chats in your iOS app"
 ---
 
-## Overview
-
-`CometChatGroups` functions as a standalone [component](/ui-kit/ios/components-overview#components) designed to create a screen displaying a list of groups, with the added functionality of enabling users to search for specific groups. Acting as a container component, CometChatGroups encapsulates and formats the `CometChatListBase` without introducing any additional behavior of its own.
+The `CometChatGroups` component displays a searchable list of groups, enabling users to browse, join, and interact with group conversations.
 
 <Frame>
   <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" />
 </Frame>
 
-The `Groups` component is composed of the following BaseComponents:
+## Prerequisites
 
-| Components                                      | Description                                                                                                                                                                                   |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [CometChatListBase](/ui-kit/ios/list-base) | `CometChatListBase` serves as a container component equipped with a title (navigationBar), search functionality (search-bar), background settings, and a container for embedding a list view. |
-| [CometChatListItem](/ui-kit/ios/list-item) | This component renders information extracted from a `Group` object onto a tile, featuring a title, subtitle, leading view, and trailing view.                                                 |
+Before using this component, ensure you have:
 
-***
+- Completed [Getting Started](/ui-kit/ios/getting-started) setup
+- User logged in with `CometChatUIKit.login()`
+- At least one group created in your CometChat dashboard
 
 ## Usage
 
-### Integration
+### Basic Implementation
 
-The following code snippet illustrates how you can can launch **CometChatGroups**.
+Display a groups list and open messages when a group is tapped:
 
-<Tabs>
-<Tab title="Swift">
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+class GroupsViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupGroups()
+    }
+    
+    private func setupGroups() {
+        let groups = CometChatGroups()
+        
+        // Handle group selection
+        groups.set(onItemClick: { [weak self] group, indexPath in
+            self?.openMessages(for: group)
+        })
+        
+        let navController = UINavigationController(rootViewController: groups)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true)
+    }
+    
+    private func openMessages(for group: Group) {
+        let messages = CometChatMessages()
+        messages.set(group: group)
+        
+        if let nav = presentedViewController as? UINavigationController {
+            nav.pushViewController(messages, animated: true)
+        }
+    }
+}
+```
+
+### Production Implementation
+
+Complete implementation with selection mode, error handling, and navigation:
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+class ProductionGroupsViewController: UIViewController {
+    
+    private var groups: CometChatGroups!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        setupGroups()
+        setupEventListeners()
+    }
+    
+    private func setupGroups() {
+        // Configure request builder for joined groups only
+        let requestBuilder = GroupsRequest.GroupsRequestBuilder(limit: 30)
+            .set(joinedOnly: true)
+        
+        groups = CometChatGroups(groupsRequestBuilder: requestBuilder)
+        
+        // Handle group tap
+        groups.set(onItemClick: { [weak self] group, indexPath in
+            self?.openGroupChat(group)
+        })
+        
+        // Handle long press for options
+        groups.set(onItemLongClick: { [weak self] group, indexPath in
+            self?.showGroupOptions(group)
+        })
+        
+        // Handle back button
+        groups.set(onBack: { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        })
+        
+        // Handle errors
+        groups.set(onError: { [weak self] error in
+            self?.showError(error)
+        })
+        
+        // Handle empty state
+        groups.set(onEmpty: { [weak self] in
+            print("No groups available")
+        })
+        
+        // Handle loaded groups
+        groups.set(onLoad: { groups in
+            print("Loaded \(groups.count) groups")
+        })
+        
+        navigationController?.pushViewController(groups, animated: true)
+    }
+    
+    private func setupEventListeners() {
+        CometChatGroupEvents.addListener("groups-vc-listener", self as CometChatGroupEventListener)
+    }
+    
+    private func openGroupChat(_ group: Group) {
+        let messages = CometChatMessages()
+        messages.set(group: group)
+        navigationController?.pushViewController(messages, animated: true)
+    }
+    
+    private func showGroupOptions(_ group: Group) {
+        let alert = UIAlertController(title: group.name, message: nil, preferredStyle: .actionSheet)
+        
+        alert.addAction(UIAlertAction(title: "View Details", style: .default) { [weak self] _ in
+            self?.showGroupDetails(group)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Leave Group", style: .destructive) { [weak self] _ in
+            self?.leaveGroup(group)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showGroupDetails(_ group: Group) {
+        let details = CometChatGroupDetails()
+        details.set(group: group)
+        navigationController?.pushViewController(details, animated: true)
+    }
+    
+    private func leaveGroup(_ group: Group) {
+        CometChat.leaveGroup(GUID: group.guid) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.groups.remove(group: group)
+            }
+        } onError: { error in
+            print("Leave group error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    private func showError(_ error: CometChatException) {
+        let alert = UIAlertController(
+            title: "Error",
+            message: error.errorDescription,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    deinit {
+        CometChatGroupEvents.removeListener("groups-vc-listener")
+    }
+}
+
+// MARK: - Group Event Listener
+extension ProductionGroupsViewController: CometChatGroupEventListener {
+    
+    func onGroupCreate(group: Group) {
+        groups.insert(group: group, at: 0)
+    }
+    
+    func onGroupDelete(group: Group) {
+        groups.remove(group: group)
+    }
+    
+    func onGroupMemberJoin(joinedUser: User, joinedGroup: Group) {
+        groups.update(group: joinedGroup)
+    }
+    
+    func onGroupMemberLeave(leftUser: User, leftGroup: Group) {
+        groups.update(group: leftGroup)
+    }
+    
+    func onGroupMemberAdd(group: Group, members: [GroupMember], addedBy: User) {
+        groups.update(group: group)
+    }
+    
+    func onGroupMemberBan(bannedUser: User, bannedGroup: Group) {
+        groups.update(group: bannedGroup)
+    }
+    
+    func onGroupMemberUnban(unbannedUserUser: User, unbannedUserGroup: Group) {
+        groups.update(group: unbannedUserGroup)
+    }
+    
+    func onGroupMemberKick(kickedUser: User, kickedGroup: Group) {
+        groups.update(group: kickedGroup)
+    }
+    
+    func onGroupMemberChangeScope(updatedBy: User, updatedUser: User, scopeChangedTo: CometChat.MemberScope, scopeChangedFrom: CometChat.MemberScope, group: Group) {
+        groups.update(group: group)
+    }
+    
+    func onOwnershipChange(group: Group?, member: GroupMember?) {
+        if let group = group {
+            groups.update(group: group)
+        }
+    }
+}
+```
+
+## Actions
+
+Actions let you customize component behavior through callbacks.
+
+| Action | Description |
+|--------|-------------|
+| `set(onItemClick:)` | Triggered when a group is tapped |
+| `set(onItemLongClick:)` | Triggered on long press |
+| `set(onBack:)` | Triggered when back button is pressed |
+| `set(onSelection:)` | Triggered when groups are selected (selection mode) |
+| `set(onError:)` | Triggered when an error occurs |
+| `set(onEmpty:)` | Triggered when the list is empty |
+| `set(onLoad:)` | Triggered when groups are loaded |
+
 ```swift
 let groups = CometChatGroups()
-let naviVC = UINavigationController(rootViewController: groups)
-self.present(naviVC, animated: true)
-```
 
-</Tab>
+groups.set(onItemClick: { group, indexPath in
+    print("Tapped: \(group.name ?? "")")
+})
 
-</Tabs>
+groups.set(onItemLongClick: { group, indexPath in
+    print("Long pressed: \(group.name ?? "")")
+})
 
-<Note>
+groups.set(onBack: {
+    print("Back button pressed")
+})
 
-If you are already using a navigation controller, you can use the `pushViewController` function instead of presenting the view controller.
+groups.set(onSelection: { selectedGroups in
+    print("Selected \(selectedGroups.count) groups")
+})
 
-</Note>
+groups.set(onError: { error in
+    print("Error: \(error.errorDescription)")
+})
 
-### Actions
+groups.set(onEmpty: {
+    print("No groups found")
+})
 
-[Actions](/ui-kit/ios/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
-
-1. ##### set(onItemClick:)
-
-`set(OnItemClick:)` is triggered when you click on a ListItem of the groups component. This `set(OnItemClick:)` method proves beneficial when a user intends to customize the on-click behavior in CometChatGroups.
-
-<Tabs>
-<Tab title="Swift">
-```swift
-cometChatGroups.set(onItemClick: { group, indexPath in
-    // Override on item click
+groups.set(onLoad: { groups in
+    print("Loaded \(groups.count) groups")
 })
 ```
 
-</Tab>
+## Filters
 
-</Tabs>
+Filter the groups list using `GroupsRequestBuilder`.
 
-***
+| Method | Type | Description |
+|--------|------|-------------|
+| `setLimit` | Int | Maximum groups per request |
+| `setSearchKeyword` | String | Filter by search term |
+| `joinedOnly` | Bool | Show only joined groups |
+| `setTags` | [String] | Filter by tags |
+| `withTags` | Bool | Include tag information |
 
-2. ##### set(OnItemLongClick:)
+### Show Only Joined Groups
 
-`set(OnItemLongClick:)` is triggered when you long press on a ListItem of the groups component. This `set(OnItemLongClick:)` method proves beneficial when a user intends to additional functionality on long press on list item in CometChatGroups.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-cometChatGroups.set(onItemLongClick: { group, indexPath in
-    // Override on item click
-})
+let requestBuilder = GroupsRequest.GroupsRequestBuilder(limit: 30)
+    .set(joinedOnly: true)
+
+let groups = CometChatGroups(groupsRequestBuilder: requestBuilder)
 ```
 
-</Tab>
+### Search Groups
 
-</Tabs>
-
-***
-
-##### 3. set(onBack:)
-
-This `set(onBack:)` method becomes valuable when a user needs to override the action triggered upon pressing the back button in CometChatGroups.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-cometChatGroups.set(onBack: {
-    // Override on back
-})
+let searchBuilder = GroupsRequest.GroupsRequestBuilder(limit: 20)
+    .set(searchKeyword: "design")
+
+let groups = CometChatGroups(groupsRequestBuilder: searchBuilder)
 ```
 
-</Tab>
+### Filter by Tags
 
-</Tabs>
-
-***
-
-##### 4. set(onSelection:)
-
-The `set(onSelection:)` only gets trigger when selection mode is set to multiple of single. And this gets trigger on every selection, and returns the list of selected groups.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
+let tagBuilder = GroupsRequest.GroupsRequestBuilder(limit: 30)
+    .set(tags: ["engineering", "marketing"])
+    .set(withTags: true)
 
-cometChatGroups.set(onSelection: { groups in
-     //Handle action
-})
+let groups = CometChatGroups(groupsRequestBuilder: tagBuilder)
 ```
 
-</Tab>
+## Events
 
-</Tabs>
+Listen for group-related events across your app.
 
-***
+| Event | Description |
+|-------|-------------|
+| `onGroupCreate` | Group was created |
+| `onGroupDelete` | Group was deleted |
+| `onGroupMemberJoin` | User joined a group |
+| `onGroupMemberLeave` | User left a group |
+| `onGroupMemberAdd` | Members were added |
+| `onGroupMemberBan` | Member was banned |
+| `onGroupMemberUnban` | Member was unbanned |
+| `onGroupMemberKick` | Member was kicked |
+| `onGroupMemberChangeScope` | Member scope changed |
+| `onOwnershipChange` | Group ownership transferred |
 
-##### 5. set(onError:)
+### Add Event Listener
 
-This method proves helpful when a user needs to customize the action taken upon encountering an error in CometChatGroups.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-cometChatGroups.set(onError: { error in
-    // Override on error
-})
-```
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
 
-</Tab>
-
-</Tabs>
-
-***
-
-##### 6. set(onEmpty:)
-
-This `set(onEmpty:)` method is triggered when the groups list is empty in CometChatGroups.
-
-<Tabs>
-<Tab title="Swift">
-```swift
-cometChatGroups.set(onEmpty: {
-    // Handle empty state
-})
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### 7. setOnLoad
-
-This set(onLoad:) gets triggered when a group list is fully fetched and going to displayed on the screen, this return the list of groups to get displayed on the screen.
-
-<Tabs>
-<Tab title="Swift">
-```swift
-cometChatGroups.set(onLoad: { groups in
-    // Handle loaded groups
-})
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Filters
-
-**Filters** allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria, allowing for a more customized. Filters can be applied using RequestBuilders of Chat SDK.
-
-##### 1. GroupsRequestBuilder
-
-The [GroupsRequestBuilder](/sdk/ios/retrieve-groups) enables you to filter and customize the group list based on available parameters in GroupsRequestBuilder. This feature allows you to create more specific and targeted queries when fetching groups. The following are the parameters available in [GroupsRequestBuilder](/sdk/ios/retrieve-groups)
-
-| Methods              | Type      | Description                                                                                                         |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
-| **setLimit**         | Int       | Configure the maximum number of groups to fetch in a single request, optimizing pagination for smoother navigation. |
-| **setSearchKeyword** | String    | Employed to retrieve groups that match the provided string, facilitating precise searches.                          |
-| **joinedOnly**       | boolean   | Exclusively fetches joined groups.                                                                                  |
-| **setTags**          | \[String] | Utilized to fetch groups containing the specified tags.                                                             |
-| **withTags**         | boolean   | Utilized to retrieve groups with specific tags.                                                                     |
-
-**Example**
-
-In the example below, we are applying a filter to the Group List based on only joined groups.
-
-<Tabs>
-<Tab title="Swift">
-```swift
-// You can create GroupRequestBuilder as per your requirement
-let groupsRequestBuilder = GroupsRequest.GroupsRequestBuilder(limit: 20).set(joinedOnly: true)
-
-let groups = CometChatGroups(groupsRequestBuilder: groupsRequestBuilder)
-let naviVC = UINavigationController(rootViewController: groups)
-self.present(naviVC, animated: true)
-```
-
-</Tab>
-
-</Tabs>
-
-##### 2. SearchRequestBuilder
-
-The SearchRequestBuilder uses [GroupsRequestBuilder](/sdk/ios/retrieve-groups) enables you to filter and customize the search list based on available parameters in GroupsRequestBuilder. This feature allows you to keep uniformity between the displayed Groups List and searched Group List.
-
-**Example**
-
-<Tabs>
-<Tab title="Swift">
-```swift
-// You can create GroupRequestBuilder as per your requirement
-let groupsRequestBuilder = GroupsRequest.GroupsRequestBuilder(limit: 2).set(searchKeyword: "")
-
-let groups = CometChatGroups(groupsRequestBuilder: groupsRequestBuilder)
-let naviVC = UINavigationController(rootViewController: groups)
-self.present(naviVC, animated: true)
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Events
-
-[Events](/ui-kit/ios/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
-
-The list of events emitted by the Groups component is as follows.
-
-| Event                        | Description                                                                                              |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **onGroupCreate**            | This gets triggered when the logged in user creates a group.                                             |
-| **onGroupDelete**            | This gets triggered when the logged in user deletes a group.                                             |
-| **onGroupMemberLeave**       | This gets triggered when the logged in user leaves a group.                                              |
-| **onGroupMemberChangeScope** | This gets triggered when the logged in user changes the scope of another group member.                   |
-| **onGroupMemberBan**         | This gets triggered when the logged in user bans a group member from the group.                          |
-| **onGroupMemberKick**        | This gets triggered when the logged in user kicks another group member from the group.                   |
-| **onGroupMemberUnban**       | This gets triggered when the logged in user unbans a user banned from the group.                         |
-| **onGroupMemberJoin**        | This gets triggered when the logged in user joins a group.                                               |
-| **onGroupMemberAdd**         | This gets triggered when the logged in user adds new members to the group.                               |
-| **onOwnershipChange**        | This gets triggered when the logged in user transfers the ownership of their group to some other member. |
-
-Adding `CometChatGroupsEvents` Listener's
-
-<Tabs>
-<Tab title="Add Listener">
-```swift
-// View controller from your project where you want to listen events.
-public class ViewController: UIViewController {
-
-   public override func viewDidLoad() {
+class GroupEventsViewController: UIViewController {
+    
+    private let listenerID = "group-events-listener"
+    
+    override func viewDidLoad() {
         super.viewDidLoad()
-
-       // Subscribing for the listener to listen events from user module
-         CometChatGroupEvents.addListener("UNIQUE_ID", self as CometChatGroupEventListener)
+        CometChatGroupEvents.addListener(listenerID, self as CometChatGroupEventListener)
     }
-
+    
+    deinit {
+        CometChatGroupEvents.removeListener(listenerID)
+    }
 }
 
- // Listener events from groups module
-extension  ViewController: CometChatGroupEventListener {
-
-    public func onGroupMemberAdd(group: Group, members: [GroupMember], addedBy: User) {
-        // Do Stuff
+extension GroupEventsViewController: CometChatGroupEventListener {
+    
+    func onGroupCreate(group: Group) {
+        print("Group created: \(group.name ?? "")")
     }
-
-    public func onCreateGroupClick() {
-         // Do Stuff
+    
+    func onGroupDelete(group: Group) {
+        print("Group deleted: \(group.name ?? "")")
     }
-
-    public func onGroupCreate(group: Group) {
-        // Do Stuff
+    
+    func onGroupMemberJoin(joinedUser: User, joinedGroup: Group) {
+        print("\(joinedUser.name ?? "") joined \(joinedGroup.name ?? "")")
     }
-
-    public func onGroupDelete(group: Group) {
-        // Do Stuff
+    
+    func onGroupMemberLeave(leftUser: User, leftGroup: Group) {
+        print("\(leftUser.name ?? "") left \(leftGroup.name ?? "")")
     }
-
-    public func onGroupMemberJoin(joinedUser: User, joinedGroup: Group) {
-        // Do Stuff
+    
+    func onGroupMemberAdd(group: Group, members: [GroupMember], addedBy: User) {
+        print("\(members.count) members added to \(group.name ?? "")")
     }
-
-    public func onGroupMemberLeave(leftUser: User, leftGroup: Group) {
-        // Do Stuff
+    
+    func onGroupMemberBan(bannedUser: User, bannedGroup: Group) {
+        print("\(bannedUser.name ?? "") banned from \(bannedGroup.name ?? "")")
     }
-
-    public func onGroupMemberBan(bannedUser: User, bannedGroup: Group) {
-         // Do Stuff
+    
+    func onGroupMemberUnban(unbannedUserUser: User, unbannedUserGroup: Group) {
+        print("\(unbannedUserUser.name ?? "") unbanned from \(unbannedUserGroup.name ?? "")")
     }
-
-    public func onGroupMemberUnban(unbannedUserUser: User, unbannedUserGroup: Group) {
-         // Do Stuff
+    
+    func onGroupMemberKick(kickedUser: User, kickedGroup: Group) {
+        print("\(kickedUser.name ?? "") kicked from \(kickedGroup.name ?? "")")
     }
-
-    public func onGroupMemberKick(kickedUser: User, kickedGroup: Group) {
-         // Do Stuff
+    
+    func onGroupMemberChangeScope(updatedBy: User, updatedUser: User, scopeChangedTo: CometChat.MemberScope, scopeChangedFrom: CometChat.MemberScope, group: Group) {
+        print("\(updatedUser.name ?? "") scope changed to \(scopeChangedTo)")
     }
-
-    public func onGroupMemberChangeScope(updatedBy: User, updatedUser: User, scopeChangedTo: CometChat.MemberScope, scopeChangedFrom: CometChat.MemberScope, group: Group) {
-          // Do Stuff
-    }
-
-    public func onOwnershipChange(group: Group?, member: GroupMember?) {
-        // Do Stuff
+    
+    func onOwnershipChange(group: Group?, member: GroupMember?) {
+        print("Ownership transferred to \(member?.name ?? "")")
     }
 }
 ```
 
-</Tab>
+### Emit Events
 
-</Tabs>
-
-```swift Emitting Group Events
-///you need to pass the [Group] object of the group which is created
-CometChatGroupEvents.emitOnGroupCreate(group: Group)
-
-///you need to pass the [Group] object of the group which is deleted
-CometChatGroupEvents.emitOnGroupDelete(group: Group)
-
-///emit this when logged in user leaves the group.
-CometChatGroupEvents.emitOnGroupMemberLeave(leftUser: User, leftGroup: Group)
-
-///emit this when group member's scope is changed by logged in user.
-CometChatGroupEvents.emitOnGroupMemberChangeScope(updatedBy: User , updatedUser: User , scopeChangedTo: CometChat.MemberScope , scopeChangedFrom: CometChat.MemberScope, group: Group)
-
-///emit this when group member is banned from the group by logged in user.
-CometChatGroupEvents.emitOnGroupMemberBan(bannedUser: User, bannedGroup: Group, bannedBy: User)
-
-///emit this when group member is kicked from the group by logged in user.
-CometChatGroupEvents.emitOnGroupMemberKick(kickedUser: User, kickedGroup: Group, kickedBy: User)
-
-///emit this when a banned group member is unbanned from group by logged in user.
-CometChatGroupEvents.emitOnGroupMemberUnban(unbannedUserUser: User, unbannedUserGroup: Group, unbannedBy: User)
-
-///emit this when logged in user has joined a group successfully.
-CometChatGroupEvents.emitOnGroupMemberJoin(joinedUser: User, joinedGroup: Group)
-
-//emit this when members are added to a group by the logged in user.
-CometChatGroupEvents.emitOnGroupMemberAdd(group: Group, members: [GroupMember], addedBy: User)
-
-///emit this when ownership is changed by logged in user.
-CometChatGroupEvents.emitOnGroupMemberChangeScope(updatedBy: User , updatedUser: User , scopeChangedTo: CometChat.MemberScope , scopeChangedFrom: CometChat.MemberScope, group: Group)
-```
-
-Removing `CometChatGroupsEvents` Listener's
-
-<Tabs>
-<Tab title="Remove Listener">
 ```swift
-public override func viewWillDisappear(_ animated: Bool) {
-       // Uncubscribing for the listener to listen events
-CometChatGroupEvents.removeListener("LISTENER_ID_USED_FOR_ADDING_THIS_LISTENER")
-}
+// Emit group created event
+CometChatGroupEvents.emitOnGroupCreate(group: group)
+
+// Emit group deleted event
+CometChatGroupEvents.emitOnGroupDelete(group: group)
+
+// Emit member joined event
+CometChatGroupEvents.emitOnGroupMemberJoin(joinedUser: user, joinedGroup: group)
+
+// Emit member left event
+CometChatGroupEvents.emitOnGroupMemberLeave(leftUser: user, leftGroup: group)
+
+// Emit members added event
+CometChatGroupEvents.emitOnGroupMemberAdd(group: group, members: members, addedBy: user)
+
+// Emit member banned event
+CometChatGroupEvents.emitOnGroupMemberBan(bannedUser: user, bannedGroup: group, bannedBy: admin)
+
+// Emit member unbanned event
+CometChatGroupEvents.emitOnGroupMemberUnban(unbannedUserUser: user, unbannedUserGroup: group, unbannedBy: admin)
+
+// Emit member kicked event
+CometChatGroupEvents.emitOnGroupMemberKick(kickedUser: user, kickedGroup: group, kickedBy: admin)
 ```
 
-</Tab>
+## Styling
 
-</Tabs>
+Customize the appearance using `GroupsStyle`.
 
-## Customization
+### Global Styling
 
-To fit your app's design requirements, you can customize the appearance of the groups component. We provide exposed methods that allow you to modify the experience and behavior according to your specific needs.
+Apply styles to all `CometChatGroups` instances:
 
-### Style
-
-Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component.
-
-##### 1. Groups Style
-
-Enhance your Groups Component by setting the GroupsStyle to customize its appearance.
-
-**Group level styling**
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let customAvatarStyle = AvatarStyle()
-customAvatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
-customAvatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
-        
+// Configure avatar style
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
+
+// Configure groups style
 CometChatGroups.style.titleColor = UIColor(hex: "#F76808")
-CometChatGroups.style.titleFont = UIFont(name: "Times-New-Roman", size: 34)
-CometChatGroups.avatarStyle = customAvatarStyle
+CometChatGroups.style.titleFont = UIFont.systemFont(ofSize: 34, weight: .bold)
+CometChatGroups.avatarStyle = avatarStyle
 ```
 
-</Tab>
+### Instance Styling
 
-</Tabs>
+Apply styles to a specific instance:
 
-**Instance level styling**
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let customAvatarStyle = AvatarStyle()
-customAvatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
-customAvatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
-        
-let groupStyle = GroupsStyle()
-groupStyle.titleColor = UIColor(hex: "#F76808")
-groupStyle.titleFont = UIFont(name: "Times-New-Roman", size: 34)
-        
-let customGroup = CometChatGroups()
-customGroup.style = groupStyle
-customGroup.avatarStyle = customAvatarStyle
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
+
+let groupsStyle = GroupsStyle()
+groupsStyle.titleColor = UIColor(hex: "#F76808")
+groupsStyle.titleFont = UIFont.systemFont(ofSize: 34, weight: .bold)
+groupsStyle.backgroundColor = .systemBackground
+groupsStyle.listItemTitleTextColor = .label
+groupsStyle.listItemSubTitleTextColor = .secondaryLabel
+
+let groups = CometChatGroups()
+groups.style = groupsStyle
+groups.avatarStyle = avatarStyle
 ```
-
-</Tab>
-
-</Tabs>
 
 <Frame>
   <img src="/images/0f67df3d-groups_style-a73d99b6006987d2582f64e9bd67fc36.png" />
 </Frame>
 
-| **Property**                              | **Description**                                                                                            | **Code**                            |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| **List Item Selected Image**              | Check box image when a list item is selected.                                                              | `listItemSelectedImage`             |
-| **List Item Deselected Image**            | Check box image when a list item is deselected.                                                            | `listItemDeSelectedImage`           |
-| **Search Icon Tint Color**                | Tint color for the search icon, defaults to the secondary icon color from CometChatTheme.                  | `searchIconTintColor`               |
-| **Search Bar Style**                      | Style of the search bar, defaulting to the standard style.                                                 | `searchBarStyle`                    |
-| **Search Tint Color**                     | Tint color for the search bar, defaults to the primary color from CometChatTheme.                          | `searchTintColor`                   |
-| **Search Bar Tint Color**                 | Background color of the search bar, defaulting to clear.                                                   | `searchBarTintColor`                |
-| **Search Bar Placeholder Text Color**     | Placeholder text color for the search bar, defaults to the tertiary text color from CometChatTheme.        | `searchBarPlaceholderTextColor`     |
-| **Search Bar Placeholder Text Font**      | Font used for the placeholder text in the search bar, defaults to regular body font.                       | `searchBarPlaceholderTextFont`      |
-| **Search Bar Text Color**                 | Color of the text entered in the search bar, defaults to the primary text color from CometChatTheme.       | `searchBarTextColor`                |
-| **Search Bar Text Font**                  | Font used for the text in the search bar, defaults to regular body font.                                   | `searchBarTextFont`                 |
-| **Search Bar Background Color**           | Background color of the search bar, defaults to a specific background color from CometChatTheme.           | `searchBarBackgroundColor`          |
-| **Search Bar Cancel Icon Tint Color**     | Tint color for the cancel icon in the search bar, defaults to the primary color from CometChatTheme.       | `searchBarCancelIconTintColor`      |
-| **Search Bar Cross Icon Tint Color**      | Tint color for the cross icon in the search bar, defaults to the secondary icon color from CometChatTheme. | `searchBarCrossIconTintColor`       |
-| **Background Color**                      | Background color of the overall view, defaults to a specific background color from CometChatTheme.         | `backgroundColor`                   |
-| **Border Width**                          | Width of the border around the view, defaults to 0 (no border).                                            | `borderWidth`                       |
-| **Border Color**                          | Color of the border around the view, defaults to clear.                                                    | `borderColor`                       |
-| **Corner Radius**                         | Corner radius settings for the view, defaults to no corner radius.                                         | `cornerRadius`                      |
-| **Title Color**                           | Color for the title text, defaults to the primary text color from CometChatTheme.                          | `titleColor`                        |
-| **Title Font**                            | Font used for the title text, defaults to nil (not set).                                                   | `titleFont`                         |
-| **Large Title Color**                     | Color for the large title text, defaults to the primary text color from CometChatTheme.                    | `largeTitleColor`                   |
-| **Large Title Font**                      | Font used for the large title text, defaults to nil (not set).                                             | `largeTitleFont`                    |
-| **Navigation Bar Tint Color**             | Background color of the navigation bar, defaults to a specific background color from CometChatTheme.       | `navigationBarTintColor`            |
-| **Navigation Bar Items Tint Color**       | Tint color for items in the navigation bar, defaults to the highlight color from CometChatTheme.           | `navigationBarItemsTintColor`       |
-| **Error Title Text Font**                 | Font used for the error title text, defaults to a bold heading 3 font from CometChatTypography.            | `errorTitleTextFont`                |
-| **Error Title Text Color**                | Color of the error title text, defaults to the primary text color from CometChatTheme.                     | `errorTitleTextColor`               |
-| **Error Subtitle Font**                   | Font used for the error subtitle text, defaults to regular body font.                                      | `errorSubTitleFont`                 |
-| **Error Subtitle Text Color**             | Color of the error subtitle text, defaults to the secondary text color from CometChatTheme.                | `errorSubTitleTextColor`            |
-| **Retry Button Text Color**               | Color for the retry button text, defaults to button text color from CometChatTheme.                        | `retryButtonTextColor`              |
-| **Retry Button Text Font**                | Font used for the retry button text, defaults to medium button font from CometChatTypography.              | `retryButtonTextFont`               |
-| **Retry Button Background Color**         | Background color for the retry button, defaults to the primary color from CometChatTheme.                  | `retryButtonBackgroundColor`        |
-| **Retry Button Border Color**             | Border color for the retry button, defaults to clear.                                                      | `retryButtonBorderColor`            |
-| **Retry Button Border Width**             | Width of the border around the retry button, defaults to 0 (no border).                                    | `retryButtonBorderWidth`            |
-| **Retry Button Corner Radius**            | Corner radius settings for the retry button, defaults to a specific corner radius from CometChatSpacing.   | `retryButtonCornerRadius`           |
-| **Empty State Title Font**                | Font used for the empty state title text, defaults to a bold heading 3 font from CometChatTypography.      | `emptyTitleTextFont`                |
-| **Empty State Title Color**               | Color of the empty state title text, defaults to the primary text color from CometChatTheme.               | `emptyTitleTextColor`               |
-| **Empty State Subtitle Font**             | Font used for the empty state subtitle text, defaults to regular body font.                                | `emptySubTitleFont`                 |
-| **Empty State Subtitle Color**            | Color of the empty state subtitle text, defaults to the secondary text color from CometChatTheme.          | `emptySubTitleTextColor`            |
-| **Table View Separator**                  | Color of the table view separator, defaults to clear.                                                      | `tableViewSeparator`                |
-| **List Item Title Text Color**            | Color of the title text in list items, defaults to the primary text color from CometChatTheme.             | `listItemTitleTextColor`            |
-| **List Item Title Font**                  | Font used for the title text in list items, defaults to medium heading 4 font from CometChatTypography.    | `listItemTitleFont`                 |
-| **List Item Subtitle Text Color**         | Color of the subtitle text in list items, defaults to the secondary text color from CometChatTheme.        | `listItemSubTitleTextColor`         |
-| **List Item Subtitle Font**               | Font used for the subtitle text in list items, defaults to regular body font.                              | `listItemSubTitleFont`              |
-| **List Item Background**                  | Background color for list items, defaults to clear.                                                        | `listItemBackground`                |
-| **List Item Selected Background**         | Background color for list items if selected, defaults to clear.                                            | `listItemSelectedBackground`        |
-| **List Item Border Width**                | Width of the border around list items, defaults to 0 (no border).                                          | `listItemBorderWidth`               |
-| **List Item Border Color**                | Color of the border around list items, defaults to the light border color from CometChatTheme.             | `listItemBorderColor`               |
-| **List Item Corner Radius**               | Corner radius settings for list items, defaults to no corner radius.                                       | `listItemCornerRadius`              |
-| **List Item Selection Image Tint**        | Tint color for the selection image in list items, defaults to the highlight color from CometChatTheme.     | `listItemSelectionImageTint`        |
-| **List Item Deselection Image Tint**      | Tint color for the deselected image in list items.                                                         | `listItemDeSelectedImageTint`       |
-| **Password Group Image Tint Color**       | Tint color for the password group image, defaults to the background color from CometChatTheme.             | `passwordGroupImageTintColor`       |
-| **Password Group Image Background Color** | Background color for the password group image, defaults to the warning color from CometChatTheme.          | `passwordGroupImageBackgroundColor` |
-| **Private Group Image Tint Color**        | Tint color for the private group image, defaults to the background color from CometChatTheme.              | `privateGroupImageTintColor`        |
-| **Private Group Image Background Color**  | Background color for the private group image, defaults to the success color from CometChatTheme.           | `privateGroupImageBackgroundColor`  |
-| **Private Group Icon**                    | Image for a private group icon.                                                                            | `privateGroupIcon`                  |
-| **Protected Group Icon**                  | Image for a protected group icon.                                                                          | `protectedGroupIcon`                |
+### Style Properties
 
-***
+| Property | Description | Code |
+|----------|-------------|------|
+| `listItemSelectedImage` | Check box image when a list item is selected | `listItemSelectedImage` |
+| `listItemDeSelectedImage` | Check box image when a list item is deselected | `listItemDeSelectedImage` |
+| `searchIconTintColor` | Tint color for the search icon | `searchIconTintColor` |
+| `searchBarStyle` | Style of the search bar | `searchBarStyle` |
+| `searchTintColor` | Tint color for the search bar | `searchTintColor` |
+| `searchBarTintColor` | Background color of the search bar | `searchBarTintColor` |
+| `searchBarPlaceholderTextColor` | Placeholder text color for the search bar | `searchBarPlaceholderTextColor` |
+| `searchBarPlaceholderTextFont` | Font for the placeholder text in the search bar | `searchBarPlaceholderTextFont` |
+| `searchBarTextColor` | Color of the text entered in the search bar | `searchBarTextColor` |
+| `searchBarTextFont` | Font for the text in the search bar | `searchBarTextFont` |
+| `searchBarBackgroundColor` | Background color of the search bar | `searchBarBackgroundColor` |
+| `searchBarCancelIconTintColor` | Tint color for the cancel icon in the search bar | `searchBarCancelIconTintColor` |
+| `searchBarCrossIconTintColor` | Tint color for the cross icon in the search bar | `searchBarCrossIconTintColor` |
+| `backgroundColor` | Background color of the overall view | `backgroundColor` |
+| `borderWidth` | Width of the border around the view | `borderWidth` |
+| `borderColor` | Color of the border around the view | `borderColor` |
+| `cornerRadius` | Corner radius settings for the view | `cornerRadius` |
+| `titleColor` | Color for the title text | `titleColor` |
+| `titleFont` | Font used for the title text | `titleFont` |
+| `largeTitleColor` | Color for the large title text | `largeTitleColor` |
+| `largeTitleFont` | Font used for the large title text | `largeTitleFont` |
+| `navigationBarTintColor` | Background color of the navigation bar | `navigationBarTintColor` |
+| `navigationBarItemsTintColor` | Tint color for items in the navigation bar | `navigationBarItemsTintColor` |
+| `errorTitleTextFont` | Font used for the error title text | `errorTitleTextFont` |
+| `errorTitleTextColor` | Color of the error title text | `errorTitleTextColor` |
+| `errorSubTitleFont` | Font used for the error subtitle text | `errorSubTitleFont` |
+| `errorSubTitleTextColor` | Color of the error subtitle text | `errorSubTitleTextColor` |
+| `retryButtonTextColor` | Color for the retry button text | `retryButtonTextColor` |
+| `retryButtonTextFont` | Font used for the retry button text | `retryButtonTextFont` |
+| `retryButtonBackgroundColor` | Background color for the retry button | `retryButtonBackgroundColor` |
+| `retryButtonBorderColor` | Border color for the retry button | `retryButtonBorderColor` |
+| `retryButtonBorderWidth` | Width of the border around the retry button | `retryButtonBorderWidth` |
+| `retryButtonCornerRadius` | Corner radius settings for the retry button | `retryButtonCornerRadius` |
+| `emptyTitleTextFont` | Font used for the empty state title text | `emptyTitleTextFont` |
+| `emptyTitleTextColor` | Color of the empty state title text | `emptyTitleTextColor` |
+| `emptySubTitleFont` | Font used for the empty state subtitle text | `emptySubTitleFont` |
+| `emptySubTitleTextColor` | Color of the empty state subtitle text | `emptySubTitleTextColor` |
+| `tableViewSeparator` | Color of the table view separator | `tableViewSeparator` |
+| `listItemTitleTextColor` | Color of the title text in list items | `listItemTitleTextColor` |
+| `listItemTitleFont` | Font used for the title text in list items | `listItemTitleFont` |
+| `listItemSubTitleTextColor` | Color of the subtitle text in list items | `listItemSubTitleTextColor` |
+| `listItemSubTitleFont` | Font used for the subtitle text in list items | `listItemSubTitleFont` |
+| `listItemBackground` | Background color for list items | `listItemBackground` |
+| `listItemSelectedBackground` | Background color for list items if selected | `listItemSelectedBackground` |
+| `listItemBorderWidth` | Width of the border around list items | `listItemBorderWidth` |
+| `listItemBorderColor` | Color of the border around list items | `listItemBorderColor` |
+| `listItemCornerRadius` | Corner radius settings for list items | `listItemCornerRadius` |
+| `listItemSelectionImageTint` | Tint color for the selection image in list items | `listItemSelectionImageTint` |
+| `listItemDeSelectedImageTint` | Tint color for the deselected image in list items | `listItemDeSelectedImageTint` |
+| `passwordGroupImageTintColor` | Tint color for the password group image | `passwordGroupImageTintColor` |
+| `passwordGroupImageBackgroundColor` | Background color for the password group image | `passwordGroupImageBackgroundColor` |
+| `privateGroupImageTintColor` | Tint color for the private group image | `privateGroupImageTintColor` |
+| `privateGroupImageBackgroundColor` | Background color for the private group image | `privateGroupImageBackgroundColor` |
+| `privateGroupIcon` | Image for a private group icon | `privateGroupIcon` |
+| `protectedGroupIcon` | Image for a protected group icon | `protectedGroupIcon` |
 
-### Functionality
+## Functionality
 
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
+Configure component behavior with these properties and methods:
 
-Below is a list of customizations along with corresponding code snippets
+| Method | Description | Code |
+|--------|-------------|------|
+| `set(groupsRequestBuilder:)` | Sets the request builder for fetching groups | `set(groupsRequestBuilder: requestBuilder)` |
+| `set(searchRequestBuilder:)` | Sets the request builder for searching groups | `set(searchRequestBuilder: searchRequestBuilder)` |
+| `set(searchKeyword:)` | Sets the search keyword to filter groups | `set(searchKeyword: "group_name")` |
+| `hideErrorView` | Hides the error state view | `hideErrorView = true` |
+| `hideNavigationBar` | Hides or shows the navigation bar | `hideNavigationBar = true` |
+| `hideSearch` | Hides the search bar | `hideSearch = true` |
+| `hideBackButton` | Hides the back button | `hideBackButton = true` |
+| `hideLoadingState` | Hides the loading state indicator | `hideLoadingState = true` |
+| `hideReceipts` | Hides message read/delivery receipts | `hideReceipts = true` |
+| `hideDeleteConversationOption` | Hides the option to delete a conversation | `hideDeleteConversationOption = true` |
+| `hideUserStatus` | Hides the online/offline status of users | `hideUserStatus = true` |
+| `hideGroupType` | Hides the group type (private/public) | `hideGroupType = true` |
 
-| Method                       | Description                                    | Code                                              |
-| ---------------------------- | ---------------------------------------------- | ------------------------------------------------- |
-| set(groupsRequestBuilder:)   | Sets the request builder for fetching groups.  | `set(groupsRequestBuilder: requestBuilder)`       |
-| set(searchRequestBuilder:)   | Sets the request builder for searching groups. | `set(searchRequestBuilder: searchRequestBuilder)` |
-| set(searchKeyword:)          | Sets the search keyword to filter groups.      | `set(searchKeyword: "group_name")`                |
-| hideErrorView                | Hides the error state view.                    | `hideErrorView = true`                            |
-| hideNavigationBar            | Hides or shows the navigation bar.             | `hideNavigationBar = true`                        |
-| hideSearch                   | Hides the search bar.                          | `hideSearch = true`                               |
-| hideBackButton               | Hides the back button.                         | `hideBackButton = true`                           |
-| hideLoadingState             | Hides the loading state indicator.             | `hideLoadingState = true`                         |
-| hideReceipts                 | Hides message read/delivery receipts.          | `hideReceipts = true`                             |
-| hideDeleteConversationOption | Hides the option to delete a conversation.     | `hideDeleteConversationOption = true`             |
-| hideUserStatus               | Hides the online/offline status of users.      | `hideUserStatus = true`                           |
-| hideGroupType                | Hides the group type (private/public).         | `hideGroupType = true`                            |
+```swift
+let groups = CometChatGroups()
+groups.hideSearch = true
+groups.hideGroupType = false
+groups.hideBackButton = true
+groups.hideErrorView = false
+groups.hideLoadingState = false
+```
 
-***
+## Custom Views
 
-### Advanced
+### SetOptions
 
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
+You can define custom options for each group using `.set(options:)`. This method allows you to return an array of `CometChatGroupOption` based on the group object.
 
-***
-
-#### SetOptions
-
-You can define custom options for each group using .set(options:). This method allows you to return an array of CometChatGroupOption based on the group object.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroups.set(options: { group in  
     return [CometChatGroupOptions]  
 })  
 ```
 
-</Tab>
+### AddOptions
 
-</Tabs>
+You can dynamically add options to groups using `.add(options:)`. This method lets you return additional `CometChatGroupOption` elements.
 
-***
-
-#### AddOptions
-
-You can dynamically add options to groups using .add(options:). This method lets you return additional CometChatGroupOption elements.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroups.add(options: { group in  
     return [ArchiveOption()]  
 })  
 ```
 
-</Tab>
-
-</Tabs>
-
-***
-
-#### SetListItemView
+### SetListItemView
 
 With this function, you can assign a custom ListItem to the groups Component.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 let cometChatGroups = CometChatGroups()
 cometChatGroups.set(listItemView: { group in
@@ -563,51 +586,52 @@ cometChatGroups.set(listItemView: { group in
 })
 ```
 
-</Tab>
+### Custom List Item
 
-</Tabs>
+Replace the default group cell with a custom view:
 
-Demonstration
+```swift
+let groups = CometChatGroups()
+groups.set(listItemView: { group in
+    let customView = CustomGroupCell()
+    customView.configure(with: group)
+    return customView
+})
+```
 
 <Frame>
   <img src="/images/699f4044-group_list_item-2e7419d48b8185e5effd6cfd19e340b7.png" />
 </Frame>
 
-You can create a `CustomListItemView` as a custom `UIView`. Which we will inflate in `setListItemView()`
-
-```swift swift
+```swift
 import UIKit
 import CometChatSDK
-import CometChatUIKitSwift
 
-class GroupCellView: UIView {
-    
-    // MARK: - Properties
+class CustomGroupCell: UIView {
     
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.layer.cornerRadius = 20 // Circular avatar
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 20
         imageView.clipsToBounds = true
+        imageView.backgroundColor = .systemGray5
         return imageView
     }()
     
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
-        label.textColor = .black
-        label.numberOfLines = 1
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .label
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
+    private let membersLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        label.textColor = .darkGray
-        label.numberOfLines = 1
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
         return label
     }()
     
@@ -615,16 +639,12 @@ class GroupCellView: UIView {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("JOIN", for: .normal)
-        button.setTitleColor(.systemBlue, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        button.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
         button.layer.cornerRadius = 12
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.systemBlue.cgColor
-        button.clipsToBounds = true
         return button
     }()
-    
-    // MARK: - Initializers
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -636,40 +656,26 @@ class GroupCellView: UIView {
         setupView()
     }
     
-    // MARK: - Setup
-    
     private func setupView() {
-        // Add subviews
         addSubview(avatarImageView)
         addSubview(titleLabel)
-        addSubview(subtitleLabel)
+        addSubview(membersLabel)
         addSubview(joinButton)
         
-        // Constraints for avatarImageView
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             avatarImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             avatarImageView.widthAnchor.constraint(equalToConstant: 40),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 40)
-        ])
-        
-        // Constraints for titleLabel
-        NSLayoutConstraint.activate([
+            avatarImageView.heightAnchor.constraint(equalToConstant: 40),
+            
             titleLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 12),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: joinButton.leadingAnchor, constant: -8)
-        ])
-        
-        // Constraints for subtitleLabel
-        NSLayoutConstraint.activate([
-            subtitleLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 12),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: joinButton.leadingAnchor, constant: -8),
-            subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
-        ])
-        
-        // Constraints for joinButton
-        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: joinButton.leadingAnchor, constant: -8),
+            
+            membersLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 12),
+            membersLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            membersLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            
             joinButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             joinButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             joinButton.widthAnchor.constraint(equalToConstant: 60),
@@ -677,27 +683,32 @@ class GroupCellView: UIView {
         ])
     }
     
-    // MARK: - Configuration
-    
-    func configure(avatar: UIImage?, title: String, subtitle: String, isJoined: Bool) {
-        avatarImageView.image = avatar
-        titleLabel.text = title
-        subtitleLabel.text = subtitle
+    func configure(with group: Group) {
+        titleLabel.text = group.name
+        membersLabel.text = "\(group.membersCount) members"
+        
+        if let iconURL = group.icon, let url = URL(string: iconURL) {
+            URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.avatarImageView.image = image
+                    }
+                }
+            }.resume()
+        }
+        
+        let isJoined = group.hasJoined
         joinButton.setTitle(isJoined ? "JOINED" : "JOIN", for: .normal)
-        joinButton.setTitleColor(isJoined ? .gray : .systemBlue, for: .normal)
-        joinButton.layer.borderColor = isJoined ? UIColor.gray.cgColor : UIColor.systemBlue.cgColor
+        joinButton.setTitleColor(isJoined ? .systemGray : .systemBlue, for: .normal)
+        joinButton.layer.borderColor = isJoined ? UIColor.systemGray.cgColor : UIColor.systemBlue.cgColor
     }
 }
 ```
 
-***
+### SetLeadingView
 
-#### SetLeadingView
+You can modify the leading view of a group cell using `.set(leadingView:)`.
 
-You can modify the leading view of a group cell using .set(leadingView:).
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroups.set(leadingView: { group in  
     let view = CustomLeadingView()
@@ -705,20 +716,12 @@ cometChatGroups.set(leadingView: { group in
 })  
 ```
 
-</Tab>
-
-</Tabs>
-
-Demonstration
-
 <Frame>
   <img src="/images/7262c876-groupLeading-0104027a201b630d2a22c675886e8f17.png" />
 </Frame>
 
-You can create a `CustomLeadingView` as a custom `UIView`. Which we will inflate in `setLeadingView()`
+You can create a `CustomLeadingView` as a custom `UIView`. Which we will inflate in `setLeadingView()`:
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 import UIKit
 
@@ -758,23 +761,15 @@ class CustomLeadingView: UIView {
         addSubview(joinButton)
 
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
-        joinButton.translatesAutoresizingMask
+        joinButton.translatesAutoresizingMaskIntoConstraints = false
     }
 }
 ```
 
-</Tab>
+### SetTitleView
 
-</Tabs>
+You can customize the title view of a group cell using `.set(titleView:)`.
 
-***
-
-#### SetTitleView
-
-You can customize the title view of a group cell using .set(titleView:).
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroups.set(titleView: { group in  
     let view = CustomTitleView()
@@ -782,22 +777,14 @@ cometChatGroups.set(titleView: { group in
 })  
 ```
 
-</Tab>
-
-</Tabs>
-
-Demonstration
-
 <Frame>
   <img src="/images/adc31834-groupTitle-be2f9110dcb78618c2505a5ab2944b8e.png" />
 </Frame>
 
-You can create a `CustomTitleView` as a custom `UIView`. Which we will inflate in `setTitleView()`
+You can create a `CustomTitleView` as a custom `UIView`. Which we will inflate in `setTitleView()`:
 
-<Tabs>
-<Tab title="Swift">
 ```swift
- class CustomTitleView: UIView {
+class CustomTitleView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -865,18 +852,10 @@ You can create a `CustomTitleView` as a custom `UIView`. Which we will inflate i
 }
 ```
 
-</Tab>
+### SetTrailView
 
-</Tabs>
+You can modify the trailing view of a group cell using `.set(trailView:)`.
 
-***
-
-#### SetTrailView
-
-You can modify the trailing view of a group cell using .set(trailView:).
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroups.set(trailView: { group in  
     let view = CustomTrailView() 
@@ -884,22 +863,14 @@ cometChatGroups.set(trailView: { group in
 })  
 ```
 
-</Tab>
-
-</Tabs>
-
-Demonstration
-
 <Frame>
   <img src="/images/146de2e1-groupTrail-2cd0321d94d83b2b9194d6182ef5bdde.png" />
 </Frame>
 
-You can create a `CustomTrailView` as a custom `UIView`. Which we will inflate in `setTrailView()`
+You can create a `CustomTrailView` as a custom `UIView`. Which we will inflate in `setTrailView()`:
 
-<Tabs>
-<Tab title="Swift">
 ```swift
- import UIKit
+import UIKit
 
 class CustomTrailView: UIView {
 
@@ -935,22 +906,12 @@ class CustomTrailView: UIView {
         ])
     }
 }
-
- 
 ```
 
-</Tab>
+### SetSubTitleView
 
-</Tabs>
+You can customize the subtitle view for each group item to meet your requirements:
 
-***
-
-#### SetSubTitleView
-
-You can customize the subtitle view for each group item to meet your requirements
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 cometChatGroup.set(subtitleView: { group in
    let view = CustomSubtitleView()
@@ -958,22 +919,12 @@ cometChatGroup.set(subtitleView: { group in
 })
 ```
 
-</Tab>
-
-</Tabs>
-
-**Example**
-
-Demonstration
-
 <Frame>
   <img src="/images/da6d6843-groups_subtitle_view-6e73eb325145dd0670dc66bbf32e41d0.png" />
 </Frame>
 
-You can seamlessly integrate this `CustomSubtitleView` UIView file into the `.set(subtitleView:)` method within CometChatGroups.
+You can seamlessly integrate this `CustomSubtitleView` UIView file into the `.set(subtitleView:)` method within CometChatGroups:
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 import UIKit
 
@@ -993,36 +944,20 @@ class CustomSubtitleView: UILabel {
 }
 ```
 
-</Tab>
+### SetLoadingView
 
-</Tabs>
+You can set a custom loading view using `.set(loadingView:)`. This method accepts a UIView to display while data is being fetched.
 
-***
-
-#### SetLoadingView
-
-You can set a custom loading view using .set(loadingView:). This method accepts a UIView to display while data is being fetched.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 let loadingIndicator = UIActivityIndicatorView(style: .medium)  
 loadingIndicator.startAnimating()  
 cometChatGroups.set(loadingView: loadingIndicator)  
 ```
 
-</Tab>
+### SetErrorView
 
-</Tabs>
+You can customize the error view using `.set(errorView:)`. This method accepts a UIView that appears when an error occurs.
 
-***
-
-#### SetErrorView
-
-You can customize the error view using .set(errorView:). This method accepts a UIView that appears when an error occurs.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 let errorLabel = UILabel()  
 errorLabel.text = "Something went wrong!"  
@@ -1030,18 +965,10 @@ errorLabel.textColor = .red
 cometChatGroups.set(errorView: errorLabel)  
 ```
 
-</Tab>
+### SetEmptyView
 
-</Tabs>
+You can customize the empty state view using `.set(emptyView:)`. This method accepts a UIView that appears when no groups are available.
 
-***
-
-#### SetEmptyView
-
-You can customize the empty state view using .set(emptyView:). This method accepts a UIView that appears when no groups are available.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 let emptyLabel = UILabel()  
 emptyLabel.text = "No groups found"  
@@ -1050,8 +977,65 @@ emptyLabel.textAlignment = .center
 cometChatGroups.set(emptyView: emptyLabel)  
 ```
 
-</Tab>
+## Group Options
 
-</Tabs>
+Add custom swipe actions to group cells.
 
-***
+### Set Options
+
+Replace default options:
+
+```swift
+groups.set(options: { group in
+    let leaveOption = CometChatGroupOption(
+        id: "leave",
+        title: "Leave",
+        icon: UIImage(systemName: "arrow.right.square"),
+        backgroundColor: .systemRed
+    ) { group in
+        // Handle leave action
+    }
+    return [leaveOption]
+})
+```
+
+### Add Options
+
+Add options to existing ones:
+
+```swift
+groups.add(options: { group in
+    let archiveOption = CometChatGroupOption(
+        id: "archive",
+        title: "Archive",
+        icon: UIImage(systemName: "archivebox"),
+        backgroundColor: .systemOrange
+    ) { group in
+        // Handle archive action
+    }
+    return [archiveOption]
+})
+```
+
+## Component Structure
+
+| Component | Description |
+|-----------|-------------|
+| [CometChatListBase](/ui-kit/ios/list-base) | Container with navigation bar and search |
+| [CometChatListItem](/ui-kit/ios/list-item) | Individual group cell |
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Groups not loading | Verify user is logged in and has proper permissions |
+| Search not working | Check `searchRequestBuilder` configuration |
+| Events not firing | Ensure listener is added before actions occur |
+| Styling not applied | Apply styles before presenting the component |
+| Custom views not showing | Return non-nil UIView from closure |
+
+## Related Components
+
+- [Group Members](/ui-kit/ios/group-members) - Display group member list
+- [Conversations](/ui-kit/ios/conversations) - Display conversation list
+- [Users](/ui-kit/ios/users) - Display user list
