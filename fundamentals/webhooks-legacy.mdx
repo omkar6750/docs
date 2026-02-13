@@ -1,10 +1,113 @@
 ---
-title: "Events"
+title: "Webhooks (Legacy)"
+sidebarTitle: "Webhooks (Legacy)"
 ---
 
-## Message events
+<Warning>
 
-### before\_message
+**Legacy Notice**: Legacy extensions are no longer actively maintained and will not receive feature updates or enhancements.
+
+For new projects, use **[Webhooks](/fundamentals/webhooks-overview)**.
+
+</Warning>
+
+CometChat legacy webhooks enable real-time event-driven communication with your system. They allow you to receive HTTP POST requests whenever specific events occur—such as sending a message or a user coming online. These webhooks are ideal for integrating external services like SMS, email, analytics, or auditing systems.
+
+***
+
+## Webhook Endpoint Requirements
+
+To ensure reliable delivery and security, your webhook endpoint must meet the following requirements:
+
+1. **HTTPS required**: Your endpoint must use `HTTPS` to ensure secure data transmission.
+2. **Public accessibility**: It must be accessible from the public internet.
+3. **Support for POST requests**: The endpoint must accept `HTTP POST` requests with a `Content-Type` of `application/json`.
+4. **Immediate acknowledgment**: Your server must respond with an `HTTP 200 OK` status quickly to acknowledge receipt.
+
+***
+
+## Security
+
+It is strongly recommended to use **Basic Authentication** to protect your webhook endpoints.
+
+### Header format
+
+When enabled, every webhook request from CometChat will include the following HTTP header:
+
+```html
+Authorization: Basic <Base64-encoded-credentials>
+```
+
+> Set your username and password while configuring the webhook on the CometChat dashboard.
+
+***
+
+## Legacy webhook events
+
+Below are the legacy webhook events supported by CometChat:
+
+| Event | Description |
+| --- | --- |
+| [before_message](#before_message) | Triggered when a message is in-flight—just before it is processed by CometChat. |
+| [after_message](#after_message) | Triggered after a message has been successfully sent. |
+| [message_delivery_receipt](#message_delivery_receipt) | Triggered when a message is marked as delivered to a user. |
+| [message_read_receipt](#message_read_receipt) | Triggered when a message is marked as read by the recipient. |
+| [user_connection_status_change](#user_connection_status_change) | Triggered when a user connects or disconnects from the CometChat platform. |
+
+***
+
+## Manage legacy webhooks
+
+You can manage and configure legacy webhooks in CometChat either from the **dashboard UI** or programmatically via **Management APIs**.
+
+### Option 1: Manage from the dashboard
+
+<Frame>
+  <img src="/images/fc715a61-legacy-webhooks-add-new-1492f0a84c8eee116aef5f4bcca26365.png" />
+</Frame>
+
+### Steps
+
+1. Log in to your [CometChat Dashboard](https://app.cometchat.com/login) and select your app.
+2. Go to **Settings** > **Legacy Webhooks** from the left menu.
+3. Click on **Add New Webhook**.
+4. Fill in the configuration:
+   * **Webhook ID**: A unique identifier for your webhook.
+   * **URL**: Endpoint where event payloads will be delivered.
+   * **Triggers**: Select the events you want to receive.
+   * **Security**: (Recommended) Enable authentication.
+5. Enable the webhook.
+6. Save the configuration.
+
+### Option 2: Manage via Management APIs
+
+CometChat also provides Management APIs to automate webhook and trigger management.
+
+#### Webhook management endpoints
+
+| Operation | API Reference |
+| --- | --- |
+| Create a new webhook | [Create Webhook](https://api-explorer.cometchat.com/reference/create-webhook) |
+| Update an existing webhook | [Update Webhook](https://api-explorer.cometchat.com/reference/update-webhook) |
+| List all webhooks | [List Webhooks](https://api-explorer.cometchat.com/reference/list-webhooks) |
+| Get a webhook by ID | [Get Webhook](https://api-explorer.cometchat.com/reference/get-webhook) |
+| Delete a webhook | [Delete Webhook](https://api-explorer.cometchat.com/reference/delete-webhook) |
+
+#### Trigger management endpoints
+
+| Operation | API Reference |
+| --- | --- |
+| Add triggers to a webhook | [Add Triggers](https://api-explorer.cometchat.com/reference/add-triggers) |
+| List all triggers of a webhook | [List Triggers](https://api-explorer.cometchat.com/reference/list-triggers) |
+| Remove triggers from a webhook | [Remove Triggers](https://api-explorer.cometchat.com/reference/remove-triggers) |
+
+***
+
+## Event payloads
+
+### Message events
+
+#### before_message
 
 The endpoint will be triggered when a message is in-flight.
 
@@ -51,7 +154,7 @@ The endpoint will be triggered when a message is in-flight.
 }
 ```
 
-### after\_message
+#### after_message
 
 The endpoint will be triggered after a message is sent.
 
@@ -99,7 +202,7 @@ The endpoint will be triggered after a message is sent.
 }
 ```
 
-### message\_delivery\_receipt
+#### message_delivery_receipt
 
 The endpoint will be triggered when a message is marked delivered.
 
@@ -125,7 +228,7 @@ The endpoint will be triggered when a message is marked delivered.
 }
 ```
 
-### message\_read\_receipt
+#### message_read_receipt
 
 The endpoint will be triggered when a message is marked read.
 
@@ -151,9 +254,9 @@ The endpoint will be triggered when a message is marked read.
 }
 ```
 
-## User-related events
+### User-related events
 
-### user\_connection\_status\_change
+#### user_connection_status_change
 
 The endpoint will be triggered when a users logs in or logs out of CometChat.
 
