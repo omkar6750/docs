@@ -1,6 +1,38 @@
 ---
 title: "Message Template"
+description: "A blueprint for defining and customizing message bubble structure, appearance, and behavior in the chat interface."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatUIKit, CometChatMessageTemplate, CometChatUIKitConstants } from "@cometchat/chat-uikit-react";
+
+// Get all existing templates
+const templates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+
+// Customize a specific template (e.g., text messages)
+templates.forEach((template) => {
+  if (template.type === CometChatUIKitConstants.MessageTypes.text) {
+    template.headerView = (message) => <CustomHeader message={message} />;
+    template.contentView = (message) => <CustomContent message={message} />;
+    template.footerView = (message) => <CustomFooter message={message} />;
+  }
+});
+
+// Create a custom message template
+const customTemplate = new CometChatMessageTemplate({
+  type: "customType",
+  category: CometChatUIKitConstants.MessageCategory.custom,
+  contentView: (message) => <CustomView message={message} />,
+});
+
+// Apply templates to MessageList
+<CometChatMessageList user={chatUser} templates={templates} />
+```
+</Info>
 
 ## Overview
 
@@ -1933,3 +1965,22 @@ export { CustomMessageTemplate };
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Display messages using custom templates
+  </Card>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Add message input and sending capabilities
+  </Card>
+  <Card title="Custom Text Formatter" icon="code" href="/ui-kit/react/custom-text-formatter-guide">
+    Create custom text formatting rules
+  </Card>
+  <Card title="Theme Customization" icon="palette" href="/ui-kit/react/theme">
+    Customize colors, fonts, and styling
+  </Card>
+</CardGroup>

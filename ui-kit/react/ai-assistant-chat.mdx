@@ -1,6 +1,31 @@
 ---
 title: "AI Assistant Chat"
+description: "A composite component that provides an AI agent chat experience with streaming responses, quick starter suggestions, and chat history."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+
+// Minimal usage - requires an AI agent user
+<CometChatAIAssistantChat user={agent} />
+
+// With common props
+<CometChatAIAssistantChat
+  user={agent}
+  streamingSpeed={30}
+  suggestedMessages={["Help me", "Summarize"]}
+  showCloseButton={true}
+  onCloseButtonClicked={() => console.log("Closed")}
+/>
+```
+
+Related: [AI Features](/ui-kit/react/ai-features) | [Message List](/ui-kit/react/message-list)
+</Info>
 
 ## Overview
 
@@ -10,8 +35,12 @@ title: "AI Assistant Chat"
   <img src="/images/react-uikit_ai-assistant-chat-overview.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
 <Tabs>
-<Tab title="AIAssistantChatDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -33,21 +62,31 @@ export function AIAssistantChatDemo() {
         </>
     ); 
 }
-
 ```
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { AIAssistantChatDemo } from "./AIAssistantChatDemo";
+<Tab title="JavaScript">
+```jsx
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-    return (
-        <div className="App">
-            <AIAssistantChatDemo />
-        </div>
-    );
+export function AIAssistantChatDemo() {
+    const [agent, setAgent] = React.useState(null);
+
+    React.useEffect(() => {
+        // Replace with your assistant UID
+        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
+    }, []);
+
+    if (!agent) return null;
+
+    return(
+        <>
+            <CometChatAIAssistantChat user={agent} />
+        </>
+    ); 
 }
 ```
 
@@ -935,4 +974,21 @@ export function AIAssistantChatDemo() {
 
 </Tabs>
 
-***
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Features" icon="robot" href="/ui-kit/react/ai-features">
+    Explore AI-powered features like Smart Replies and Conversation Summary
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Learn about the Message List component for displaying chat messages
+  </Card>
+  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
+    Customize message bubbles with templates
+  </Card>
+  <Card title="Theme" icon="palette" href="/ui-kit/react/theme">
+    Apply custom themes to match your app's design
+  </Card>
+</CardGroup>

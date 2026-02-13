@@ -1,6 +1,35 @@
 ---
 title: "Custom Text Formatter"
+description: "Guide to creating custom text formatters for CometChat using CometChatTextFormatter for message composer and text bubbles."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatTextFormatter } from "@cometchat/chat-uikit-react";
+
+// Extend to create custom formatter
+class HashTagTextFormatter extends CometChatTextFormatter {
+  constructor() {
+    super();
+    this.setTrackingCharacter("#");
+    this.setRegexPatterns([/\B#(\w+)\b/g]);
+  }
+  
+  getFormattedText(inputText: string) {
+    return inputText.replace(
+      /\B#(\w+)\b/g,
+      '<span class="custom-hashtag" style="color: #5dff05;">#$1</span>'
+    );
+  }
+}
+
+// Use in components
+<CometChatMessageList textFormatters={[new HashTagTextFormatter()]} />
+```
+</Info>
 
 ## Overview
 
@@ -434,3 +463,23 @@ registerEventListeners(element: HTMLElement, domTokenList: DOMTokenList) {
 </Tab>
 
 </Tabs>
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Mentions Formatter" icon="at" href="/ui-kit/react/mentions-formatter-guide">
+    Configure @mentions formatting
+  </Card>
+  <Card title="URL Formatter" icon="link" href="/ui-kit/react/url-formatter-guide">
+    Customize link formatting
+  </Card>
+  <Card title="Message Composer" icon="pen" href="/ui-kit/react/message-composer">
+    Customize the message input component
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Display and customize message bubbles
+  </Card>
+</CardGroup>

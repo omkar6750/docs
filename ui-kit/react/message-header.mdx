@@ -1,6 +1,30 @@
 ---
 title: "Message Header"
+description: "A component that displays user or group details in the toolbar with typing indicator and back navigation."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+// For user chat
+<CometChatMessageHeader user={chatUser} />
+
+// For group chat
+<CometChatMessageHeader group={chatGroup} />
+
+// With common props
+<CometChatMessageHeader
+  user={chatUser}
+  showBackButton={true}
+  onBack={() => handleBack()}
+  hideUserStatus={false}
+/>
+```
+</Info>
 
 ## Overview
 
@@ -9,6 +33,10 @@ title: "Message Header"
 <Frame>
   <img src="/images/af3844a0-messages_header_overview_web_screens-e2e210ec4afa809b4d4dd038df2b4073.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
 
 The `MessageHeader` is comprised of the following components:
 
@@ -22,7 +50,7 @@ The `MessageHeader` is comprised of the following components:
 ### Integration
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -44,18 +72,23 @@ export function MessageHeaderDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageHeaderDemo } from "./MessageHeaderDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageHeaderDemo />
-      </div>
-    </div>
-  );
+export function MessageHeaderDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>{chatUser && <CometChatMessageHeader user={chatUser} />}</div>
+  ) : null;
 }
 ```
 
@@ -702,4 +735,21 @@ function getDateFormat() {
 
 </Note>
 
-***
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Display messages in a conversation
+  </Card>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Add message input and sending capabilities
+  </Card>
+  <Card title="Thread Header" icon="comments" href="/ui-kit/react/thread-header">
+    Enable threaded message conversations
+  </Card>
+  <Card title="Events" icon="bolt" href="/ui-kit/react/events">
+    Handle real-time chat events
+  </Card>
+</CardGroup>
