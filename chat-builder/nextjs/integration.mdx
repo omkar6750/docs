@@ -194,20 +194,19 @@ import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 const UID = "YOUR_UID"; // Replace with your actual UID
 
 CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
-if (!user) {
-// If no user is logged in, proceed with login
-CometChatUIKit.login(UID)
-.then((user: CometChat.User) => {
-console.log("Login Successful:", { user });
-// Mount your app
-})
-.catch(console.log);
-} else {
-// If user is already logged in, mount your app
-}
+  if (!user) {
+    // If no user is logged in, proceed with login
+    CometChatUIKit.login(UID)
+      .then((user: CometChat.User) => {
+        console.log("Login Successful:", { user });
+        // Mount your app
+      })
+      .catch(console.log);
+  } else {
+    // If user is already logged in, mount your app
+  }
 });
-
-````
+```
 
 </Tab>
 
@@ -325,13 +324,13 @@ export const COMETCHAT_CONSTANTS = {
 };
 
 const CometChatNoSSR = () => {
-useEffect(() => {
-const UIKitSettings = new UIKitSettingsBuilder()
-.setAppId(COMETCHAT_CONSTANTS.APP_ID)
-.setRegion(COMETCHAT_CONSTANTS.REGION)
-.setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-.subscribePresenceForAllUsers()
-.build();
+  useEffect(() => {
+    const UIKitSettings = new UIKitSettingsBuilder()
+      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+      .setRegion(COMETCHAT_CONSTANTS.REGION)
+      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+      .subscribePresenceForAllUsers()
+      .build();
 
     CometChatUIKit.init(UIKitSettings)
       ?.then(() => {
@@ -357,17 +356,15 @@ const UIKitSettings = new UIKitSettingsBuilder()
         });
       })
       .catch((error) => console.error("Initialization failed", error));
+  }, []);
 
-}, []);
-
-return (
-
-<div style={{ width: "100vw", height: "100vh" }}>
-<CometChatProvider>
-<CometChatApp />
-</CometChatProvider>
-</div>
-);
+  return (
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatProvider>
+        <CometChatApp />
+      </CometChatProvider>
+    </div>
+  );
 };
 
 export default CometChatNoSSR;
