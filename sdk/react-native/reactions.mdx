@@ -1,8 +1,23 @@
 ---
 title: "Reactions"
+description: "Add, remove, and manage message reactions in real-time using the CometChat React Native SDK."
 ---
 
+<Info>
+**Quick Reference** - Add and remove reactions:
 
+```javascript
+// Add a reaction
+await CometChat.addReaction("MESSAGE_ID", "😊");
+
+// Remove a reaction
+await CometChat.removeReaction("MESSAGE_ID", "😊");
+```
+</Info>
+
+<Note>
+Available via: [SDK](/sdk/react-native/reactions) | [REST API](/rest-api/messages/add-reaction) | [UI Kits](/ui-kit/react-native/core-features#reactions)
+</Note>
 
 Enhance user engagement in your chat application with message reactions. Users can express their emotions using reactions to messages. This feature allows users to add or remove reactions, and to fetch all reactions on a message. You can also listen to reaction events in real-time. Let's see how to work with reactions in CometChat's SDK.
 
@@ -197,6 +212,7 @@ reactionRequest.fetchPrevious().then(
 
 </Tabs>
 
+
 ## Real-time Reaction Events
 
 Keep the chat interactive with real-time updates for reactions. Register a listener for these events and make your UI responsive.
@@ -260,6 +276,10 @@ CometChat.removeMessageReactionListener(listenerID);
 </Tab>
 
 </Tabs>
+
+<Warning>
+Always remove your reaction listeners when they are no longer needed — for example, when a component unmounts or a screen is navigated away from. Failing to do so can cause memory leaks and unexpected behavior from stale listeners. Use `CometChat.removeMessageListener("LISTENER_ID")` in your cleanup logic (e.g., `useEffect` return function or `componentWillUnmount`).
+</Warning>
 
 ## Get Reactions List
 
@@ -359,3 +379,63 @@ action
 </Tab>
 
 </Tabs>
+
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use unique listener IDs">
+    Always use unique, descriptive listener IDs (e.g., `"ChatScreen_ReactionListener"`) to avoid conflicts with other listeners in your app. This makes it easier to manage and remove specific listeners when needed.
+  </Accordion>
+  <Accordion title="Clean up listeners on unmount">
+    Remove reaction listeners in your component's cleanup phase (`useEffect` return function or `componentWillUnmount`). Orphaned listeners can lead to memory leaks and unexpected UI updates on unmounted components.
+  </Accordion>
+  <Accordion title="Update messages with reaction info in real-time">
+    When you receive a real-time reaction event, always call `updateMessageWithReactionInfo()` to keep your local message state in sync. This avoids stale reaction counts and ensures the UI reflects the latest state.
+  </Accordion>
+  <Accordion title="Handle errors gracefully">
+    Wrap `addReaction` and `removeReaction` calls in proper error handling. Network issues or invalid message IDs can cause failures — show appropriate feedback to the user rather than silently failing.
+  </Accordion>
+  <Accordion title="Paginate reaction fetches">
+    When fetching reactions for messages with many reactions, use `fetchNext()` with a reasonable `setLimit()` value. Avoid fetching all reactions at once to keep performance smooth, especially on lower-end devices.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Reaction not appearing after addReaction call">
+    Verify that the `messageId` is valid and the user is logged in. Check the error callback for details — common causes include invalid message IDs, network connectivity issues, or the user not being a participant in the conversation.
+  </Accordion>
+  <Accordion title="Real-time reaction events not firing">
+    Ensure you have registered the message listener with `CometChat.addMessageListener()` before the reaction event occurs. Also confirm that the listener ID is unique and hasn't been accidentally removed or overwritten by another listener registration.
+  </Accordion>
+  <Accordion title="Reaction count not updating in UI">
+    After receiving a real-time reaction event, you must call `CometChat.CometChatHelper.updateMessageWithReactionInfo()` to update the message object. Simply receiving the event does not automatically update the `BaseMessage` instance — you need to explicitly apply the update and re-render.
+  </Accordion>
+  <Accordion title="getReactedByMe() always returns false">
+    Make sure you are calling `getReactedByMe()` on the `ReactionCount` objects returned by `message.getReactions()`, not on the raw reaction event data. Also verify that the logged-in user is the same user who added the reaction.
+  </Accordion>
+  <Accordion title="fetchNext() or fetchPrevious() returns empty array">
+    Confirm that the `messageId` passed to `ReactionRequestBuilder.setMessageId()` is correct and that the message actually has reactions. If using `setReaction()` to filter by a specific emoji, ensure the emoji string matches exactly (including any variation selectors).
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Explore related features to build a richer messaging experience:
+
+<CardGroup cols={2}>
+  <Card title="Send a Message" icon="paper-plane" href="/sdk/react-native/send-message">
+    Learn how to send text, media, and custom messages to users and groups.
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Set up real-time message listeners and fetch message history.
+  </Card>
+  <Card title="Mentions" icon="at" href="/sdk/react-native/mentions">
+    Tag users in messages to notify and engage them directly.
+  </Card>
+  <Card title="Interactive Messages" icon="hand-pointer" href="/sdk/react-native/interactive-messages">
+    Send rich, interactive messages with forms, cards, and custom elements.
+  </Card>
+</CardGroup>

@@ -1,8 +1,27 @@
 ---
 title: "Call Logs"
+description: "Fetch, filter, and display call history in your React Native app using CometChat Calls SDK — including call duration, participants, direction, and recording status."
 ---
 
+<Info>
+**Quick Reference** - Fetch call logs:
 
+```javascript
+const loggedInUser = await CometChat.getLoggedinUser();
+
+let callLogRequest = new CometChatCalls.CallLogRequestBuilder()
+  .setLimit(30)
+  .setAuthToken(loggedInUser.getAuthToken())
+  .setCallCategory("call")
+  .build();
+
+const callLogs = await callLogRequest.fetchNext();
+```
+</Info>
+
+<Note>
+**Available via:** [SDK](/sdk/react-native/call-logs) | [REST API](/rest-api/list-calls) | [UI Kits](/ui-kit/react/call-features#call-logs)
+</Note>
 
 ## Overview
 
@@ -40,7 +59,7 @@ let callLogRequestBuilder = new CometChatCalls.CallLogRequestBuilder()
 
 ### Fetch Next
 
-The**`fetchNext()`**method retrieves the next set of call logs.
+The `fetchNext()` method retrieves the next set of call logs.
 
 ```javascript
 let callLogRequestBuilder = new CometChatCalls.CallLogRequestBuilder()
@@ -60,7 +79,7 @@ callLogRequestBuilder.fetchNext()
 
 ### Fetch Previous
 
-The**`fetchPrevious()`**method retrieves the previous set of call logs.
+The `fetchPrevious()` method retrieves the previous set of call logs.
 
 ```javascript
 let callLogRequestBuilder = new CometChatCalls.CallLogRequestBuilder()
@@ -80,7 +99,7 @@ callLogRequestBuilder.fetchPrevious()
 
 ## Get Call Details
 
-To retrieve the specific details of a call, use the**`getCallDetails()`**method. This method requires the Auth token of the logged-in user and the session ID along with a callback listener.
+To retrieve the specific details of a call, use the `getCallDetails()` method. This method requires the Auth token of the logged-in user and the session ID along with a callback listener.
 
 ```javascript
 var sessionID = "SESSION_ID";
@@ -93,4 +112,53 @@ CometChatCalls.getCallDetails(sessionID, authToken)
   });
 ```
 
-Note: Replace**`"SESSION_ID"`**with the ID of the session you are interested in.
+<Note>
+Replace `"SESSION_ID"` with the ID of the session you are interested in.
+</Note>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use pagination for large call histories">
+    Always use `fetchNext()` with a reasonable `setLimit()` value (e.g., 20-30) rather than fetching all logs at once. This improves performance and reduces memory usage, especially for users with extensive call histories.
+  </Accordion>
+  <Accordion title="Filter logs for specific views">
+    Use the builder's filter methods (`setCallType`, `setCallStatus`, `setCallDirection`) to fetch only the logs relevant to your current UI view. For example, show only missed calls in a "Missed" tab rather than filtering client-side.
+  </Accordion>
+  <Accordion title="Cache call logs locally">
+    Consider caching fetched call logs locally to reduce API calls and improve load times. Use `fetchNext()` to load newer logs and `fetchPrevious()` for older ones as the user scrolls.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Call logs return empty">
+    Verify that the `authToken` passed to `setAuthToken()` is valid and belongs to the logged-in user. Also check that calls have actually been made — call logs are only generated after a call session completes.
+  </Accordion>
+  <Accordion title="fetchNext returns the same results">
+    Ensure you're reusing the same `callLogRequestBuilder` instance for pagination. Creating a new builder resets the cursor, causing the same page to be fetched repeatedly.
+  </Accordion>
+  <Accordion title="getCallDetails returns no data">
+    Confirm the `sessionID` is correct and corresponds to a completed call. Active or in-progress calls may not have full details available yet.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
+    Implement a complete calling experience with incoming and outgoing call UI
+  </Card>
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Start and manage call sessions with full configuration options
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record call sessions for playback and compliance
+  </Card>
+  <Card title="Standalone Calling" icon="phone" href="/sdk/react-native/standalone-calling">
+    Implement calling without the Chat SDK
+  </Card>
+</CardGroup>

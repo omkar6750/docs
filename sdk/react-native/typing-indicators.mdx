@@ -1,8 +1,29 @@
 ---
 title: "Typing Indicators"
+description: "Learn how to send and receive real-time typing indicators in one-on-one and group conversations using the CometChat React Native SDK."
 ---
 
+<Info>
+**Quick Reference** — Send and listen for typing indicators:
+```javascript
+// Start typing
+let typing = new CometChat.TypingIndicator("RECEIVER_ID", CometChat.RECEIVER_TYPE.USER);
+CometChat.startTyping(typing);
 
+// Stop typing
+CometChat.endTyping(typing);
+
+// Listen for typing events
+CometChat.addMessageListener("listenerId", new CometChat.MessageListener({
+  onTypingStarted: (indicator) => { /* sender is typing */ },
+  onTypingEnded: (indicator) => { /* sender stopped typing */ },
+}));
+```
+</Info>
+
+<Note>
+**Available via:** [SDK](/sdk/react-native/typing-indicators)  | [UI Kits](/ui-kit/react-native/core-features#typing-indicator)
+</Note>
 
 ## Send a Typing Indicator
 
@@ -10,10 +31,10 @@ title: "Typing Indicators"
 
 ### Start Typing
 
-You can use the `startTyping()` method to inform the receiver that the logged in user has started typing. The receiver will receive this information in the `onTypingStarted()` method of the `MessageListener` class. In order to send the typing indicator, you need to use the `TypingIndicator` class.
+You can use the `startTyping()` method to inform the receiver that the logged-in user has started typing. The receiver will receive this information in the `onTypingStarted()` method of the `MessageListener` class. To send the typing indicator, you need to use the `TypingIndicator` class.
 
 <Tabs>
-<Tab title="Start Typing (User)">
+<Tab title="To User">
 ```javascript
 let receiverId = "UID";
 let receiverType = CometChat.RECEIVER_TYPE.USER;
@@ -24,7 +45,7 @@ CometChat.startTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Start Typing (Group)">
+<Tab title="To Group">
 ```javascript
 let receiverId = "GUID";
 let receiverType = CometChat.RECEIVER_TYPE.GROUP;
@@ -35,7 +56,7 @@ CometChat.startTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Start User Typing (Typescript)">
+<Tab title="TypeScript (User)">
 ```typescript
 let receiverId: string = "UID";
 let receiverType: string = CometChat.RECEIVER_TYPE.USER;
@@ -46,7 +67,7 @@ CometChat.startTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Start Group Typing (Typescript)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let receiverId: string = "GUID";
 let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
@@ -61,10 +82,10 @@ CometChat.startTyping(typingNotification);
 
 ### Stop Typing
 
-You can use the `endTyping()` method to inform the receiver that the logged in user has stopped typing. The receiver will receive this information in the `onTypingEnded()` method of the `MessageListener` class. In order to send the typing indicator, you need to use the `TypingIndicator` class.
+You can use the `endTyping()` method to inform the receiver that the logged-in user has stopped typing. The receiver will receive this information in the `onTypingEnded()` method of the `MessageListener` class. To send the typing indicator, you need to use the `TypingIndicator` class.
 
 <Tabs>
-<Tab title="Stop Typing (User)">
+<Tab title="To User">
 ```javascript
 let receiverId = "UID";
 let receiverType = CometChat.RECEIVER_TYPE.USER;
@@ -75,7 +96,7 @@ CometChat.endTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Stop Typing (Group)">
+<Tab title="To Group">
 ```javascript
 let receiverId = "GUID";
 let receiverType = CometChat.RECEIVER_TYPE.GROUP;
@@ -86,7 +107,7 @@ CometChat.endTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Stop User Typing (Typescript)">
+<Tab title="TypeScript (User)">
 ```typescript
 let receiverId: string = "UID";
 let receiverType: string = CometChat.RECEIVER_TYPE.USER;
@@ -97,7 +118,7 @@ CometChat.endTyping(typingNotification);
 
 </Tab>
 
-<Tab title="Stop Group Typing (Typescript)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let receiverId: string = "GUID";
 let receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
@@ -124,7 +145,7 @@ You can use the `metadata` field of the `TypingIndicator` class to pass addition
 You will receive the typing indicators in the `onTypingStarted()` and the `onTypingEnded()` method of the registered `MessageListener` class.
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
 let listenerId = "UNIQUE_LITENER_ID";
 
@@ -164,11 +185,47 @@ CometChat.addMessageListener(
 
 </Tabs>
 
+<Warning>
+**Listener Cleanup** — Always remove your message listeners when the component unmounts to prevent memory leaks and unexpected behavior. Use `CometChat.removeMessageListener("UNIQUE_LITENER_ID")` in your cleanup logic (e.g., inside a `useEffect` return function or `componentWillUnmount`).
+</Warning>
+
 The `TypingIndicator` class consists of the below parameters:
 
 | Parameter        | Information                                                                                                                                                                        |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **sender**       | An object of the `User` class holding all the information. related to the sender of the typing indicator.                                                                          |
+| **sender**       | An object of the `User` class holding all the information related to the sender of the typing indicator.                                                                           |
 | **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the typing indicator is sent to.                                                                            |
 | **receiverType** | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChat.RECEIVER_TYPE.USER` 2. `CometChat.RECEIVER_TYPE.GROUP` |
-| **metadata**     | A JSONObject to provider additional data.                                                                                                                                          |
+| **metadata**     | A JSONObject to provide additional data.                                                                                                                                           |
+
+<AccordionGroup>
+<Accordion title="Best Practices">
+- **Debounce start typing calls** — Avoid calling `startTyping()` on every keystroke. Instead, debounce the call so it fires once when the user begins typing and doesn't repeat until after a short pause.
+- **Call endTyping() explicitly** — Always call `endTyping()` when the user clears the input field, sends a message, or navigates away from the chat screen.
+- **Use unique listener IDs** — Each screen or component that registers a `MessageListener` should use a distinct `listenerId` to avoid conflicts.
+- **Handle metadata sparingly** — Only attach `metadata` to typing indicators when you have a concrete use case (e.g., indicating which thread the user is typing in).
+</Accordion>
+<Accordion title="Troubleshooting">
+- **Typing indicator not appearing for the recipient** — Verify that the recipient has registered a `MessageListener` with `onTypingStarted` and `onTypingEnded` callbacks before the sender starts typing.
+- **Typing indicator stuck in "typing" state** — Ensure `endTyping()` is called when the user stops typing or sends a message. CometChat automatically times out typing indicators after a short period, but explicitly ending them provides a better user experience.
+- **Listener not firing** — Confirm that the `listenerId` used in `addMessageListener` is unique and that the listener has not been removed prematurely.
+- **Indicators not working in groups** — Make sure you are using `CometChat.RECEIVER_TYPE.GROUP` with the correct group ID (`GUID`), not a user ID.
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/react-native/delivery-read-receipts">
+  Confirm when messages are delivered and read by recipients.
+</Card>
+<Card title="Send a Message" icon="paper-plane" href="/sdk/react-native/send-message">
+  Learn how to send text, media, and custom messages.
+</Card>
+<Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+  Set up real-time and fetch-based message receiving.
+</Card>
+<Card title="Messaging Overview" icon="comments" href="/sdk/react-native/messaging-overview">
+  Explore the full messaging feature set available in the SDK.
+</Card>
+</CardGroup>

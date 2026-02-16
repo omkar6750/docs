@@ -1,22 +1,48 @@
 ---
 title: "Delete A Message"
+description: "Learn how to delete messages, listen for real-time message delete events, and retrieve missed message deletions using the CometChat React Native SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Delete a message by ID
+let messageId = "MESSAGE_ID";
+CometChat.deleteMessage(messageId).then(
+  (message) => console.log("Message deleted", message),
+  (error) => console.log("Delete failed:", error)
+);
+
+// Listen for real-time message deletes
+CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
+  onMessageDeleted: (message) => console.log("Deleted:", message)
+}));
+```
+</Info>
 
 While [deleting a message](/sdk/react-native/delete-message#delete-a-message) is straightforward, receiving events for deleted messages with CometChat has two parts:
 
 1. Adding a listener to receive [real-time message deletes](/sdk/react-native/delete-message#real-time-message-delete-events) when your app is running.
 2. Calling a method to retrieve [missed message deletes](/sdk/react-native/delete-message#missed-message-delete-events) when your app was not running.
 
+<Note>
+**Available via:** [SDK](/sdk/react-native/delete-message) | [REST API](/rest-api/messages/delete-message) | [UI Kits](/ui-kits/react-native/overview)
+</Note>
+
 ## Delete a Message
 
 *In other words, as a sender, how do I delete a message?*
 
-In case you have to delete a message, you can use the `deleteMessage()` method. This method takes the message ID of the message to be deleted.
+To delete a message, use the `deleteMessage()` method. This method takes the message ID of the message to be deleted.
+
+<Warning>
+This operation is irreversible. Deleted messages cannot be recovered.
+</Warning>
 
 <Tabs>
-<Tab title="Delete Message">
+<Tab title="JavaScript">
 ```javascript
 let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_DELETE";
 
@@ -48,7 +74,7 @@ CometChat.deleteMessage(messageId).then(
 
 </Tabs>
 
-Once the message is deleted, In the `onSuccess()` callback, you get an object of the `BaseMessage` class, with the `deletedAt` field set with the timestamp of the time the message was deleted. Also, the `deletedBy` field is set. These two fields can be used to identify if the message is deleted while iterating through a list of messages.
+Once the message is deleted, in the `onSuccess()` callback, you get an object of the `BaseMessage` class, with the `deletedAt` field set with the timestamp of the time the message was deleted. Also, the `deletedBy` field is set. These two fields can be used to identify if the message is deleted while iterating through a list of messages.
 
 By default, CometChat allows certain roles to delete a message.
 
@@ -66,7 +92,7 @@ By default, CometChat allows certain roles to delete a message.
 In order to receive real-time events for a message being deleted, you need to override the `onMessageDeleted()` method of the `MessageListener` class.
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
 var listenerID = "UNIQUE_LISTENER_ID";
 
@@ -100,6 +126,14 @@ CometChat.addMessageListener(
 
 </Tabs>
 
+<Warning>
+Always remove listeners when they are no longer needed (e.g., on component unmount or screen navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeMessageListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
 ## Missed Message Delete Events
 
 *In other words, as a recipient, how do I know if someone deleted a message when my app was not running?*
@@ -115,6 +149,40 @@ For the message deleted event, in the `Action` object received, the following fi
 
 <Note>
 
-In order to edit or delete a message you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
+In order to edit or delete a message, you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
 
 </Note>
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Check `deletedAt` when rendering messages.** Before displaying a message, check if `deletedAt` is set. If it is, show a "This message was deleted" placeholder instead of the original content.
+    - **Use unique listener IDs.** Use a unique identifier per screen or component (e.g., `"ChatScreen_DeleteListener"`) to avoid conflicts with other listeners.
+    - **Always clean up listeners.** Remove message listeners in your component's cleanup or unmount lifecycle to prevent memory leaks.
+    - **Handle permissions gracefully.** If a user attempts to delete a message they don't have permission to delete, handle the error callback and inform the user.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"Message delete failed" error:** Verify that the message ID is valid and that the current user has permission to delete the message (sender, group admin, or group moderator).
+    - **`onMessageDeleted` not firing:** Ensure you have registered the `MessageListener` with `CometChat.addMessageListener()` before the delete event occurs, and that the listener ID is unique.
+    - **Deleted messages still showing in the UI:** Make sure you are checking the `deletedAt` field on each message when rendering your message list, and updating your local state when `onMessageDeleted` fires.
+    - **Duplicate delete events:** This usually happens when multiple listeners are registered with the same or different IDs without being removed. Ensure you remove listeners on component unmount.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Edit a Message" icon="pen-to-square" href="/sdk/react-native/edit-message">
+    Modify the content of a sent message
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/react-native/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Listen for and retrieve incoming messages
+  </Card>
+  <Card title="Flag a Message" icon="flag" href="/sdk/react-native/flag-message">
+    Report inappropriate or unwanted messages
+  </Card>
+</CardGroup>

@@ -1,6 +1,27 @@
 ---
 title: "Ringing"
+description: "Implement a complete calling workflow with ringing, incoming/outgoing call UI, accept, reject, and cancel functionality in CometChat React Native SDK."
 ---
+
+<Info>
+**Quick Reference** - Initiate a call and listen for events:
+
+```javascript
+// Initiate a video call
+const call = new CometChat.Call("RECEIVER_ID", CometChat.CALL_TYPE.VIDEO, CometChat.RECEIVER_TYPE.USER);
+await CometChat.initiateCall(call);
+
+// Accept an incoming call
+await CometChat.acceptCall(sessionId);
+
+// Reject or cancel
+await CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.REJECTED);
+```
+</Info>
+
+<Note>
+Available via: [SDK](/sdk/react-native/default-call) | [REST API](/rest-api/calls) | [UI Kits](/ui-kit/react-native/call-features)
+</Note>
 
 ## Overview
 
@@ -18,7 +39,7 @@ After the call is accepted, you need to start the call session. See the [Call Se
    - Accept the call using `acceptCall()`
    - Reject the call using `rejectCall()` with status `CALL_STATUS_REJECTED`
 4. **Caller** can cancel the call using `rejectCall()` with status `CALL_STATUS_CANCELLED`
-5. Once accepted, both participants call `startSession()` to join the call
+5. Once accepted, both participants generate a call token and render the `CometChatCalls.Component` to join the call
 
 ## Initiate Call
 
@@ -110,6 +131,7 @@ CometChat.initiateCall(call).then(
 
 On success, a `Call` object is returned containing the call details including a unique `sessionId` required for starting the call session.
 
+
 ## Call Listeners
 
 Register the `CallListener` to receive real-time call events. Each listener requires a unique `listenerId` string to prevent duplicate registrations and enable targeted removal.
@@ -187,6 +209,10 @@ CometChat.removeCallListener(listenerId);
 </Tab>
 </Tabs>
 
+<Warning>
+Always remove call listeners when the component unmounts using `CometChat.removeCallListener(listenerId)`. Failing to do so can cause memory leaks and duplicate event handling.
+</Warning>
+
 ### Events
 
 | Event | Description |
@@ -196,6 +222,7 @@ CometChat.removeCallListener(listenerId);
 | `onOutgoingCallRejected(call)` | Invoked on the caller's device when the receiver rejects the call. Dismiss outgoing call UI here. |
 | `onIncomingCallCancelled(call)` | Invoked on the receiver's device when the caller cancels before answering. Dismiss incoming call UI here. |
 | `onCallEndedMessageReceived(call)` | Invoked when a call ends. The `call` contains final status and duration. Update call history here. |
+
 
 ## Accept Call
 
@@ -311,6 +338,7 @@ CometChat.rejectCall(sessionId, status).then(
 </Tab>
 </Tabs>
 
+
 ## Start Call Session
 
 Once the call is accepted, both participants need to start the call session. 
@@ -415,6 +443,7 @@ CometChatCalls.generateToken(sessionId, userAuthToken).then(
 </Tabs>
 
 For more details on call settings and customization, see the [Call Session](/sdk/react-native/direct-call#start-call-session) guide.
+
 
 ## End Call
 
@@ -522,3 +551,40 @@ CometChat.rejectCall(sessionId, status).then(
 ```
 </Tab>
 </Tabs>
+
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - Always remove call listeners on component unmount to prevent memory leaks and duplicate events
+    - Store the `sessionId` from `initiateCall()` or `onIncomingCallReceived()` — you'll need it for accept, reject, cancel, and starting the session
+    - Handle the `CALL_STATUS_BUSY` case when the receiver is already on another call
+    - Call `CometChat.clearActiveCall()` and `CometChatCalls.endSession()` together when a call ends to properly release all resources
+    - Request camera and microphone permissions before initiating or accepting a call
+    - Show appropriate UI feedback (spinner, ringing animation) while waiting for the receiver to respond
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **`onIncomingCallReceived` not firing:** Ensure `CometChat.addCallListener()` is registered before the call is initiated and that the listener ID is unique
+    - **Call accepted but no audio/video:** After `acceptCall()`, you must start the call session by generating a token and rendering `CometChatCalls.Component` — see the Start Call Session section above
+    - **Duplicate call events:** You may have registered the same listener multiple times — always call `CometChat.removeCallListener(listenerId)` on unmount
+    - **`initiateCall` fails with error:** Verify the receiver UID/GUID exists and that the logged-in user has an active session
+    - **Call ends immediately after accept:** Make sure both caller and receiver generate a call token and render `CometChatCalls.Component` — if only one side renders the component, the call will appear to drop
+    - **Busy status not working:** Ensure you're using `CometChat.CALL_STATUS.BUSY` (not `REJECTED`) when the receiver is already on a call
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Start and manage the actual call session after the ringing flow completes.
+  </Card>
+  <Card title="Calls SDK Setup" icon="gear" href="/sdk/react-native/calling-setup">
+    Install dependencies, configure permissions, and initialize the Calls SDK.
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record audio and video calls for playback or compliance.
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/react-native/call-logs">
+    Retrieve and display call history including duration and participants.
+  </Card>
+</CardGroup>

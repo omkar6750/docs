@@ -1,27 +1,55 @@
 ---
 title: "Threaded Messages"
+description: "Send, receive, and fetch threaded messages (replies) in user and group conversations using the CometChat React Native SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference** - Send a threaded message and fetch thread replies:
 
+```javascript
+// Send a text message in a thread
+let textMessage = new CometChat.TextMessage("UID", "Hello", CometChat.RECEIVER_TYPE.USER);
+textMessage.setParentMessageId(100);
+CometChat.sendMessage(textMessage).then(
+  message => console.log("Sent:", message),
+  err => console.log("Error:", err)
+);
 
-Messages that are started from a particular message are called Threaded messages or simply threads. Each Thread is attached to a message which is the Parent message for that thread.
+// Fetch messages for a thread
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setLimit(30)
+  .setParentMessageId(100)
+  .build();
+messagesRequest.fetchPrevious().then(
+  messages => console.log("Thread messages:", messages),
+  error => console.log("Error:", error)
+);
+```
+</Info>
+
+<Note>
+**Available via:** [SDK](/sdk/react-native/threaded-messages) | [REST API](/rest-api/messages/list-threaded-messages) | [UI Kits](/ui-kit/react-native/core-features#threaded-conversations)
+</Note>
+
+Messages that are started from a particular message are called Threaded Messages or simply threads. Each thread is attached to a message which is the parent message for that thread.
 
 ## Send Message in a Thread
 
-As mentioned in the [Send a Message](/sdk/react-native/send-message) section. You can either send a message to a User or a Group based on the `receiverType` and the UID/GUID specified for the message. A message can belong to either of the below types:
+As mentioned in the [Send a Message](/sdk/react-native/send-message) section, you can either send a message to a user or a group based on the `receiverType` and the UID/GUID specified for the message. A message can belong to any of the following types:
 
 1. Text Message
 2. Media Message
-3. Custom Message.
+3. Custom Message
 
-Any of the above messages can be sent in a thread. As mentioned, a thread is identified based on the Parent message. So while sending a message the `parentMessageId` must be set for the message to indicate that the message to be sent needs to be a part of the thread with the specified `parentMessageId`.
+Any of the above messages can be sent in a thread. A thread is identified based on the parent message, so while sending a message the `parentMessageId` must be set to indicate that the message belongs to the thread with the specified `parentMessageId`.
 
-This can be achieved using the `setParentMessageId()` method provided by the object of the `TextMessage`, `MediaMessage` and `CustomMessage` class. The id specified in the `setParentMessageId()` method maps the message sent to the particular thread.
+This can be achieved using the `setParentMessageId()` method provided by the object of the `TextMessage`, `MediaMessage`, and `CustomMessage` class. The id specified in the `setParentMessageId()` method maps the message sent to the particular thread.
 
-**Example to Send a Text Message in a thread in a user conversation.**
+**Example to send a text message in a thread in a user conversation:**
 
 <Tabs>
-<Tab title="User">
+<Tab title="JavaScript">
 ```javascript
 let textMessage = new CometChat.TextMessage(UID, "Hello", CometChat.RECEIVER_TYPE.USER);
 textMessage.setParentMessageId(100);
@@ -61,16 +89,16 @@ CometChat.sendMessage(textMessage).then(
 
 The above snippet shows how a message with the text "Hello" can be sent in the thread with `parentMessageId` 100.
 
-Similarly, using the `setparentMessageId()` method, Media and Custom Messages can be sent in threads too.
+Similarly, using the `setParentMessageId()` method, Media and Custom Messages can be sent in threads too.
 
 ### Receiving Real-Time Messages
 
-The procedure to receive real-time messages is exactly the same as mentioned in the [Receive Messages](/sdk/react-native/receive-messages). This can be achieved using the `MessageListener` class provided by the SDK.
+The procedure to receive real-time messages is exactly the same as mentioned in the [Receive Messages](/sdk/react-native/receive-messages) section. This can be achieved using the `MessageListener` class provided by the SDK.
 
 To add a MessageListener, you can use the `addMessageListener()` method of the SDK. The only thing that needs to be checked is if the received message belongs to the active thread. This can be done using the `parentMessageId` field of the message object.
 
 <Tabs>
-<Tab title="Message Listener">
+<Tab title="JavaScript">
 ```javascript
 var listenerID = "UNIQUE_LISTENER_ID";
 var activeThreadId = 100;
@@ -130,14 +158,18 @@ CometChat.addMessageListener(
 
 </Tabs>
 
-### Fetch all the messages for any particular thread.
+<Warning>
+**Remember to remove your listener on unmount.** Always call `CometChat.removeMessageListener("UNIQUE_LISTENER_ID")` when the component unmounts (e.g., in a `useEffect` cleanup or `componentWillUnmount`) to avoid memory leaks and duplicate event handling.
+</Warning>
 
-You can fetch all the messages belonging to a particular thread by using the `MessagesRequest` class. In order to get an object of the `MessagesRequest` class, you need to use the `MessagesRequestBuilder` class. and use the `setParentMessageId()` method of the `MessagesRequestBuilder` to inform the SDK that you only need the messages belonging to the thread with the specified parentMessageId.
+### Fetch All Messages for a Thread
 
-Once you have the object of the `MessagesRequest` class, you need to call the `fetchPrevious()` method to get the latest messages in the thread. In one integration, a maximum of 100 messages can be fetched. If you wish to fetch the next set of messages, you need to call the `fetchPrevious()` method again on the same object.
+You can fetch all the messages belonging to a particular thread by using the `MessagesRequest` class. To get an object of the `MessagesRequest` class, use the `MessagesRequestBuilder` class and call the `setParentMessageId()` method to inform the SDK that you only need the messages belonging to the thread with the specified `parentMessageId`.
+
+Once you have the object of the `MessagesRequest` class, call the `fetchPrevious()` method to get the latest messages in the thread. In one call, a maximum of 100 messages can be fetched. To fetch the next set of messages, call the `fetchPrevious()` method again on the same object.
 
 <Tabs>
-<Tab title="Fetch all messages for a thread">
+<Tab title="JavaScript">
 ```javascript
 let limit = 30;
 let parentMessageId = 1;
@@ -181,10 +213,10 @@ messagesRequest.fetchPrevious().then(
 
 ## Avoid Threaded Messages in User/Group Conversations
 
-While fetching messages for normal user/group conversations using the `MessagesRequest`, the threaded messages by default will be a part of the list of messages received. In order to exclude the threaded messages from the list of user/group messages, you need to use the `hideReplies()` method of the `MessagesRequestBuilder` class. This method takes a boolean argument which when set to true excludes the messages belonging to threads from the list of messages.
+While fetching messages for normal user/group conversations using the `MessagesRequest`, threaded messages will be included in the list by default. To exclude threaded messages from the list of user/group messages, use the `hideReplies()` method of the `MessagesRequestBuilder` class. This method takes a boolean argument which, when set to `true`, excludes messages belonging to threads from the list of messages.
 
 <Tabs>
-<Tab title="User">
+<Tab title="To User">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -205,7 +237,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Group">
+<Tab title="To Group">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
@@ -226,7 +258,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (User)">
+<Tab title="TypeScript (User)">
 ```typescript
 let UID: string = "UID",
   limit: number = 30,
@@ -247,7 +279,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (Group)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let GUID: string = "GUID",
   limit: number = 30,
@@ -270,4 +302,41 @@ messagesRequest.fetchPrevious().then(
 
 </Tabs>
 
-The above snippet will return messages between the logged in user and `cometchat-uid-1` excluding all the threaded messages belonging to the same conversation.
+The above snippet will return messages between the logged-in user and `cometchat-uid-1` excluding all the threaded messages belonging to the same conversation.
+
+## Best Practices and Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="How do I identify which thread a message belongs to?">
+    Every message object has a `parentMessageId` field. If this field is set (non-zero), the message is part of a thread. Use `message.getParentMessageId()` to retrieve the parent message ID and match it against the active thread.
+  </Accordion>
+
+  <Accordion title="Why am I receiving thread messages in my main conversation list?">
+    By default, `MessagesRequest` includes threaded messages. Use the `hideReplies(true)` method on `MessagesRequestBuilder` when fetching messages for the main conversation to exclude thread replies.
+  </Accordion>
+
+  <Accordion title="What is the maximum number of messages I can fetch per request?">
+    You can fetch a maximum of 100 messages per `fetchPrevious()` call. Use the `setLimit()` method on `MessagesRequestBuilder` to control the number of messages returned. To load more messages, call `fetchPrevious()` again on the same `MessagesRequest` object.
+  </Accordion>
+
+  <Accordion title="Can I send media or custom messages in a thread?">
+    Yes. The `setParentMessageId()` method is available on `TextMessage`, `MediaMessage`, and `CustomMessage` objects. Set the parent message ID before calling `CometChat.sendMessage()` to send any message type within a thread.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send a Message" icon="paper-plane" href="/sdk/react-native/send-message">
+    Learn how to send text, media, and custom messages to users and groups.
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Set up real-time message listeners and fetch message history.
+  </Card>
+  <Card title="Message Filtering" icon="filter" href="/sdk/react-native/additional-message-filtering">
+    Filter messages by type, category, tags, timestamps, and more.
+  </Card>
+  <Card title="Message Structure" icon="sitemap" href="/sdk/react-native/message-structure-and-hierarchy">
+    Understand message categories, types, and the message hierarchy.
+  </Card>
+</CardGroup>

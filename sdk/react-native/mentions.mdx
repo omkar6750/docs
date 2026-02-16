@@ -1,10 +1,24 @@
 ---
 title: "Mentions"
+description: "Learn how to mention users in messages using the CometChat React Native SDK. Use the <@uid:UID> format to tag specific users in text and media message captions."
 ---
 
+<Info>
+**Quick Reference** - Mention a user in a message:
 
+```javascript
+// Use the format <@uid:UID> to mention users
+let messageText = "Hello, <@uid:cometchat-uid-1>";
+let textMessage = new CometChat.TextMessage("RECEIVER_ID", messageText, CometChat.RECEIVER_TYPE.USER);
+CometChat.sendMessage(textMessage);
+```
+</Info>
 
-Mentions in messages enable users to refer to specific individual within a conversation. This is done by using the `<@uid:UID>` format, where `UID` represents the user’s unique identification.
+<Note>
+Available via: [SDK](/sdk/react-native/mentions) | [REST API](/rest-api/messages/list-messages) | [UI Kits](/ui-kit/react-native/core-features#mentions)
+</Note>
+
+Mentions in messages enable users to refer to specific individual within a conversation. This is done by using the `<@uid:UID>` format, where `UID` represents the user's unique identification.
 
 Mentions are a powerful tool for enhancing communication in messaging platforms. They streamline interaction by allowing users to easily engage and collaborate with particular individuals, especially in group conversations.
 
@@ -13,7 +27,7 @@ Mentions are a powerful tool for enhancing communication in messaging platforms.
 To send a message with a mentioned user, you must follow a specific format: `<@uid:UID>`. For example, to mention the user with UID `cometchat-uid-1` with the message "`Hello`," your text would be "`Hello, <@uid:cometchat-uid-1>`"
 
 <Tabs>
-<Tab title="User">
+<Tab title="To User">
 ```javascript
 let receiverID = "UID";
 let messageText = "Hello, <@uid:cometchat-uid-1>";
@@ -36,7 +50,7 @@ CometChat.sendMessage(textMessage).then(
 
 </Tab>
 
-<Tab title="Group">
+<Tab title="To Group">
 ```javascript
 let receiverID = "GUID";
 let messageText = "Hello <@uid:cometchat-uid-1>";
@@ -59,7 +73,7 @@ CometChat.sendMessage(textMessage).then(
 
 </Tab>
 
-<Tab title="Typescript (User)">
+<Tab title="TypeScript (User)">
 ```typescript
 let receiverID: string = "UID",
   messageText: string = "Hello <@uid:cometchat-uid-1>";
@@ -77,7 +91,7 @@ CometChat.sendMessage(textMessage).then(
 
 </Tab>
 
-<Tab title="Typescript (Group)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let receiverID: string = "GUID",
   messageText: string = "Hello world!",
@@ -108,6 +122,11 @@ You can mention user in text message and media messages captions
 
 </Note>
 
+<Note>
+**Push Notifications & UI Rendering:** While the message format uses `<@uid:UID>`, push notifications are sent with the parsed body containing the actual username — not the raw `<@uid:>` format. For UI rendering with the SDK, use `message.getMentionedUsers()` to get the mentioned user objects (which include both `uid` and `name`) and replace the `<@uid:>` tags in your message bubble accordingly. If you're using a UI Kit, this is handled automatically.
+</Note>
+
+
 ## Mentioned Messages
 
 By default, the SDK will fetch all the messages irrespective of the fact that the logged-in user is mentioned or not in the message. The SDK has other optional filters such as tags and blocked relationships.
@@ -122,7 +141,7 @@ By default, the SDK will fetch all the messages irrespective of the fact that th
 To get a list of messages in a conversation where users are mentioned along with the user tags of the mentioned users.
 
 <Tabs>
-<Tab title="User">
+<Tab title="To User">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -149,7 +168,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Group">
+<Tab title="To Group">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
@@ -176,7 +195,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (User)">
+<Tab title="TypeScript (User)">
 ```typescript
 let UID: string = "UID",
   limit: number = 30,
@@ -205,7 +224,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (Group)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let GUID: string = "GUID",
   limit: number = 30,
@@ -235,13 +254,14 @@ messagesRequest.fetchPrevious().then(
 </Tab>
 
 </Tabs>
+
 
 ## Mentions With Blocked Info
 
 To get a list of messages in a conversation where users are mentioned along with the blocked relationship of the mentioned users with the logged-in user.
 
 <Tabs>
-<Tab title="User">
+<Tab title="To User">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -268,7 +288,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Group">
+<Tab title="To Group">
 ```javascript
 let GUID = "GUID";
 let limit = 30;
@@ -296,7 +316,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (User)">
+<Tab title="TypeScript (User)">
 ```typescript
 let UID: string = "UID",
   limit: number = 30,
@@ -326,7 +346,7 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="Typescript (Group)">
+<Tab title="TypeScript (Group)">
 ```typescript
 let GUID: string = "GUID",
   limit: number = 30,
@@ -357,6 +377,7 @@ messagesRequest.fetchPrevious().then(
 </Tab>
 
 </Tabs>
+
 
 ## Get Users Mentioned In a Particular Message
 
@@ -365,3 +386,54 @@ To retrieve the list of users mentioned in the particular message, you can use t
 ```javascript
 message.getMentionedUsers();
 ```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use correct mention format">
+    Always use the `<@uid:UID>` format when mentioning users. The UID must exactly match the user's unique identifier in CometChat. Incorrect UIDs will not resolve to a valid mention.
+  </Accordion>
+  <Accordion title="Validate UIDs before sending">
+    Before sending a message with mentions, verify that the UIDs you are referencing exist in your CometChat app. Mentioning non-existent UIDs will not throw an error, but the mention will not resolve to a user on the recipient's end.
+  </Accordion>
+  <Accordion title="Combine mentions with tag and blocked info when needed">
+    Use `mentionsWithTagInfo(true)` and `mentionsWithBlockedInfo(true)` on your `MessagesRequestBuilder` when you need to display additional context about mentioned users, such as their roles (via tags) or blocked status. Avoid enabling these filters unnecessarily to reduce payload size.
+  </Accordion>
+  <Accordion title="Handle mentions in both text and media messages">
+    Mentions are supported in text messages and media message captions. Ensure your UI handles rendering mentions consistently across both message types.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Mentions not appearing in received messages">
+    Ensure you are using the correct `<@uid:UID>` format. The UID must be wrapped exactly as `<@uid:your-uid-here>`. Also verify that the mentioned user exists in your CometChat app. Use `message.getMentionedUsers()` to confirm the SDK parsed the mentions correctly.
+  </Accordion>
+  <Accordion title="getMentionedUsers() returns an empty array">
+    This typically means the mention format in the message text is incorrect or the UID does not match any registered user. Double-check the message text for proper `<@uid:UID>` syntax and ensure there are no extra spaces or typos in the UID.
+  </Accordion>
+  <Accordion title="Tag or blocked info not returned for mentioned users">
+    Make sure you have set `mentionsWithTagInfo(true)` or `mentionsWithBlockedInfo(true)` on your `MessagesRequestBuilder` before calling `fetchPrevious()`. These filters are disabled by default.
+  </Accordion>
+  <Accordion title="Mentions not working in media message captions">
+    Verify that you are setting the caption text with the `<@uid:UID>` format on the media message object. Mentions in captions follow the same format as text messages.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send a Message" icon="paper-plane" href="/sdk/react-native/send-message">
+    Learn how to send text, media, and custom messages to users and groups.
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Set up real-time message listeners and fetch message history.
+  </Card>
+  <Card title="Reactions" icon="face-smile" href="/sdk/react-native/reactions">
+    Add emoji reactions to messages for richer user interactions.
+  </Card>
+  <Card title="Threaded Messages" icon="comments" href="/sdk/react-native/threaded-messages">
+    Organize conversations with threaded replies on messages.
+  </Card>
+</CardGroup>

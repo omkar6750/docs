@@ -1,10 +1,31 @@
 ---
 title: "Flag Message"
+description: "Flag and report inappropriate messages for moderation review using the CometChat React Native SDK."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Get available flag reasons
+const reasons = await CometChat.getFlagReasons();
+
+// Flag a message with a reason
+const payload = { reasonId: "spam", remark: "Promotional content" };
+await CometChat.flagMessage("MESSAGE_ID", payload);
+```
+
+**Required:** Moderation enabled in [Dashboard](https://app.cometchat.com) → Moderation → Advanced Settings
+</Info>
 
 ## Overview
 
 Flagging messages allows users to report inappropriate content to moderators or administrators. When a message is flagged, it appears in the [CometChat Dashboard](https://app.cometchat.com) under **Moderation > Flagged Messages** for review.
+
+<Note>
+**Available via:** [SDK](/sdk/react-native/flag-message) | [REST API](/rest-api/chat-apis) | [UI Kits](/ui-kits/react-native/overview)
+</Note>
 
 <Note>
 For a complete understanding of how flagged messages are reviewed and managed, see the [Flagged Messages](/moderation/flagged-messages) documentation.
@@ -218,3 +239,39 @@ if (result.success) {
   showToast("Message reported successfully");
 }
 ```
+
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Cache flag reasons:** Call `getFlagReasons()` once at app initialization or when the report dialog is first opened, then reuse the cached list. Avoid fetching reasons on every report action.
+    - **Require a reason:** Always require users to select a reason before submitting a flag. This improves the quality of moderation data and helps moderators prioritize reviews.
+    - **Provide a remark field:** Allow users to add optional context via the `remark` parameter. Additional details help moderators make faster, more informed decisions.
+    - **Confirm before submitting:** Show a confirmation dialog before calling `flagMessage()` to prevent accidental reports.
+    - **Show feedback after flagging:** Display a success message or toast after a message is flagged so the user knows their report was submitted.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **`getFlagReasons()` returns an empty array:** Ensure that flag reasons are configured in the [CometChat Dashboard](https://app.cometchat.com) under **Moderation > Advanced Settings**. Moderation must also be enabled for your app.
+    - **`flagMessage()` fails with an error:** Verify that the `reasonId` matches one of the IDs returned by `getFlagReasons()`. Also confirm that the `messageId` is valid and belongs to a conversation the logged-in user has access to.
+    - **Flagged messages not appearing in Dashboard:** Check that moderation is enabled in your Dashboard settings. Flagged messages appear under **Moderation > Flagged Messages**.
+    - **Permission errors:** The logged-in user must be a participant in the conversation containing the message they want to flag. Users cannot flag messages from conversations they are not part of.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Edit Message" icon="pen-to-square" href="/sdk/react-native/edit-message">
+    Edit sent messages in one-on-one and group conversations
+  </Card>
+  <Card title="Delete Message" icon="trash" href="/sdk/react-native/delete-message">
+    Delete messages for yourself or for all participants
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/react-native/delivery-read-receipts">
+    Track message delivery and read status
+  </Card>
+</CardGroup>

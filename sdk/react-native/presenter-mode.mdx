@@ -1,8 +1,27 @@
 ---
 title: "Presenter Mode"
+description: "Implement presenter mode in your React Native app — allow up to 5 presenters to share video, audio, and screen with up to 100 viewers using CometChat Calls SDK."
 ---
 
+<Info>
+**Quick Reference** - Start a presentation session:
 
+```javascript
+// Configure presenter settings
+let presenterSettings = new CometChatCalls.PresenterSettingsBuilder()
+  .setIsPresenter(true) // false for viewer
+  .enableDefaultLayout(true)
+  .setCallEventListener(callListener)
+  .build();
+
+// Render presenter component
+// <CometChatCalls.PresenterComponent presenterSettings={presenterSettings} callToken={callToken} />
+```
+</Info>
+
+<Note>
+**Available via:** SDK | UI Kits
+</Note>
 
 ## Overview
 
@@ -25,9 +44,9 @@ Using this feature developers can create experiences such as:
 
 ### About this guide
 
-This guide demonstrates how to start a presentation into an React Native application. Before you begin, we strongly recommend you read the calling setup guide.
+This guide demonstrates how to start a presentation into an React Native application. Before you begin, we strongly recommend you read the [calling setup guide](/sdk/react-native/calling-setup).
 
-Before starting a call session you have to generate a call token. You need to call this method for the call token.
+Before starting a call session you have to [generate a call token](/sdk/react-native/direct-call#generate-call-token).
 
 ### Start Presentation Session
 
@@ -59,7 +78,7 @@ render(){
 
 </Tabs>
 
-## **Listeners**
+## Listeners
 
 Listeners can be added in two ways the first one is to use `.setCallEventListener(listeners : OngoingCallListener)` method in `CallSettingsBuilder` or `PresenterSettingsBuilder` class. The second way is to use `CometChatCalls.addCallEventListener(name: string, callListener: OngoingCallListener)` by this you can add multiple listeners and remove the specific listener by their name `CometChatCalls.removeCallEventListener(name: string)`
 
@@ -100,6 +119,10 @@ useEffect(() => {
 </Tab>
 
 </Tabs>
+
+<Warning>
+Always remove call event listeners when the component unmounts using `CometChatCalls.removeCallEventListener(listenerId)`. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 The `CometChatCallsEventsListener` listener provides you with the below callback methods:
 
@@ -146,3 +169,56 @@ The options available for customization of calls are:
 In case you wish to achieve a completely customised UI for the Calling experience, you can do so by embedding default android buttons to the screen as per your requirement and then use the below methods to achieve different functionalities for the embedded buttons.
 
 For the use case where you wish to align your own custom buttons and not use the default layout provided by CometChat you can embed the buttons in your layout and use the below methods to perform the corresponding operations:
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Set user type correctly">
+    Always explicitly set `setIsPresenter(true)` for presenters and `setIsPresenter(false)` for viewers. Viewers cannot send audio, video, or screen streams — this is enforced by the SDK, not just the UI.
+  </Accordion>
+  <Accordion title="Limit presenters to 5">
+    Presenter Mode supports a maximum of 5 concurrent presenters. If your app allows dynamic role switching, enforce this limit in your logic before calling `setIsPresenter(true)` for additional users.
+  </Accordion>
+  <Accordion title="Clean up listeners on component unmount">
+    Always remove call event listeners in your component's cleanup function (e.g., the return function of `useEffect`). Orphaned listeners can cause memory leaks and duplicate event handling.
+  </Accordion>
+  <Accordion title="Generate call tokens just before use">
+    Call tokens are session-specific and time-limited. Generate them right before starting the presentation session rather than caching them for extended periods.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Viewer can send audio/video">
+    Verify that `setIsPresenter(false)` is set for viewer participants. If a viewer is incorrectly set as a presenter, they will have access to media controls.
+  </Accordion>
+  <Accordion title="Presentation UI does not render">
+    Ensure the `CometChatCalls.PresenterComponent` is wrapped in a `View` with `flex: 1` or explicit dimensions. Also confirm that both `presenterSettings` and `callToken` props are provided and not `null`.
+  </Accordion>
+  <Accordion title="Listeners not firing">
+    Check that the listener is registered before the presentation session starts. If using `addCallEventListener`, ensure the `listenerId` is unique and hasn't been overwritten. Also verify the Calls SDK has been initialized via `CometChatCalls.init()`.
+  </Accordion>
+  <Accordion title="Maximum participant limit reached">
+    Presenter Mode supports up to 100 total participants (presenters + viewers). If users can't join, check the current participant count in your session.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Start and manage standard call sessions with full configuration options
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record presentation sessions for playback and compliance
+  </Card>
+  <Card title="Video View Customisation" icon="sliders" href="/sdk/react-native/video-view-customisation">
+    Customize the main video container and participant tiles
+  </Card>
+  <Card title="Calls SDK Setup" icon="gear" href="/sdk/react-native/calling-setup">
+    Install dependencies, configure permissions, and initialize the Calls SDK
+  </Card>
+</CardGroup>

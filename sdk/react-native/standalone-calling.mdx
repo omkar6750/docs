@@ -1,6 +1,28 @@
 ---
 title: "Standalone Calling"
+description: "Implement audio and video calling using only the CometChat Calls SDK, without the Chat SDK — ideal for apps that need calling without full chat infrastructure."
 ---
+
+<Info>
+**Quick Reference** - Generate token and start a standalone call session:
+
+```javascript
+// Generate call token (auth token from REST API, not Chat SDK)
+const callToken = await CometChatCalls.generateToken(sessionId, userAuthToken);
+
+// Configure and render
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .build();
+
+// <CometChatCalls.Component callSettings={callSettings} callToken={callToken} />
+```
+</Info>
+
+<Note>
+**Available via:** SDK | UI Kits
+</Note>
 
 ## Overview
 
@@ -22,6 +44,10 @@ You can obtain the auth token using one of these REST API endpoints:
 
 - [Create Auth Token](/rest-api/auth-tokens/create) — Creates a new auth token for a user
 - [Get Auth Token](/rest-api/auth-tokens/get) — Retrieves an existing auth token
+
+<Warning>
+Auth tokens grant access to call sessions on behalf of a user. Never expose auth tokens in client-side code in production. Use a secure backend to generate and deliver tokens to your app.
+</Warning>
 
 <Note>
 For testing or POC purposes, you can create an auth token directly from the [CometChat Dashboard](https://app.cometchat.com). Navigate to **Users & Groups → Users**, select a user, and click **+ Create Auth Token**.
@@ -343,6 +369,10 @@ useEffect(() => {
 
 </Tabs>
 
+<Warning>
+Always remove call event listeners when the component unmounts using `CometChatCalls.removeCallEventListener(listenerId)`. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 ### Events
 
 | Event | Description |
@@ -569,3 +599,62 @@ CometChatCalls.endSession();
 </Tab>
 
 </Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Generate call tokens just before use">
+    Call tokens are session-specific and time-limited. Generate them right before starting the call session rather than caching them for extended periods. This ensures the token is fresh and reduces the chance of token expiry errors.
+  </Accordion>
+  <Accordion title="Use a shared session ID for participants">
+    All participants who need to join the same call must use the same `sessionId` when generating their call tokens. Share this ID through your backend or signaling mechanism so both parties can join the same session.
+  </Accordion>
+  <Accordion title="Secure your auth tokens">
+    Since standalone calling uses REST API auth tokens instead of the Chat SDK login flow, ensure tokens are generated server-side and delivered securely to the client. Never hardcode auth tokens in your app bundle.
+  </Accordion>
+  <Accordion title="Clean up listeners on component unmount">
+    Always remove call event listeners in your component's cleanup function (e.g., the return function of `useEffect`). Orphaned listeners can cause memory leaks, duplicate event handling, and unexpected behavior when navigating between screens.
+  </Accordion>
+  <Accordion title="Wrap the call component in a full-screen container">
+    The `CometChatCalls.Component` should be rendered inside a `View` with `height: '100%'`, `width: '100%'`, and `position: 'relative'`. This ensures the call UI fills the screen correctly and overlays render in the right position.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Call token generation fails">
+    Verify the auth token is valid and hasn't expired. Auth tokens obtained from the REST API or Dashboard have an expiry — generate a fresh one if needed. Also confirm the `sessionId` is a non-empty string.
+  </Accordion>
+  <Accordion title="Call UI does not render">
+    Ensure the `CometChatCalls.Component` is wrapped in a `View` with explicit dimensions (`height: '100%'`, `width: '100%'`). Also confirm that both `callSettings` and `callToken` props are provided and not `null` or `undefined`.
+  </Accordion>
+  <Accordion title="Participants can't join the same call">
+    Both participants must use the exact same `sessionId` when generating their call tokens. Double-check that the session ID is being shared correctly between devices.
+  </Accordion>
+  <Accordion title="Listeners not firing">
+    Check that the listener is registered before the call session starts. If using `addCallEventListener`, ensure the `listenerId` is unique and hasn't been overwritten by another registration. Also verify that the Calls SDK has been initialized via `CometChatCalls.init()`.
+  </Accordion>
+  <Accordion title="Audio or video not working after call starts">
+    Check device permissions for camera and microphone. On React Native, request `CAMERA` and `RECORD_AUDIO` permissions on Android, and add `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` to `Info.plist` on iOS.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Calls SDK Setup" icon="gear" href="/sdk/react-native/calling-setup">
+    Install dependencies, configure permissions, and initialize the Calls SDK
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record call sessions for playback and compliance
+  </Card>
+  <Card title="Video View Customisation" icon="sliders" href="/sdk/react-native/video-view-customisation">
+    Customize the main video container and participant tiles
+  </Card>
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Full call session management with the Chat SDK integration
+  </Card>
+</CardGroup>

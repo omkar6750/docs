@@ -1,10 +1,33 @@
 ---
 title: "Call Session"
+description: "Start and manage call sessions in your React Native app using the CometChat Calls SDK, including token generation, call settings, listeners, and session control."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference** - Generate token and start a call session:
+
+```javascript
+// Generate call token
+const callToken = await CometChatCalls.generateToken(sessionId, userAuthToken);
+
+// Configure and render
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .build();
+
+// <CometChatCalls.Component callSettings={callSettings} callToken={callToken} />
+```
+</Info>
 
 ## Overview
 
 This section demonstrates how to start a call session in a React Native application. Previously known as **Direct Calling**.
+
+<Note>
+**Available via:** SDK | UI Kits
+</Note>
 
 Before you begin, we strongly recommend you read the [calling setup guide](/sdk/react-native/calling-setup).
 
@@ -89,6 +112,7 @@ const callListener = new CometChatCalls.OngoingCallListener({
   },
   onCallEnded: () => {
     console.log("Call ended");
+     // Clear Active Call and End Session -  see End Call Session section
   },
   onCallEndButtonPressed: () => {
     console.log("End call button pressed");
@@ -141,6 +165,7 @@ const callListener = new CometChatCalls.OngoingCallListener({
   },
   onCallEnded: () => {
     console.log("Call ended");
+    // Clear Active Call and End Session -  see End Call Session section
   },
   onCallEndButtonPressed: () => {
     console.log("End call button pressed");
@@ -185,6 +210,7 @@ return (
 | -------------- | -------------------------------------------------------- |
 | `callToken`    | The `GenerateToken` object received from `generateToken()` onSuccess |
 | `callSettings` | Object of `CallSettings` class configured via `CallSettingsBuilder` |
+
 
 ### Call Settings
 
@@ -316,6 +342,11 @@ useEffect(() => {
 </Tab>
 
 </Tabs>
+
+<Warning>
+Always remove call event listeners when the component unmounts using `CometChatCalls.removeCallEventListener(listenerId)`. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 
 ### Events
 
@@ -454,6 +485,7 @@ onCallEndButtonPressed: () => {
 </Tab>
 
 </Tabs>
+
 
 ## Methods
 
@@ -637,3 +669,63 @@ CometChatCalls.endSession();
 </Tab>
 
 </Tabs>
+
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Generate call tokens just before use">
+    Call tokens are session-specific and time-limited. Generate them right before starting the call session rather than caching them for extended periods. This ensures the token is fresh and reduces the chance of token expiry errors.
+  </Accordion>
+  <Accordion title="Always handle call end in both flows">
+    When using the Ringing flow, remember to call both `CometChat.endCall()` and `CometChatCalls.endSession()`. Missing either call can leave the session in an inconsistent state — the Chat SDK may still show the call as active, or media resources may not be released properly.
+  </Accordion>
+  <Accordion title="Clean up listeners on component unmount">
+    Always remove call event listeners in your component's cleanup function (e.g., the return function of `useEffect`). Orphaned listeners can cause memory leaks, duplicate event handling, and unexpected behavior when navigating between screens.
+  </Accordion>
+  <Accordion title="Wrap the call component in a full-screen container">
+    The `CometChatCalls.Component` should be rendered inside a `View` with `height: '100%'`, `width: '100%'`, and `position: 'relative'`. This ensures the call UI fills the screen correctly and overlays render in the right position.
+  </Accordion>
+  <Accordion title="Use unique listener IDs per component instance">
+    When registering call event listeners with `addCallEventListener`, use a unique `listenerId` per component instance. This prevents one component from accidentally overwriting another component's listener, especially in navigation stacks where multiple screens may be mounted simultaneously.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Call token generation fails">
+    Ensure the user is logged in and the auth token is valid. Call `CometChat.getLoggedinUser()` to verify the user session is active. If the auth token has expired, re-authenticate the user before generating a call token.
+  </Accordion>
+  <Accordion title="Call UI does not render">
+    Verify that the `CometChatCalls.Component` is wrapped in a `View` with explicit dimensions (`height: '100%'`, `width: '100%'`). The component requires a sized container to render. Also confirm that both `callSettings` and `callToken` props are provided and not `null` or `undefined`.
+  </Accordion>
+  <Accordion title="Listeners not firing">
+    Check that the listener is registered before the call session starts. If using `addCallEventListener`, ensure the `listenerId` is unique and hasn't been overwritten by another registration. Also verify that the Calls SDK has been initialized via `CometChatCalls.init()`.
+  </Accordion>
+  <Accordion title="onCallEnded not triggered in group calls">
+    The `onCallEnded` callback only fires for 1:1 calls (exactly 2 participants). For group calls, use `onUserLeft` and `onUserListUpdated` to track when participants leave, and handle session cleanup based on your app's logic.
+  </Accordion>
+  <Accordion title="Audio or video not working after call starts">
+    Check device permissions for camera and microphone. On React Native, you need to request `CAMERA` and `RECORD_AUDIO` permissions on Android, and add `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` to `Info.plist` on iOS. Also verify that `setIsAudioOnlyCall` matches your intended call type.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
+    Implement a complete calling experience with incoming and outgoing call UI
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record call sessions for playback and compliance
+  </Card>
+  <Card title="Video View Customisation" icon="sliders" href="/sdk/react-native/video-view-customisation">
+    Customize the main video container and participant tiles
+  </Card>
+  <Card title="Presenter Mode" icon="presentation-screen" href="/sdk/react-native/presenter-mode">
+    Enable screen sharing and presenter layouts in calls
+  </Card>
+</CardGroup>

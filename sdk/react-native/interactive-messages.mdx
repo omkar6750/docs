@@ -1,14 +1,35 @@
 ---
 title: "Interactive Messages"
+description: "Send and receive interactive messages with embedded forms, cards, and custom interactive elements using the CometChat React Native SDK."
 ---
 
+<Info>
+**Quick Reference** - Send an interactive message and listen for it:
 
+```javascript
+// Send an interactive message
+const interactiveMessage = new CometChat.InteractiveMessage(
+  "UID", CometChat.RECEIVER_TYPE.USER, "form", { title: "Survey", formFields: [] }
+);
+await CometChat.sendInteractiveMessage(interactiveMessage);
+
+// Listen for incoming interactive messages
+CometChat.addMessageListener("interactive-listener", new CometChat.MessageListener({
+  onInteractiveMessageReceived: (msg) => console.log("Interactive:", msg),
+  onInteractionGoalCompleted: (msg) => console.log("Goal completed:", msg),
+}));
+```
+</Info>
+
+<Note>
+**Available via:** [SDK](/sdk/react-native/interactive-messages) | [REST API](/rest-api/chat-apis) | [UI Kits](/ui-kits/react-native/overview)
+</Note>
 
 An `InteractiveMessage` is a specialized object that encapsulates an interactive unit within a chat message, such as an embedded form that users can fill out directly within the chat interface. This enhances user engagement by making the chat experience more interactive and responsive to user input.
 
 ## InteractiveMessage
 
-`InteractiveMessage` is a chat message with embedded interactive content. It can contain various properties:
+`InteractiveMessage` is a chat message with embedded interactive content. It can contain the following properties:
 
 | Parameter                | Description                                                                                                                                     |          |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
@@ -28,27 +49,36 @@ An `Interaction` represents a user action involved with an `InteractiveMessage`.
 
 ## Mark as Interacted
 
-This method marks a message as interacted by identifying it with the provided Id. it also logs the interactive element associated with the interaction.
+This method marks a message as interacted by identifying it with the provided Id. It also logs the interactive element associated with the interaction.
 
 <Tabs>
-<Tab title="TypeScript">
-```javascript
-CometChat.markAsInteracted(message?.getId(), elementId)
-.then((response) => {
-  console.log("Mark As Interacted", response);
-  });
-  .catch((error) => {
-  console.log("error while markAsInteracted", error);
-  }); 
-```
-
-</Tab>
-
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.markAsInteracted(message?.getId(), elementId)
+      .then((response) => {
+        console.log("Mark As Interacted", response);
+      })
+      .catch((error) => {
+        console.log("error while markAsInteracted", error);
+      });
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.markAsInteracted(message?.getId(), elementId)
+      .then((response) => {
+        console.log("Mark As Interacted", response);
+      })
+      .catch((error) => {
+        console.log("error while markAsInteracted", error);
+      });
+    ```
+  </Tab>
 </Tabs>
 
 ## Goal Completion
 
-A key feature of InteractiveMessage is checking whether a user's interactions with the message meet the defined `InteractionGoal`
+A key feature of `InteractiveMessage` is checking whether a user's interactions with the message meet the defined `InteractionGoal`.
 
 You would be tracking every interaction users perform on an `InteractiveMessage` (captured as `Interaction` objects) and comparing those with the defined `InteractionGoal`. The completion of a goal can vary depending on the goal type:
 
@@ -73,19 +103,28 @@ The `InteractiveMessage` can be sent using the `sendInteractiveMessage` method o
 Here is an example of how to use it:
 
 <Tabs>
-<Tab title="TypeScript">
-```typescript
-CometChat.sendInteractiveMessage(message)
-.then((message: CometChat.InteractiveMessage) => {
-  console.log("message sent successfully", message.getSentAt());
-})
-.catch((error: CometChat.CometChatException) => {
-  console.log("error while sending message", { error });
-});
-```
-
-</Tab>
-
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.sendInteractiveMessage(message)
+      .then((message) => {
+        console.log("message sent successfully", message.getSentAt());
+      })
+      .catch((error) => {
+        console.log("error while sending message", { error });
+      });
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.sendInteractiveMessage(message)
+      .then((message: CometChat.InteractiveMessage) => {
+        console.log("message sent successfully", message.getSentAt());
+      })
+      .catch((error: CometChat.CometChatException) => {
+        console.log("error while sending message", { error });
+      });
+    ```
+  </Tab>
 </Tabs>
 
 ## Event Listeners
@@ -99,20 +138,30 @@ The `onInteractiveMessageReceived` event listener is triggered when an `Interact
 Here is an example:
 
 <Tabs>
-<Tab title="TypeScript">
-```typescript
-CometChat.addMessageListener(
-"UNIQUE_LISTENER_ID",
-new CometChat.MessageListener({
-  onInteractiveMessageReceived: message => {
-    console.log("on Interactive Message Received", message);
-  }
-})
-);
-```
-
-</Tab>
-
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.addMessageListener(
+      "UNIQUE_LISTENER_ID",
+      new CometChat.MessageListener({
+        onInteractiveMessageReceived: (message) => {
+          console.log("on Interactive Message Received", message);
+        }
+      })
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.addMessageListener(
+      "UNIQUE_LISTENER_ID",
+      new CometChat.MessageListener({
+        onInteractiveMessageReceived: (message: CometChat.InteractiveMessage) => {
+          console.log("on Interactive Message Received", message);
+        }
+      })
+    );
+    ```
+  </Tab>
 </Tabs>
 
 ### On Interaction Goal Completed
@@ -122,24 +171,76 @@ The `onInteractionGoalCompleted` event listener is invoked when an interaction g
 Here is an example:
 
 <Tabs>
-<Tab title="TypeScript">
-```typescript
-CometChat.addMessageListener(
-"UNIQUE_LISTENER_ID",
-new CometChat.MessageListener({
-  onInteractionGoalCompleted: message => {
-    console.log("on Interaction Goal Completed", message);
-  }
-})
-);
-```
-
-</Tab>
-
+  <Tab title="JavaScript">
+    ```javascript
+    CometChat.addMessageListener(
+      "UNIQUE_LISTENER_ID",
+      new CometChat.MessageListener({
+        onInteractionGoalCompleted: (message) => {
+          console.log("on Interaction Goal Completed", message);
+        }
+      })
+    );
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    CometChat.addMessageListener(
+      "UNIQUE_LISTENER_ID",
+      new CometChat.MessageListener({
+        onInteractionGoalCompleted: (message: CometChat.InteractiveMessage) => {
+          console.log("on Interaction Goal Completed", message);
+        }
+      })
+    );
+    ```
+  </Tab>
 </Tabs>
 
 These event listeners offer your application a way to provide real-time updates in response to incoming interactive messages and goal completions, contributing to a more dynamic and responsive user chat experience.
 
+<Warning>
+**Listener Cleanup:** Always remove message listeners when they are no longer needed. Remove the listener in `componentWillUnmount()` or the cleanup function of a `useEffect` hook to prevent memory leaks.
+
+```javascript
+CometChat.removeMessageListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
 ## Usage
 
 An `InteractiveMessage` is constructed with the receiver's UID, the receiver type, the interactive type, and interactive data as a JSONObject. Once created, the `InteractiveMessage` can be sent using CometChat's `sendInteractiveMessage()` method. Incoming `InteractiveMessages` can be received and processed via CometChat's message listener framework.
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - Use descriptive, unique listener IDs (e.g., `"interactive-form-listener"`) to avoid conflicts with other listeners
+    - Always remove message listeners on component unmount to prevent memory leaks
+    - Set `allowSenderInteraction` to `true` only when the sender needs to interact with their own message (e.g., previewing a form)
+    - Define clear `InteractionGoal` types to accurately track user engagement with interactive elements
+    - Handle both `onInteractiveMessageReceived` and `onInteractionGoalCompleted` events to provide a complete interactive experience
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **Interactive message not sending:** Verify that `interactiveData` is a valid JSON object and all required fields (`receiverId`, `receiverType`, `messageType`) are set
+    - **Not receiving interactive messages:** Ensure the message listener is registered with `onInteractiveMessageReceived` and the user is logged in
+    - **Goal not completing:** Check that the `InteractionGoal` type matches the expected interactions — use `ANY_ACTION` for simple cases and `ALL_OF` only when every specified element must be interacted with
+    - **`markAsInteracted` failing:** Confirm that the message ID and element ID are valid and that the user has permission to interact with the message
+    - **Duplicate events:** Verify you are not registering the same listener ID multiple times without removing the previous one
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send a Message" icon="paper-plane" href="/sdk/react-native/send-message">
+    Send text, media, custom, and interactive messages to users and groups
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/react-native/receive-messages">
+    Listen for real-time messages and fetch missed or unread messages
+  </Card>
+  <Card title="Message Structure" icon="sitemap" href="/sdk/react-native/message-structure-and-hierarchy">
+    Understand message categories, types, and hierarchy including interactive messages
+  </Card>
+  <Card title="Messaging Overview" icon="comments" href="/sdk/react-native/messaging-overview">
+    Explore the full range of CometChat messaging capabilities
+  </Card>
+</CardGroup>
