@@ -58,6 +58,70 @@ new CalendarObject({
 
 ---
 
+## **Example: Custom Conversation Subtitle**
+
+Show online status or member count instead of the default last message preview.
+
+**Component**: [Conversations](/ui-kit/react/conversations) → [`subtitleView`](/ui-kit/react/conversations#subtitleview)
+
+```jsx
+"use client";
+
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+const customSubtitleView = (conversation) => {
+  if (conversation.getConversationType() === "user") {
+    const user = conversation.getConversationWith();
+    return <span>{user.getStatus() === "online" ? "🟢 Online" : "⚫ Offline"}</span>;
+  } else {
+    const group = conversation.getConversationWith();
+    return <span>{group.getMembersCount()} members</span>;
+  }
+};
+
+<CometChatConversations subtitleView={customSubtitleView} />
+```
+
+---
+
+## **Example: Custom Send Button**
+
+Replace the default send button with your brand's icon.
+
+**Component**: [Message Composer](/ui-kit/react/message-composer) → [`sendButtonView`](/ui-kit/react/message-composer#sendbuttonview)
+
+```jsx
+"use client";
+
+import { CometChatMessageComposer, CometChatButton } from "@cometchat/chat-uikit-react";
+
+const brandedSendButton = (
+  <CometChatButton
+    iconURL="/icons/brand-send.svg"
+    onClick={() => {
+      // Your custom send logic
+    }}
+  />
+);
+
+<CometChatMessageComposer user={chatUser} sendButtonView={brandedSendButton} />
+```
+
+```css
+/* Style the custom send button */
+.cometchat-message-composer .cometchat-button {
+  background: #6852D6;
+  border-radius: 50%;
+}
+
+.cometchat-message-composer .cometchat-button__icon {
+  background: #ffffff;
+}
+```
+
+---
+
 ## **Next Steps**
 
 <CardGroup cols={2}>
