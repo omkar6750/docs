@@ -57,24 +57,12 @@ function CallScreen({ sessionId, isAudioOnly = false }: CallScreenProps) {
         setCallToken(token);
 
         // Create call settings
-        const listener = new CometChatCalls.OngoingCallListener({
-          onUserJoined: (user) => console.log('User joined:', user.name),
-          onUserLeft: (user) => console.log('User left:', user.name),
-          onCallEnded: () => console.log('Call ended'),
-          onError: (error) => console.error('Error:', error),
-        });
+        const sessionSettings: SessionSettings = {
+          sessionType: isAudioOnly ? "VOICE" : "VIDEO",
+          layout: "TILE",
+        };
 
-        const settings = new CometChatCalls.CallSettingsBuilder()
-          .enableDefaultLayout(true)
-          .setIsAudioOnlyCall(isAudioOnly)
-          .setMode(CometChatCalls.CALL_MODE.DEFAULT)
-          .showEndCallButton(true)
-          .showMuteAudioButton(true)
-          .showPauseVideoButton(!isAudioOnly)
-          .setCallEventListener(listener)
-          .build();
-
-        setCallSettings(settings);
+        setCallSettings(sessionSettings);
       } catch (error) {
         console.error('Failed to initialize call:', error);
       }
@@ -111,7 +99,7 @@ export default CallScreen;
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `callToken` | string | Yes | Token generated from `generateToken()` |
-| `callSettings` | CallSettings | No | Configuration object from `CallSettingsBuilder` |
+| `callSettings` | SessionSettings | No | Configuration object (see [Session Settings](/calls/react-native/session-settings)) |
 
 ## Session ID Strategies
 
@@ -193,54 +181,24 @@ function CallScreen({ sessionId, isAudioOnly = false, onCallEnd }: CallScreenPro
         setCallToken(token);
 
         // Create call listener
-        const listener = new CometChatCalls.OngoingCallListener({
-          onUserJoined: (user) => {
-            console.log('User joined:', user.name);
-          },
-          onUserLeft: (user) => {
-            console.log('User left:', user.name);
-          },
-          onUserListUpdated: (userList) => {
-            console.log('Participants:', userList.length);
-          },
-          onCallEnded: handleCallEnd,
-          onCallEndButtonPressed: () => {
-            console.log('End button pressed');
-            CometChatCalls.leaveSession();
-          },
-          onSessionTimeout: () => {
-            console.log('Session timed out');
-            handleCallEnd();
-          },
-          onError: (err) => {
-            console.error('Call error:', err);
-            setError(err.errorDescription);
-          },
-          onRecordingStarted: () => {
-            console.log('Recording started');
-          },
-          onRecordingStopped: () => {
-            console.log('Recording stopped');
-          },
+        CometChatCalls.addEventListener('onSessionLeft', handleCallEnd);
+        CometChatCalls.addEventListener('onSessionTimedOut', handleCallEnd);
+        CometChatCalls.addEventListener('onParticipantJoined', (user) => {
+          console.log('User joined:', user.name);
+        });
+        CometChatCalls.addEventListener('onParticipantLeft', (user) => {
+          console.log('User left:', user.name);
         });
 
         // Create call settings
-        const settings = new CometChatCalls.CallSettingsBuilder()
-          .enableDefaultLayout(true)
-          .setIsAudioOnlyCall(isAudioOnly)
-          .setMode(CometChatCalls.CALL_MODE.DEFAULT)
-          .showEndCallButton(true)
-          .showMuteAudioButton(true)
-          .showPauseVideoButton(!isAudioOnly)
-          .showSwitchCameraButton(!isAudioOnly)
-          .showAudioModeButton(true)
-          .startWithAudioMuted(false)
-          .startWithVideoMuted(false)
-          .setDefaultAudioMode(CometChatCalls.AUDIO_MODE.SPEAKER)
-          .showRecordingButton(true)
-          .setIdleTimeoutPeriod(180)
-          .setCallEventListener(listener)
-          .build();
+        const settings: SessionSettings = {
+          sessionType: isAudioOnly ? "VOICE" : "VIDEO",
+          layout: "TILE",
+          startAudioMuted: false,
+          startVideoPaused: false,
+          hideRecordingButton: false,
+          idleTimeoutPeriodBeforePrompt: 180000,
+        };
 
         setCallSettings(settings);
       } catch (err: any) {

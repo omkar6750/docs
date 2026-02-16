@@ -28,23 +28,23 @@ if (loggedInUser) {
 
 The `getLoggedInUser()` method returns a user object if a user is logged in, or `null` if no session exists.
 
-## Login with UID and API Key
+## Login with UID and Auth Key
 
 This method is suitable for development and testing. For production apps, use [Auth Token login](#login-with-auth-token) instead.
 
 <Warning>
 **Security Notice**
 
-Using the API Key directly in client code is not recommended for production. Use Auth Token authentication for enhanced security.
+Using the Auth Key directly in client code is not recommended for production. Use Auth Token authentication for enhanced security.
 </Warning>
 
 ```javascript
 const uid = "cometchat-uid-1"; // Replace with your user's UID
-const apiKey = "API_KEY"; // Replace with your API Key
+const authKey = "AUTH_KEY"; // Replace with your Auth Key
 
 if (!CometChatCalls.getLoggedInUser()) {
   try {
-    const user = await CometChatCalls.login(uid, apiKey);
+    const user = await CometChatCalls.login(uid, authKey);
     console.log("Login successful:", user.uid);
   } catch (error) {
     console.error("Login failed:", error.errorDescription);
@@ -57,16 +57,16 @@ if (!CometChatCalls.getLoggedInUser()) {
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `uid` | String | The unique identifier of the user to login |
-| `apiKey` | String | Your CometChat API Key |
+| `authKey` | String | Your CometChat Auth Key |
 
 ## Login with Auth Token
 
-This is the recommended authentication method for production applications. The Auth Token is generated server-side, keeping your API Key secure.
+This is the recommended authentication method for production applications. The Auth Token is generated server-side, keeping your Auth Key secure.
 
 ### Auth Token Flow
 
 1. User authenticates with your backend
-2. Your backend calls the [CometChat Create Auth Token API](https://api-explorer.cometchat.com/reference/create-authtoken)
+2. Your backend calls the [CometChat Get Auth Token API](https://www.cometchat.com/docs/rest-api/auth-tokens/get)
 3. Your backend returns the Auth Token to the client
 4. Client uses the Auth Token to login
 
@@ -144,7 +144,7 @@ Common authentication errors:
 |------------|-------------|
 | `ERROR_INVALID_UID` | The provided UID is empty or invalid |
 | `ERROR_UID_WITH_SPACE` | The UID contains spaces (not allowed) |
-| `ERROR_API_KEY_NOT_FOUND` | The API Key is missing or invalid |
+| `ERROR_API_KEY_NOT_FOUND` | The Auth Key is missing or invalid |
 | `ERROR_BLANK_AUTHTOKEN` | The Auth Token is empty |
 | `ERROR_AUTHTOKEN_WITH_SPACE` | The Auth Token contains spaces (not allowed) |
 | `ERROR_LOGIN_IN_PROGRESS` | A login operation is already in progress |

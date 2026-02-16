@@ -10,11 +10,10 @@ The CometChat Calls SDK supports recording call sessions. Recordings can be star
 Show the recording button in the call UI:
 
 ```tsx
-import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
-
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .showRecordingButton(true)
-  .build();
+const sessionSettings: SessionSettings = {
+  hideRecordingButton: false,
+  // ... other settings
+};
 ```
 
 ## Auto-Start Recording
@@ -22,10 +21,11 @@ const callSettings = new CometChatCalls.CallSettingsBuilder()
 Start recording automatically when the call begins:
 
 ```tsx
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .showRecordingButton(true)
-  .startRecordingOnCallStart(true)
-  .build();
+const sessionSettings: SessionSettings = {
+  hideRecordingButton: false,
+  autoStartRecording: true,
+  // ... other settings
+};
 ```
 
 ## Start Recording Programmatically
@@ -48,21 +48,16 @@ CometChatCalls.stopRecording();
 
 Listen for recording state changes:
 
-### Using OngoingCallListener
+### Using addEventListener
 
 ```tsx
-const callListener = new CometChatCalls.OngoingCallListener({
-  onRecordingStarted: (data) => {
-    console.log('Recording started:', data);
-  },
-  onRecordingStopped: (data) => {
-    console.log('Recording stopped:', data);
-  },
+CometChatCalls.addEventListener('onRecordingStarted', (data) => {
+  console.log('Recording started:', data);
 });
 
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .setCallEventListener(callListener)
-  .build();
+CometChatCalls.addEventListener('onRecordingStopped', (data) => {
+  console.log('Recording stopped:', data);
+});
 ```
 
 ### Using addEventListener

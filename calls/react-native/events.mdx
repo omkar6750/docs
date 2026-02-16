@@ -3,334 +3,488 @@ title: "Events"
 sidebarTitle: "Events"
 ---
 
-The CometChat Calls SDK provides two ways to listen for call events: the `OngoingCallListener` class for legacy-style callbacks, and the `addEventListener` method for modern event subscriptions.
+The SDK provides event listeners to monitor session status, participant activities, media changes, button clicks, and layout changes — useful for building custom UIs, triggering business logic, or integrating with other services.
 
-## OngoingCallListener
+## Adding Event Listeners
 
-The `OngoingCallListener` class provides callbacks for call events. Pass it to `CallSettingsBuilder.setCallEventListener()`:
+Use the `addEventListener()` method to register event listeners. It returns an unsubscribe function you should call to clean up the listener when it's no longer needed.
 
-```tsx
-import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
-
-const callListener = new CometChatCalls.OngoingCallListener({
-  onUserJoined: (user) => {
-    console.log('User joined:', user);
-  },
-  onUserLeft: (user) => {
-    console.log('User left:', user);
-  },
-  onUserListUpdated: (userList) => {
-    console.log('User list updated:', userList);
-  },
-  onCallEnded: () => {
-    console.log('Call ended');
-  },
-  onCallEndButtonPressed: () => {
-    console.log('End call button pressed');
-  },
-  onSessionTimeout: () => {
-    console.log('Session timed out');
-  },
-  onError: (error) => {
-    console.error('Call error:', error);
-  },
-  onAudioModesUpdated: (audioModes) => {
-    console.log('Audio modes updated:', audioModes);
-  },
-  onRecordingStarted: (data) => {
-    console.log('Recording started:', data);
-  },
-  onRecordingStopped: (data) => {
-    console.log('Recording stopped:', data);
-  },
-  onUserMuted: (user) => {
-    console.log('User muted:', user);
-  },
-  onCallSwitchedToVideo: (data) => {
-    console.log('Call switched to video:', data);
-  },
+```javascript
+const unsubscribe = CometChatCalls.addEventListener("eventName", (data) => {
+  // Handle the event
 });
 
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .setCallEventListener(callListener)
-  .build();
-```
-
-### OngoingCallListener Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onUserJoined` | User object | A user joined the call |
-| `onUserLeft` | User object | A user left the call |
-| `onUserListUpdated` | User array | The participant list changed |
-| `onCallEnded` | - | The call has ended |
-| `onCallEndButtonPressed` | - | The end call button was pressed |
-| `onSessionTimeout` | - | The session timed out due to inactivity |
-| `onError` | Error object | An error occurred |
-| `onAudioModesUpdated` | Audio modes array | Available audio modes changed |
-| `onRecordingStarted` | Recording data | Recording has started |
-| `onRecordingStopped` | Recording data | Recording has stopped |
-| `onUserMuted` | User object | A user was muted |
-| `onCallSwitchedToVideo` | Session data | An audio call was switched to video |
-
-## addEventListener
-
-For more granular control, use `CometChatCalls.addEventListener()` to subscribe to specific events:
-
-```tsx
-const unsubscribe = CometChatCalls.addEventListener('onParticipantJoined', (participant) => {
-  console.log('Participant joined:', participant);
-});
-
-// Later, unsubscribe when no longer needed
+// Later, to remove the listener:
 unsubscribe();
 ```
 
-### Session Status Events
+---
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onSessionJoined` | - | Successfully joined the session |
-| `onSessionLeft` | - | Left the session |
-| `onConnectionLost` | - | Connection to the session was lost |
-| `onConnectionRestored` | - | Connection was restored |
-| `onConnectionClosed` | - | Connection was closed |
-| `onSessionTimedOut` | - | Session timed out due to inactivity |
+## Session Events
 
-```tsx
-CometChatCalls.addEventListener('onSessionJoined', () => {
-  console.log('Successfully joined the session');
-});
+Track the call session lifecycle — join/leave events and connection status changes.
 
-CometChatCalls.addEventListener('onSessionLeft', () => {
-  console.log('Left the session');
-});
+### Session Joined
 
-CometChatCalls.addEventListener('onConnectionLost', () => {
-  console.log('Connection lost - attempting to reconnect');
-});
+Fired when you successfully connect to the session.
 
-CometChatCalls.addEventListener('onConnectionRestored', () => {
-  console.log('Connection restored');
-});
-
-CometChatCalls.addEventListener('onSessionTimedOut', () => {
-  console.log('Session timed out');
+```javascript
+CometChatCalls.addEventListener("onSessionJoined", () => {
+  console.log("Successfully joined the session");
 });
 ```
 
-### Media Events
+### Session Left
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onAudioMuted` | - | Local audio was muted |
-| `onAudioUnMuted` | - | Local audio was unmuted |
-| `onVideoPaused` | - | Local video was paused |
-| `onVideoResumed` | - | Local video was resumed |
-| `onRecordingStarted` | - | Recording started |
-| `onRecordingStopped` | - | Recording stopped |
-| `onScreenShareStarted` | - | Screen sharing started |
-| `onScreenShareStopped` | - | Screen sharing stopped |
-| `onAudioModeChanged` | Audio mode | Audio output mode changed |
-| `onCameraFacingChanged` | Camera facing | Camera switched (front/rear) |
+Fired when you leave the session.
 
-```tsx
-CometChatCalls.addEventListener('onAudioMuted', () => {
-  console.log('Audio muted');
-});
-
-CometChatCalls.addEventListener('onAudioUnMuted', () => {
-  console.log('Audio unmuted');
-});
-
-CometChatCalls.addEventListener('onVideoPaused', () => {
-  console.log('Video paused');
-});
-
-CometChatCalls.addEventListener('onVideoResumed', () => {
-  console.log('Video resumed');
-});
-
-CometChatCalls.addEventListener('onAudioModeChanged', (mode) => {
-  console.log('Audio mode changed to:', mode);
-});
-
-CometChatCalls.addEventListener('onCameraFacingChanged', (facing) => {
-  console.log('Camera facing:', facing); // 'FRONT' or 'REAR'
+```javascript
+CometChatCalls.addEventListener("onSessionLeft", () => {
+  console.log("Left the session");
 });
 ```
 
-### Participant Events
+### Session Timed Out
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onParticipantJoined` | Participant | A participant joined |
-| `onParticipantLeft` | Participant | A participant left |
-| `onParticipantAudioMuted` | Participant | A participant muted their audio |
-| `onParticipantAudioUnmuted` | Participant | A participant unmuted their audio |
-| `onParticipantVideoPaused` | Participant | A participant paused their video |
-| `onParticipantVideoResumed` | Participant | A participant resumed their video |
-| `onParticipantHandRaised` | Participant | A participant raised their hand |
-| `onParticipantHandLowered` | Participant | A participant lowered their hand |
-| `onParticipantStartedScreenShare` | Participant | A participant started screen sharing |
-| `onParticipantStoppedScreenShare` | Participant | A participant stopped screen sharing |
-| `onParticipantStartedRecording` | Participant | A participant started recording |
-| `onParticipantStoppedRecording` | Participant | A participant stopped recording |
-| `onDominantSpeakerChanged` | Participant | The dominant speaker changed |
-| `onParticipantListChanged` | Participant array | The participant list changed |
+Fired when the session ends due to inactivity timeout.
 
-```tsx
-CometChatCalls.addEventListener('onParticipantJoined', (participant) => {
-  console.log('Participant joined:', participant.name);
-});
-
-CometChatCalls.addEventListener('onParticipantLeft', (participant) => {
-  console.log('Participant left:', participant.name);
-});
-
-CometChatCalls.addEventListener('onParticipantListChanged', (participants) => {
-  console.log('Total participants:', participants.length);
-});
-
-CometChatCalls.addEventListener('onParticipantHandRaised', (participant) => {
-  console.log('Hand raised by:', participant.name);
-});
-
-CometChatCalls.addEventListener('onDominantSpeakerChanged', (participant) => {
-  console.log('Dominant speaker:', participant.name);
+```javascript
+CometChatCalls.addEventListener("onSessionTimedOut", () => {
+  console.log("Session timed out");
 });
 ```
 
-### Button Click Events
+### Connection Lost
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onLeaveSessionButtonClicked` | - | Leave session button clicked |
-| `onRaiseHandButtonClicked` | - | Raise hand button clicked |
-| `onShareInviteButtonClicked` | - | Share invite button clicked |
-| `onChangeLayoutButtonClicked` | - | Change layout button clicked |
-| `onParticipantListButtonClicked` | - | Participant list button clicked |
-| `onToggleAudioButtonClicked` | - | Toggle audio button clicked |
-| `onToggleVideoButtonClicked` | - | Toggle video button clicked |
-| `onRecordingToggleButtonClicked` | - | Recording toggle button clicked |
-| `onScreenShareButtonClicked` | - | Screen share button clicked |
-| `onChatButtonClicked` | - | Chat button clicked |
-| `onSwitchCameraButtonClicked` | - | Switch camera button clicked |
+Fired when the network connection is interrupted.
 
-```tsx
-CometChatCalls.addEventListener('onLeaveSessionButtonClicked', () => {
-  console.log('Leave button clicked');
-  // Handle leave confirmation
-});
-
-CometChatCalls.addEventListener('onChatButtonClicked', () => {
-  console.log('Chat button clicked');
-  // Open chat interface
+```javascript
+CometChatCalls.addEventListener("onConnectionLost", () => {
+  console.log("Connection lost, attempting to reconnect...");
 });
 ```
 
-### Layout Events
+### Connection Restored
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `onCallLayoutChanged` | Layout | The call layout changed |
-| `onParticipantListVisible` | - | Participant list became visible |
-| `onParticipantListHidden` | - | Participant list was hidden |
-| `onPictureInPictureLayoutEnabled` | - | PiP mode was enabled |
-| `onPictureInPictureLayoutDisabled` | - | PiP mode was disabled |
+Fired when the connection is restored after being lost.
 
-```tsx
-CometChatCalls.addEventListener('onCallLayoutChanged', (layout) => {
-  console.log('Layout changed to:', layout); // 'TILE', 'SIDEBAR', or 'SPOTLIGHT'
-});
-
-CometChatCalls.addEventListener('onPictureInPictureLayoutEnabled', () => {
-  console.log('PiP enabled');
+```javascript
+CometChatCalls.addEventListener("onConnectionRestored", () => {
+  console.log("Connection restored");
 });
 ```
 
-## Participant Object
+### Connection Closed
 
-The participant object contains:
+Fired when the connection is permanently closed.
+
+```javascript
+CometChatCalls.addEventListener("onConnectionClosed", () => {
+  console.log("Connection closed");
+});
+```
+
+---
+
+## Participant Events
+
+Track participant activities — join/leave, audio/video state, hand raise, screen sharing, and recording.
+
+### Participant Joined
+
+Fired when a participant joins the call.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantJoined", (participant) => {
+  console.log("Participant joined:", participant.name);
+});
+```
+
+### Participant Left
+
+Fired when a participant leaves the call.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantLeft", (participant) => {
+  console.log("Participant left:", participant.name);
+});
+```
+
+### Participant List Changed
+
+Fired when the participant list is updated.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantListChanged", (participants) => {
+  console.log("Participants:", participants.length);
+});
+```
+
+### Participant Audio Muted
+
+Fired when a participant mutes their microphone.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantAudioMuted", (participant) => {
+  console.log("Participant muted:", participant.name);
+});
+```
+
+### Participant Audio Unmuted
+
+Fired when a participant unmutes their microphone.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantAudioUnmuted", (participant) => {
+  console.log("Participant unmuted:", participant.name);
+});
+```
+
+### Participant Video Paused
+
+Fired when a participant turns off their camera.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantVideoPaused", (participant) => {
+  console.log("Participant video paused:", participant.name);
+});
+```
+
+### Participant Video Resumed
+
+Fired when a participant turns on their camera.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantVideoResumed", (participant) => {
+  console.log("Participant video resumed:", participant.name);
+});
+```
+
+### Participant Hand Raised
+
+Fired when a participant raises their hand.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantHandRaised", (participant) => {
+  console.log("Participant raised hand:", participant.name);
+});
+```
+
+### Participant Hand Lowered
+
+Fired when a participant lowers their hand.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantHandLowered", (participant) => {
+  console.log("Participant lowered hand:", participant.name);
+});
+```
+
+### Participant Started Screen Share
+
+Fired when a participant starts screen sharing.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantStartedScreenShare", (participant) => {
+  console.log("Participant started screen share:", participant.name);
+});
+```
+
+### Participant Stopped Screen Share
+
+Fired when a participant stops screen sharing.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantStoppedScreenShare", (participant) => {
+  console.log("Participant stopped screen share:", participant.name);
+});
+```
+
+### Participant Started Recording
+
+Fired when a participant starts recording.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantStartedRecording", (participant) => {
+  console.log("Participant started recording:", participant.name);
+});
+```
+
+### Participant Stopped Recording
+
+Fired when a participant stops recording.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantStoppedRecording", (participant) => {
+  console.log("Participant stopped recording:", participant.name);
+});
+```
+
+### Dominant Speaker Changed
+
+Fired when the active speaker changes.
+
+```javascript
+CometChatCalls.addEventListener("onDominantSpeakerChanged", (participant) => {
+  console.log("Dominant speaker:", participant.name);
+});
+```
+
+---
+
+## Media Events
+
+Track local media state changes — audio/video status, recording, and device changes.
+
+### Audio Muted
+
+Fired when your microphone is muted.
+
+```javascript
+CometChatCalls.addEventListener("onAudioMuted", () => {
+  console.log("Your audio is muted");
+});
+```
+
+### Audio Unmuted
+
+Fired when your microphone is unmuted.
+
+```javascript
+CometChatCalls.addEventListener("onAudioUnMuted", () => {
+  console.log("Your audio is unmuted");
+});
+```
+
+### Video Paused
+
+Fired when your camera is turned off.
+
+```javascript
+CometChatCalls.addEventListener("onVideoPaused", () => {
+  console.log("Your video is paused");
+});
+```
+
+### Video Resumed
+
+Fired when your camera is turned on.
+
+```javascript
+CometChatCalls.addEventListener("onVideoResumed", () => {
+  console.log("Your video is resumed");
+});
+```
+
+### Recording Started
+
+Fired when call recording starts.
+
+```javascript
+CometChatCalls.addEventListener("onRecordingStarted", () => {
+  console.log("Recording started");
+});
+```
+
+### Recording Stopped
+
+Fired when call recording stops.
+
+```javascript
+CometChatCalls.addEventListener("onRecordingStopped", () => {
+  console.log("Recording stopped");
+});
+```
+
+### Audio Mode Changed
+
+Fired when the audio output mode changes (e.g. speaker, earpiece, Bluetooth).
+
+```javascript
+CometChatCalls.addEventListener("onAudioModeChanged", (audioMode) => {
+  console.log("Audio mode changed to:", audioMode);
+});
+```
+
+### Camera Facing Changed
+
+Fired when the camera switches between front and back.
+
+```javascript
+CometChatCalls.addEventListener("onCameraFacingChanged", (cameraFacing) => {
+  console.log("Camera facing changed to:", cameraFacing);
+});
+```
+
+---
+
+## Button Click Events
+
+Listen for button clicks from the default call interface to add custom behavior or analytics.
+
+### Leave Session Button Clicked
+
+Fired when the leave button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onLeaveSessionButtonClicked", () => {
+  console.log("Leave button clicked");
+});
+```
+
+### Toggle Audio Button Clicked
+
+Fired when the mute/unmute button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onToggleAudioButtonClicked", () => {
+  console.log("Audio toggle button clicked");
+});
+```
+
+### Toggle Video Button Clicked
+
+Fired when the video on/off button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onToggleVideoButtonClicked", () => {
+  console.log("Video toggle button clicked");
+});
+```
+
+### Raise Hand Button Clicked
+
+Fired when the raise hand button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onRaiseHandButtonClicked", () => {
+  console.log("Raise hand button clicked");
+});
+```
+
+### Share Invite Button Clicked
+
+Fired when the share/invite button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onShareInviteButtonClicked", () => {
+  console.log("Share invite button clicked");
+});
+```
+
+### Change Layout Button Clicked
+
+Fired when the layout change button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onChangeLayoutButtonClicked", () => {
+  console.log("Change layout button clicked");
+});
+```
+
+### Participant List Button Clicked
+
+Fired when the participant list button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantListButtonClicked", () => {
+  console.log("Participant list button clicked");
+});
+```
+
+### Chat Button Clicked
+
+Fired when the in-call chat button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onChatButtonClicked", () => {
+  console.log("Chat button clicked");
+});
+```
+
+### Recording Toggle Button Clicked
+
+Fired when the recording toggle button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onRecordingToggleButtonClicked", () => {
+  console.log("Recording toggle button clicked");
+});
+```
+
+### Switch Camera Button Clicked
+
+Fired when the switch camera button is clicked.
+
+```javascript
+CometChatCalls.addEventListener("onSwitchCameraButtonClicked", () => {
+  console.log("Switch camera button clicked");
+});
+```
+
+---
+
+## Layout Events
+
+Track layout changes — layout type switches and participant list visibility.
+
+### Call Layout Changed
+
+Fired when the call layout changes.
+
+```javascript
+CometChatCalls.addEventListener("onCallLayoutChanged", (layout) => {
+  console.log("Layout changed to:", layout);
+});
+```
+
+### Participant List Visible
+
+Fired when the participant list panel is opened.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantListVisible", () => {
+  console.log("Participant list opened");
+});
+```
+
+### Participant List Hidden
+
+Fired when the participant list panel is closed.
+
+```javascript
+CometChatCalls.addEventListener("onParticipantListHidden", () => {
+  console.log("Participant list closed");
+});
+```
+
+### Picture in Picture Layout Enabled
+
+Fired when the call switches to picture-in-picture mode.
+
+```javascript
+CometChatCalls.addEventListener("onPictureInPictureLayoutEnabled", () => {
+  console.log("Picture in picture layout enabled");
+});
+```
+
+### Picture in Picture Layout Disabled
+
+Fired when the call exits picture-in-picture mode.
+
+```javascript
+CometChatCalls.addEventListener("onPictureInPictureLayoutDisabled", () => {
+  console.log("Picture in picture layout disabled");
+});
+```
+
+---
+
+## Participant Object Reference
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `pid` | string | Participant ID |
-| `uid` | string | User ID |
-| `name` | string | Display name |
-| `avatar` | string | Avatar URL (optional) |
+| `uid` | String | Unique identifier (CometChat user ID) |
+| `name` | String | Display name |
+| `avatar` | String | URL of avatar image |
 
-## Complete Example
-
-```tsx
-import React, { useEffect, useRef } from 'react';
-import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
-
-function useCallEvents(onCallEnd: () => void) {
-  const unsubscribersRef = useRef<Array<() => void>>([]);
-
-  useEffect(() => {
-    // Session events
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onSessionJoined', () => {
-        console.log('Joined session');
-      })
-    );
-
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onSessionLeft', () => {
-        console.log('Left session');
-        onCallEnd();
-      })
-    );
-
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onSessionTimedOut', () => {
-        console.log('Session timed out');
-        onCallEnd();
-      })
-    );
-
-    // Participant events
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onParticipantJoined', (participant) => {
-        console.log(`${participant.name} joined`);
-      })
-    );
-
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onParticipantLeft', (participant) => {
-        console.log(`${participant.name} left`);
-      })
-    );
-
-    // Media events
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onAudioModeChanged', (mode) => {
-        console.log('Audio mode:', mode);
-      })
-    );
-
-    // Layout events
-    unsubscribersRef.current.push(
-      CometChatCalls.addEventListener('onCallLayoutChanged', (layout) => {
-        console.log('Layout:', layout);
-      })
-    );
-
-    // Cleanup
-    return () => {
-      unsubscribersRef.current.forEach((unsubscribe) => unsubscribe());
-      unsubscribersRef.current = [];
-    };
-  }, [onCallEnd]);
-}
-
-export default useCallEvents;
-```
-
-## Related Documentation
-
-- [Actions](/calls/react-native/actions) - Control the call programmatically
-- [Session Settings](/calls/react-native/session-settings) - Configure event listeners
-- [Participant Management](/calls/react-native/participant-management) - Manage participants

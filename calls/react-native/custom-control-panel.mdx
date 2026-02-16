@@ -12,9 +12,10 @@ Disable the default control panel to use your own:
 ```tsx
 import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
 
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .enableDefaultLayout(false)
-  .build();
+const sessionSettings: SessionSettings = {
+  hideControlPanel: true,
+  // ... other settings
+};
 ```
 
 ## Available Actions
@@ -290,16 +291,16 @@ interface CallScreenProps {
 }
 
 function CallScreen({ callToken, isAudioOnly = false }: CallScreenProps) {
-  const callSettings = new CometChatCalls.CallSettingsBuilder()
-    .enableDefaultLayout(false) // Hide default controls
-    .setIsAudioOnlyCall(isAudioOnly)
-    .build();
+  const sessionSettings: SessionSettings = {
+    hideControlPanel: true, // Hide default controls
+    sessionType: isAudioOnly ? "VOICE" : "VIDEO",
+  };
 
   return (
     <View style={styles.container}>
       <CometChatCalls.Component
         callToken={callToken}
-        callSettings={callSettings}
+        callSettings={sessionSettings}
       />
       <CustomControlPanel isAudioOnly={isAudioOnly} />
     </View>
