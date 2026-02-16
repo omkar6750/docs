@@ -1,36 +1,33 @@
 ---
 title: "Building A Conversation List + Message View"
 sidebarTitle: "Conversation List + Message View"
-description: "Create a two-panel chat experience with conversation list and messages"
 ---
 
-The Conversation List + Message View layout offers a modern two-panel chat experience. It's ideal for applications needing seamless switching between multiple conversations and chat windows—similar to WhatsApp Web, Slack, or Microsoft Teams.
+The **Conversation List + Message View** layout offers a modern two-panel chat experience. It's ideal for applications needing seamless switching between multiple conversations and chat windows—similar to **WhatsApp Web**, **Slack**, or **Microsoft Teams**.
 
----
+***
 
-## User Interface Preview
+## **User Interface Preview**
 
 <Frame>
   <img src="/images/39abbd91-chat_experience_sidebar_message-6476f0d5e48fdff63caa68809e60486b.png" />
 </Frame>
 
-### Key Components
+### **Key Components**
 
-| Component | Description |
-|-----------|-------------|
-| Chat Header | Displays user or group name, avatar, and back button |
-| Message List | Displays chat messages and real-time updates |
-| Message Composer | Allows sending of text, media, and reactions |
+1. **Chat Header** – Displays user or group name, avatar, and back button.
+2. **Message List** – Displays chat messages and real-time updates.
+3. **Message Composer** – Allows sending of text, media, and reactions.
 
----
+***
 
-## Step-by-Step Guide
+## **Step-by-Step Guide**
 
-### Step 1: Setup SceneDelegate.swift
+### **Step 1: Setup SceneDelegate.swift**
 
 Ensure UIKit is initialized and the user is logged in before presenting the conversation view.
 
-```swift
+```swift SceneDelegate.swift highlight={15-17} lines
 import UIKit
 import CometChatUIKitSwift
 import CometChatSDK
@@ -44,7 +41,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-        // Configure UIKit settings with your credentials
         let uikitSettings = UIKitSettings()
             .set(appID: "<#Enter Your App ID Here#>")
             .set(region: "<#Enter Your Region Code Here#>")
@@ -52,13 +48,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .subscribePresenceForAllUsers()
             .build()
 
-        // Initialize CometChat UIKit
         CometChatUIKit.init(uiKitSettings: uikitSettings) { result in
             switch result {
             case .success:
                 debugPrint("CometChatUIKit initialization succeeded")
 
-                // Login with a test user
                 let uid = "cometchat-uid-1"
 
                 CometChatUIKit.login(uid: uid) { loginResult in
@@ -66,7 +60,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     case .success:
                         debugPrint("CometChatUIKit login succeeded")
 
-                        // Setup conversations view on main thread
                         DispatchQueue.main.async { [weak self] in
                             guard let self = self else { return }
                             self.setupConversationsView(windowScene: windowScene)
@@ -85,23 +78,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func setupConversationsView(windowScene: UIWindowScene) {
-        // Create conversations list view controller
         let conversationsVC = CometChatConversations()
         let navController = UINavigationController(rootViewController: conversationsVC)
 
-        // Handle conversation item click
         conversationsVC.set(onItemClick: { [weak navController] conversation, _ in
             let messagesVC = MessagesVC()
-            
-            // Set user or group based on conversation type
             messagesVC.group = conversation.conversationWith as? Group
             messagesVC.user = conversation.conversationWith as? CometChatSDK.User
-            
-            // Navigate to messages screen
             navController?.pushViewController(messagesVC, animated: true)
         })
 
-        // Configure and display window
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = navController
         window?.makeKeyAndVisible()
@@ -109,13 +95,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 ```
 
----
+***
 
-### Step 2: Create MessagesVC.swift
+### **Step 2: Create MessagesVC.swift**
 
 This view controller handles chat between users or within groups.
 
-```swift
+```swift MessagesVC.swift lines
 import UIKit
 import CometChatSDK
 import CometChatUIKitSwift
@@ -137,14 +123,12 @@ class MessagesVC: UIViewController {
     private lazy var headerView: CometChatMessageHeader = {
         let view = CometChatMessageHeader()
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             view.set(user: user)
         } else if let group = group {
             view.set(group: group)
         }
-        
         view.set(controller: self)
         return view
     }()
@@ -153,14 +137,12 @@ class MessagesVC: UIViewController {
     private lazy var composerView: CometChatMessageComposer = {
         let composer = CometChatMessageComposer()
         composer.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             composer.set(user: user)
         } else if let group = group {
             composer.set(group: group)
         }
-        
         composer.set(controller: self)
         return composer
     }()
@@ -169,14 +151,12 @@ class MessagesVC: UIViewController {
     private lazy var messageListView: CometChatMessageList = {
         let listView = CometChatMessageList()
         listView.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             listView.set(user: user)
         } else if let group = group {
             listView.set(group: group)
         }
-        
         listView.set(controller: self)
         return listView
     }()
@@ -230,14 +210,12 @@ class MessagesVC: UIViewController {
 }
 ```
 
----
+***
 
-## Next Steps
+## **Next Steps**
 
-### Enhance the User Experience
+### **Enhance the User Experience**
 
-- [Advanced Customizations](/ui-kit/ios/theme-introduction) — Personalize the chat UI to align with your brand
-- [Core Features](/ui-kit/ios/core-features) — Explore messaging, reactions, threads, and more
-- [Components Overview](/ui-kit/ios/components-overview) — Browse all available UI components
+* **[Advanced Customizations](/ui-kit/ios/theme-introduction)** – Personalize the chat UI to align with your brand.
 
----
+***

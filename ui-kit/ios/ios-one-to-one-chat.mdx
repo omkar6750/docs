@@ -1,36 +1,33 @@
 ---
 title: "Building A One To One/Group Chat Experience"
 sidebarTitle: "One To One/Group Chat"
-description: "Create a direct messaging interface for private conversations"
 ---
 
-The One-to-One Chat feature provides a streamlined direct messaging interface, making it ideal for support chats, dating apps, and private messaging platforms. This setup eliminates distractions by focusing solely on a dedicated chat window.
+The **One-to-One Chat** feature provides a streamlined **direct messaging interface**, making it ideal for **support chats, dating apps, and private messaging platforms**. This setup eliminates distractions by focusing solely on a **dedicated chat window**.
 
----
+***
 
-## User Interface Preview
+## **User Interface Preview**
 
 <Frame>
   <img src="/images/92ec645e-chat_experience_one_on_one-6f97cccc721ff1a9b7d485586484b46c.png" />
 </Frame>
 
-### Key Components
+### **Key Components**
 
-| Component | Description |
-|-----------|-------------|
-| Chat Header | Displays recipient details and optional call/video call buttons |
-| Message View | Shows real-time chat history |
-| Message Input Box | Enables users to send messages, media, and reactions |
+1. **Chat Header** – Displays recipient details and optional call/video call buttons.
+2. **Message View** – Shows real-time chat history.
+3. **Message Input Box** – Enables users to send messages, media, and reactions.
 
----
+***
 
-## Step-by-Step Guide
+## **Step-by-Step Guide**
 
-### Step 1: Setup SceneDelegate.swift
+### **Step 1: Setup SceneDelegate.swift**
 
 Ensure UI Kit is initialized and the user is logged in before presenting the message view.
 
-```swift
+```swift SceneDelegate.swift highlight={15-17} lines
 import UIKit
 import CometChatUIKitSwift
 import CometChatSDK
@@ -44,7 +41,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-        // Configure UIKit settings with your credentials
         let uikitSettings = UIKitSettings()
             .set(appID: "<#Enter Your App ID Here#>")
             .set(region: "<#Enter Your Region Code Here#>")
@@ -52,13 +48,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .subscribePresenceForAllUsers()
             .build()
 
-        // Initialize CometChat UIKit
         CometChatUIKit.init(uiKitSettings: uikitSettings) { result in
             switch result {
             case .success:
                 debugPrint("CometChat UI Kit initialization succeeded")
 
-                // Login with a test user
                 let uid = "cometchat-uid-1"
 
                 CometChatUIKit.login(uid: uid) { loginResult in
@@ -66,7 +60,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     case .success:
                         debugPrint("CometChat UI Kit login succeeded")
 
-                        // Setup one-on-one conversation on main thread
                         DispatchQueue.main.async { [weak self] in
                             guard let self = self else { return }
                             self.setUpOneOneOrGroupConversation(windowScene: windowScene, uid: "cometchat-uid-2")
@@ -84,35 +77,33 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
-    func setUpOneOneOrGroupConversation(windowScene: UIWindowScene, uid: String) {
-        // Fetch the user to chat with
+    func setUpOneOneOrGroupConversation(windowScene: UIWindowScene, uid : String) {
         CometChat.getUser(UID: uid) { user in
             
             DispatchQueue.main.async {
-                // Create messages view controller
                 let messagesVC = MessagesVC()
                 let navController = UINavigationController(rootViewController: messagesVC)
                 messagesVC.user = user
-                
-                // Configure and display window
                 self.window = UIWindow(windowScene: windowScene)
                 self.window?.rootViewController = navController
                 self.window?.makeKeyAndVisible()
             }
         } onError: { error in
-            // Handle error
+            
         }
+
     }
+    
 }
 ```
 
----
+***
 
-### Step 2: Create MessagesVC.swift
+### **Step 2: Create MessagesVC.swift**
 
 This view controller handles chat between users or within groups.
 
-```swift
+```swift MessagesVC.swift lines
 import UIKit
 import CometChatSDK
 import CometChatUIKitSwift
@@ -134,14 +125,12 @@ class MessagesVC: UIViewController {
     private lazy var headerView: CometChatMessageHeader = {
         let view = CometChatMessageHeader()
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             view.set(user: user)
         } else if let group = group {
             view.set(group: group)
         }
-        
         view.set(controller: self)
         return view
     }()
@@ -150,14 +139,12 @@ class MessagesVC: UIViewController {
     private lazy var composerView: CometChatMessageComposer = {
         let composer = CometChatMessageComposer()
         composer.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             composer.set(user: user)
         } else if let group = group {
             composer.set(group: group)
         }
-        
         composer.set(controller: self)
         return composer
     }()
@@ -166,14 +153,12 @@ class MessagesVC: UIViewController {
     private lazy var messageListView: CometChatMessageList = {
         let listView = CometChatMessageList()
         listView.translatesAutoresizingMaskIntoConstraints = false
-        
         // Configure for the appropriate conversation type
         if let user = user {
             listView.set(user: user)
         } else if let group = group {
             listView.set(group: group)
         }
-        
         listView.set(controller: self)
         return listView
     }()
@@ -227,14 +212,12 @@ class MessagesVC: UIViewController {
 }
 ```
 
----
+***
 
-## Next Steps
+## **Next Steps**
 
-### Enhance the User Experience
+### **Enhance the User Experience**
 
-- [Advanced Customizations](/ui-kit/ios/theme-introduction) — Personalize the chat UI to align with your brand
-- [Core Features](/ui-kit/ios/core-features) — Explore messaging, reactions, threads, and more
-- [Components Overview](/ui-kit/ios/components-overview) — Browse all available UI components
+* **[Advanced Customizations](/ui-kit/ios/theme-introduction)** – Personalize the chat UI to align with your brand.
 
----
+***
