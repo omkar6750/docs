@@ -47,28 +47,30 @@ For presence subscription, the AppSettingsBuilder provides 3 methods :
 
 If none of the above methods are used, no presence will be sent to the logged-in user.
 
+<Note>
+You must configure presence subscription in `AppSettings` during `CometChat.init()` before any presence events will be delivered. See [Setup SDK](/sdk/javascript/setup-sdk) for details.
+</Note>
+
 You need to register the `UserListener` using the `addUserListener()` method where ever you wish to receive these events in.
 
 <Tabs>
-<Tab title="User Listener">
-```
+<Tab title="JavaScript">
+```javascript
 let listenerID = "UNIQUE_LISTENER_ID";
 
 CometChat.addUserListener(
-listenerID,
-new CometChat.UserListener({
-  onUserOnline: onlineUser => {
-    console.log("On User Online:", { onlineUser });
-  },
-  onUserOffline: offlineUser => {
-    console.log("On User Offline:", { offlineUser });
-  }
-})
-);    
+  listenerID,
+  new CometChat.UserListener({
+    onUserOnline: onlineUser => {
+      console.log("On User Online:", { onlineUser });
+    },
+    onUserOffline: offlineUser => {
+      console.log("On User Offline:", { offlineUser });
+    }
+  })
+);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let listenerID: string = "UNIQUE_LISTENER_ID";
@@ -76,18 +78,16 @@ let listenerID: string = "UNIQUE_LISTENER_ID";
 CometChat.addUserListener(
   listenerID,
   new CometChat.UserListener({
-      onUserOnline: (onlineUser: CometChat.User) => {
-          console.log("On User Online:", { onlineUser });
-      },
-      onUserOffline: (offlineUser: CometChat.User) => {
-          console.log("On User Offline:", { offlineUser });
-      }
+    onUserOnline: (onlineUser: CometChat.User) => {
+      console.log("On User Online:", { onlineUser });
+    },
+    onUserOffline: (offlineUser: CometChat.User) => {
+      console.log("On User Offline:", { offlineUser });
+    }
   })
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 | Parameter    | Description                                   |
@@ -96,27 +96,23 @@ CometChat.addUserListener(
 
 You will receive an object of the `User` class in the listener methods.
 
-We recommend you remove the listener once the activity or view is not in use.
-
-We suggest adding this method when not in use.
+<Warning>
+**Listener Cleanup:** Always remove the listener when the component or view is unmounted/destroyed to prevent memory leaks and duplicate callbacks. Use `CometChat.removeUserListener(listenerID)` in your cleanup logic.
+</Warning>
 
 <Tabs>
-<Tab title="Remove User Listener">
-```
+<Tab title="JavaScript">
+```javascript
 let listenerID = "UNIQUE_LISTENER_ID";
 CometChat.removeUserListener(listenerID);
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let listenerID: string = "UNIQUE_LISTENER_ID";
 CometChat.removeUserListener(listenerID);
 ```
-
 </Tab>
-
 </Tabs>
 
 <Warning>
@@ -140,20 +136,42 @@ When you fetch the list of users, in the [User](/sdk/javascript/user-management#
 
 2. `lastActiveAt` - in case the user is offline, this field holds the timestamp of the time when the user was last online. This can be used to display the Last seen of the user if need be.
 
+<AccordionGroup>
+<Accordion title="Best Practices">
+
+| Practice | Details |
+| --- | --- |
+| Choose the right subscription | Use `subscribePresenceForFriends()` or `subscribePresenceForRoles()` instead of `subscribePresenceForAllUsers()` in apps with many users to reduce unnecessary events |
+| Unique listener IDs | Use unique, descriptive listener IDs (e.g., `"chat-screen-presence"`) to avoid accidentally overwriting other listeners |
+| Cleanup on unmount | Always call `removeUserListener()` when the component/view is destroyed |
+| Combine with user list | Use the `status` field from `UsersRequest` results for initial state, then update via `UserListener` for real-time changes |
+
+</Accordion>
+<Accordion title="Troubleshooting">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| No presence events received | Presence subscription not configured in `AppSettings` | Add `subscribePresenceForAllUsers()`, `subscribePresenceForRoles()`, or `subscribePresenceForFriends()` to your `AppSettingsBuilder` |
+| Presence events stop after navigation | Listener was removed or component unmounted | Re-register the listener when the component mounts again |
+| Duplicate presence events | Multiple listeners registered with the same or different IDs | Ensure you remove old listeners before adding new ones |
+| `lastActiveAt` is `0` or `null` | User has never been online or data not yet available | Handle this case in your UI with a fallback like "Never active" |
+
+</Accordion>
+</AccordionGroup>
+
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="User Management" href="/sdk/javascript/user-management">
-    Create, update, and manage users
+  <Card title="Retrieve Users" icon="users" href="/sdk/javascript/retrieve-users">
+    Fetch user lists with filtering and pagination.
   </Card>
-  <Card title="Retrieve Users" href="/sdk/javascript/retrieve-users">
-    Fetch user lists with filters and pagination
+  <Card title="User Management" icon="user-plus" href="/sdk/javascript/user-management">
+    Create and update users programmatically.
   </Card>
-  <Card title="Connection Status" href="/sdk/javascript/connection-status">
-    Monitor SDK connection state changes
+  <Card title="Connection Status" icon="wifi" href="/sdk/javascript/connection-status">
+    Monitor SDK connection to CometChat servers.
   </Card>
-  <Card title="All Real-Time Listeners" href="/sdk/javascript/all-real-time-listeners">
-    Complete reference for all event listeners
+  <Card title="All Real-time Listeners" icon="tower-broadcast" href="/sdk/javascript/all-real-time-listeners">
+    Overview of all available real-time listeners.
   </Card>
 </CardGroup>
-

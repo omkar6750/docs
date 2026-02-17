@@ -46,11 +46,15 @@ Summing up-
 
 Ideally, user creation should take place at your backend. You can refer our Rest API to learn more about [creating a user](https://api-explorer.cometchat.com/reference/creates-user) and use the appropriate code sample based on your backend language.
 
+<Warning>
+**Security:** Never expose your `Auth Key` in client-side production code. User creation and updates using `Auth Key` should ideally happen on your backend server. Use client-side creation only for prototyping or development.
+</Warning>
+
 However, if you wish to create users on the fly, you can use the `createUser()` method. This method takes a `User` object and the `Auth Key` as input parameters and returns the created `User` object if the request is successful.
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 let authKey = "AUTH_KEY";
 var uid = "user1";
 var name = "Kevin";
@@ -61,15 +65,13 @@ user.setName(name);
 
 CometChat.createUser(user, authKey).then(
   user => {
-      console.log("user created", user);
+    console.log("user created", user);
   }, error => {
-      console.log("error", error);
+    console.log("error", error);
   }
 )
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let authKey: string = "AUTH_KEY";
@@ -82,15 +84,13 @@ user.setName(name);
 
 CometChat.createUser(user, authKey).then(
   (user: CometChat.User) => {
-      console.log("user created", user);
+    console.log("user created", user);
   }, (error: CometChat.CometChatException) => {
-      console.log("error", error);
+    console.log("error", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 <Warning>
@@ -105,7 +105,7 @@ Updating a user similar to creating a user should ideally be achieved at your ba
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 let authKey = "AUTH_KEY";
 let uid = "user1";
 let name = "Kevin Fernandez";
@@ -116,15 +116,13 @@ user.setName(name);
 
 CometChat.updateUser(user, authKey).then(
   user => {
-      console.log("user updated", user);
+    console.log("user updated", user);
   }, error => {
-      console.log("error", error);
+    console.log("error", error);
   }
-)    
+)
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let authKey: string = "AUTH_KEY";
@@ -137,15 +135,13 @@ user.setName(name);
 
 CometChat.updateUser(user, authKey).then(
   (user: CometChat.User) => {
-      console.log("user updated", user);
+    console.log("user updated", user);
   }, (error: CometChat.CometChatException) => {
-      console.log("error", error);
+    console.log("error", error);
   }
-)  
+)
 ```
-
 </Tab>
-
 </Tabs>
 
 Please make sure the `User` object provided to the `updateUser()` method has the `UID` of the user to be updated set.
@@ -156,7 +152,7 @@ Updating a logged-in user is similar to updating a user. The only difference bei
 
 <Tabs>
 <Tab title="JavaScript">
-```js
+```javascript
 let uid = "user1";
 let name = "Kevin Fernandez";
 
@@ -166,15 +162,13 @@ user.setName(name);
 
 CometChat.updateCurrentUserDetails(user).then(
   user => {
-      console.log("user updated", user);
+    console.log("user updated", user);
   }, error => {
-      console.log("error", error);
+    console.log("error", error);
   }
 )
 ```
-
 </Tab>
-
 <Tab title="TypeScript">
 ```typescript
 var uid: string = "user1";
@@ -186,15 +180,13 @@ user.setName(name);
 
 CometChat.updateCurrentUserDetails(user).then(
   (user: CometChat.User) => {
-      console.log("user updated", user);
+    console.log("user updated", user);
   }, (error: CometChat.CometChatException) => {
-      console.log("error", error);
+    console.log("error", error);
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
 By using the `updateCurrentUserDetails()` method one can only update the logged-in user irrespective of the UID passed. Also, it is not possible to update the role of a logged-in user.
@@ -220,20 +212,42 @@ Deleting a user can only be achieved via the Restful APIs. For more information 
 | blockedByMe   | No                                                  | A boolean that determines if the logged in user has blocked the user |
 | tags          | Yes                                                 | A list of tags to identify specific users                            |
 
+<AccordionGroup>
+<Accordion title="Best Practices">
+
+| Practice | Details |
+| --- | --- |
+| Backend user creation | Always create and update users from your backend server using the REST API to keep your `Auth Key` secure |
+| UID format | Use alphanumeric characters, underscores, and hyphens only. Avoid spaces and special characters |
+| Metadata usage | Store additional user info (e.g., department, preferences) in the `metadata` JSON field rather than creating custom fields |
+| Sync on registration | Create the CometChat user immediately when a user registers in your app to avoid login failures |
+
+</Accordion>
+<Accordion title="Troubleshooting">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `createUser()` fails with "Auth Key not found" | Invalid or missing Auth Key | Verify the Auth Key from your [CometChat Dashboard](https://app.cometchat.com) |
+| `createUser()` fails with "UID already exists" | A user with that UID was already created | Use `updateUser()` instead, or choose a different UID |
+| `updateCurrentUserDetails()` doesn't update role | Role cannot be changed for the logged-in user | Use `updateUser()` with Auth Key from your backend to change roles |
+| User not appearing in user list | User was created but not yet indexed | Wait a moment and retry. Ensure `createUser()` resolved successfully |
+
+</Accordion>
+</AccordionGroup>
+
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Retrieve Users" href="/sdk/javascript/retrieve-users">
-    Fetch user lists with filters and pagination
+  <Card title="Retrieve Users" icon="users" href="/sdk/javascript/retrieve-users">
+    Fetch and filter user lists with pagination.
   </Card>
-  <Card title="User Presence" href="/sdk/javascript/user-presence">
-    Track real-time online/offline status
+  <Card title="User Presence" icon="circle-dot" href="/sdk/javascript/user-presence">
+    Monitor real-time online/offline status.
   </Card>
-  <Card title="Block Users" href="/sdk/javascript/block-users">
-    Block and unblock users programmatically
+  <Card title="Block Users" icon="ban" href="/sdk/javascript/block-users">
+    Block and unblock users.
   </Card>
-  <Card title="Authentication" href="/sdk/javascript/authentication-overview">
-    Log in and manage user sessions
+  <Card title="Authentication" icon="key" href="/sdk/javascript/authentication-overview">
+    Log users into CometChat.
   </Card>
 </CardGroup>
-
