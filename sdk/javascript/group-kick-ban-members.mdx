@@ -1,8 +1,27 @@
 ---
 title: "Ban Or Kick Member From A Group"
+description: "Learn how to kick, ban, and unban group members, fetch banned member lists, and receive real-time events using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Kick a member
+await CometChat.kickGroupMember("GUID", "UID");
+
+// Ban a member
+await CometChat.banGroupMember("GUID", "UID");
+
+// Unban a member
+await CometChat.unbanGroupMember("GUID", "UID");
+
+// Fetch banned members
+const request = new CometChat.BannedMembersRequestBuilder("GUID").setLimit(30).build();
+const bannedMembers = await request.fetchNext();
+```
+</Info>
 
 There are certain actions that can be performed on the group members:
 
@@ -12,6 +31,10 @@ There are certain actions that can be performed on the group members:
 4. Update the scope of the member of the group
 
 All the above actions can only be performed by the **Admin** or the **Moderator** of the group.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Kick a Group Member
 
@@ -329,6 +352,14 @@ CometChat.addGroupListener(
 
 </Tabs>
 
+<Warning>
+Always remove group listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeGroupListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
 ## Missed Group Member Kicked/Banned Events
 
 *In other words, as a member of a group, how do I know when someone is banned/kicked when my app is not running?*
@@ -355,3 +386,22 @@ For group member unbanned event, the details can be obtained using the below fie
 2. `actionBy` - User object containing the details of the user who has unbanned the member
 3. `actionOn` - User object containing the details of the member that has been unbanned
 4. `actionFor` - Group object containing the details of the Group from which the member was unbanned
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Add Members" icon="user-plus" href="/sdk/javascript/group-add-members">
+    Add new members to a group
+  </Card>
+  <Card title="Change Member Scope" icon="user-shield" href="/sdk/javascript/group-change-member-scope">
+    Promote or demote group members
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/javascript/retrieve-group-members">
+    Fetch the list of members in a group
+  </Card>
+  <Card title="Leave a Group" icon="right-from-bracket" href="/sdk/javascript/leave-group">
+    Allow members to leave a group
+  </Card>
+</CardGroup>

@@ -1,6 +1,45 @@
 ---
 title: "AI Assistant Chat"
+description: "Build an AI agent chat experience with streaming responses, quick suggestions, chat history, and custom tools using the CometChatAIAssistantChat component."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+
+// Minimal usage — requires a CometChat.User (the AI agent)
+const [agent, setAgent] = React.useState<CometChat.User>();
+React.useEffect(() => {
+  CometChat.getUser("assistant_uid").then((u) => setAgent(u));
+}, []);
+
+<CometChatAIAssistantChat user={agent} />
+
+// With common props
+<CometChatAIAssistantChat
+  user={agent}
+  streamingSpeed={30}
+  suggestedMessages={["Help", "Summarize"]}
+  showCloseButton={true}
+/>
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatAIAssistantChat user={agent} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()` + `CometChat.getUser("assistant_uid")`
+**Key props:** `user` (CometChat.User, required), `streamingSpeed` (number), `suggestedMessages` (string[]), `hideNewChat` (boolean), `hideChatHistory` (boolean)
+**CSS class:** `.cometchat-ai-assistant-chat`
+**Events:** none emitted directly
+</Info>
 
 ## Overview
 
@@ -10,8 +49,16 @@ title: "AI Assistant Chat"
   <img src="/images/react-uikit_ai-assistant-chat-overview.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 <Tabs>
-<Tab title="AIAssistantChatDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -38,17 +85,29 @@ export function AIAssistantChatDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { AIAssistantChatDemo } from "./AIAssistantChatDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-    return (
-        <div className="App">
-            <AIAssistantChatDemo />
-        </div>
-    );
+export function AIAssistantChatDemo() {
+    const [agent, setAgent] = useState(null);
+
+    useEffect(() => {
+        // Replace with your assistant UID
+        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
+    }, []);
+
+    if (!agent) return null;
+
+    return(
+        <>
+            <CometChatAIAssistantChat user={agent} />
+        </>
+    ); 
 }
+
 ```
 
 </Tab>
@@ -936,3 +995,38 @@ export function AIAssistantChatDemo() {
 </Tabs>
 
 ***
+
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows nothing | `user` prop not provided or is `null` | Pass a valid `CometChat.User` object fetched via `CometChat.getUser("assistant_uid")` |
+| No streaming response | AI agent not configured in CometChat Dashboard | Set up an AI agent in the Dashboard and use its UID |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Features" icon="wand-magic-sparkles" href="/ui-kit/react/ai-features">
+    Overview of all AI capabilities in the UI Kit
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Render messages in a conversation
+  </Card>
+  <Card title="Message Template" icon="puzzle-piece" href="/ui-kit/react/message-template">
+    Customize message bubble rendering
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Customize the conversation header
+  </Card>
+</CardGroup>

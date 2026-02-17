@@ -1,6 +1,38 @@
 ---
 title: "Call Logs"
+description: "Display and manage call history with filtering, custom views, and call-back functionality using the CometChatCallLogs component."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatCallLogs } from "@cometchat/chat-uikit-react";
+
+// Minimal usage
+<CometChatCallLogs />
+
+// With common props
+<CometChatCallLogs
+  onItemClick={(callLog) => console.log("Selected:", callLog)}
+  onCallButtonClicked={(callLog) => console.log("Call back:", callLog)}
+  title="Call History"
+/>
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatCallLogs } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatCallLogs />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `onItemClick` (callback), `onCallButtonClicked` (callback), `callLogRequestBuilder` (CallLogRequestBuilder), `title` (string), `activeCall` (object)
+**CSS class:** `.cometchat-call-logs`
+**Events:** `ccMessageSent`
+</Info>
 
 ## Overview
 
@@ -18,12 +50,20 @@ The `Call Logs` is comprised of the following components:
 | CometChatListItem | A component that renders data obtained from a Group object on a Tile having a title, subtitle, leading and trailing view.   |
 | CometChatDate     | This component used to show the date and time. You can also customize the appearance of this widget by modifying its logic. |
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview) | [REST API](https://api-explorer.cometchat.com)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 ## Usage
 
 ### Integration
 
 <Tabs>
-<Tab title="CallLogDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatCallLogs } from "@cometchat/chat-uikit-react";
 import React from "react";
@@ -37,19 +77,16 @@ export default CallLogDemo;
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { CallLogDemo } from "./CallLogDemo";
+<Tab title="JavaScript">
+```jsx
+import { CometChatCallLogs } from "@cometchat/chat-uikit-react";
+import React from "react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <CallLogDemo />
-      </div>
-    </div>
-  );
-}
+const CallLogDemo = () => {
+  return <CometChatCallLogs />;
+};
+
+export default CallLogDemo;
 ```
 
 </Tab>
@@ -1149,3 +1186,38 @@ export default CallLogDemo;
 </Tab>
 
 </Tabs>
+
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in or no call history exists | Call `CometChatUIKit.login("UID")` after init. Make some test calls first. |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| Filter not working | `CallLogRequestBuilder` missing auth token | Set `.setAuthToken("authtoken")` on the builder |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Call Buttons" icon="phone" href="/ui-kit/react/call-buttons">
+    Add voice and video call buttons to your chat
+  </Card>
+  <Card title="Incoming Call" icon="phone-arrow-down-left" href="/ui-kit/react/incoming-call">
+    Handle incoming voice and video calls
+  </Card>
+  <Card title="Outgoing Call" icon="phone-arrow-up-right" href="/ui-kit/react/outgoing-call">
+    Manage outgoing voice and video calls
+  </Card>
+  <Card title="Call Log Details Guide" icon="book" href="/ui-kit/react/guide-call-log-details">
+    Build a call log details view
+  </Card>
+</CardGroup>

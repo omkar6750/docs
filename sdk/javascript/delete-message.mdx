@@ -1,8 +1,35 @@
 ---
 title: "Delete A Message"
+description: "Delete messages, receive real-time deletion events, and handle missed deletion events using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Delete a message
+await CometChat.deleteMessage(messageId);
+
+// Listen for real-time deletions
+CometChat.addMessageListener("ID", new CometChat.MessageListener({
+  onMessageDeleted: (message) => {
+    console.log("Deleted:", message.getId(), message.getDeletedAt());
+  }
+}));
+```
+
+**Who can delete:** Message sender, Group admin, Group moderator
+**Deleted fields:** `deletedAt` (timestamp), `deletedBy` (user who deleted)
+</Info>
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
+
+<Warning>
+This operation is irreversible. Deleted messages cannot be recovered.
+</Warning>
 
 While [deleting a message](/sdk/javascript/delete-message#delete-a-message) is straightforward, receiving events for deleted messages with CometChat has two parts:
 
@@ -16,7 +43,7 @@ While [deleting a message](/sdk/javascript/delete-message#delete-a-message) is s
 In case you have to delete a message, you can use the `deleteMessage()` method. This method takes the message ID of the message to be deleted.
 
 <Tabs>
-<Tab title="Delete Message">
+<Tab title="JavaScript">
 ```javascript
 let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_DELETE";
 
@@ -42,6 +69,20 @@ CometChat.deleteMessage(messageId).then(
       console.log("Message delete failed with error:", error);
   }
 );
+```
+
+</Tab>
+
+<Tab title="Async/Await">
+```javascript
+let messageId = "ID_OF_THE_MESSAGE_YOU_WANT_TO_DELETE";
+
+try {
+  const message = await CometChat.deleteMessage(messageId);
+  console.log("Message deleted", message);
+} catch (error) {
+  console.log("Message delete failed with error:", error);
+}
 ```
 
 </Tab>
@@ -118,3 +159,27 @@ For the message deleted event, in the `Action` object received, the following fi
 In order to edit or delete a message you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
 
 </Note>
+
+
+<Warning>
+Always remove message listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Edit a Message" icon="pen-to-square" href="/sdk/javascript/edit-message">
+    Edit sent messages in conversations
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real-time
+  </Card>
+  <Card title="Flag a Message" icon="flag" href="/sdk/javascript/flag-message">
+    Report inappropriate messages
+  </Card>
+</CardGroup>

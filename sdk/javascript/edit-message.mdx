@@ -1,13 +1,33 @@
 ---
 title: "Edit A Message"
+description: "Learn how to edit text and custom messages, receive real-time edit events, and handle missed edit events using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Edit a text message
+const textMessage = new CometChat.TextMessage(receiverID, "Updated text", receiverType);
+textMessage.setId(messageId);
+await CometChat.editMessage(textMessage);
+
+// Listen for real-time edits
+CometChat.addMessageListener("edits", new CometChat.MessageListener({
+  onMessageEdited: (message) => console.log("Edited:", message)
+}));
+```
+</Info>
 
 While [editing a message](/sdk/javascript/edit-message#edit-a-message) is straightforward, receiving events for edited messages with CometChat has two parts:
 
 1. Adding a listener to receive [real-time message edits](/sdk/javascript/edit-message#real-time-message-edit-events) when your app is running
 2. Calling a method to retrieve [missed message edits](/sdk/javascript/edit-message#missed-message-edit-events) when your app was not running
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Edit a Message
 
@@ -103,6 +123,26 @@ CometChat.editMessage(textMessage).then(
 
 </Tab>
 
+<Tab title="Async/Await">
+```javascript
+try {
+  let receiverID = "RECEIVER_UID";
+  let messageText = "Hello world!";
+  let receiverType = CometChat.RECEIVER_TYPE.USER;
+  let messageId = "MESSAGE_ID_OF_THE_MESSAGE_TO_BE_EDITED";
+  let textMessage = new CometChat.TextMessage(receiverID, messageText, receiverType);
+
+  textMessage.setId(messageId);
+
+  const message = await CometChat.editMessage(textMessage);
+  console.log("Message Edited", message);
+} catch (error) {
+  console.log("Message editing failed with error:", error);
+}
+```
+
+</Tab>
+
 </Tabs>
 
 The object of the edited message will be returned in the `onSuccess()` callback method of the listener. The message object will contain the `editedAt` field set with the timestamp of the time the message was edited. This will help you identify if the message was edited while iterating through the list of messages. The `editedBy` field is also set to the UID of the user who edited the message.
@@ -157,6 +197,14 @@ new CometChat.MessageListener({
 
 </Tabs>
 
+<Warning>
+Always remove message listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeMessageListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
 ## Missed Message Edit Events
 
 *In other words, as a recipient, how do I know when someone edited their message when my app was not running?*
@@ -175,3 +223,22 @@ For the message edited event, in the `Action` object received, the following fie
 In order to edit a message, you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
 
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Delete a Message" icon="trash" href="/sdk/javascript/delete-message">
+    Remove messages from conversations
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Threaded Messages" icon="comments" href="/sdk/javascript/threaded-messages">
+    Organize conversations with message threads
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+</CardGroup>

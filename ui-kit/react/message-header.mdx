@@ -1,6 +1,35 @@
 ---
 title: "Message Header"
+description: "CometChatMessageHeader component displays user or group details in the toolbar including avatar, name, status, typing indicator, and back navigation. Supports custom views and CSS styling."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
+
+// For a user chat
+<CometChatMessageHeader user={chatUser} />
+
+// For a group chat
+<CometChatMessageHeader group={chatGroup} />
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatMessageHeader user={chatUser} />` or `<CometChatMessageHeader group={chatGroup} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `user: CometChat.User`, `group: CometChat.Group`, `hideBackButton: boolean`, `hideUserStatus: boolean`
+**CSS class:** `.cometchat-message-header`
+**Events:** None (does not emit events directly)
+</Info>
 
 ## Overview
 
@@ -9,6 +38,14 @@ title: "Message Header"
 <Frame>
   <img src="/images/af3844a0-messages_header_overview_web_screens-e2e210ec4afa809b4d4dd038df2b4073.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
 
 The `MessageHeader` is comprised of the following components:
 
@@ -22,7 +59,7 @@ The `MessageHeader` is comprised of the following components:
 ### Integration
 
 <Tabs>
-<Tab title="MessageHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -44,18 +81,23 @@ export function MessageHeaderDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageHeaderDemo } from "./MessageHeaderDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageHeaderDemo />
-      </div>
-    </div>
-  );
+export function MessageHeaderDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>{chatUser && <CometChatMessageHeader user={chatUser} />}</div>
+  ) : null;
 }
 ```
 
@@ -703,3 +745,36 @@ function getDateFormat() {
 </Note>
 
 ***
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Typing indicator not showing | No active typing in the conversation | Typing indicator appears only when the other user is actively typing |
+| Back button not visible | `hideBackButton={true}` is set | Remove or set `hideBackButton={false}` |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Render messages in a chat view
+  </Card>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Compose and send messages
+  </Card>
+  <Card title="Thread Header" icon="comments" href="/ui-kit/react/thread-header">
+    Display threaded message details
+  </Card>
+  <Card title="Conversations" icon="comments" href="/ui-kit/react/conversations">
+    Display recent conversations
+  </Card>
+</CardGroup>

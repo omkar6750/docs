@@ -1,10 +1,37 @@
 ---
 title: "Reactions"
+description: "Add, remove, and fetch message reactions in real-time using the CometChat JavaScript SDK. Includes listener events and helper methods for updating UI."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Add a reaction
+await CometChat.addReaction(messageId, "😊");
+
+// Remove a reaction
+await CometChat.removeReaction(messageId, "😊");
+
+// Fetch reactions for a message
+const request = new CometChat.ReactionRequestBuilder()
+  .setMessageId(messageId).setLimit(10).build();
+const reactions = await request.fetchNext();
+
+// Listen for reaction events
+CometChat.addMessageListener("LISTENER_ID", {
+  onMessageReactionAdded: (reaction) => {},
+  onMessageReactionRemoved: (reaction) => {}
+});
+```
+</Info>
 
 Enhance user engagement in your chat application with message reactions. Users can express their emotions using reactions to messages. This feature allows users to add or remove reactions, and to fetch all reactions on a message. You can also listen to reaction events in real-time. Let's see how to work with reactions in CometChat's SDK.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Add a Reaction
 
@@ -201,6 +228,10 @@ reactionRequest.fetchPrevious().then(
 
 Keep the chat interactive with real-time updates for reactions. Register a listener for these events and make your UI responsive.
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 <Tabs>
 <Tab title="JavaScript">
 ```js
@@ -361,3 +392,16 @@ action
 </Tabs>
 
 After calling this method, the message instance's reactions are updated. You can then use message.getReactions() to get the latest reactions and refresh your UI accordingly.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages to users and groups
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real-time and fetch missed messages
+  </Card>
+</CardGroup>

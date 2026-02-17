@@ -1,11 +1,35 @@
 ---
 title: "User Presence"
 sidebarTitle: "Overview"
+description: "Track real-time user online/offline status and configure presence subscriptions using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Subscribe to presence during init
+const appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()  // or .subscribePresenceForRoles([]) / .subscribePresenceForFriends()
+  .setRegion("REGION").build();
+
+// Listen for presence changes
+CometChat.addUserListener("LISTENER_ID", new CometChat.UserListener({
+  onUserOnline: (user) => console.log("Online:", user),
+  onUserOffline: (user) => console.log("Offline:", user)
+}));
+
+// Remove listener
+CometChat.removeUserListener("LISTENER_ID");
+```
+</Info>
 
 User Presence helps us understand if a user is available to chat or not.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Real-time Presence
 
@@ -95,6 +119,14 @@ CometChat.removeUserListener(listenerID);
 
 </Tabs>
 
+<Warning>
+Always remove your `UserListener` when the component or view unmounts to prevent memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeUserListener("LISTENER_ID");
+```
+</Warning>
+
 ## User List Presence
 
 *In other words, as a logged-in user, when I retrieve the user list, how do I know if a user is online/offline?*
@@ -107,3 +139,21 @@ When you fetch the list of users, in the [User](/sdk/javascript/user-management#
 * offline - This indicates that the user is currently offline and is not available to chat.
 
 2. `lastActiveAt` - in case the user is offline, this field holds the timestamp of the time when the user was last online. This can be used to display the Last seen of the user if need be.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Management" href="/sdk/javascript/user-management">
+    Create, update, and manage users
+  </Card>
+  <Card title="Retrieve Users" href="/sdk/javascript/retrieve-users">
+    Fetch user lists with filters and pagination
+  </Card>
+  <Card title="Connection Status" href="/sdk/javascript/connection-status">
+    Monitor SDK connection state changes
+  </Card>
+  <Card title="All Real-Time Listeners" href="/sdk/javascript/all-real-time-listeners">
+    Complete reference for all event listeners
+  </Card>
+</CardGroup>
+

@@ -1,6 +1,39 @@
 ---
 title: "Outgoing Call"
+description: "Display and manage outgoing voice and video calls with cancel controls using the CometChatOutgoingCall component."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatOutgoingCall, CometChatUIKitConstants } from "@cometchat/chat-uikit-react";
+
+// Requires a CometChat.Call object
+const callObject = new CometChat.Call("uid", CometChatUIKitConstants.MessageTypes.audio, CometChatUIKitConstants.MessageReceiverType.user);
+const initiatedCall = await CometChat.initiateCall(callObject);
+
+<CometChatOutgoingCall
+  call={initiatedCall}
+  onCallCanceled={() => console.log("Call canceled")}
+  disableSoundForCalls={false}
+/>
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatOutgoingCall call={callObject} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()` + `CometChat.initiateCall()`
+**Key props:** `call` (CometChat.Call, required), `onCallCanceled` (callback), `disableSoundForCalls` (boolean), `titleView` (JSX), `subtitleView` (JSX)
+**CSS class:** `.cometchat-outgoing-call`
+**Events:** none emitted directly
+</Info>
 
 ## Overview
 
@@ -17,12 +50,20 @@ The `Outgoing Call` is comprised of the following components:
 | CometChat Button | This component represents a button with optional icon and text.                                                     |
 | CometChat Avatar | This component component displays an image or user's avatar with fallback to the first two letters of the username. |
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 ## Usage
 
 ### Integration
 
 <Tabs>
-<Tab title="OutgoingCallDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
@@ -57,19 +98,37 @@ export default OutgoingCallDemo;
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { OutgoingCallDemo } from "./OutgoingCallDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import {
+  CometChatOutgoingCall,
+  CometChatUIKitConstants,
+} from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <OutgoingCallDemo />
-      </div>
-    </div>
-  );
-}
+const OutgoingCallDemo = () => {
+  const [call, setCall] = useState(null);
+
+  useEffect(() => {
+    const uid = "uid";
+
+    const callObject = new CometChat.Call(
+      uid,
+      CometChatUIKitConstants.MessageTypes.audio,
+      CometChatUIKitConstants.MessageReceiverType.user
+    );
+    CometChat.initiateCall(callObject)
+      .then((c) => {
+        setCall(c);
+      })
+      .catch(console.log);
+  }, []);
+
+  return call ? <CometChatOutgoingCall call={call} /> : null;
+};
+
+export default OutgoingCallDemo;
 ```
 
 </Tab>
@@ -1026,3 +1085,38 @@ export default OutgoingCallDemo;
 </Tab>
 
 </Tabs>
+
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows nothing | `call` prop not provided or is `undefined` | Pass a valid `CometChat.Call` object from `CometChat.initiateCall()` |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| No ringtone playing | `disableSoundForCalls` set to `true` or custom sound path invalid | Set `disableSoundForCalls={false}` and verify custom sound file path |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Incoming Call" icon="phone-arrow-down-left" href="/ui-kit/react/incoming-call">
+    Handle incoming voice and video calls
+  </Card>
+  <Card title="Call Buttons" icon="phone" href="/ui-kit/react/call-buttons">
+    Add voice and video call buttons to your chat
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react/call-logs">
+    Display call history and call log details
+  </Card>
+  <Card title="Call Features" icon="video" href="/ui-kit/react/call-features">
+    Overview of all calling capabilities
+  </Card>
+</CardGroup>

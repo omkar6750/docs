@@ -1,6 +1,31 @@
 ---
 title: "Thread Header"
+description: "CometChatThreadHeader component displays the parent message of a threaded conversation with reply count, allowing users to view and navigate threaded message discussions."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+
+<CometChatThreadHeader parentMessage={parentMessage} />
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatThreadHeader parentMessage={parentMessage} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `parentMessage: CometChat.BaseMessage` (required)
+**CSS class:** `.cometchat-thread-header`
+**Events:** None
+</Info>
 
 ## Overview
 
@@ -10,6 +35,14 @@ CometChatThreadHeader is a Component that displays the parent message & number o
   <img src="/images/a5456902-threaded_message_preview_overview_web_screens-0f6df1fc848c99494f5ef81c5c44393f.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 ## Usage
 
 ### Integration
@@ -17,7 +50,7 @@ CometChatThreadHeader is a Component that displays the parent message & number o
 The following code snippet illustrates how you can directly incorporate the CometChatThreadHeader component into your Application.
 
 <Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -45,18 +78,28 @@ export function ThreadHeaderDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { ThreadHeaderDemo } from "./ThreadHeaderDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <ThreadHeaderDemo />
-      </div>
-    </div>
-  );
+export function ThreadHeaderDemo() {
+  const [parentMessage, setParentMessage] = useState(null);
+  const [chatWithUser, setChatWithUser] = useState(null);
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatWithUser(user);
+    });
+    CometChat.getMessageDetails("Parent Message Id").then((message) => {
+      setParentMessage(message);
+    });
+  }, []);
+
+  return chatWithUser && parentMessage ? (
+    <CometChatThreadHeader parentMessage={parentMessage} />
+  ) : null;
 }
 ```
 
@@ -350,3 +393,35 @@ function getDateFormat() {
 </Note>
 
 ***
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| No parent message displayed | `parentMessage` prop not passed or invalid | Ensure a valid `CometChat.BaseMessage` object is passed |
+| Reply count not updating | Real-time events not connected | Check WebSocket connection status |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Display user/group details in the toolbar
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Render messages in a chat view
+  </Card>
+  <Card title="Guide: Threaded Messages" icon="book" href="/ui-kit/react/guide-threaded-messages">
+    Step-by-step guide for implementing threaded messages
+  </Card>
+  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
+    Customize message bubble rendering
+  </Card>
+</CardGroup>

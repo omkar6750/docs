@@ -1,6 +1,35 @@
 ---
 title: "Message List"
+description: "CometChatMessageList component renders a scrollable list of sent and received messages including text, media, reactions, read receipts, and threaded replies. Supports custom message templates, date separators, and CSS styling."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+
+// For a user chat
+<CometChatMessageList user={chatUser} />
+
+// For a group chat
+<CometChatMessageList group={chatGroup} />
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatMessageList } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatMessageList user={chatUser} />` or `<CometChatMessageList group={chatGroup} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `user: CometChat.User`, `group: CometChat.Group`, `messagesRequestBuilder: CometChat.MessagesRequestBuilder`, `templates: CometChatMessageTemplate[]`, `hideReceipts: boolean`
+**CSS class:** `.cometchat-message-list`
+**Events:** `CometChatMessageEvents`
+</Info>
 
 ## Overview
 
@@ -9,6 +38,14 @@ title: "Message List"
 <Frame>
   <img src="/images/6612965e-message_list_overview_web_screens-26a01662c72f3b38c4b5d66f020f5d07.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
 
 ***
 
@@ -19,7 +56,7 @@ title: "Message List"
 The following code snippet illustrates how you can directly incorporate the MessageList component into your Application.
 
 <Tabs>
-<Tab title="MessageListDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -43,18 +80,25 @@ export function MessageListDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageListDemo } from "./MessageListDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageList } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageListDemo />
-      </div>
+export function MessageListDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageList user={chatUser} />
     </div>
-  );
+  ) : null;
 }
 ```
 
@@ -1583,3 +1627,36 @@ export function MessageListDemo() {
 </Tabs>
 
 ***
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no messages | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Messages not updating in real-time | WebSocket connection issue | Check [Connection Status](/sdk/javascript/connection-status) |
+| Custom template not rendering | Template `type` or `category` doesn't match message | Verify template matches the message's `type` and `category` fields |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Compose and send messages
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Display user/group details in the toolbar
+  </Card>
+  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
+    Customize message bubble rendering
+  </Card>
+  <Card title="Thread Header" icon="comments" href="/ui-kit/react/thread-header">
+    Display threaded message details
+  </Card>
+</CardGroup>

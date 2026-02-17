@@ -1,7 +1,19 @@
 ---
 title: "Building a One-to-One/Group Chat in Astro"
 sidebarTitle: "One To One/Group Chat"
+description: "Build a focused one-to-one or group chat experience in Astro with CometChat React UI Kit."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+- **Framework:** Astro
+- **Key components:** `CometChatMessages`
+- **Prerequisites:** `CometChatUIKit.init()` + `CometChatUIKit.login()` must complete first
+- **Parent guide:** [Astro Integration](/ui-kit/react/astro-integration)
+</Info>
+
 
 The One‑to‑One/Group chat layout focuses on a single conversation, ideal for support chats and private messaging. This guide uses Astro with React islands and the CometChat React UI Kit.
 
@@ -257,11 +269,41 @@ The island logs out if a different user session is active, then logs in with `PU
 
 ***
 
+
+## Common Failure Modes
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn’t render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| CSS/theme not applied | Missing CSS import | Add `@import url("@cometchat/chat-uikit-react/css-variables.css");` in your CSS |
+| Blank screen after login | Component mounted before init/login completes | Use state to conditionally render after login resolves |
+| Messages not loading | Invalid user/group object passed | Ensure you fetch the user/group via SDK before passing to components |
+
+</Accordion>
+</AccordionGroup>
+
+***
+
 ## Next Steps
 
-- Add typing indicators and read receipts
-- Apply theming and component overrides
-- Extend to conversations list + messages or tabbed layout
+<CardGroup cols={2}>
+  <Card title="Advanced Customizations" href="/ui-kit/react/theme">
+    Personalize the chat UI to align with your brand.
+  </Card>
+  <Card title="Components Overview" href="/ui-kit/react/components-overview">
+    Explore all available prebuilt UI components.
+  </Card>
+  <Card title="Astro Integration" href="/ui-kit/react/astro-integration">
+    Return to the Astro setup guide.
+  </Card>
+  <Card title="Core Features" href="/ui-kit/react/core-features">
+    Learn about messaging, real-time updates, and more.
+  </Card>
+</CardGroup>
 
 <Tip>
 You can reuse `src/lib/cometchat-init.js` across different chat experiences and swap the island component.

@@ -1,6 +1,35 @@
 ---
 title: "Message Composer"
+description: "CometChatMessageComposer component provides a rich text input for composing and sending messages including text, media, attachments, reactions, mentions, and voice notes. Supports custom actions, AI features, and CSS styling."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
+
+// For a user chat
+<CometChatMessageComposer user={chatUser} />
+
+// For a group chat
+<CometChatMessageComposer group={chatGroup} />
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatMessageComposer user={chatUser} />` or `<CometChatMessageComposer group={chatGroup} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `user: CometChat.User`, `group: CometChat.Group`, `text: string`, `parentMessageId: number`, `hideVoiceRecording: boolean`
+**CSS class:** `.cometchat-message-composer`
+**Events:** `CometChatMessageEvents`
+</Info>
 
 ## Overview
 
@@ -12,6 +41,14 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
   <img src="/images/6c67574d-wGdWG0FDGDEYQAAAABJRU5ErkJggg.png" />
 </Frame>
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 ## Usage
 
 ### Integration
@@ -19,7 +56,7 @@ Features such as **Attachments**, and **Message Editing** are also supported by 
 The following code snippet illustrates how you can directly incorporate the MessageComposer component into your app.
 
 <Tabs>
-<Tab title="MessageComposerDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -43,18 +80,25 @@ export function MessageComposerDemo() {
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { MessageComposerDemo } from "./MessageComposerDemo";
+<Tab title="JavaScript">
+```jsx
+import React, { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <MessageComposerDemo />
-      </div>
+export function MessageComposerDemo() {
+  const [chatUser, setChatUser] = useState(null);
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageComposer user={chatUser} />
     </div>
-  );
+  ) : null;
 }
 ```
 
@@ -920,3 +964,36 @@ export function MessageComposerDemo() {
 </Tabs>
 
 ***
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but can't send messages | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Attachments not working | File permissions or browser restrictions | Ensure the browser allows file access |
+| Voice recording not available | `hideVoiceRecording={true}` is set or browser doesn't support MediaRecorder | Check prop and browser compatibility |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Render messages in a chat view
+  </Card>
+  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
+    Customize message bubble rendering
+  </Card>
+  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
+    Display user/group details in the toolbar
+  </Card>
+  <Card title="Extensions" icon="puzzle-piece" href="/ui-kit/react/extensions">
+    Add stickers, polls, and more to the composer
+  </Card>
+</CardGroup>

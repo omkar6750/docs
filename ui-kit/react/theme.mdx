@@ -1,9 +1,57 @@
 ---
 title: "Customizing UI With Theming"
 sidebarTitle: "Overview"
+description: "Customize the CometChat React UI Kit appearance using CSS variables for colors, fonts, dark mode, and component-specific styling."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```css
+/* 1. Import base stylesheet in App.css */
+@import url("@cometchat/chat-uikit-react/css-variables.css");
+
+/* 2. Override global theme */
+.cometchat {
+  --cometchat-primary-color: #f76808;
+  --cometchat-font-family: "Inter", sans-serif;
+}
+
+/* 3. Override per-component */
+.cometchat .cometchat-conversations {
+  --cometchat-primary-color: #e63946;
+}
+
+/* 4. Dark mode */
+.cometchat[data-theme="dark"] {
+  --cometchat-primary-color: #f76808;
+}
+```
+</Info>
+
+<Info>
+**AI Agent Styling Spec**
+
+**Goal:** Customize UI Kit appearance (colors, fonts, dark mode)
+**Where:** `App.css` (global) — import in app entry via `import "./App.css";`
+**Step 1:** Import base stylesheet: `@import url("@cometchat/chat-uikit-react/css-variables.css");`
+**Step 2:** Override variables on `.cometchat` (global) or `.cometchat-<component>` (component-specific)
+**Step 3:** For dark mode, override on `.cometchat[data-theme="dark"]` or use `@media (prefers-color-scheme: dark)`
+**Key tokens:** `--cometchat-primary-color`, `--cometchat-neutral-color-300`, `--cometchat-font-family`, `--cometchat-background-color-03`
+**Constraints:** Global CSS only (no CSS Modules), no `!important`, component-level overrides beat global
+**Full token list:** [Color Resources](/ui-kit/react/theme/color-resources) | [GitHub source](https://github.com/cometchat/cometchat-uikit-react/blob/v6/src/styles/css-variables.css)
+</Info>
+
 Theming allows you to define the **look and feel** of your app by adjusting **colors, fonts, and other styles**. Using **CSS variables**, you can create a consistent and **on-brand** chat experience.
+
+<Warning>
+**Prerequisites before applying any theming:**
+1. Import the base stylesheet: `@import url("@cometchat/chat-uikit-react/css-variables.css");` in your `App.css`
+2. Import your CSS file at the app entry: `import "./App.css";` in `App.tsx`
+3. All selectors assume the UI Kit renders under a `.cometchat` root wrapper
+4. Use **global CSS** (not CSS Modules with hashed class names) — hashed selectors won't match
+</Warning>
 
 ***
 
@@ -72,11 +120,22 @@ export default App;
 
 </Tabs>
 
+**Expected result:** All primary-colored elements (outgoing bubbles, buttons, active states, links) change to orange (#f76808). Background panels change to light peach (#feede1). Font changes to Times New Roman.
+
+<Note>
+**CSS Specificity & Precedence Rules:**
+1. Component-level overrides (`.cometchat-conversations { --var: val }`) take precedence over global overrides (`.cometchat { --var: val }`)
+2. CSS variable overrides only affect properties the UI Kit theme binds to that variable — they do NOT change layout or spacing
+3. Always keep the `.cometchat` prefix to avoid leaking styles into the host app
+4. `!important` should never be needed — if it is, your selector specificity is wrong
+5. For the full list of available tokens, see [Color Resources](/ui-kit/react/theme/color-resources)
+</Note>
+
 ***
 
 ## **Component-Specific Theming**
 
-Want to apply **different styles to specific components**? Override **CSS variables within the component’s class**.
+Want to apply **different styles to specific components**? Override **CSS variables within the component's class**.
 
 <Frame>
   <img src="/images/e70eabdc-theming_component_wise_css_custom-cdacb569db3c0daa22cfe51c6f2ae93f.png" />
@@ -98,11 +157,13 @@ Want to apply **different styles to specific components**? Override **CSS variab
 
 </Tabs>
 
+**Expected result:** Only the Conversations component changes — primary color becomes orange, highlight text becomes amber, avatars get 12px border radius. Other components remain unchanged.
+
 ***
 
 ## **Advanced Customization with CSS Overrides**
 
-For full control over component styling, use **CSS overrides**.
+For full control over component styling, use **CSS overrides** to target specific elements directly.
 
 <Tabs>
 <Tab title="App.css">
@@ -116,6 +177,8 @@ For full control over component styling, use **CSS overrides**.
 </Tab>
 
 </Tabs>
+
+**Expected result:** Avatar images in the Conversations list change from circular to rounded-square (12px radius).
 
 ***
 
@@ -159,6 +222,8 @@ export default App;
 
 </Tabs>
 
+**Expected result:** The UI Kit automatically switches between light and dark color schemes based on the user's OS preference. The `data-theme` attribute on the root wrapper controls which palette is active.
+
 ***
 
 ## **Customizing Light & Dark Theme**
@@ -201,14 +266,37 @@ Define different **color schemes** for **light and dark modes**.
 
 </Tabs>
 
+**Expected result:** Light mode uses orange (#f76808) with peach backgrounds; dark mode uses the same orange accent but with dark brown backgrounds (#311502, #451d02) for proper contrast.
+
 ***
 
-## **📚 Helpful Resources**
+## Common Failure Modes
+
+<AccordionGroup>
+<Accordion title="Troubleshooting: Theming Not Working">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| CSS has no effect | CSS file not imported in app entry | Add `import "./App.css";` in `App.tsx` |
+| CSS has no effect | Base stylesheet not imported | Add `@import url("@cometchat/chat-uikit-react/css-variables.css");` at top of `App.css` |
+| Selectors don't match | Using CSS Modules (hashed class names) | Move rules to a global stylesheet, not `*.module.css` |
+| Component-level override not working | Missing `.cometchat` parent in selector | Use `.cometchat .cometchat-conversations` not just `.cometchat-conversations` |
+| Dark mode unchanged | Only overrode light mode tokens | Add overrides in `@media (prefers-color-scheme: dark)` or `.cometchat[data-theme="dark"]` |
+| Font not changing | `--cometchat-font-family` set on wrong element | Set via `document.documentElement.style.setProperty()` in `useEffect` or on `.cometchat` class |
+| Styles leak into host app | Missing `.cometchat` scope prefix | Always scope overrides under `.cometchat` |
+| Token change has no visible effect | Token doesn't control the property you expect | Check the [Color Resources](/ui-kit/react/theme/color-resources) table for what each token controls |
+
+</Accordion>
+</AccordionGroup>
+
+***
+
+## **Helpful Resources**
 
 Enhance your design and development workflow with the following resources:
 
 <CardGroup>
-<Card title="📦 UI Kit Source Code">
+<Card title="UI Kit Source Code">
 
 Explore the complete list of color variables and hex values on GitHub.
 
@@ -216,11 +304,30 @@ Explore the complete list of color variables and hex values on GitHub.
 
 </Card>
 
-<Card title="🎨 Figma UI Kit">
+<Card title="Figma UI Kit">
 
 Access the Figma UI Kit for a fully integrated color palette and seamless customization.
 
 [View on Figma](https://www.figma.com/community/file/1442863561340379957/cometchat-ui-kit-for-web)
 
 </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Color Resources" icon="palette" href="/ui-kit/react/theme/color-resources">
+    Full reference of all CSS variables and color tokens with light/dark mode values
+  </Card>
+  <Card title="Message Bubble Styling" icon="comment" href="/ui-kit/react/theme/message-bubble-styling">
+    Customize incoming and outgoing message bubble colors per message type
+  </Card>
+  <Card title="Components Overview" icon="grid-2" href="/ui-kit/react/components-overview">
+    Browse all available UI Kit components and their customization options
+  </Card>
+  <Card title="Localization" icon="globe" href="/ui-kit/react/localize">
+    Customize language strings and translations across the UI Kit
+  </Card>
 </CardGroup>

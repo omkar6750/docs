@@ -1,6 +1,38 @@
 ---
 title: "Incoming Call"
+description: "Display and manage incoming voice and video calls with accept/decline controls using the CometChatIncomingCall component."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+
+// Minimal usage — auto-detects incoming calls
+<CometChatIncomingCall />
+
+// With custom handlers
+<CometChatIncomingCall
+  onAccept={() => console.log("Call accepted")}
+  onDecline={() => console.log("Call declined")}
+  disableSoundForCalls={false}
+/>
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatIncomingCall />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `onAccept` (callback), `onDecline` (callback), `call` (CometChat.Call), `disableSoundForCalls` (boolean), `callSettingsBuilder` (function)
+**CSS class:** `.cometchat-incoming-call`
+**Events:** `ccCallRejected`, `ccCallAccepted`, `ccCallEnded`
+</Info>
 
 ## Overview
 
@@ -18,12 +50,20 @@ The `Incoming Call` is comprised of the following base components:
 | cometchat-button    | This component represents a button with optional icon and text.                                                                                |
 | cometchat-avatar    | This component component displays an image or user's avatar with fallback to the first two letters of the username.                            |
 
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
+
 ## Usage
 
 ### Integration
 
 <Tabs>
-<Tab title="IncomingCallsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
 import React from "react";
@@ -37,19 +77,16 @@ export default IncomingCallsDemo;
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { IncomingCallsDemo } from "./IncomingCallsDemo";
+<Tab title="JavaScript">
+```jsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+import React from "react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <div>
-        <IncomingCallsDemo />
-      </div>
-    </div>
-  );
-}
+const IncomingCallsDemo = () => {
+  return <CometChatIncomingCall />;
+};
+
+export default IncomingCallsDemo;
 ```
 
 </Tab>
@@ -945,3 +982,38 @@ export default IncomingCallsDemo;
 </Tab>
 
 </Tabs>
+
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but no incoming call shown | User not logged in or no active incoming call | Call `CometChatUIKit.login("UID")` after init. The component auto-detects incoming calls. |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| No ringtone playing | `disableSoundForCalls` set to `true` or custom sound path invalid | Set `disableSoundForCalls={false}` and verify custom sound file path |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Outgoing Call" icon="phone-arrow-up-right" href="/ui-kit/react/outgoing-call">
+    Manage outgoing voice and video calls
+  </Card>
+  <Card title="Call Buttons" icon="phone" href="/ui-kit/react/call-buttons">
+    Add voice and video call buttons to your chat
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react/call-logs">
+    Display call history and call log details
+  </Card>
+  <Card title="Call Features" icon="video" href="/ui-kit/react/call-features">
+    Overview of all calling capabilities
+  </Card>
+</CardGroup>

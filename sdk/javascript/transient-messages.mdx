@@ -1,10 +1,29 @@
 ---
 title: "Transient Messages"
+description: "Send and receive ephemeral real-time messages that are not stored on the server using the CometChat JavaScript SDK. Ideal for live reactions and temporary indicators."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Send transient message to user
+const msg = new CometChat.TransientMessage("UID", CometChat.RECEIVER_TYPE.USER, { LIVE_REACTION: "heart" });
+CometChat.sendTransientMessage(msg);
+
+// Listen for transient messages
+CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
+  onTransientMessageReceived: (msg) => console.log("Transient:", msg)
+}));
+```
+</Info>
 
 Transient messages are messages that are sent in real-time only and are not saved or tracked anywhere. The receiver of the message will only receive the message if he is online and these messages cannot be retrieved later.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Send a Transient Message
 
@@ -65,6 +84,10 @@ CometChat.sendTransientMessage(transientMessage);
 
 *In other words, as a recipient, how do I know when someone sends a transient message?*
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 You will receive the transient message in the `onTransientMessageReceived()` method of the registered `MessageListener` class.
 
 <Tabs>
@@ -110,3 +133,16 @@ The `TransientMessage` class consists of the below parameters:
 | **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the transient message is sent to. |
 | **receiverType** | The type of the receiver - `CometChat.RECEIVER_TYPE.USER` or `CometChat.RECEIVER_TYPE.GROUP`             |
 | **data**         | A JSONObject to provide data.                                                                            |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/javascript/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+</CardGroup>

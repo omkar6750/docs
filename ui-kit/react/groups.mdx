@@ -1,6 +1,38 @@
 ---
 title: "Groups"
+description: "CometChatGroups component displays a searchable list of all available groups with icons, names, member counts, and group type indicators. Supports selection modes, custom views, filtering via GroupsRequestBuilder, and CSS styling."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+
+// Minimal usage
+<CometChatGroups />
+
+// With common props
+<CometChatGroups
+  onItemClick={(group) => console.log("Selected:", group)}
+  hideSearch={false}
+  selectionMode={SelectionMode.none}
+/>
+```
+</Info>
+
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatGroups } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatGroups />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `onItemClick: (group: CometChat.Group) => void`, `selectionMode: SelectionMode`, `groupsRequestBuilder: CometChat.GroupsRequestBuilder`, `hideSearch: boolean`, `hideGroupType: boolean`
+**CSS class:** `.cometchat-groups`
+**Events:** None (does not emit events directly)
+</Info>
 
 ## Overview
 
@@ -9,6 +41,14 @@ The Groups is a Component, showcasing an accessible list of all available groups
 <Frame>
   <img src="/images/e06ce245-groups_overview_web_screens-76f09cda3f72c774c46829a547f37f3d.png" />
 </Frame>
+
+<Note>
+**Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview) | [REST API](https://api-explorer.cometchat.com)
+</Note>
+
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
 
 The Groups component is composed of the following BaseComponents:
 
@@ -26,7 +66,7 @@ The Groups component is composed of the following BaseComponents:
 The following code snippet illustrates how you can directly incorporate the Groups component into your Application.
 
 <Tabs>
-<Tab title="GroupsDemo.tsx">
+<Tab title="TypeScript">
 ```tsx
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 import React from "react";
@@ -40,17 +80,16 @@ export default GroupsDemo;
 
 </Tab>
 
-<Tab title="App.tsx">
-```tsx
-import { GroupsDemo } from "./GroupsDemo";
+<Tab title="JavaScript">
+```jsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+import React from "react";
 
-export default function App() {
-  return (
-    <div className="App">
-      <GroupsDemo />
-    </div>
-  );
-}
+const GroupsDemo = () => {
+  return <CometChatGroups />;
+};
+
+export default GroupsDemo;
 ```
 
 </Tab>
@@ -562,7 +601,7 @@ import { CometChatGroups } from "@cometchat/chat-uikit-react";
 import React from "react";
 
 const GroupsDemo = () => {
-  const getItemView = (group: CometChat.Group) => {
+  const getItemView = (group) => {
     return (
       <div className="group-list-item">
         <div className="group-list-item__title-wrapper">
@@ -1082,7 +1121,7 @@ import { CometChatGroups, CometChatOption } from "@cometchat/chat-uikit-react";
 import React from "react";
 
 const GroupsDemo = () => {
-  const getOptions = (group: CometChat.Group): CometChatOption[] => {
+  const getOptions = (group) => {
     return [
       new CometChatOption({
         id: "delete",
@@ -1127,3 +1166,47 @@ export default GroupsDemo;
 </Tab>
 
 </Tabs>
+
+
+## Component API Pattern
+
+| Customization Type | Prop Pattern | Example |
+| --- | --- | --- |
+| Callback actions | `on<Event>={(param) => {}}` | `onItemClick={(group) => {}}` |
+| Data filtering | `groupsRequestBuilder={new CometChat.GroupsRequestBuilder()}` | `groupsRequestBuilder={builder}` |
+| Toggle features | `hide<Feature>={true\|false}` | `hideSearch={true}` |
+| Custom rendering | `<slot>View={(<params>) => JSX}` | `itemView={(group) => <div>...</div>}` |
+| CSS overrides | Target `.cometchat-groups` class in global CSS | `.cometchat-groups { ... }` |
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Group Members" icon="user-group" href="/ui-kit/react/group-members">
+    View and manage members within a group
+  </Card>
+  <Card title="Users" icon="user" href="/ui-kit/react/users">
+    Display and manage user lists
+  </Card>
+  <Card title="Conversations" icon="comments" href="/ui-kit/react/conversations">
+    Display recent conversations
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Render messages in a chat view
+  </Card>
+</CardGroup>
