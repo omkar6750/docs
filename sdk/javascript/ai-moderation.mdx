@@ -1,6 +1,35 @@
 ---
 title: "AI Moderation"
+description: "Automatically moderate chat messages using AI to detect and block inappropriate content in real-time."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Send message — check moderation status
+CometChat.sendMessage(textMessage).then(message => {
+  const status = message.getModerationStatus();
+  // CometChat.ModerationStatus.PENDING | APPROVED | DISAPPROVED
+});
+
+// Listen for moderation results
+CometChat.addMessageListener("MOD_LISTENER", new CometChat.MessageListener({
+  onMessageModerated: (message) => {
+    const status = message.getModerationStatus();
+    // Handle APPROVED or DISAPPROVED
+  }
+}));
+```
+
+**Supported types:** Text, Image, Video messages only
+**Statuses:** `PENDING` → `APPROVED` or `DISAPPROVED`
+</Info>
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview) | [Dashboard](https://app.cometchat.com)
+</Note>
 
 ## Overview
 
@@ -300,5 +329,23 @@ Here's a complete implementation showing the full moderation flow:
   </Tab>
 </Tabs>
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 ## Next Steps
-After implementing AI Moderation, consider adding a reporting feature to allow users to flag messages they find inappropriate. For more details, see the [Flag Message](/sdk/javascript/flag-message) documentation.
+
+<CardGroup cols={2}>
+  <Card title="Flag Message" icon="flag" href="/sdk/javascript/flag-message">
+    Allow users to report inappropriate messages manually
+  </Card>
+  <Card title="AI Agents" icon="robot" href="/sdk/javascript/ai-agents">
+    Build intelligent automated conversations with AI Agents
+  </Card>
+  <Card title="AI User Copilot" icon="wand-magic-sparkles" href="/sdk/javascript/ai-user-copilot-overview">
+    Smart replies, conversation summaries, and more
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+</CardGroup>

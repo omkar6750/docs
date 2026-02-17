@@ -1,9 +1,31 @@
 ---
 title: "Typing Indicators"
+description: "Send and receive real-time typing indicators for users and groups using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Start typing indicator
+const typing = new CometChat.TypingIndicator("UID", CometChat.RECEIVER_TYPE.USER);
+CometChat.startTyping(typing);
 
+// Stop typing indicator
+CometChat.endTyping(typing);
+
+// Listen for typing events
+CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
+  onTypingStarted: (indicator) => console.log("Typing started:", indicator),
+  onTypingEnded: (indicator) => console.log("Typing ended:", indicator)
+}));
+```
+</Info>
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 ## Send a Typing Indicator
 
 *In other words, as a sender, how do I let the recipient(s) know that I'm typing?*
@@ -121,6 +143,10 @@ You can use the `metadata` field of the `TypingIndicator` class to pass addition
 
 *In other words, as a recipient, how do I know when someone is typing?*
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 You will receive the typing indicators in the `onTypingStarted()` and the `onTypingEnded()` method of the registered `MessageListener` class.
 
 <Tabs>
@@ -172,3 +198,16 @@ The `TypingIndicator` class consists of the below parameters:
 | **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the typing indicator is sent to.                                                                            |
 | **receiverType** | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChat.RECEIVER_TYPE.USER` 2. `CometChat.RECEIVER_TYPE.GROUP` |
 | **metadata**     | A JSONObject to provider additional data.                                                                                                                                          |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/javascript/delivery-read-receipts">
+    Track when messages are delivered and read
+  </Card>
+  <Card title="Transient Messages" icon="bolt" href="/sdk/javascript/transient-messages">
+    Send ephemeral real-time messages like live reactions
+  </Card>
+</CardGroup>

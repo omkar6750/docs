@@ -1,8 +1,40 @@
 ---
 title: "Delivery & Read Receipts"
+description: "Learn how to mark messages as delivered, read, or unread and receive real-time receipt events using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Mark message as delivered (pass message object)
+await CometChat.markAsDelivered(message);
+
+// Mark message as read (pass message object)
+await CometChat.markAsRead(message);
+
+// Mark entire conversation as read
+await CometChat.markConversationAsRead("USER_UID", "user");
+
+// Mark message as unread
+await CometChat.markMessageAsUnread(message);
+
+// Listen for receipt events
+CometChat.addMessageListener("receipts", new CometChat.MessageListener({
+  onMessagesDelivered: (receipt) => { },
+  onMessagesRead: (receipt) => { },
+  onMessagesDeliveredToAll: (receipt) => { },  // Group only
+  onMessagesReadByAll: (receipt) => { }         // Group only
+}));
+```
+</Info>
+
+Delivery and read receipts let you track whether messages have been delivered to and read by recipients. This page covers marking messages as delivered, read, or unread, and receiving real-time receipt events.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Mark Messages as Delivered
 
@@ -791,3 +823,30 @@ The following features will be available only if the **Enhanced Messaging Status
 * `markMessageAsUnread` method.
 
 </Info>
+
+<Warning>
+Always remove message listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeMessageListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/javascript/typing-indicators">
+    Show real-time typing status to users in conversations
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Retrieve Conversations" icon="comments" href="/sdk/javascript/retrieve-conversations">
+    Fetch conversation list with unread counts
+  </Card>
+  <Card title="All Real-Time Listeners" icon="tower-broadcast" href="/sdk/javascript/all-real-time-listeners">
+    Complete reference for all SDK event listeners
+  </Card>
+</CardGroup>

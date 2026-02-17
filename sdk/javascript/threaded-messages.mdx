@@ -1,10 +1,34 @@
 ---
 title: "Threaded Messages"
+description: "Send, receive, and fetch threaded messages using the CometChat JavaScript SDK. Includes real-time listeners, thread message history, and filtering thread replies."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Send message in a thread
+const msg = new CometChat.TextMessage("UID", "Reply", CometChat.RECEIVER_TYPE.USER);
+msg.setParentMessageId(100);
+await CometChat.sendMessage(msg);
+
+// Fetch thread messages
+const request = new CometChat.MessagesRequestBuilder()
+  .setParentMessageId(100).setLimit(30).build();
+const messages = await request.fetchPrevious();
+
+// Exclude thread replies from main conversation
+const request = new CometChat.MessagesRequestBuilder()
+  .setUID("UID").setLimit(30).hideReplies(true).build();
+```
+</Info>
 
 Messages that are started from a particular message are called Threaded messages or simply threads. Each Thread is attached to a message which is the Parent message for that thread.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Send Message in a Thread
 
@@ -66,6 +90,10 @@ Similarly, using the `setParentMessageId()` method, Media and Custom Messages ca
 ### Receiving Real-Time Messages
 
 The procedure to receive real-time messages is exactly the same as mentioned in the [Receive Messages](/sdk/javascript/receive-message). This can be achieved using the `MessageListener` class provided by the SDK.
+
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 To add a MessageListener, you can use the `addMessageListener()` method of the SDK. The only thing that needs to be checked is if the received message belongs to the active thread. This can be done using the `parentMessageId` field of the message object.
 
@@ -271,3 +299,16 @@ messagesRequest.fetchPrevious().then(
 </Tabs>
 
 The above snippet will return messages between the logged in user and `cometchat-uid-1` excluding all the threaded messages belonging to the same conversation.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages to users and groups
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real-time and fetch missed messages
+  </Card>
+</CardGroup>

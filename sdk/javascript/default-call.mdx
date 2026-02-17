@@ -1,6 +1,37 @@
 ---
 title: "Ringing"
+description: "Implement a complete calling workflow with ringing, incoming/outgoing call UI, accept/reject/cancel functionality, and call session management."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Initiate a call
+const call = new CometChat.Call("UID", CometChat.CALL_TYPE.VIDEO, CometChat.RECEIVER_TYPE.USER);
+await CometChat.initiateCall(call);
+
+// Listen for call events
+CometChat.addCallListener("ID", new CometChat.CallListener({
+  onIncomingCallReceived: (call) => { /* show incoming UI */ },
+  onOutgoingCallAccepted: (call) => { /* start session */ },
+  onOutgoingCallRejected: (call) => { /* dismiss UI */ },
+  onIncomingCallCancelled: (call) => { /* dismiss UI */ }
+}));
+
+// Accept / Reject / Cancel
+await CometChat.acceptCall(sessionId);
+await CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.REJECTED);
+await CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.CANCELLED);
+```
+
+**Flow:** Initiate → Receiver notified → Accept/Reject → Start session
+</Info>
+
+<Note>
+**Available via:** SDK | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Overview
 
@@ -518,3 +549,27 @@ CometChat.rejectCall(sessionId, status).then(
 ```
 </Tab>
 </Tabs>
+
+
+<Warning>
+Always remove call listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Call Session" icon="video" href="/sdk/javascript/direct-call">
+    Manage call sessions, tokens, and settings
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/javascript/call-logs">
+    Retrieve and display call history
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/javascript/recording">
+    Record audio and video calls
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/javascript/calling-setup">
+    Install and initialize the Calls SDK
+  </Card>
+</CardGroup>

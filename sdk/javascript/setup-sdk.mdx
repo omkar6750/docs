@@ -1,10 +1,32 @@
 ---
 title: "Setup"
 sidebarTitle: "Overview"
+description: "Install, configure, and initialize the CometChat JavaScript SDK in your application using npm or CDN."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Setup Reference**
 
+```bash
+# Install
+npm install @cometchat/chat-sdk-javascript
+```
 
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+// Initialize (run once at app start)
+const appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion("REGION")
+  .autoEstablishSocketConnection(true)
+  .build();
+await CometChat.init("APP_ID", appSettings);
+```
+
+**Required:** App ID, Region from [CometChat Dashboard](https://app.cometchat.com) → API & Auth Keys
+</Info>
 <Note>
 Migrating app version from v3 to v4 ?
 
@@ -128,7 +150,28 @@ CometChat.init(appID, appSetting).then(
 
 Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
 
+<Warning>
+`CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
+</Warning>
+
 | Parameter  | Description                         |
 | ---------- | ----------------------------------- |
 | appID      | CometChat App ID                    |
 | appSetting | An object of the AppSettings class. |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/sdk/javascript/authentication-overview">
+    Log in users with Auth Key or Auth Token
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send your first text, media, or custom message
+  </Card>
+</CardGroup>

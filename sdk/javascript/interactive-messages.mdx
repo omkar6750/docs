@@ -1,10 +1,32 @@
 ---
 title: "Interactive Messages"
+description: "Learn how to send and receive interactive messages with embedded forms, buttons, and other UI elements using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Send an interactive message
+const interactiveMessage = new CometChat.InteractiveMessage(
+  receiverId, receiverType, "form", interactiveData
+);
+await CometChat.sendInteractiveMessage(interactiveMessage);
+
+// Listen for interactive messages
+CometChat.addMessageListener("interactive", new CometChat.MessageListener({
+  onInteractiveMessageReceived: (message) => { },
+  onInteractionGoalCompleted: (receipt) => { }
+}));
+```
+</Info>
 
 An InteractiveMessage is a specialised object that encapsulates an interactive unit within a chat message, such as an embedded form that users can fill out directly within the chat interface. This enhances user engagement by making the chat experience more interactive and responsive to user input.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## InteractiveMessage
 
@@ -198,6 +220,33 @@ CometChat.addMessageListener(
 
 These event listeners offer your application a way to provide real-time updates in response to incoming interactive messages and goal completions, contributing to a more dynamic and responsive user chat experience.
 
+<Warning>
+Always remove message listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeMessageListener("UNIQUE_ID");
+```
+</Warning>
+
 ## Usage
 
 An InteractiveMessage is constructed with the receiver's UID, the receiver type, the interactive type, and interactive data as a JSONObject. Once created, the InteractiveMessage can be sent using CometChat's sendInteractiveMessage() method. Incoming InteractiveMessages can be received and processed via CometChat's message listener framework.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Transient Messages" icon="ghost" href="/sdk/javascript/transient-messages">
+    Send ephemeral messages that aren't stored
+  </Card>
+  <Card title="Message Structure" icon="sitemap" href="/sdk/javascript/message-structure-and-hierarchy">
+    Understand message types and hierarchy
+  </Card>
+</CardGroup>

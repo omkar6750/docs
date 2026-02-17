@@ -1,8 +1,29 @@
 ---
 title: "Create A Group"
+description: "Create public, private, or password-protected groups and optionally add members during creation using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Create a group
+let group = new CometChat.Group("GUID", "Group Name", CometChat.GROUP_TYPE.PUBLIC, "");
+let createdGroup = await CometChat.createGroup(group);
+
+// Create group with members
+let members = [new CometChat.GroupMember("UID", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)];
+let result = await CometChat.createGroupWithMembers(group, members, []);
+```
+
+**Group types:** `PUBLIC` | `PASSWORD` | `PRIVATE`
+**Member scopes:** `ADMIN` | `MODERATOR` | `PARTICIPANT`
+</Info>
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Create a Group
 
@@ -24,7 +45,7 @@ The `groupType` needs to be either of the below 3 values:
 3.`CometChat.GROUP_TYPE.PRIVATE`
 
 <Tabs>
-<Tab title="Create Group">
+<Tab title="JavaScript">
 ```javascript
 var GUID = "GUID";
 var groupName = "Hello Group!";
@@ -60,6 +81,25 @@ CometChat.createGroup(group).then(
       console.log("Group creation failed with exception:", error);
   }
 );
+```
+
+</Tab>
+
+<Tab title="Async/Await">
+```javascript
+var GUID = "GUID";
+var groupName = "Hello Group!";
+var groupType = CometChat.GROUP_TYPE.PUBLIC;
+var password = "";
+
+var group = new CometChat.Group(GUID, groupName, groupType, password);
+
+try {
+  const createdGroup = await CometChat.createGroup(group);
+  console.log("Group created successfully:", createdGroup);
+} catch (error) {
+  console.log("Group creation failed with exception:", error);
+}
 ```
 
 </Tab>
@@ -148,6 +188,29 @@ CometChat.createGroupWithMembers(group, members, banMembers).then(
 
 </Tab>
 
+<Tab title="Async/Await">
+```javascript
+let GUID = "cometchat-guid-11";
+let UID = "cometchat-uid-1";
+let groupName = "Hello Group!";
+let groupType = CometChat.GROUP_TYPE.PUBLIC;
+
+let group = new CometChat.Group(GUID, groupName, groupType);
+let members = [
+  new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+];
+let banMembers = ["cometchat-uid-2"];
+
+try {
+  const response = await CometChat.createGroupWithMembers(group, members, banMembers);
+  console.log("Group created successfully", response);
+} catch (error) {
+  console.log("Some error occured while creating group", error);
+}
+```
+
+</Tab>
+
 </Tabs>
 
 This method returns an Object which has two keys: `group` & `members` . The group key has the Group Object which contains all the information of the group which is created. The members key has the `UID` of the users and the value will either be `success` or an `error` message describing why the operation to add/ban the user failed.
@@ -171,3 +234,23 @@ This method returns an Object which has two keys: `group` & `members` . The grou
 | scope        | Yes                                                             | Scope of the logged in user. Can be: 1. Admin 2. Moderator 3. Participant |
 | membersCount | No                                                              | The number of members in the groups                                       |
 | tags         | Yes                                                             | A list of tags to identify specific groups.                               |
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Join a Group" icon="right-to-bracket" href="/sdk/javascript/join-group">
+    Join public, private, or password-protected groups
+  </Card>
+  <Card title="Add Members" icon="user-plus" href="/sdk/javascript/group-add-members">
+    Add users to an existing group
+  </Card>
+  <Card title="Retrieve Groups" icon="list" href="/sdk/javascript/retrieve-groups">
+    Fetch and filter group lists
+  </Card>
+  <Card title="Groups Overview" icon="users" href="/sdk/javascript/groups-overview">
+    Overview of all group management features
+  </Card>
+</CardGroup>

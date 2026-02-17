@@ -1,7 +1,28 @@
 ---
 title: "Standalone Calling"
+description: "Implement video and audio calling using only the CometChat Calls SDK without the Chat SDK. Covers authentication, token generation, session management, and call controls."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Generate call token (requires user auth token from REST API)
+const callToken = await CometChatCalls.generateToken(sessionId, userAuthToken);
+
+// Start call session
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .setCallListener(callListener)
+  .build();
+CometChatCalls.startSession(callToken.token, callSettings, htmlElement);
+
+// End session
+CometChatCalls.endSession();
+```
+</Info>
 ## Overview
 
 This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
@@ -227,6 +248,10 @@ Configure the call experience using the following `CallSettingsBuilder` methods:
 ## Call Listeners
 
 The `OngoingCallListener` provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
+
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 You can register listeners in two ways:
 
@@ -647,3 +672,16 @@ CometChatCalls.endSession();
 ```
 </Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/javascript/default-call">
+    Implement ringing call flows using the Chat SDK
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/javascript/recording">
+    Add call recording to your voice and video calls
+  </Card>
+</CardGroup>

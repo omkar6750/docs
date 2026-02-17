@@ -1,8 +1,30 @@
 ---
 title: "Overview"
+description: "Get started with the CometChat JavaScript SDK — install, initialize, create users, log in, and integrate UI Kits or Chat Widget."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Setup Reference**
 
+```bash
+# Install
+npm install @cometchat/chat-sdk-javascript
+```
+
+```javascript
+// Initialize (run once at app start)
+const appSettings = new CometChat.AppSettingsBuilder().setRegion("REGION").subscribePresenceForAllUsers().build();
+await CometChat.init("APP_ID", appSettings);
+
+// Login
+await CometChat.login("UID", "AUTH_KEY");  // Dev only
+await CometChat.login(AUTH_TOKEN);          // Production
+```
+
+**Required Credentials:** App ID, Region, Auth Key (dev) or Auth Token (prod)
+**Get from:** [CometChat Dashboard](https://app.cometchat.com) → Your App → API & Auth Keys
+</Info>
 
 This guide demonstrates how to add chat to a JavaScript application using CometChat. Before you begin, we strongly recommend you read the [Key Concepts](/sdk/javascript/key-concepts) guide.
 
@@ -356,6 +378,10 @@ CometChat.init(appID, appSetting).then(
 
 Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
 
+<Warning>
+`CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
+
 ## Register and Login your user
 
 Once initialization is successful, you will need to create a user. To create users on the fly, you can use the `createUser()` method. This method takes a `User` object and the `Auth Key` as input parameters and returns the created `User` object if the request is successful.
@@ -500,3 +526,22 @@ UID can be alphanumeric with an underscore and hyphen. Spaces, punctuation and o
 ## Integrate our Chat Widget
 
 * Please refer to the section to integrate [Chat Widget](/widget/html-bootstrap-jquery) into your Website.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Key Concepts" icon="lightbulb" href="/sdk/javascript/key-concepts">
+    Understand UIDs, GUIDs, auth tokens, and more
+  </Card>
+  <Card title="Authentication" icon="lock" href="/sdk/javascript/authentication-overview">
+    Learn about login methods and auth token generation
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send your first text or media message
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+</CardGroup>

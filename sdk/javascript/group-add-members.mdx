@@ -1,8 +1,31 @@
 ---
 title: "Add Members To A Group"
+description: "Learn how to add members to a group, receive real-time member added events, and handle missed events using the CometChat JavaScript SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```javascript
+// Add members to a group
+const members = [
+  new CometChat.GroupMember("UID", CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT)
+];
+await CometChat.addMembersToGroup("GUID", members, []);
+
+// Listen for member added events
+CometChat.addGroupListener("listener", new CometChat.GroupListener({
+  onMemberAddedToGroup: (message, userAdded, userAddedBy, userAddedIn) => { }
+}));
+```
+</Info>
+
+You can add members to a group programmatically and listen for real-time events when members are added.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
+</Note>
 
 ## Add Members to Group
 
@@ -121,6 +144,14 @@ CometChat.addGroupListener(
 
 </Tabs>
 
+<Warning>
+Always remove group listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```javascript
+CometChat.removeGroupListener("UNIQUE_LISTENER_ID");
+```
+</Warning>
+
 ## Member Added to Group event in Message History
 
 *In other words, as a member of a group, how do I know when someone is added to the group when my app is not running?*
@@ -133,3 +164,22 @@ For the group member added event, in the `Action` object received, the following
 2. `actionOn` - User object containing the details of the user who was added to the group
 3. `actionBy` - User object containing the details of the user who added the member to the group
 4. `actionFor` - Group object containing the details of the group to which the member was added
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Kick & Ban Members" icon="user-slash" href="/sdk/javascript/group-kick-ban-members">
+    Remove or ban members from a group
+  </Card>
+  <Card title="Change Member Scope" icon="user-shield" href="/sdk/javascript/group-change-member-scope">
+    Promote or demote group members
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/javascript/retrieve-group-members">
+    Fetch the list of members in a group
+  </Card>
+  <Card title="Join a Group" icon="right-to-bracket" href="/sdk/javascript/join-group">
+    Allow users to join public or password-protected groups
+  </Card>
+</CardGroup>
