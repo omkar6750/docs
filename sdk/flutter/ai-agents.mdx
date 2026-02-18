@@ -1,10 +1,43 @@
 ---
 title: "AI Agents"
+description: "Learn how to integrate AI Agents in your Flutter app to enable intelligent, automated interactions that process user messages, trigger tools, and respond with contextually relevant information."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```dart
+// Add AI Assistant listener for real-time events
+CometChat.addAIAssistantListener("LISTENER_ID", AIAssistantListener(
+  onAIAssistantEventReceived: (AIAssistantBaseEvent event) {
+    debugPrint("AI Event: ${event.type}");
+  },
+));
+
+// Add Message listener for agentic messages
+CometChat.addMessageListener("LISTENER_ID", MessageListener(
+  onAIAssistantMessageReceived: (AIAssistantMessage msg) {
+    debugPrint("AI Reply: ${msg.text}");
+  },
+  onAIToolResultReceived: (AIToolResultMessage result) {
+    debugPrint("Tool Result: $result");
+  },
+));
+
+// Remove listeners when done
+CometChat.removeAIAssistantListener("LISTENER_ID");
+CometChat.removeMessageListener("LISTENER_ID");
+```
+</Info>
 
 # AI Agents Overview
 
 AI Agents enable intelligent, automated interactions within your application. They can process user messages, trigger tools, and respond with contextually relevant information. For a broader introduction, see the [AI Agents section](/ai-agents).
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview) | [Dashboard](https://app.cometchat.com)
+</Note>
 
 > **Note:**
 > Currently, an Agent only responds to **Text Messages**.
@@ -68,6 +101,10 @@ class AIAssistantEventHandler with AIAssistantListener {
 	</Tab>
 </Tabs>
 
+<Warning>
+Always remove AI Assistant listeners when they're no longer needed (e.g., on widget dispose or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 #### Event descriptions
 - Run Start: A new run has begun for the user’s message.
 - Tool Call Start: The agent decided to invoke a tool.
@@ -112,3 +149,16 @@ These events are received via the **`MessageListener`** after the run completes.
         ```
     </Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Chatbots" icon="robot" href="/sdk/flutter/ai-chatbots-overview">
+    Configure and deploy AI chatbots for automated conversations
+  </Card>
+  <Card title="AI Moderation" icon="shield-check" href="/sdk/flutter/ai-moderation">
+    Implement AI-powered content moderation for your chat
+  </Card>
+</CardGroup>

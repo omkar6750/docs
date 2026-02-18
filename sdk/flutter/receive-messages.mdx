@@ -1,13 +1,53 @@
 ---
 title: "Receive A Message"
+sidebarTitle: "Receive Messages"
+description: "Learn how to receive real-time messages and fetch missed or historical messages using the CometChat Flutter SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Add message listener for real-time messages
+CometChat.addMessageListener("UNIQUE_LISTENER_ID", MessageListener(
+  onTextMessageReceived: (TextMessage message) {
+    debugPrint("Text message: ${message.text}");
+  },
+  onMediaMessageReceived: (MediaMessage message) {
+    debugPrint("Media message: ${message.attachment?.fileUrl}");
+  },
+));
+
+// Fetch missed messages (after last delivered message)
+int lastMessageId = await CometChat.getLastDeliveredMessageId() ?? 0;
+MessagesRequest request = (MessagesRequestBuilder()
+  ..uid = "USER_UID"
+  ..messageId = lastMessageId
+  ..limit = 50
+).build();
+List<BaseMessage> messages = await request.fetchNext();
+
+// Fetch message history
+MessagesRequest historyRequest = (MessagesRequestBuilder()
+  ..uid = "USER_UID"
+  ..limit = 30
+).build();
+List<BaseMessage> history = await historyRequest.fetchPrevious();
+
+// Remove listener when done
+CometChat.removeMessageListener("UNIQUE_LISTENER_ID");
+```
+</Info>
 
 Receiving messages with CometChat has two parts:
 
 1. Adding a listener to receive [Real-time Messages](/sdk/flutter/receive-messages#real-time-messages) when your app is running
 2. Calling a method to retrieve [Missed Messages](/sdk/flutter/receive-messages#missed-messages) when your app was not running
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 ## Real-time Messages
 
@@ -56,6 +96,10 @@ onInteractiveMessageReceived(InteractiveMessage message) {
 | listenerID | An ID that uniquely identifies that listener. We recommend using the activity or fragment name |
 
 We recommend you remove the listener once the activity or fragment is not in use. Typically, this can be added in the `dispose()` method.
+
+<Warning>
+Always remove message listeners when they're no longer needed (e.g., in the `dispose()` method of your StatefulWidget). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 <Tabs>
 <Tab title="Dart">
@@ -639,3 +683,22 @@ CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers: hideMe
 </Tabs>
 
 In the `onSuccess()` callback, you will receive a `Map` which will contain the `GUIDs` of the groups as the key and the unread message counts as the values.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/flutter/delivery-read-receipts">
+    Track when messages are delivered and read by recipients
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/flutter/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+  <Card title="Edit Messages" icon="pen-to-square" href="/sdk/flutter/edit-message">
+    Allow users to edit previously sent messages
+  </Card>
+  <Card title="Delete Messages" icon="trash" href="/sdk/flutter/delete-message">
+    Remove messages from conversations
+  </Card>
+</CardGroup>

@@ -1,12 +1,44 @@
 ---
 title: "Retrieve Group Members"
+description: "Learn how to fetch and paginate through group members using the CometChat Flutter SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Retrieve group members with pagination
+GroupMembersRequest request = (GroupMembersRequestBuilder("GROUP_ID")
+  ..limit = 30
+).build();
+
+await request.fetchNext(
+  onSuccess: (List<GroupMember> members) {
+    for (GroupMember member in members) {
+      debugPrint("Member: ${member.name}, Scope: ${member.scope}");
+    }
+  },
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+
+// Filter by scope (admin, moderator, participant)
+GroupMembersRequest scopedRequest = (GroupMembersRequestBuilder("GROUP_ID")
+  ..limit = 30
+  ..scopes = ["admin", "moderator"]
+).build();
+```
+</Info>
 
 ## Retrieve the List of Group Members
 
-In order to fetch the list of groups members for a group, you can use the `GroupMembersRequest` class. To use this class i.e to create an object of the `GroupMembersRequest` class, you need to use the `GroupMembersRequestBuilder` class. The `GroupMembersRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
+In order to fetch the list of groups members for a group, you can use the `GroupMembersRequest` class.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
+
+To use this class i.e to create an object of the `GroupMembersRequest` class, you need to use the `GroupMembersRequestBuilder` class. The `GroupMembersRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
 
 The `GroupMembersRequestBuilder` class allows you to set the below parameters:
 
@@ -90,3 +122,16 @@ groupMembersRequest.fetchNext(onSuccess: (List<GroupMember> groupMemberList){
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Add Members" icon="user-plus" href="/sdk/flutter/group-add-members">
+    Add new members to your groups
+  </Card>
+  <Card title="Kick/Ban Members" icon="user-slash" href="/sdk/flutter/group-kick-member">
+    Remove or ban members from groups
+  </Card>
+</CardGroup>

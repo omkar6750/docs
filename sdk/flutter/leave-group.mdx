@@ -1,12 +1,41 @@
 ---
 title: "Leave A Group"
+description: "Learn how to leave a group and stop receiving updates and messages from that group using the CometChat Flutter SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Leave a group
+String GUID = "GROUP_ID";
+
+CometChat.leaveGroup(GUID, 
+  onSuccess: (String message) {
+    debugPrint("Left group: $message");
+  },
+  onError: (CometChatException e) {
+    debugPrint("Error: ${e.message}");
+  }
+);
+
+// Listen for group member left events
+CometChat.addGroupListener("listener_id", GroupListener(
+  onGroupMemberLeft: (Action action, User leftUser, Group leftGroup) {
+    debugPrint("${leftUser.name} left ${leftGroup.name}");
+  },
+));
+```
+</Info>
 
 ## Leave a Group
 
 In order to stop receiving updates and messages for any particular joined group, you will have to leave the group using the `leaveGroup()` method.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 <Tabs>
 <Tab title="Dart">
@@ -65,3 +94,16 @@ For the group member left event, in the `Action` object received, the following 
 1. `action` - `left`
 2. `actionBy` - User object containing the details of the user who left the group
 3. `actionFor` - Group object containing the details of the group the user has left
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Join Group" icon="right-to-bracket" href="/sdk/flutter/join-group">
+    Join existing public or password-protected groups
+  </Card>
+  <Card title="Delete Group" icon="trash" href="/sdk/flutter/delete-group">
+    Permanently delete a group (admin only)
+  </Card>
+</CardGroup>

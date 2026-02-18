@@ -1,8 +1,42 @@
 ---
 title: "Connection Status"
+description: "Monitor real-time WebSocket connection status with CometChat SDK using ConnectionListener callbacks and getConnectionStatus method."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Add connection listener
+CometChat.addConnectionListener("connection_listener", ConnectionListenerImpl());
+
+// Connection listener implementation
+class ConnectionListenerImpl with ConnectionListener {
+  @override
+  void onConnected() => debugPrint("Connected");
+  
+  @override
+  void onConnecting() => debugPrint("Connecting...");
+  
+  @override
+  void onDisconnected() => debugPrint("Disconnected");
+  
+  @override
+  void onFeatureThrottled() => debugPrint("Feature throttled");
+  
+  @override
+  void onConnectionError(CometChatException error) => debugPrint("Error: ${error.message}");
+}
+
+// Check current connection status
+String status = CometChat.getConnectionStatus();
+// Returns: CometChatWSState.connected, connecting, disconnected, or featureThrottled
+
+// Remove listener when done
+CometChat.removeConnectionListener("connection_listener");
+```
+</Info>
 
 CometChat SDK provides you with a mechanism to get real-time status of the connection to CometChat web-socket servers. To achieve this you need to use the `ConnectionListener` class provided by the CometChat SDK
 
@@ -84,3 +118,16 @@ The above method will return either of the below 3 values:
 Know more about CometChat SDK connection behaviour [click here](/sdk/flutter/connection-behaviour)
 
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Connection Behaviour" icon="wifi" href="/sdk/flutter/connection-behaviour">
+    Understand how CometChat SDK manages WebSocket connections
+  </Card>
+  <Card title="Login Listeners" icon="user-check" href="/sdk/flutter/login-listener">
+    Monitor user login and logout events in real-time
+  </Card>
+</CardGroup>

@@ -1,13 +1,45 @@
 ---
 title: "Delete A Message"
+description: "Learn how to delete messages and handle real-time deletion events in your Flutter app using CometChat SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Delete a message by ID
+int messageId = 1234;
+await CometChat.deleteMessage(messageId,
+  onSuccess: (BaseMessage message) {
+    debugPrint("Message deleted at: ${message.deletedAt}");
+  },
+  onError: (CometChatException e) {
+    debugPrint("Delete failed: ${e.message}");
+  }
+);
+
+// Listen for deleted messages
+CometChat.addMessageListener("listener_id", MessageListener(
+  onMessageDeleted: (BaseMessage message) {
+    debugPrint("Message ${message.id} was deleted");
+  }
+));
+```
+</Info>
 
 While [deleting a message](/sdk/flutter/delete-message#delete-a-message) is straightforward, receiving events for deleted messages with CometChat has two parts:
 
 1. Adding a listener to receive [real-time message deletes](/sdk/flutter/delete-message#real-time-message-delete-events) when your app is running.
 2. Calling a method to retrieve [missed message delete events](/sdk/flutter/delete-message#missed-message-delete-events)-me when your app was not running.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
+
+<Warning>
+This operation is irreversible. Deleted messages cannot be recovered.
+</Warning>
 
 ## Delete a Message
 
@@ -87,3 +119,16 @@ For the message deleted event, in the `Action` object received, the following fi
 In order to delete a message, you need to be either the sender of the message or the admin/moderator of the group in which the message was sent.
 
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Edit Message" icon="pen" href="/sdk/flutter/edit-message">
+    Modify sent messages before deletion
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages in real-time
+  </Card>
+</CardGroup>

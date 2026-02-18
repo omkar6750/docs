@@ -1,10 +1,42 @@
 ---
 title: "AI Moderation"
+description: "Learn how to implement AI-powered content moderation in your Flutter app using CometChat SDK to automatically review messages for inappropriate content."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```dart
+// Send message and check moderation status
+CometChat.sendMessage(textMessage, onSuccess: (TextMessage message) {
+  if (message.moderationStatus?.value == ModerationStatusEnum.PENDING.value) {
+    // Message is under moderation review
+  }
+}, onError: (e) {});
+
+// Listen for moderation results
+CometChat.addMessageListener("MODERATION_LISTENER", MessageListener(
+  onMessageModerated: (BaseMessage message) {
+    // Handle APPROVED or DISAPPROVED status
+  },
+));
+
+// Remove listener when done
+CometChat.removeMessageListener("MODERATION_LISTENER");
+```
+
+**Moderation Status:** `PENDING` → `APPROVED` or `DISAPPROVED`
+**Supported Types:** Text, Image, Video messages
+</Info>
 
 ## Overview
 
 AI Moderation in the CometChat SDK helps ensure that your chat application remains safe and compliant by automatically reviewing messages for inappropriate content. This feature leverages AI to moderate messages in real-time, reducing manual intervention and improving user experience.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview) | [Dashboard](https://app.cometchat.com)
+</Note>
 
 <Note>
 For a broader understanding of moderation features, configuring rules, and managing flagged messages, see the [Moderation Overview](/moderation/overview).
@@ -172,4 +204,20 @@ When a message is disapproved, handle it appropriately in your UI:
 </Tabs>
 
 ## Next Steps
-After implementing AI Moderation, consider adding a reporting feature to allow users to flag messages they find inappropriate. For more details, see the [Flag Message](/sdk/flutter/flag-message) documentation.
+
+After implementing AI Moderation, explore these related features:
+
+<CardGroup cols={2}>
+  <Card title="AI Agents" icon="robot" href="/sdk/flutter/ai-agents">
+    Build intelligent AI-powered agents for automated conversations
+  </Card>
+  <Card title="Flag Message" icon="flag" href="/sdk/flutter/flag-message">
+    Allow users to manually report inappropriate messages
+  </Card>
+  <Card title="AI Chatbots" icon="comments" href="/sdk/flutter/ai-chatbots-overview">
+    Create automated chatbot experiences for your users
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages and moderation events
+  </Card>
+</CardGroup>

@@ -1,8 +1,46 @@
 ---
 title: "Overview"
+description: "Get started with the CometChat Flutter SDK to add real-time chat and calling features to your Flutter application."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Setup Reference**
 
+```yaml
+# Install (pubspec.yaml)
+cometchat_sdk: ^4.0.33
+```
+
+```dart
+// Initialize (run once at app start)
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = true
+).build();
+
+CometChat.init("APP_ID", appSettings,
+  onSuccess: (msg) => debugPrint("Init success"),
+  onError: (e) => debugPrint("Init failed: ${e.message}"),
+);
+
+// Login (after init)
+CometChat.login("UID", "AUTH_KEY",  // Dev only
+  onSuccess: (user) => debugPrint("Login success"),
+  onError: (e) => debugPrint("Login failed"),
+);
+// For production, use Auth Token instead:
+// CometChat.loginWithAuthToken("AUTH_TOKEN", onSuccess: ..., onError: ...);
+```
+
+**Required Credentials:** App ID, Region, Auth Key (dev) or Auth Token (prod)
+**Get from:** [CometChat Dashboard](https://app.cometchat.com) → Your App → API & Auth Keys
+</Info>
+
+<Warning>
+`CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
 
 This guide demonstrates how to add chat to a Flutter application. Before you begin, we strongly recommend you read the [Key Concepts](/sdk/flutter/key-concepts) guide.
 
@@ -196,3 +234,22 @@ await CometChat.login(UID, authKey,
 </Tabs>
 
 We recommend you call the CometChat `login()` method once your user logs into your app. The `login()` method needs to be called only once.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup SDK" icon="gear" href="/sdk/flutter/setup">
+    Detailed installation and configuration options
+  </Card>
+  <Card title="Key Concepts" icon="lightbulb" href="/sdk/flutter/key-concepts">
+    Understand core CometChat concepts and terminology
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication-overview">
+    Learn about Auth Keys vs Auth Tokens for production
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Start sending text, media, and custom messages
+  </Card>
+</CardGroup>

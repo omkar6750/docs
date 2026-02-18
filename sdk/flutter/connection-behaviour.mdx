@@ -1,8 +1,37 @@
 ---
 title: "Connection Behaviour"
+description: "Understand how CometChat SDK manages WebSocket connections in auto and manual modes, including background behavior and reconnection handling."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Auto Mode (default) - SDK manages connection automatically
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = true  // Default behavior
+).build();
+
+// Manual Mode - You control the connection
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = false  // Manual control
+).build();
+
+// Manual mode methods
+CometChat.connect(onSuccess: (msg) {}, onError: (e) {});  // Establish connection
+CometChat.disconnect(onSuccess: (msg) {}, onError: (e) {}); // Break connection
+CometChat.ping(onSuccess: () {}, onError: (e) {});  // Keep alive in background
+```
+
+**Connection Modes:**
+- **Auto Mode:** SDK manages WebSocket automatically (foreground=connected, background=disconnected)
+- **Manual Mode:** You control connect/disconnect; call `ping()` every 30s to keep background connection alive
+</Info>
 
 ## Default SDK behaviour on login
 
@@ -164,3 +193,22 @@ CometChat.ping(
 ## Reconnection
 
 If manual mode is enabled and the app is in the foreground, the SDK will automatically reconnect the WebSocket if the internet connection is lost. However, if the app is in the background and the WebSocket is disconnected or you called `CometChat.disconnect()`, then you will need to call the `CometChat.connect()` method to create a new WebSocket connection.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Connection Status" icon="signal" href="/sdk/flutter/connection-status">
+    Monitor real-time WebSocket connection status with listeners
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/flutter/setup">
+    Configure CometChat SDK initialization and settings
+  </Card>
+  <Card title="Real-Time Listeners" icon="tower-broadcast" href="/sdk/flutter/real-time-listeners">
+    Learn about all available real-time event listeners
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication">
+    Implement user login and logout functionality
+  </Card>
+</CardGroup>

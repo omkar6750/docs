@@ -1,8 +1,44 @@
 ---
 title: "Setup"
+description: "Install and initialize the CometChat Flutter SDK in your application"
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Setup Reference**
 
+```yaml
+# Install (pubspec.yaml)
+cometchat_sdk: ^4.0.33
+```
+
+```dart
+// Initialize (run once at app start)
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = true
+).build();
+
+CometChat.init("APP_ID", appSettings,
+  onSuccess: (msg) => debugPrint("Init success"),
+  onError: (e) => debugPrint("Init failed: ${e.message}")
+);
+
+// Login (after init)
+CometChat.login("UID", "AUTH_KEY",  // Dev only
+  onSuccess: (user) => debugPrint("Login success"),
+  onError: (e) => debugPrint("Login failed: ${e.message}")
+);
+```
+
+**Required Credentials:** App ID, Region, Auth Key (dev) or Auth Token (prod)
+**Get from:** [CometChat Dashboard](https://app.cometchat.com) → Your App → API & Auth Keys
+</Info>
+
+<Warning>
+`CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
 
 ### Get your Application Keys
 
@@ -154,3 +190,16 @@ Know more about manual mode connection [click here](/sdk/flutter/connection-beha
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
 | App in foreground | Call `CometChat.connect()` to create the WebSocket connection                                                      |
 | App in background | Disconnect the WebSocket connection if no ping is received within 30 seconds after the app goes in the background. |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication-overview">
+    Learn how to authenticate users with Auth Keys and Auth Tokens
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Start sending text, media, and custom messages
+  </Card>
+</CardGroup>

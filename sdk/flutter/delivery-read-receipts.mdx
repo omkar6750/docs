@@ -1,8 +1,43 @@
 ---
 title: "Delivery & Read Receipts"
+description: "Track message delivery and read status to provide users with real-time feedback on their sent messages."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Mark message as delivered
+CometChat.markAsDelivered(message, onSuccess: (String unused) {
+  debugPrint("Marked as delivered");
+}, onError: (CometChatException e) {
+  debugPrint("Error: ${e.message}");
+});
+
+// Mark message as read
+CometChat.markAsRead(message, onSuccess: (String unused) {
+  debugPrint("Marked as read");
+}, onError: (CometChatException e) {
+  debugPrint("Error: ${e.message}");
+});
+
+// Listen for receipts
+CometChat.addMessageListener("receipts_listener", MessageListener(
+  onMessagesDelivered: (MessageReceipt receipt) { },
+  onMessagesRead: (MessageReceipt receipt) { },
+));
+
+// Remove listener when done
+CometChat.removeMessageListener("receipts_listener");
+```
+</Info>
+
+Delivery and read receipts allow you to track when messages have been delivered to and read by recipients, providing real-time feedback on message status.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 ## Mark Messages as Delivered
 
@@ -171,6 +206,18 @@ void onMessagesReadByAll(MessageReceipt messageReceipt) {
 
 </Tabs>
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., in the `dispose()` method). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```dart
+@override
+void dispose() {
+  CometChat.removeMessageListener("listenerId");
+  super.dispose();
+}
+```
+</Warning>
+
 You will receive events in the form of `MessageReceipt` objects. The message receipt contains the following parameters:
 
 | Parameter      | Information                                                                                                          |
@@ -228,3 +275,16 @@ The following features will be available only if the **Enhanced Messaging Status
 * `markAsUnread` method.
 
 </Info>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages in real-time
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/flutter/typing-indicators">
+    Show when users are typing
+  </Card>
+</CardGroup>

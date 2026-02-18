@@ -1,8 +1,56 @@
 ---
 title: "All Real Time Listeners"
+sidebarTitle: "Real-Time Listeners"
+description: "Learn how to register and manage real-time event listeners for messages, users, and groups in the CometChat Flutter SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Message Listener - receive messages in real-time
+CometChat.addMessageListener("message_listener", MessageListener(
+  onTextMessageReceived: (TextMessage message) {
+    debugPrint("Text received: ${message.text}");
+  },
+  onMediaMessageReceived: (MediaMessage message) {
+    debugPrint("Media received: ${message.attachment?.fileUrl}");
+  },
+));
+
+// User Listener - track user online/offline status
+CometChat.addUserListener("user_listener", UserListener(
+  onUserOnline: (User user) {
+    debugPrint("${user.name} is online");
+  },
+  onUserOffline: (User user) {
+    debugPrint("${user.name} is offline");
+  },
+));
+
+// Group Listener - track group membership changes
+CometChat.addGroupListener("group_listener", GroupListener(
+  onGroupMemberJoined: (action, joinedUser, joinedGroup) {
+    debugPrint("${joinedUser.name} joined ${joinedGroup.name}");
+  },
+  onGroupMemberLeft: (action, leftUser, leftGroup) {
+    debugPrint("${leftUser.name} left ${leftGroup.name}");
+  },
+));
+
+// Remove listeners when no longer needed
+CometChat.removeMessageListener("message_listener");
+CometChat.removeUserListener("user_listener");
+CometChat.removeGroupListener("group_listener");
+```
+</Info>
+
+CometChat provides real-time event listeners to keep your app updated with live changes. These listeners notify your app when messages are received, users come online/offline, or group membership changes occur.
+
+<Warning>
+**Listener Cleanup Required:** Always remove listeners when they're no longer needed (e.g., on widget dispose or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 CometChat provides 4 listeners viz.
 
@@ -247,3 +295,30 @@ class Class_Name with MessageListener {
 where `UNIQUE_LISTENER_ID` is the unique identifier for the listener. Please make sure that no two listeners are added with the same listener id as this could lead to unexpected behavior resulting in loss of events.
 
 Once the activity/fragment where the `MessageListener` is declared is not in use, you need to remove the listener using the `removeMessageListener()` method which takes the id of the listener to be removed as the parameter. We suggest you call this method in the `onPause()` method of the activity/fragment.
+
+<Tabs>
+<Tab title="Dart">
+```dart
+CometChat.removeMessageListener(UNIQUE_LISTENER_ID)
+```
+</Tab>
+</Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages in real-time using message listeners
+  </Card>
+  <Card title="User Presence" icon="circle-user" href="/sdk/flutter/user-presence">
+    Track when users come online or go offline
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/flutter/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/flutter/delivery-read-receipts">
+    Track message delivery and read status
+  </Card>
+</CardGroup>

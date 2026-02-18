@@ -1,6 +1,41 @@
 ---
 title: "Standalone Calling"
+description: "Implement video and audio calling using only the CometChat Calls SDK without the Chat SDK for applications that need calling capabilities without full chat infrastructure."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```dart
+// 1. Generate call token (requires user auth token from REST API)
+CometChatCalls.generateToken(sessionId, userAuthToken,
+  onSuccess: (GenerateToken token) {
+    // Use token.token to start session
+  },
+  onError: (e) {},
+);
+
+// 2. Configure and start call session
+CallSettings callSettings = (CallSettingsBuilder()
+  ..defaultLayout = true
+  ..setAudioOnlyCall = false
+  ..listener = this
+).build();
+
+CometChatCalls.startSession(generatedToken, callSettings,
+  onSuccess: (Widget? callingWidget) {
+    // Display callingWidget in your UI
+  },
+  onError: (e) {},
+);
+
+// 3. End session
+CometChatCalls.endSession(onSuccess: (s) {}, onError: (e) {});
+```
+
+**Prerequisites:** [Calls SDK Setup](/sdk/flutter/calling-setup), User Auth Token from [REST API](/rest-api/auth-tokens/create)
+</Info>
 
 ## Overview
 
@@ -413,3 +448,23 @@ CometChatCalls.endSession(
   },
 );
 ```
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Set up the CometChat Calls SDK in your Flutter app
+  </Card>
+  <Card title="Direct Calling" icon="phone-arrow-right" href="/sdk/flutter/direct-call">
+    Implement direct calling with the Chat SDK integration
+  </Card>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement ringing calls with call notifications
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Record call sessions for later playback
+  </Card>
+</CardGroup>

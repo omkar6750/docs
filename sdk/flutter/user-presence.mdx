@@ -1,10 +1,42 @@
 ---
 title: "User Presence"
+description: "Track when users come online or go offline in real-time using CometChat's presence subscription system."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Configure presence subscription during init
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers  // or .roles, .friends
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = true
+).build();
+
+await CometChat.init("APP_ID", appSettings, onSuccess: (msg) {}, onError: (e) {});
+
+// Listen for presence changes
+CometChat.addUserListener("UNIQUE_LISTENER_ID", UserListener(
+  onUserOnline: (User user) {
+    debugPrint("${user.name} is online");
+  },
+  onUserOffline: (User user) {
+    debugPrint("${user.name} is offline");
+  },
+));
+
+// Remove listener when done
+CometChat.removeUserListener("UNIQUE_LISTENER_ID");
+```
+</Info>
 
 User Presence helps us understand if a user is available to chat or not.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 ## Real-time Presence
 
@@ -69,6 +101,10 @@ CometChat.removeUserListener(listenerID);
 
 </Tabs>
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., in the `dispose()` method). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 ## User List Presence
 
 *In other words, as a logged-in user, when I retrieve the user list, how do I know if a user is online/offline?*
@@ -81,3 +117,16 @@ When you [retrieve the list of users](/sdk/flutter/retrieve-users) , in the[User
 * `offline` - This indicates that the user is currently offline and is not available to chat.
 
 2. `lastActiveAt` - In case the user is offline, this field holds the timestamp of the time when the user was last online. This can be used to display a **Last seen** for that user.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Retrieve Users" icon="users" href="/sdk/flutter/retrieve-users">
+    Fetch user lists with presence status included
+  </Card>
+  <Card title="Connection Status" icon="signal" href="/sdk/flutter/connection-status">
+    Monitor SDK connection state changes
+  </Card>
+</CardGroup>

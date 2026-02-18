@@ -1,10 +1,43 @@
 ---
 title: "Threaded Messages"
+description: "Learn how to send, receive, and fetch messages within a thread attached to a parent message in CometChat Flutter SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Send a message in a thread (attach to parent message)
+TextMessage textMessage = TextMessage(
+  text: "Reply in thread",
+  receiverUid: "UID",
+  receiverType: CometChatReceiverType.user,
+  type: CometChatMessageType.text,
+);
+textMessage.parentMessageId = 103; // Parent message ID
+CometChat.sendMessage(textMessage, onSuccess: (msg) {}, onError: (e) {});
+
+// Fetch messages from a thread
+MessagesRequest messageRequest = (MessagesRequestBuilder()
+  ..uid = "UID"
+  ..parentMessageId = 103
+  ..limit = 50).build();
+messageRequest.fetchPrevious(onSuccess: (List<BaseMessage> list) {}, onError: (e) {});
+
+// Exclude threaded messages from main conversation
+MessagesRequest request = (MessagesRequestBuilder()
+  ..uid = "UID"
+  ..hideReplies = true
+  ..limit = 50).build();
+```
+</Info>
 
 Messages that are started from a particular message are called Threaded messages or simply threads.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 Each Thread is attached to a message which is the Parent message for that thread.
 
 ## Send Message in a Thread
@@ -148,3 +181,22 @@ messageRequest.fetchNext(onSuccess: (List<BaseMessage> list) {
 </Tabs>
 
 The above snippet will return messages between the logged in user and `cometchat-uid-1` excluding all the threaded messages belonging to the same conversation.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Learn how to send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages in real-time
+  </Card>
+  <Card title="Reactions" icon="face-smile" href="/sdk/flutter/reactions">
+    Add emoji reactions to messages
+  </Card>
+  <Card title="Message Structure" icon="sitemap" href="/sdk/flutter/message-structure-and-hierarchy">
+    Understand message types and hierarchy
+  </Card>
+</CardGroup>

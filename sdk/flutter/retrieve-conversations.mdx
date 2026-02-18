@@ -1,10 +1,41 @@
 ---
 title: "Retrieve Conversations"
+description: "Learn how to retrieve, filter, and manage conversation lists in your Flutter app using the CometChat SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Retrieve conversations with pagination
+ConversationsRequest request = (ConversationsRequestBuilder()
+  ..limit = 30
+  ..conversationType = CometChatConversationType.user
+).build();
+
+await request.fetchNext(
+  onSuccess: (List<Conversation> conversations) {
+    for (Conversation conv in conversations) {
+      debugPrint("Conversation: ${conv.conversationId}");
+    }
+  },
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+
+// Get single conversation
+CometChat.getConversation("user_uid", "user",
+  onSuccess: (Conversation conv) => debugPrint("Got: ${conv.conversationId}"),
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+```
+</Info>
 
 ## Retrieve List of Conversations
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 *In other words, as a logged-in user, how do I retrieve the latest conversations that I've been a part of?*
 
@@ -312,3 +343,22 @@ Conversation conversation = CometChat.getConversationFromMessage(message);
 While converting `Message` object to `Conversation` object, the `unreadMessageCount` & `tags` will not be available in the `Conversation` object. The unread message count needs to be managed in your client-side code.
 
 </Info>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Delete Conversation" icon="trash" href="/sdk/flutter/delete-conversation">
+    Remove conversations from the list
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/flutter/typing-indicators">
+    Show when users are typing
+  </Card>
+  <Card title="Read Receipts" icon="check-double" href="/sdk/flutter/delivery-read-receipts">
+    Track message delivery and read status
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Listen for incoming messages in real-time
+  </Card>
+</CardGroup>

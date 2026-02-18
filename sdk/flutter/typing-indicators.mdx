@@ -1,8 +1,35 @@
 ---
 title: "Typing Indicators"
+description: "Show real-time typing indicators to let users know when someone is typing a message."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Start typing indicator to user
+CometChat.startTyping(receaverUid: "UID", receiverType: CometChatReceiverType.user);
+
+// Start typing indicator to group
+CometChat.startTyping(receaverUid: "GUID", receiverType: CometChatReceiverType.group);
+
+// Stop typing indicator
+CometChat.endTyping(receaverUid: "UID", receiverType: CometChatReceiverType.user);
+
+// Listen for typing indicators
+CometChat.addMessageListener("listenerId", MessageListener(
+  onTypingStarted: (TypingIndicator typingIndicator) { },
+  onTypingEnded: (TypingIndicator typingIndicator) { },
+));
+```
+</Info>
+
+Typing indicators let users know when someone is actively typing a message, creating a more engaging real-time chat experience.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 ## Send a Typing Indicator
 
@@ -71,6 +98,10 @@ You can use the `metadata` field of the `TypingIndicator` class to pass addition
 
 *In other words, as a recipient, how do I know when someone is typing?*
 
+<Warning>
+Always remove listeners when they're no longer needed (e.g., in the `dispose()` method). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
 You will receive the typing indicators in the `onTypingStarted()` and the `onTypingEnded()` method of the registered `MessageListener` class.
 
 <Tabs>
@@ -105,3 +136,16 @@ The `TypingIndicator` class consists of the below parameters:
 | `receiverId`   | `UID` of the receiver. This is the ID of the group or the user the typing indicator is being sent to.                                                                                                |
 | `receiverType` | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChatConstants.RECEIVER_TYPE_USER` 2. `CometChatConstants.RECEIVER_TYPE_GROUP` |
 | `metadata`     | A JSONObject to provider additional data                                                                                                                                                             |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/flutter/receive-messages">
+    Handle incoming messages in real-time
+  </Card>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/flutter/delivery-read-receipts">
+    Track message delivery and read status
+  </Card>
+</CardGroup>

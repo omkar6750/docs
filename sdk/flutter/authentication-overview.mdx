@@ -1,9 +1,39 @@
 ---
 title: "Authentication"
 sidebarTitle: "Overview"
+description: "Learn how to authenticate users in your Flutter app using CometChat SDK with Auth Key for development or Auth Token for production."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Check if user is already logged in
+User? user = await CometChat.getLoggedInUser();
+
+// Login with Auth Key (Development only)
+CometChat.login(UID, authKey,
+  onSuccess: (User user) { debugPrint("Login successful: $user"); },
+  onError: (CometChatException e) { debugPrint("Login failed: ${e.message}"); }
+);
+
+// Login with Auth Token (Production)
+CometChat.loginWithAuthToken(authToken,
+  onSuccess: (User user) { debugPrint("Login successful: $user"); },
+  onError: (CometChatException e) { debugPrint("Login failed: ${e.message}"); }
+);
+
+// Logout
+CometChat.logout(
+  onSuccess: (String msg) { debugPrint("Logout successful"); },
+  onError: (CometChatException e) { debugPrint("Logout failed: ${e.message}"); }
+);
+```
+
+**Required Credentials:** App ID, Region, Auth Key (dev) or Auth Token (prod)
+**Get from:** [CometChat Dashboard](https://app.cometchat.com) → Your App → API & Auth Keys
+</Info>
 
 ### Create User
 
@@ -31,6 +61,10 @@ The CometChat SDK maintains the session of the logged-in user within the SDK. Th
 ## Login using Auth Key
 
 This straightforward authentication method is ideal for proof-of-concept (POC) development or during the early stages of application development. For production environments, however, we strongly recommend using an [AuthToken](#login-using-auth-token) instead of an Auth Key to ensure enhanced security.
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
+</Warning>
 
 <Tabs>
 <Tab title="Dart">
@@ -113,3 +147,16 @@ CometChat.logout( onSuccess: ( successMessage) {
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Start sending text, media, and custom messages
+  </Card>
+  <Card title="User Management" icon="users-gear" href="/sdk/flutter/user-management">
+    Create, update, and manage users in your app
+  </Card>
+</CardGroup>

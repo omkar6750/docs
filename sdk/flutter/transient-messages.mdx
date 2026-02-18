@@ -1,10 +1,39 @@
 ---
 title: "Transient Messages"
+description: "Send ephemeral real-time messages that are not stored on the server, perfect for live reactions and typing indicators."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Send transient message (not stored on server)
+Map<String, String> data = {"LIVE_REACTION": "heart"};
+TransientMessage transientMessage = TransientMessage(
+  receiverId: "UID",
+  receiverType: CometChatReceiverType.user,
+  data: data,
+);
+CometChat.sendTransientMessage(transientMessage,
+  onSuccess: () => debugPrint("Sent"),
+  onError: (e) => debugPrint("Error: ${e.message}"),
+);
+
+// Receive transient messages
+CometChat.addMessageListener("LISTENER_ID", MessageListener(
+  onTransientMessageReceived: (TransientMessage message) {
+    debugPrint("Received: ${message.data}");
+  },
+));
+```
+</Info>
 
 Transient messages are messages that are sent in real-time only and are not saved or tracked anywhere. The receiver of the message will only receive the message if he is online and these messages cannot be retrieved later.
+
+<Note>
+**Available via:** SDK | UI Kits
+</Note>
 
 ## Send a Transient Message
 
@@ -63,3 +92,16 @@ The `TransientMessage` class consists of the below parameters:
 | **receiverId**   | Unique Id of the receiver. This can be the Id of the group or the user the transient message is sent to.  |
 | **receiverType** | The type of the receiver - `CometChatReceiverType.user` (user) or `CometChatReceiverType.``group `(group) |
 | **data**         | A Map to provide data.                                                                                    |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Learn how to send persistent text and media messages
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/flutter/typing-indicators">
+    Show real-time typing status to users
+  </Card>
+</CardGroup>

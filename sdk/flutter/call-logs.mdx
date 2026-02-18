@@ -1,12 +1,43 @@
 ---
 title: "Call Logs"
+description: "Learn how to fetch and manage call logs in your Flutter application using CometChat's Call SDK, including filtering by call type, status, and direction."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
+```dart
+// Build call log request
+CallLogRequest callLogRequest = (CallLogRequestBuilder()
+  ..authToken = CometChat.getUserAuthToken()
+  ..limit = 30
+  ..callCategory = CometChatCallsConstants.callCategoryCall
+).build();
+
+// Fetch call logs
+callLogRequest.fetchNext(onSuccess: (List<CallLog> callLogs) {
+  debugPrint("Call logs fetched: ${callLogs.length}");
+}, onError: (CometChatCallsException e) {
+  debugPrint("Error: ${e.message}");
+});
+
+// Get specific call details
+CometChatCalls.getCallDetails(sessionID, userAuthToken, onSuccess: (List<CallLog> callLogs) {
+  debugPrint("Call details: $callLogs");
+}, onError: (CometChatCallsException e) {
+  debugPrint("Error: ${e.message}");
+});
+```
+</Info>
 
 ## Overview
 
 CometChat's Flutter Call SDK provides a comprehensive way to integrate call logs into your application, enhancing your user experience by allowing users to effortlessly keep track of their communication history. Call logs provide crucial information such as call duration, participants, and more.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [Dashboard](https://app.cometchat.com)
+</Note>
 
 This feature not only allows users to review their past interactions but it also serves as an effective tool to revisit important conversation details. With the flexibility of fetching call logs, filtering them according to specific parameters, and obtaining detailed information of individual calls, application developers can use this feature to build a more robust and interactive communication framework.
 
@@ -90,3 +121,22 @@ CometChatCalls.getCallDetails(sessionID, userAuthToken, onSuccess: (List<CallLog
 ```
 
 Note: Replace**`"SESSION_ID"`**with the ID of the session you are interested in.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement voice and video calls with ringing functionality
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Learn how to record calls and access recordings
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/flutter/direct-call">
+    Start calls without the ringing flow
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Configure the CometChat Calls SDK
+  </Card>
+</CardGroup>

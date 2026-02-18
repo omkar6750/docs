@@ -1,10 +1,48 @@
 ---
 title: "Call Session"
+description: "Learn how to start and manage direct call sessions in your Flutter application using the CometChat Calls SDK, including token generation, call settings, and session control."
 ---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```dart
+// Generate call token
+String sessionId = "SESSION_ID";
+String userAuthToken = await CometChat.getUserAuthToken();
+
+CometChatCalls.generateToken(sessionId, userAuthToken,
+  onSuccess: (GenerateToken token) {
+    // Start call session
+    CallSettings callSettings = (CallSettingsBuilder()
+      ..defaultLayout = true
+      ..setAudioOnlyCall = false
+    ).build();
+    
+    CometChatCalls.startSession(token.token!, callSettings,
+      onSuccess: (Widget? callingWidget) => debugPrint("Session started"),
+      onError: (CometChatCallsException e) => debugPrint("Error: ${e.message}"),
+    );
+  },
+  onError: (CometChatCallsException e) => debugPrint("Error: ${e.message}"),
+);
+
+// End session
+CometChatCalls.endSession(
+  onSuccess: (success) => debugPrint("Session ended"),
+  onError: (e) => debugPrint("Error: $e"),
+);
+```
+</Info>
 
 ## Overview
 
 This section demonstrates how to start a call session in a Flutter application. Previously known as **Direct Calling**.
+
+<Note>
+**Available via:** SDK | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 Before you begin, we strongly recommend you read the [calling setup guide](/sdk/flutter/calling-setup).
 
@@ -100,6 +138,10 @@ Configure the call experience using the following `CallSettingsBuilder` properti
 ## Call Listeners
 
 The `CometChatCallsEventsListener` provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
+
+<Warning>
+Always remove call listeners when they're no longer needed (e.g., on widget dispose or screen navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 Each listener requires a unique `listenerId` string. This ID is used to:
 - **Prevent duplicate registrations** — Re-registering with the same ID replaces the existing listener
@@ -456,3 +498,16 @@ CometChatCalls.endSession(
   },
 );
 ```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement ringing calls with accept/reject functionality
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Record audio and video calls
+  </Card>
+</CardGroup>
