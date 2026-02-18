@@ -45,11 +45,11 @@ Follow steps mentioned in **Add the CometChat dependency** section below to upgr
 
 ## Add the CometChat Dependency
 
-### NPM
+### Package Manager
 
 <Tabs>
-<Tab title="JavaScript">
-```js
+<Tab title="npm">
+```bash
 npm install @cometchat/chat-sdk-javascript
 ```
 
@@ -146,6 +146,26 @@ CometChat.init(appID, appSetting).then(
 
 </Tab>
 
+<Tab title="Async/Await">
+```javascript
+let appID = "APP_ID";
+let region = "APP_REGION";
+let appSetting = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+try {
+  await CometChat.init(appID, appSetting);
+  console.log("Initialization completed successfully");
+} catch (error) {
+  console.log("Initialization failed with error:", error);
+}
+```
+
+</Tab>
+
 </Tabs>
 
 Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
@@ -162,6 +182,51 @@ Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGIO
 | ---------- | ----------------------------------- |
 | appID      | CometChat App ID                    |
 | appSetting | An object of the AppSettings class. |
+
+### AppSettings Configuration Options
+
+| Method | Description | Default |
+| --- | --- | --- |
+| `setRegion(region)` | The region where your app was created (`us`, `eu`, `in`, `in-private`) | Required |
+| `subscribePresenceForAllUsers()` | Subscribe to presence events for all users | — |
+| `subscribePresenceForRoles(roles)` | Subscribe to presence events for specific roles | — |
+| `subscribePresenceForFriends()` | Subscribe to presence events for friends only | — |
+| `autoEstablishSocketConnection(bool)` | Let the SDK manage WebSocket connections internally | `true` |
+| `overrideAdminHost(adminHost)` | Use a custom admin URL (dedicated deployment) | — |
+| `overrideClientHost(clientHost)` | Use a custom client URL (dedicated deployment) | — |
+| `setStorageMode(storageMode)` | Configure local storage mode (`CometChat.StorageMode.SESSION` for session storage) | — |
+
+<Note>
+**Server-Side Rendering (SSR):** CometChat SDK requires browser APIs (`window`, `WebSocket`). For Next.js, Nuxt, or other SSR frameworks, initialize the SDK only on the client side using dynamic imports or `useEffect`. See the [Overview page](/sdk/javascript/overview#server-side-rendering-ssr-compatibility) for framework-specific examples.
+</Note>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Call init() once at app startup">
+    Call `CometChat.init()` as early as possible in your application lifecycle — typically in your entry file (`index.js`, `main.js`, or `App.js`). It only needs to be called once per app session.
+  </Accordion>
+  <Accordion title="Check for existing sessions before login">
+    Use `CometChat.getLoggedinUser()` to check if a user session already exists before calling `login()`. This avoids unnecessary login calls and improves app startup time.
+  </Accordion>
+  <Accordion title="Use environment variables for credentials">
+    Store your App ID, Region, and Auth Key in environment variables rather than hardcoding them. This makes it easier to switch between development and production environments.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="init() fails with 'App ID not found'">
+    Verify your App ID is correct and matches the one in your [CometChat Dashboard](https://app.cometchat.com). Ensure you're using the right region (`us`, `eu`, `in`, or `in-private`).
+  </Accordion>
+  <Accordion title="SDK methods fail with 'CometChat not initialized'">
+    This means `init()` was not called or hasn't completed before other SDK methods were invoked. Ensure `init()` resolves successfully before calling `login()`, `sendMessage()`, or registering listeners.
+  </Accordion>
+  <Accordion title="WebSocket connection issues">
+    If you're behind a corporate firewall or proxy, WebSocket connections may be blocked. Check your network configuration. You can also manage WebSocket connections manually — see [Managing WebSocket Connections](/sdk/javascript/managing-web-sockets-connections-manually).
+  </Accordion>
+</AccordionGroup>
 
 ---
 

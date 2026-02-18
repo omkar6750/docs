@@ -59,7 +59,7 @@ To add the `LoginListener`, you need to use the `addLoginListener()` method prov
 
 <Tab title="TypeScript">
 ```typescript
-  var listenerID: string = "UNIQUE_LISTENER_ID";
+  const listenerID: string = "UNIQUE_LISTENER_ID";
   CometChat.addLoginListener(
       listenerID,
       new CometChat.LoginListener({
@@ -83,12 +83,86 @@ To add the `LoginListener`, you need to use the `addLoginListener()` method prov
 
 </Tabs>
 
+### React Example
+
+If you're using React, register the listener inside a `useEffect` hook and clean it up on unmount:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+import { useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function useLoginListener() {
+  useEffect(() => {
+    const listenerID = "LOGIN_LISTENER";
+    CometChat.addLoginListener(
+      listenerID,
+      new CometChat.LoginListener({
+        loginSuccess: (user) => {
+          console.log("User logged in:", user);
+        },
+        loginFailure: (error) => {
+          console.log("Login failed:", error);
+        },
+        logoutSuccess: () => {
+          console.log("User logged out");
+          // Redirect to login page, clear app state, etc.
+        },
+        logoutFailure: (error) => {
+          console.log("Logout failed:", error);
+        },
+      })
+    );
+
+    return () => {
+      CometChat.removeLoginListener(listenerID);
+    };
+  }, []);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+import { useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function useLoginListener(): void {
+  useEffect(() => {
+    const listenerID: string = "LOGIN_LISTENER";
+    CometChat.addLoginListener(
+      listenerID,
+      new CometChat.LoginListener({
+        loginSuccess: (user: CometChat.User) => {
+          console.log("User logged in:", user);
+        },
+        loginFailure: (error: CometChat.CometChatException) => {
+          console.log("Login failed:", error);
+        },
+        logoutSuccess: () => {
+          console.log("User logged out");
+        },
+        logoutFailure: (error: CometChat.CometChatException) => {
+          console.log("Logout failed:", error);
+        },
+      })
+    );
+
+    return () => {
+      CometChat.removeLoginListener(listenerID);
+    };
+  }, []);
+}
+```
+</Tab>
+</Tabs>
+
 In order to stop receiving events related to login and logout you need to use the removeLoginListener() method provided by the SDK and pass the ID of the listener that needs to be removed.
 
 <Tabs>
 <Tab title="JavaScript">
 ```js
-  var listenerID = "UNIQUE_LISTENER_ID";
+  const listenerID = "UNIQUE_LISTENER_ID";
   CometChat.removeLoginListener(listenerID);
 ```
 
@@ -96,7 +170,7 @@ In order to stop receiving events related to login and logout you need to use th
 
 <Tab title="TypeScript">
 ```typescript
-  var listenerID: string = "UNIQUE_LISTENER_ID";
+  const listenerID: string = "UNIQUE_LISTENER_ID";
   CometChat.removeLoginListener(listenerID);
 ```
 
@@ -107,6 +181,20 @@ In order to stop receiving events related to login and logout you need to use th
 <Warning>
 Always remove login listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use unique listener IDs">
+    Each listener must have a unique ID string. If you register a new listener with the same ID, it will replace the previous one. Use descriptive IDs like `"LOGIN_LISTENER_MAIN"` or `"LOGIN_LISTENER_AUTH_SCREEN"` to avoid accidental overwrites.
+  </Accordion>
+  <Accordion title="Handle logoutSuccess for session management">
+    Use the `logoutSuccess` callback to clear your app's local state, redirect to the login screen, and clean up any other SDK listeners. This ensures a clean state when the user logs out.
+  </Accordion>
+  <Accordion title="Register early, remove on cleanup">
+    Register login listeners as early as possible in your app lifecycle (e.g., right after `init()`). Remove them only when the component or page that registered them is destroyed.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

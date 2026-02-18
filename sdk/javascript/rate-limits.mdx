@@ -42,6 +42,76 @@ However, we do provide the following response headers that you can use to confir
 
 `X-Rate-Limit-Remaining: 699`
 
+## Handling Rate-Limited Responses
+
+When your application receives a `429` response, you should wait before retrying. Here's a recommended approach using exponential backoff:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+async function callWithRetry(apiCall, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      if (error.code === "ERR_TOO_MANY_REQUESTS" && attempt < maxRetries - 1) {
+        const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
+// Usage
+const users = await callWithRetry(() =>
+  new CometChat.UsersRequestBuilder().setLimit(30).build().fetchNext()
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+async function callWithRetry<T>(apiCall: () => Promise<T>, maxRetries: number = 3): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error: any) {
+      if (error.code === "ERR_TOO_MANY_REQUESTS" && attempt < maxRetries - 1) {
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
+// Usage
+const users: CometChat.User[] = await callWithRetry(() =>
+  new CometChat.UsersRequestBuilder().setLimit(30).build().fetchNext()
+);
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Batch operations to stay within limits">
+    If you need to perform many operations (e.g., sending messages to multiple users), space them out over time rather than firing them all at once. Use a queue or throttle mechanism to stay within the per-minute limits.
+  </Accordion>
+  <Accordion title="Monitor rate limit headers">
+    Check the `X-Rate-Limit-Remaining` header in REST API responses to proactively slow down before hitting the limit. This is more efficient than waiting for `429` errors.
+  </Accordion>
+  <Accordion title="Distinguish core vs standard operations">
+    Core operations (login, create/delete user, create/join group) share a lower cumulative limit of 10,000/min. Standard operations have a higher 20,000/min limit. Plan your architecture accordingly — avoid frequent login/logout cycles.
+  </Accordion>
+</AccordionGroup>
+
 ---
 
 ## Next Steps

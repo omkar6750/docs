@@ -22,6 +22,74 @@ The below diagram helps you better understand the various message categories and
   <img src="/images/ad217f65-jgtc448cy7c09u7czal1sfaik2des539pdc0hutnkabz12dj5nvp4qrqx27ko2mt-41e88ee5900754688cfe821fee472d58.jpg" />
 </Frame>
 
+### Checking Message Category and Type
+
+You can determine the category and type of any received message using the following methods:
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Check message category
+const category = message.getCategory(); // "message", "custom", "action", "call", "interactive"
+
+// Check message type
+const type = message.getType(); // "text", "image", "video", "audio", "file", etc.
+
+// Example: Handle different message categories
+switch (category) {
+  case CometChat.CATEGORY_MESSAGE:
+    if (type === CometChat.MESSAGE_TYPE.TEXT) {
+      console.log("Text message:", message.getText());
+    } else if (type === CometChat.MESSAGE_TYPE.IMAGE) {
+      console.log("Image URL:", message.getData().url);
+    }
+    break;
+  case CometChat.CATEGORY_CUSTOM:
+    console.log("Custom message type:", type, "data:", message.getData());
+    break;
+  case CometChat.CATEGORY_ACTION:
+    console.log("Action:", message.getAction());
+    break;
+  case CometChat.CATEGORY_CALL:
+    console.log("Call status:", message.getStatus());
+    break;
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Check message category
+const category: string = message.getCategory();
+const type: string = message.getType();
+
+// Example: Handle different message categories
+switch (category) {
+  case CometChat.CATEGORY_MESSAGE:
+    if (type === CometChat.MESSAGE_TYPE.TEXT) {
+      const textMsg = message as CometChat.TextMessage;
+      console.log("Text message:", textMsg.getText());
+    } else if (type === CometChat.MESSAGE_TYPE.IMAGE) {
+      const mediaMsg = message as CometChat.MediaMessage;
+      console.log("Image URL:", mediaMsg.getData().url);
+    }
+    break;
+  case CometChat.CATEGORY_CUSTOM:
+    const customMsg = message as CometChat.CustomMessage;
+    console.log("Custom message type:", type, "data:", customMsg.getData());
+    break;
+  case CometChat.CATEGORY_ACTION:
+    const actionMsg = message as CometChat.Action;
+    console.log("Action:", actionMsg.getAction());
+    break;
+  case CometChat.CATEGORY_CALL:
+    const callMsg = message as CometChat.Call;
+    console.log("Call status:", callMsg.getStatus());
+    break;
+}
+```
+</Tab>
+</Tabs>
+
 As you can see in the above diagram, every message belongs to a particular category. A message can belong to either one of the 4 categories
 
 1. Message
@@ -42,6 +110,8 @@ A message belonging to the category `message` can be classified into either 1 of
 ## Custom
 
 In the case of messages that belong to the `custom` category, there are no predefined types. Custom messages can be used by developers to send messages that do not fit in the default category and types provided by CometChat. For messages with the category `custom`, the developers can set their own type to uniquely identify the custom message. A very good example of a custom message would be the sharing of location co-ordinates. In this case, the developer can decide to use the custom message with type set to `location`.
+
+For sending custom messages, see [Send Message → Custom Messages](/sdk/javascript/send-message#custom-message).
 
 ## Interactive
 
@@ -85,6 +155,8 @@ Messages with the category `call` are Calling related messages. These can belong
 
 1. audio
 2. video
+
+For implementing calling, see [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
 
 The call messages have a property called status that helps you figure out the status of the call. The status can be either one of the below values:
 

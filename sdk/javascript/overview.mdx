@@ -99,6 +99,10 @@ Include the CometChat JavaScript library in your HTML code
 
 ### Server Side Rendering (SSR) Compatibility
 
+<Note>
+**Server-Side Rendering (SSR):** CometChat SDK requires browser APIs (`window`, `WebSocket`). For Next.js, Nuxt, or other SSR frameworks, initialize the SDK only on the client side using dynamic imports or `useEffect`. See the examples below.
+</Note>
+
 You can use CometChat with SSR frameworks such as [Next.js](https://nextjs.org/) or [NuxtJS](https://nuxtjs.org/) by importing it dynamically on the client side.
 
 #### Next.js
@@ -374,12 +378,37 @@ CometChat.init(appID, appSetting).then(
 
 </Tab>
 
+<Tab title="Async/Await">
+```javascript
+let appID = "APP_ID";
+let region = "APP_REGION";
+let appSetting = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .autoEstablishSocketConnection(true)
+  .setStorageMode(CometChat.StorageMode.SESSION)
+  .build();
+
+try {
+  await CometChat.init(appID, appSetting);
+  console.log("Initialization completed successfully");
+} catch (error) {
+  console.log("Initialization failed with error:", error);
+}
+```
+
+</Tab>
+
 </Tabs>
 
 Make sure you replace the `APP_ID` with your CometChat **App ID** and `APP_REGION` with your **App Region** in the above code.
 
 <Warning>
 `CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
 </Warning>
 
 ## Register and Login your user
@@ -389,11 +418,11 @@ Once initialization is successful, you will need to create a user. To create use
 <Tabs>
 <Tab title="JavaScript">
 ```js
-let authKey = "AUTH_KEY";
-var UID = "user1";
-var name = "Kevin";
+const authKey = "AUTH_KEY";
+const UID = "user1";
+const name = "Kevin";
 
-var user = new CometChat.User(UID);
+const user = new CometChat.User(UID);
 
 user.setName(name);
 
@@ -415,7 +444,7 @@ let authKey: string = "AUTH_KEY",
   UID: string = "user1",
   name: string = "Kevin";
 
-var user = new CometChat.User(UID);
+const user = new CometChat.User(UID);
 
 user.setName(name);
 
@@ -427,6 +456,25 @@ CometChat.createUser(user, authKey).then(
     console.log("error", error);
   }
 );
+```
+
+</Tab>
+
+<Tab title="Async/Await">
+```javascript
+const authKey = "AUTH_KEY";
+const UID = "user1";
+const name = "Kevin";
+
+const user = new CometChat.User(UID);
+user.setName(name);
+
+try {
+  const createdUser = await CometChat.createUser(user, authKey);
+  console.log("user created", createdUser);
+} catch (error) {
+  console.log("error", error);
+}
 ```
 
 </Tab>
@@ -448,8 +496,8 @@ This straightforward authentication method is ideal for proof-of-concept (POC) d
 <Tabs>
 <Tab title="JavaScript">
 ```js
-var UID = "cometchat-uid-1";
-var authKey = "AUTH_KEY";
+const UID = "cometchat-uid-1";
+const authKey = "AUTH_KEY";
 
 CometChat.getLoggedinUser().then(
   (user) => {
@@ -474,8 +522,8 @@ CometChat.getLoggedinUser().then(
 
 <Tab title="TypeScript">
 ```typescript
-var UID: string = "cometchat-uid-1",
-  authKey: string = "AUTH_KEY";
+const UID: string = "cometchat-uid-1";
+const authKey: string = "AUTH_KEY";
 
 CometChat.getLoggedinUser().then(
   (user: CometChat.User) => {
@@ -494,6 +542,24 @@ CometChat.getLoggedinUser().then(
     console.log("Some Error Occured", { error });
   }
 );
+```
+
+</Tab>
+
+<Tab title="Async/Await">
+```javascript
+const UID = "cometchat-uid-1";
+const authKey = "AUTH_KEY";
+
+try {
+  const loggedInUser = await CometChat.getLoggedinUser();
+  if (!loggedInUser) {
+    const user = await CometChat.login(UID, authKey);
+    console.log("Login Successful:", { user });
+  }
+} catch (error) {
+  console.log("Login failed with exception:", { error });
+}
 ```
 
 </Tab>
