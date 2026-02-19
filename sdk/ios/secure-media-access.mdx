@@ -1,0 +1,631 @@
+---
+title: "Secure Media Access"
+sidebarTitle: "Secure Media Access"
+description: "Enhanced security for file transfers using HTTP header-based token transmission in CometChat iOS SDK"
+---
+
+## Overview
+
+Secure Media Access provides enhanced security for file transfers in CometChat by transmitting the File Access Token (FAT) via HTTP headers instead of URL query parameters. This prevents token exposure in server logs, browser history, and network monitoring tools.
+
+By default, CometChat uses the `embedded` mode, which appends the FAT token to media URLs as a query parameter (`?fat=xxx`). While functional, this approach can expose tokens in logs and browser history. The `headerBased` mode offers a more secure alternative by transmitting the token via HTTP headers instead.
+
+## Requirements
+
+- iOS SDK v4.1.0+
+- Backend support for secure media access
+
+---
+
+## Quick Start
+
+### 1. Enable Header-Based Mode
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let appSettings = AppSettings.AppSettingsBuilder()
+    .setSecureMediaMode(.headerBased)
+    .setRegion(region: "us")
+    .build()
+
+CometChat.init(appId: "YOUR_APP_ID", appSettings: appSettings, onSuccess: { _ in
+    print("Initialized with secure media")
+}, onError: { error in
+    print("Error: \(error.errorDescription)")
+})
+```
+</Tab>
+</Tabs>
+
+### 2. Load Media
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let url = URL(string: mediaMessage.attachment?.fileUrl ?? "")!
+let request = CometChat.createHeaderBasedMediaRequest(for: url)
+
+URLSession.shared.dataTask(with: request) { data, _, _ in
+    guard let data = data, let image = UIImage(data: data) else { return }
+    DispatchQueue.main.async {
+        imageView.image = image
+    }
+}.resume()
+```
+</Tab>
+</Tabs>
+
+<Note>
+If you're using CometChat UIKit, no action is required. The UIKit handles secure media automatically.
+</Note>
+
+---
+
+## API Reference
+
+### SecureMediaMode
+
+Controls how FAT is transmitted when loading media.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public enum SecureMediaMode: Int {
+    case embedded = 0     // FAT in URL as ?fat=xxx (default)
+    case headerBased = 1  // FAT sent via HTTP header
+}
+```
+</Tab>
+</Tabs>
+
+| Mode | Value | Description |
+| ---- | ----- | ----------- |
+| embedded | 0 | Token appended to URL as `?fat=xxx` (default) |
+| headerBased | 1 | Token sent via HTTP `fat` header (secure) |
+
+---
+
+### AppSettings.AppSettingsBuilder
+
+#### setSecureMediaMode(_:)
+
+Sets the secure media mode during initialization.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+public func setSecureMediaMode(_ mode: SecureMediaMode) -> AppSettingsBuilder
+```
+</Tab>
+</Tabs>
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| mode | SecureMediaMode | `.embedded` or `.headerBased` |
+
+Returns: `AppSettingsBuilder` for method chaining.
+
+**Example**
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let appSettings = AppSettings.AppSettingsBuilder()
+    .setSecureMediaMode(.headerBased)
+    .setRegion(region: "us")
+    .build()
+```
+</Tab>
+</Tabs>
+
+---
+
+### CometChat Methods
+
+#### getFat()
+
+Returns the current FAT token.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public static func getFat() -> String?
+```
+</Tab>
+</Tabs>
+
+Returns: FAT token string, or `nil` if user is not logged in.
+
+**Example**
+
+<Tabs>
+<Tab title="Swift">
+```swift
+if let fat = CometChat.getFat() {
+    print("FAT token available")
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+#### fetchPresignedUrl(for:onSuccess:onError:)
+
+Fetches a presigned URL for CometChat media. Works regardless of `SecureMediaMode`.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public static func fetchPresignedUrl(
+    for url: String,
+    onSuccess: @escaping (String) -> Void,
+    onError: @escaping (CometChatException) -> Void
+)
+```
+</Tab>
+</Tabs>
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| url | String | CometChat media URL (attachment, avatar, group icon) |
+| onSuccess | (String) -> Void | Callback with presigned URL string |
+| onError | (CometChatException) -> Void | Callback with error |
+
+<Warning>
+Presigned URLs expire after approximately 5 minutes. Do NOT cache them.
+</Warning>
+
+**Error Codes**
+
+| Code | Description |
+| ---- | ----------- |
+| ERR_NOT_LOGGED_IN | User must be logged in |
+| ERR_INVALID_URL | Invalid CometChat media URL |
+| ERR_NETWORK | Network request failed |
+| ERR_INVALID_RESPONSE | Invalid server response |
+
+**Example**
+
+<Tabs>
+<Tab title="Swift">
+```swift
+CometChat.fetchPresignedUrl(
+    for: "https://files-us.cometchat.io/xxx/media/image.jpg",
+    onSuccess: { presignedUrl in
+        // Use with Kingfisher, SDWebImage, etc.
+        imageView.kf.setImage(with: URL(string: presignedUrl))
+    },
+    onError: { error in
+        print("Error: \(error.errorDescription)")
+    }
+)
+```
+</Tab>
+</Tabs>
+
+---
+
+#### createHeaderBasedMediaRequest(for:)
+
+Creates a `URLRequest` with FAT header injection.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public static func createHeaderBasedMediaRequest(for url: URL) -> URLRequest
+```
+</Tab>
+</Tabs>
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| url | URL | Media URL to request |
+
+Returns: `URLRequest` with FAT header if in header-based mode.
+
+**Behavior:**
+- Strips existing `?fat=` query parameter from URL
+- Adds FAT header if URL requires secure access
+- Decodes percent-encoded FAT token before adding
+
+**Example**
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let url = URL(string: mediaMessage.attachment?.fileUrl ?? "")!
+let request = CometChat.createHeaderBasedMediaRequest(for: url)
+
+URLSession.shared.dataTask(with: request) { data, response, error in
+    // Handle response
+}.resume()
+```
+</Tab>
+</Tabs>
+
+---
+
+### Utils Helper Methods
+
+Access via `Utils.shared`.
+
+#### isHeaderModeEnabled()
+
+Checks if header mode is enabled and properly configured.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public func isHeaderModeEnabled() -> Bool
+```
+</Tab>
+</Tabs>
+
+Returns `true` if all conditions are met:
+- Mode is set to `.headerBased`
+- FAT token is available (user logged in)
+- Secure media host is configured
+
+---
+
+#### shouldInjectFatHeader(for:)
+
+Checks if a URL requires FAT header injection.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public func shouldInjectFatHeader(for url: URL) -> Bool
+```
+</Tab>
+</Tabs>
+
+---
+
+#### hasFatQueryParam(in:)
+
+Checks if URL contains a FAT query parameter.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public func hasFatQueryParam(in url: URL) -> Bool
+```
+</Tab>
+</Tabs>
+
+---
+
+#### stripFatQueryParam(from:)
+
+Removes FAT query parameter from URL.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public func stripFatQueryParam(from url: URL) -> URL
+```
+</Tab>
+</Tabs>
+
+---
+
+#### getSecureMediaHost()
+
+Returns the secure media host configured by backend.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc public func getSecureMediaHost() -> String?
+```
+</Tab>
+</Tabs>
+
+---
+
+## Usage Examples
+
+### Loading Images with URLSession
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func loadImage(from urlString: String, into imageView: UIImageView) {
+    guard let url = URL(string: urlString) else { return }
+    
+    let request = CometChat.createHeaderBasedMediaRequest(for: url)
+    
+    URLSession.shared.dataTask(with: request) { data, _, error in
+        if let data = data, let image = UIImage(data: data) {
+            DispatchQueue.main.async {
+                imageView.image = image
+            }
+        }
+    }.resume()
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+### Loading Images with Kingfisher/SDWebImage
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func loadImageWithKingfisher(from urlString: String, into imageView: UIImageView) {
+    CometChat.fetchPresignedUrl(
+        for: urlString,
+        onSuccess: { presignedUrl in
+            imageView.kf.setImage(with: URL(string: presignedUrl))
+        },
+        onError: { error in
+            print("Error: \(error.errorDescription)")
+        }
+    )
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+### Playing Video with AVPlayer
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func playVideo(from url: URL, in viewController: UIViewController) {
+    var headers: [String: String] = [:]
+    
+    if Utils.shared.shouldInjectFatHeader(for: url), let fat = CometChat.getFat() {
+        let decodedFat = fat.removingPercentEncoding ?? fat
+        headers["fat"] = decodedFat
+    }
+    
+    let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+    let player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+    
+    let playerVC = AVPlayerViewController()
+    playerVC.player = player
+    
+    viewController.present(playerVC, animated: true) {
+        player.play()
+    }
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+### Playing Audio
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func playAudio(from url: URL) {
+    var headers: [String: String] = [:]
+    
+    if Utils.shared.shouldInjectFatHeader(for: url), let fat = CometChat.getFat() {
+        headers["fat"] = fat.removingPercentEncoding ?? fat
+    }
+    
+    let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+    let player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+    player.play()
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+### Downloading Files
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func downloadFile(from urlString: String, completion: @escaping (URL?) -> Void) {
+    guard let url = URL(string: urlString) else {
+        completion(nil)
+        return
+    }
+    
+    let request = CometChat.createHeaderBasedMediaRequest(for: url)
+    
+    URLSession.shared.downloadTask(with: request) { tempURL, _, error in
+        guard let tempURL = tempURL else {
+            completion(nil)
+            return
+        }
+        
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let destinationURL = documentsPath.appendingPathComponent(url.lastPathComponent)
+        
+        try? FileManager.default.removeItem(at: destinationURL)
+        try? FileManager.default.moveItem(at: tempURL, to: destinationURL)
+        
+        completion(destinationURL)
+    }.resume()
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+### Handling Presigned URL Expiry
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func loadImageWithRetry(url: String, imageView: UIImageView, retryCount: Int = 0) {
+    CometChat.fetchPresignedUrl(
+        for: url,
+        onSuccess: { presignedUrl in
+            URLSession.shared.dataTask(with: URL(string: presignedUrl)!) { data, response, _ in
+                if let httpResponse = response as? HTTPURLResponse,
+                   httpResponse.statusCode == 403,
+                   retryCount < 1 {
+                    // Retry with fresh URL
+                    self.loadImageWithRetry(url: url, imageView: imageView, retryCount: 1)
+                    return
+                }
+                
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        imageView.image = image
+                    }
+                }
+            }.resume()
+        },
+        onError: { _ in }
+    )
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+## Method Selection Guide
+
+| Use Case | Recommended Method |
+| -------- | ------------------ |
+| URLSession image/file loading | `createHeaderBasedMediaRequest(for:)` |
+| AVPlayer video/audio | `Utils.shared` + `getFat()` with headers |
+| Kingfisher, SDWebImage | `fetchPresignedUrl(for:...)` |
+| Custom implementation | `getFat()` + manual header injection |
+| Check configuration | `Utils.shared.isHeaderModeEnabled()` |
+
+---
+
+## Best Practices
+
+1. **Configure mode at initialization** - Set via `AppSettingsBuilder` before `CometChat.init()`
+2. **Never cache presigned URLs** - They expire in approximately 5 minutes
+3. **Use `fetchPresignedUrl()` for third-party libraries** - Kingfisher, SDWebImage, etc.
+4. **Use `createHeaderBasedMediaRequest()` for URLSession** - Simplest approach
+5. **Handle 403 errors** - Re-fetch presigned URL and retry
+6. **Use AVURLAsset with headers for video** - Don't use `AVPlayer(url:)` directly
+7. **Always decode FAT** - Use `removingPercentEncoding` before adding to headers
+
+---
+
+## Troubleshooting
+
+### 401 Unauthorized
+
+| Cause | Solution |
+| ----- | -------- |
+| User not logged in | Ensure login completes before loading media |
+| FAT not included | Use `createHeaderBasedMediaRequest()` |
+| Wrong mode | Verify `setSecureMediaMode(.headerBased)` was called |
+
+### Images Not Loading
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Debug
+print("Mode enabled: \(Utils.shared.isHeaderModeEnabled())")
+print("FAT available: \(CometChat.getFat() != nil)")
+print("Secure host: \(Utils.shared.getSecureMediaHost() ?? "nil")")
+```
+</Tab>
+</Tabs>
+
+### Video Won't Play
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Wrong
+let player = AVPlayer(url: videoURL)
+
+// Correct
+let headers = ["fat": CometChat.getFat()?.removingPercentEncoding ?? ""]
+let asset = AVURLAsset(url: videoURL, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+let player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+```
+</Tab>
+</Tabs>
+
+### Presigned URL Expired (403)
+
+Always fetch fresh before each load:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+CometChat.fetchPresignedUrl(
+    for: originalUrl,
+    onSuccess: { freshUrl in
+        // Use immediately, don't store
+    },
+    onError: { _ in }
+)
+```
+</Tab>
+</Tabs>
+
+---
+
+## Migration Guide
+
+### From Embedded to Header-Based Mode
+
+#### 1. Update Initialization
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Before
+let appSettings = AppSettings.AppSettingsBuilder()
+    .setRegion(region: "us")
+    .build()
+
+// After
+let appSettings = AppSettings.AppSettingsBuilder()
+    .setSecureMediaMode(.headerBased)
+    .setRegion(region: "us")
+    .build()
+```
+</Tab>
+</Tabs>
+
+#### 2. Update Media Loading
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Before
+URLSession.shared.dataTask(with: url) { ... }
+
+// After
+let request = CometChat.createHeaderBasedMediaRequest(for: url)
+URLSession.shared.dataTask(with: request) { ... }
+```
+</Tab>
+</Tabs>
+
+#### 3. Update AVPlayer
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Before
+let player = AVPlayer(url: videoURL)
+
+// After
+let headers = ["fat": CometChat.getFat()?.removingPercentEncoding ?? ""]
+let asset = AVURLAsset(url: videoURL, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+let player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+```
+</Tab>
+</Tabs>
