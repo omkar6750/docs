@@ -3,20 +3,19 @@ title: "React Integration"
 sidebarTitle: "React"
 ---
 
+import InstallJsSDK from "/calls/snippets/install-js-sdk.mdx";
+
 This guide walks you through integrating the CometChat Calls SDK into a React application. By the end, you'll have a working video call implementation with proper lifecycle handling.
 
 ## Prerequisites
 
-Before you begin, make sure you've completed the [prerequisites](/calls/javascript/overview#prerequisites) from the Overview page. You'll also need:
-- A React project
+Before you begin, make sure you've completed the [prerequisites](/calls/javascript/overview#prerequisites) from the Overview page and ensure you have a working React project.
 
-## Step 1: Install the SDK
+## Install the SDK
 
-Install the CometChat Calls SDK package:
+Install the CometChat Calls SDK using your preferred package manager:
 
-```bash
-npm install @cometchat/calls-sdk-javascript
-```
+<InstallJsSDK />
 
 ## Step 2: Initialize and Login
 
@@ -28,8 +27,8 @@ Initialize the SDK with your app credentials. Call this once when your applicati
 import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
 
 const { error } = await CometChatCalls.init({
-  appId: "APP_ID",     // Replace with your App ID
-  region: "REGION",    // Replace with your Region (us, eu, in)
+  appId: "APP_ID", // Replace with your App ID
+  region: "REGION", // Replace with your Region (us, eu, in)
   authKey: "AUTH_KEY", // (Optional) Replace with your Auth Key
 });
 
@@ -78,61 +77,114 @@ CometChatCalls.joinSession(token, sessionSettings, containerRef.current);
 
 For all available call settings options, see [Session Settings](/calls/javascript/session-settings).
 
-## Step 5: Full Example
+## Step 5: Minimum Working Example
 
 Here's a complete React component that initializes the SDK, logs in, generates a token, and joins a call session inside a `useEffect`:
 
-```tsx
-import { useEffect, useRef } from "react";
-import { CometChatCalls } from "@cometchat/calls-sdk-javascript";
+```tsx App.tsx
+import { useEffect, useRef, useState } from "react";
+import {
+  CometChatCalls,
+  type SessionSettings,
+} from "@cometchat/calls-sdk-javascript";
 
-export default function CallScreen() {
-  const containerRef = useRef(null);
+export default function App() {
+  const sessionContainerRef = useRef<HTMLDivElement>(null);
+  const [inCall, setInCall] = useState(false);
 
-  useEffect(() => {
-    async function startCall() {
-      // 1. Initialize
-      const { error } = await CometChatCalls.init({
-        appId: "APP_ID", // Replace with your App ID
-        region: "REGION", // Replace with your Region (us, eu, in)
-        authKey: "AUTH_KEY", // (Optional) Replace with your Auth Key
-      });
+  async function startCall() {
+    // 1. Initialize
+    const { error } = await CometChatCalls.init({
+      appId: "278538a17a6a73bf",
+      region: "IN",
+      authKey: "1b6c71f629c522df1142285087f6c5db188c8188",
+    });
 
-      if (error) {
-        console.error("CometChatCalls initialization failed:", error);
-        return;
-      }
-
-      // 2. Login
-      await CometChatCalls.login("UID"); // Replace with your user's UID
-
-      // 3. Generate Token
-      const { token } = await CometChatCalls.generateToken("SESSION_ID"); // Replace with your Session ID
-
-      // 4. Join Session
-      const sessionSettings: SessionSettings = {};
-      CometChatCalls.joinSession(token, sessionSettings, containerRef.current);
+    if (error) {
+      console.error("CometChatCalls initialization failed:", error);
+      return;
     }
 
-    startCall();
+    // 2. Login
+    await CometChatCalls.login("cometchat-uid-1");
 
+    // 3. Generate Token
+    const { token } = await CometChatCalls.generateToken("demo");
+
+    // 4. Join Session — ref is always mounted so it's safe to use directly
+    const sessionSettings: SessionSettings = {};
+    setInCall(true);
+    CometChatCalls.joinSession(
+      token,
+      sessionSettings,
+      sessionContainerRef.current!,
+    );
+  }
+
+  useEffect(() => {
     return () => {
-      CometChatCalls.leaveSession();
+      if (inCall) {
+        CometChatCalls.leaveSession();
+      }
     };
+  }, [inCall]);
+
+  useEffect(() => {
+    const unsub = CometChatCalls.addEventListener("onConnectionClosed", () => {
+      setInCall(false);
+    });
+    return unsub;
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: "100%", height: "100vh" }}
-    />
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
+        <button
+          onClick={startCall}
+          style={{
+            padding: "12px 32px",
+            fontSize: "18px",
+            cursor: "pointer",
+            borderRadius: "8px",
+            border: "none",
+            backgroundColor: "#6851D6",
+            color: "#fff",
+          }}
+        >
+          Start Call
+        </button>
+      </div>
+
+      <div
+        ref={sessionContainerRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          zIndex: 9999,
+          backgroundColor: "#000",
+          visibility: inCall ? "visible" : "hidden",
+        }}
+      />
+    </>
   );
 }
 ```
 
 <Note>
-TODO: Update the link
-Check out the full sample app on [GitHub](https://github.com/cometchat/cometchat-calls-sdk-javascript-react-sample-app).
+  {/* TODO: Update the link */}
+  Check out the full sample app on
+  [GitHub](https://github.com/cometchat/cometchat-calls-sdk-javascript-react-sample-app).
 </Note>
 
 ## Related Documentation
@@ -145,4 +197,3 @@ For more detailed information on specific topics covered in this guide, refer to
 - [Join Session](/calls/javascript/join-session) - Session joining and token generation
 - [Events](/calls/javascript/events) - Complete list of event listeners
 - [Actions](/calls/javascript/actions) - All available call control methods
-- [Call Layouts](/calls/javascript/call-layouts) - Layout options and customization
