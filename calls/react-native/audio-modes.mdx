@@ -21,9 +21,10 @@ Configure the default audio mode when creating call settings:
 ```tsx
 import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
 
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .setDefaultAudioMode(CometChatCalls.AUDIO_MODE.SPEAKER)
-  .build();
+const sessionSettings: SessionSettings = {
+  defaultAudioMode: "SPEAKER",
+  // ... other settings
+};
 ```
 
 ## Show Audio Mode Button
@@ -31,9 +32,10 @@ const callSettings = new CometChatCalls.CallSettingsBuilder()
 Enable the audio mode button in the call UI:
 
 ```tsx
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .showAudioModeButton(true)
-  .build();
+const sessionSettings: SessionSettings = {
+  hideAudioModeButton: false,
+  // ... other settings
+};
 ```
 
 ## Listen for Audio Mode Changes
@@ -47,21 +49,15 @@ CometChatCalls.addEventListener('onAudioModeChanged', (mode) => {
 });
 ```
 
-## Using OngoingCallListener
+## Using addEventListener
 
-Handle audio mode updates through the call settings listener:
+Handle audio mode updates through event listeners:
 
 ```tsx
-const callListener = new CometChatCalls.OngoingCallListener({
-  onAudioModesUpdated: (audioModes) => {
-    console.log('Available audio modes:', audioModes);
-    // audioModes is an array of available modes
-  },
+CometChatCalls.addEventListener('onAudioModesUpdated', (audioModes) => {
+  console.log('Available audio modes:', audioModes);
+  // audioModes is an array of available modes
 });
-
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .setCallEventListener(callListener)
-  .build();
 ```
 
 ## Audio Mode Object

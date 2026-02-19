@@ -9,16 +9,38 @@ The session settings object allows you to customize every aspect of your call se
 These are pre-session configurations that must be set before joining a call. Once configured, pass the settings object to the `joinSession()` method. Settings cannot be changed after the session has started, though many features can be controlled dynamically during the call using call actions.
 </Note>
 
-```javascript
-const callSettings = {
+```typescript
+const sessionSettings: SessionSettings = {
   sessionType: "VIDEO",
   layout: "TILE",
+  displayName: "",
+  title: "",
   startAudioMuted: false,
   startVideoPaused: false,
+  autoStartRecording: false,
+  enableNoiseReduction: false,
+  enableSpotlightDrag: true,
+  enableSpotlightSwap: true,
+  enableParticipantContextMenu: true,
+  idleTimeoutPeriodBeforePrompt: 60000,
+  idleTimeoutPeriodAfterPrompt: 180000,
   hideControlPanel: false,
+  hideHeaderPanel: false,
   hideLeaveSessionButton: false,
   hideToggleAudioButton: false,
   hideToggleVideoButton: false,
+  hideRecordingButton: true,
+  hideScreenSharingButton: false,
+  hideChangeLayoutButton: false,
+  hideVirtualBackgroundButton: false,
+  hideRaiseHandButton: false,
+  hideShareInviteButton: true,
+  hideParticipantListButton: false,
+  hideChatButton: true,
+  hideSessionTimer: false,
+  hideNetworkIndicator: true,
+  hideRecordingStatusIndicator: false,
+  hideSwitchCameraButton: false,
 };
 ```
 
@@ -55,7 +77,7 @@ layout: "TILE"
 |-------|-------------|
 | `TILE` | Grid layout showing all participants equally |
 | `SIDEBAR` | Main speaker with participants in a sidebar |
-| `SPOTLIGHT` | Focus on active speaker with others in sidebar |
+| `SPOTLIGHT` | Focus on active speaker/shared-screen with others in sidebar |
 
 **Default:** `TILE`
 
@@ -114,10 +136,135 @@ idleTimeoutPeriodBeforePrompt: 60000 // 60 seconds
 Time in milliseconds after the prompt before automatically ending the session.
 
 ```javascript
-idleTimeoutPeriodAfterPrompt: 120000 // 120 seconds
+idleTimeoutPeriodAfterPrompt: 180000 // 180 seconds
 ```
 
-**Default:** `120000` (120 seconds)
+**Default:** `180000` (180 seconds)
+
+### Display Name
+
+**Property:** `displayName`
+
+Sets the display name shown for the local participant in the call.
+
+```javascript
+displayName: "John"
+```
+
+**Default:** `""` (empty string)
+
+### Title
+
+**Property:** `title`
+
+Sets a title displayed in the call header UI, such as a meeting or session title.
+
+```javascript
+title: "Team Standup"
+```
+
+**Default:** `""` (empty string)
+
+### Initial Camera Facing
+
+**Property:** `initialCameraFacing`
+
+Sets the initial camera facing direction on supported mobile devices. Use `FRONT` for the front-facing camera or `BACK` for the rear camera.
+
+```javascript
+initialCameraFacing: "FRONT"
+```
+
+| Value | Description |
+|-------|-------------|
+| `FRONT` | Front-facing camera |
+| `BACK` | Rear camera |
+
+**Default:** `undefined` (uses device default)
+
+### Enable Noise Reduction
+
+**Property:** `enableNoiseReduction`
+
+Enables algorithmic noise reduction on the audio stream to filter out background noise.
+
+```javascript
+enableNoiseReduction: true
+```
+
+**Default:** `false`
+
+### Enable Spotlight Drag
+
+**Property:** `enableSpotlightDrag`
+
+Allows participants to drag and reposition the spotlight (main video) within the call layout.
+
+```javascript
+enableSpotlightDrag: true
+```
+
+**Default:** `true`
+
+### Enable Spotlight Swap
+
+**Property:** `enableSpotlightSwap`
+
+Allows participants to swap which participant is in the spotlight by clicking on another participant's video.
+
+```javascript
+enableSpotlightSwap: true
+```
+
+**Default:** `true`
+
+### Enable Participant Context Menu
+
+**Property:** `enableParticipantContextMenu`
+
+Enables the context menu (three-dot more button) on each participant's video tile, providing quick access to actions like mute, pin, or remove.
+
+```javascript
+enableParticipantContextMenu: true
+```
+
+**Default:** `true`
+
+### Audio Input Device ID
+
+**Property:** `audioInputDeviceId`
+
+Pre-selects a specific audio input (microphone) device by its device ID. When not set, the system default device is used.
+
+```javascript
+audioInputDeviceId: "device-id-string"
+```
+
+**Default:** `undefined` (uses system default)
+
+### Audio Output Device ID
+
+**Property:** `audioOutputDeviceId`
+
+Pre-selects a specific audio output (speaker) device by its device ID. When not set, the system default device is used.
+
+```javascript
+audioOutputDeviceId: "device-id-string"
+```
+
+**Default:** `undefined` (uses system default)
+
+### Video Input Device ID
+
+**Property:** `videoInputDeviceId`
+
+Pre-selects a specific video input (camera) device by its device ID. When not set, the system default device is used.
+
+```javascript
+videoInputDeviceId: "device-id-string"
+```
+
+**Default:** `undefined` (uses system default)
 
 ## UI Visibility Settings
 
@@ -137,7 +284,7 @@ hideControlPanel: true
 
 **Property:** `hideLeaveSessionButton`
 
-Hides the button that allows users to leave or end the call.
+Hides the button that allows users to leave the session.
 
 ```javascript
 hideLeaveSessionButton: true
@@ -205,18 +352,6 @@ hideChangeLayoutButton: true
 
 **Default:** `false`
 
-### Hide Switch Layout Button
-
-**Property:** `hideSwitchLayoutButton`
-
-Hides the layout switch button.
-
-```javascript
-hideSwitchLayoutButton: true
-```
-
-**Default:** `false`
-
 ### Hide Virtual Background Button
 
 **Property:** `hideVirtualBackgroundButton`
@@ -236,28 +371,139 @@ hideVirtualBackgroundButton: true
 Hides the network quality indicator.
 
 ```javascript
-hideNetworkIndicator: true
+hideNetworkIndicator: false
+```
+
+**Default:** `true`
+
+### Hide Header Panel
+
+**Property:** `hideHeaderPanel`
+
+Hides the top header panel of the call UI.
+
+```javascript
+hideHeaderPanel: true
+```
+
+**Default:** `false`
+
+### Hide Raise Hand Button
+
+**Property:** `hideRaiseHandButton`
+
+Hides the raise hand button from the control panel.
+
+```javascript
+hideRaiseHandButton: true
+```
+
+**Default:** `false`
+
+### Hide Share Invite Button
+
+**Property:** `hideShareInviteButton`
+
+Hides the button that allows participants to share an invite link to the session.
+
+```javascript
+hideShareInviteButton: false
+```
+
+**Default:** `true`
+
+### Hide Participant List Button
+
+**Property:** `hideParticipantListButton`
+
+Hides the button that opens the participant list panel.
+
+```javascript
+hideParticipantListButton: true
+```
+
+**Default:** `false`
+
+### Hide Chat Button
+
+**Property:** `hideChatButton`
+
+Hides the in-call chat button from the control panel.
+
+```javascript
+hideChatButton: false
+```
+
+**Default:** `true`
+
+### Hide Session Timer
+
+**Property:** `hideSessionTimer`
+
+Hides the call duration timer displayed in the UI.
+
+```javascript
+hideSessionTimer: true
+```
+
+**Default:** `false`
+
+### Hide Recording Status Indicator
+
+**Property:** `hideRecordingStatusIndicator`
+
+Hides the recording status badge that blinks a red light when a recording is in progress.
+
+```javascript
+hideRecordingStatusIndicator: true
+```
+
+**Default:** `false`
+
+### Hide Switch Camera Button
+
+**Property:** `hideSwitchCameraButton`
+
+Hides the button that allows switching between front and back cameras on supported mobile devices.
+
+```javascript
+hideSwitchCameraButton: true
 ```
 
 **Default:** `false`
 
 ## Complete Example
 
-```javascript
-const callSettings = {
+```typescript
+const sessionSettings: SessionSettings = {
   // Session configuration
   sessionType: "VIDEO",
   layout: "TILE",
+  displayName: "",
+  title: "",
   startAudioMuted: false,
   startVideoPaused: false,
   autoStartRecording: false,
-  
+
+  // Feature settings
+  enableNoiseReduction: false,
+  enableSpotlightDrag: true,
+  enableSpotlightSwap: true,
+  enableParticipantContextMenu: true,
+  initialCameraFacing: "FRONT",
+
   // Timeout settings
   idleTimeoutPeriodBeforePrompt: 60000,
-  idleTimeoutPeriodAfterPrompt: 120000,
-  
+  idleTimeoutPeriodAfterPrompt: 180000,
+
+  // Device selection
+  audioInputDeviceId: undefined,
+  audioOutputDeviceId: undefined,
+  videoInputDeviceId: undefined,
+
   // UI visibility
   hideControlPanel: false,
+  hideHeaderPanel: false,
   hideLeaveSessionButton: false,
   hideToggleAudioButton: false,
   hideToggleVideoButton: false,
@@ -265,7 +511,14 @@ const callSettings = {
   hideScreenSharingButton: false,
   hideChangeLayoutButton: false,
   hideVirtualBackgroundButton: false,
-  hideNetworkIndicator: false,
+  hideRaiseHandButton: false,
+  hideShareInviteButton: true,
+  hideParticipantListButton: false,
+  hideChatButton: true,
+  hideSessionTimer: false,
+  hideNetworkIndicator: true,
+  hideRecordingStatusIndicator: false,
+  hideSwitchCameraButton: false,
 };
 ```
 
@@ -274,20 +527,37 @@ const callSettings = {
 |----------|------|---------|-------------|
 | `sessionType` | String | `VIDEO` | Call type: `VIDEO` or `VOICE` |
 | `layout` | String | `TILE` | Layout: `TILE`, `SIDEBAR`, or `SPOTLIGHT` |
+| `displayName` | String | `""` | Display name for the local participant |
+| `title` | String | `""` | Title displayed in the call header |
 | `startAudioMuted` | Boolean | `false` | Start with microphone muted |
 | `startVideoPaused` | Boolean | `false` | Start with camera off |
 | `autoStartRecording` | Boolean | `false` | Auto-start recording |
+| `initialCameraFacing` | String | `undefined` | Initial camera direction: `FRONT` or `BACK` |
+| `enableNoiseReduction` | Boolean | `false` | Enable algorithmic noise reduction |
+| `enableSpotlightDrag` | Boolean | `true` | Allow dragging the spotlight video |
+| `enableSpotlightSwap` | Boolean | `true` | Allow swapping spotlight participant |
+| `enableParticipantContextMenu` | Boolean | `true` | Enable participant context menu |
 | `idleTimeoutPeriodBeforePrompt` | Number | `60000` | Idle timeout before prompt (ms) |
-| `idleTimeoutPeriodAfterPrompt` | Number | `120000` | Idle timeout after prompt (ms) |
+| `idleTimeoutPeriodAfterPrompt` | Number | `180000` | Idle timeout after prompt (ms) |
+| `audioInputDeviceId` | String | `undefined` | Pre-selected audio input device ID |
+| `audioOutputDeviceId` | String | `undefined` | Pre-selected audio output device ID |
+| `videoInputDeviceId` | String | `undefined` | Pre-selected video input device ID |
 | `hideControlPanel` | Boolean | `false` | Hide control panel |
+| `hideHeaderPanel` | Boolean | `false` | Hide header panel |
 | `hideLeaveSessionButton` | Boolean | `false` | Hide leave button |
 | `hideToggleAudioButton` | Boolean | `false` | Hide audio toggle |
 | `hideToggleVideoButton` | Boolean | `false` | Hide video toggle |
 | `hideRecordingButton` | Boolean | `true` | Hide recording button |
 | `hideScreenSharingButton` | Boolean | `false` | Hide screen share button |
 | `hideChangeLayoutButton` | Boolean | `false` | Hide layout change button |
-| `hideSwitchLayoutButton` | Boolean | `false` | Hide layout switch button |
 | `hideVirtualBackgroundButton` | Boolean | `false` | Hide virtual background button |
-| `hideNetworkIndicator` | Boolean | `false` | Hide network indicator |
+| `hideRaiseHandButton` | Boolean | `false` | Hide raise hand button |
+| `hideShareInviteButton` | Boolean | `true` | Hide share invite button |
+| `hideParticipantListButton` | Boolean | `false` | Hide participant list button |
+| `hideChatButton` | Boolean | `true` | Hide chat button |
+| `hideSessionTimer` | Boolean | `false` | Hide session timer |
+| `hideNetworkIndicator` | Boolean | `true` | Hide network indicator |
+| `hideRecordingStatusIndicator` | Boolean | `false` | Hide recording status indicator |
+| `hideSwitchCameraButton` | Boolean | `false` | Hide switch camera button |
 </Accordion>
 

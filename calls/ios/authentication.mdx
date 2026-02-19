@@ -42,24 +42,24 @@ if (loggedInUser != nil) {
 
 The `getLoggedInUser()` method returns a `CallsUser` object if a user is logged in, or `nil` if no session exists.
 
-## Login with UID and API Key
+## Login with UID and Auth Key
 
 This method is suitable for development and testing. For production apps, use [Auth Token login](#login-with-auth-token) instead.
 
 <Warning>
 **Security Notice**
 
-Using the API Key directly in client code is not recommended for production. Use Auth Token authentication for enhanced security.
+Using the Auth Key directly in client code is not recommended for production. Use Auth Token authentication for enhanced security.
 </Warning>
 
 <Tabs>
 <Tab title="Swift">
 ```swift
 let uid = "cometchat-uid-1" // Replace with your user's UID
-let apiKey = "API_KEY" // Replace with your API Key
+let authKey = "AUTH_KEY" // Replace with your Auth Key
 
 if CometChatCalls.getLoggedInUser() == nil {
-    CometChatCalls.login(UID: uid, apiKey: apiKey, onSuccess: { user in
+    CometChatCalls.login(UID: uid, authKey: authKey, onSuccess: { user in
         print("Login successful: \(user.uid ?? "")")
     }, onError: { error in
         print("Login failed: \(error.errorDescription)")
@@ -72,11 +72,11 @@ if CometChatCalls.getLoggedInUser() == nil {
 <Tab title="Objective-C">
 ```objectivec
 NSString *uid = @"cometchat-uid-1"; // Replace with your user's UID
-NSString *apiKey = @"API_KEY"; // Replace with your API Key
+NSString *authKey = @"AUTH_KEY"; // Replace with your Auth Key
 
 if ([CometChatCalls getLoggedInUser] == nil) {
     [CometChatCalls loginWithUID:uid 
-                          apiKey:apiKey 
+                          authKey:authKey 
                        onSuccess:^(CallsUser * user) {
         NSLog(@"Login successful: %@", user.uid);
     } onError:^(CometChatCallException error) {
@@ -92,13 +92,13 @@ if ([CometChatCalls getLoggedInUser] == nil) {
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `UID` | String | The unique identifier of the user to login |
-| `apiKey` | String | Your CometChat API Key |
+| `authKey` | String | Your CometChat Auth Key |
 | `onSuccess` | Closure | Closure called with `CallsUser` on success |
 | `onError` | Closure | Closure called with error on failure |
 
 ## Login with Auth Token
 
-This is the recommended authentication method for production applications. The Auth Token is generated server-side, keeping your API Key secure.
+This is the recommended authentication method for production applications. The Auth Token is generated server-side, keeping your Auth Key secure.
 
 ### Auth Token Flow
 
@@ -183,6 +183,6 @@ Common authentication errors:
 |------------|-------------|
 | `ERROR_INVALID_UID` | The provided UID is empty or invalid |
 | `ERROR_UID_WITH_SPACE` | The UID contains spaces (not allowed) |
-| `ERROR_API_KEY_NOT_FOUND` | The API Key is missing or invalid |
+| `ERROR_API_KEY_NOT_FOUND` | The Auth Key is missing or invalid |
 | `ERROR_BLANK_AUTHTOKEN` | The Auth Token is empty |
 | `ERROR_AUTHTOKEN_WITH_SPACE` | The Auth Token contains spaces |

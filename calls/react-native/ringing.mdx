@@ -160,16 +160,11 @@ async function startCallSession(call: any) {
     // Create call settings
     const isAudioOnly = call.getType() === CometChat.CALL_TYPE.AUDIO;
     
-    const callSettings = new CometChatCalls.CallSettingsBuilder()
-      .setIsAudioOnlyCall(isAudioOnly)
-      .setCallEventListener(new CometChatCalls.OngoingCallListener({
-        onCallEnded: () => {
-          console.log('Call ended');
-        },
-      }))
-      .build();
+    const sessionSettings: SessionSettings = {
+      sessionType: isAudioOnly ? "VOICE" : "VIDEO",
+    };
     
-    return { token, callSettings };
+    return { token, sessionSettings };
   } catch (error) {
     console.error('Error starting call session:', error);
     throw error;
@@ -235,14 +230,9 @@ function CallManager({ children }: { children: React.ReactNode }) {
       
       const isAudioOnly = call.getType() === CometChat.CALL_TYPE.AUDIO;
       
-      const settings = new CometChatCalls.CallSettingsBuilder()
-        .setIsAudioOnlyCall(isAudioOnly)
-        .setCallEventListener(new CometChatCalls.OngoingCallListener({
-          onCallEnded: () => {
-            setActiveCall(null);
-          },
-        }))
-        .build();
+      const settings: SessionSettings = {
+        sessionType: isAudioOnly ? "VOICE" : "VIDEO",
+      };
 
       setActiveCall({ token, settings });
       setIncomingCall(null);
