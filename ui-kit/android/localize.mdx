@@ -72,6 +72,27 @@ Override: Call `CometChatLocalize.setLocale(...)` with a `Language.Code` value.
 Code:
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin LocalizeActivity.kt lines
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.cometchat.chatuikit.shared.resources.localise.CometChatLocalize
+import com.cometchat.chatuikit.shared.resources.localise.Language
+
+class LocalizeActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        CometChatLocalize.setLocale(this, Language.Code.hi)
+        val currentLocale = CometChatLocalize.getLocale(this)
+
+        setContentView(R.layout.activity_localize)
+    }
+}
+```
+
+</Tab>
+
 <Tab title="Java">
 ```java LocalizeActivity.java lines
 import android.os.Bundle;
@@ -88,27 +109,6 @@ public class LocalizeActivity extends AppCompatActivity {
         String currentLocale = CometChatLocalize.getLocale(this);
 
         setContentView(R.layout.activity_localize);
-    }
-}
-```
-
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin LocalizeActivity.kt lines
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.cometchat.chatuikit.shared.resources.localise.CometChatLocalize
-import com.cometchat.chatuikit.shared.resources.localise.Language
-
-class LocalizeActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        CometChatLocalize.setLocale(this, Language.Code.hi)
-        val currentLocale = CometChatLocalize.getLocale(this)
-
-        setContentView(R.layout.activity_localize)
     }
 }
 ```
@@ -178,6 +178,80 @@ Override: Provide a `DateTimeFormatterCallback` when building `UIKitSettings`.
 Code:
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin AppInit.kt lines
+import android.content.Context
+import android.util.Log
+import com.cometchat.chat.core.CometChat
+import com.cometchat.chat.exceptions.CometChatException
+import com.cometchat.chatuikit.shared.cometchatuikit.CometChatUIKit
+import com.cometchat.chatuikit.shared.cometchatuikit.UIKitSettings
+import com.cometchat.chatuikit.shared.interfaces.DateTimeFormatterCallback
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+object AppInit {
+    fun initUiKitWithDateFormatter(
+        context: Context,
+        appId: String,
+        region: String,
+        authKey: String
+    ) {
+        val uiKitSettings = UIKitSettings.UIKitSettingsBuilder()
+            .setAppId(appId)
+            .setRegion(region)
+            .setDateTimeFormatterCallback(object : DateTimeFormatterCallback {
+
+                private val fullTimeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+
+                override fun time(timestamp: Long): String {
+                    return fullTimeFormatter.format(Date(timestamp))
+                }
+
+                override fun today(timestamp: Long): String {
+                    return "Today"
+                }
+
+                override fun yesterday(timestamp: Long): String {
+                    return "Yesterday"
+                }
+
+                override fun lastWeek(timestamp: Long): String {
+                    return "Last Week"
+                }
+
+                override fun otherDays(timestamp: Long): String {
+                    return dateFormatter.format(Date(timestamp))
+                }
+
+                override fun minutes(diffInMinutesFromNow: Long, timestamp: Long): String {
+                    return "$diffInMinutesFromNow mins ago"
+                }
+
+                override fun hours(diffInHourFromNow: Long, timestamp: Long): String {
+                    return "$diffInHourFromNow hrs ago"
+                }
+            })
+            .setAuthKey(authKey)
+            .build()
+
+        CometChatUIKit.init(context, uiKitSettings, object : CometChat.CallbackListener<String>() {
+            override fun onSuccess(s: String) {
+                Log.d("CometChatInit", "Success: $s")
+            }
+
+            override fun onError(e: CometChatException) {
+                Log.e("CometChatInit", "Error: ${e.message}")
+            }
+        })
+    }
+}
+```
+
+</Tab>
+
 <Tab title="Java">
 ```java AppInit.java lines
 import android.content.Context;
@@ -255,80 +329,6 @@ public class AppInit {
                 Log.e("CometChatInit", "Error: " + e.getMessage());
             }
         });
-    }
-}
-```
-
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin AppInit.kt lines
-import android.content.Context
-import android.util.Log
-import com.cometchat.chat.core.CometChat
-import com.cometchat.chat.exceptions.CometChatException
-import com.cometchat.chatuikit.shared.cometchatuikit.CometChatUIKit
-import com.cometchat.chatuikit.shared.cometchatuikit.UIKitSettings
-import com.cometchat.chatuikit.shared.interfaces.DateTimeFormatterCallback
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
-object AppInit {
-    fun initUiKitWithDateFormatter(
-        context: Context,
-        appId: String,
-        region: String,
-        authKey: String
-    ) {
-        val uiKitSettings = UIKitSettings.UIKitSettingsBuilder()
-            .setAppId(appId)
-            .setRegion(region)
-            .setDateTimeFormatterCallback(object : DateTimeFormatterCallback {
-
-                private val fullTimeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
-                private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-
-                override fun time(timestamp: Long): String {
-                    return fullTimeFormatter.format(Date(timestamp))
-                }
-
-                override fun today(timestamp: Long): String {
-                    return "Today"
-                }
-
-                override fun yesterday(timestamp: Long): String {
-                    return "Yesterday"
-                }
-
-                override fun lastWeek(timestamp: Long): String {
-                    return "Last Week"
-                }
-
-                override fun otherDays(timestamp: Long): String {
-                    return dateFormatter.format(Date(timestamp))
-                }
-
-                override fun minutes(diffInMinutesFromNow: Long, timestamp: Long): String {
-                    return "$diffInMinutesFromNow mins ago"
-                }
-
-                override fun hours(diffInHourFromNow: Long, timestamp: Long): String {
-                    return "$diffInHourFromNow hrs ago"
-                }
-            })
-            .setAuthKey(authKey)
-            .build()
-
-        CometChatUIKit.init(context, uiKitSettings, object : CometChat.CallbackListener<String>() {
-            override fun onSuccess(s: String) {
-                Log.d("CometChatInit", "Success: $s")
-            }
-
-            override fun onError(e: CometChatException) {
-                Log.e("CometChatInit", "Error: ${e.message}")
-            }
-        })
     }
 }
 ```
