@@ -47,12 +47,12 @@ The `groupType` needs to be either of the below 3 values:
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
-var groupName = "Hello Group!";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
-var password = "";
+const GUID = "GUID";
+const groupName = "Hello Group!";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
+const password = "";
 
-var group = new CometChat.Group(GUID, groupName, groupType, password);
+const group = new CometChat.Group(GUID, groupName, groupType, password);
 
 CometChat.createGroup(group).then(
   group => {
@@ -67,12 +67,12 @@ CometChat.createGroup(group).then(
 
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
-var groupName: string = "Hello Group!";
-var groupType: string = CometChat.GROUP_TYPE.PUBLIC;
-var password: string = "";
+const GUID: string = "GUID";
+const groupName: string = "Hello Group!";
+const groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+const password: string = "";
 
-var group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
+const group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType, password);
 
 CometChat.createGroup(group).then(
   (group: CometChat.Group) => {
@@ -87,12 +87,12 @@ CometChat.createGroup(group).then(
 
 <Tab title="Async/Await">
 ```javascript
-var GUID = "GUID";
-var groupName = "Hello Group!";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
-var password = "";
+const GUID = "GUID";
+const groupName = "Hello Group!";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
+const password = "";
 
-var group = new CometChat.Group(GUID, groupName, groupType, password);
+const group = new CometChat.Group(GUID, groupName, groupType, password);
 
 try {
   const createdGroup = await CometChat.createGroup(group);
@@ -235,6 +235,25 @@ This method returns an Object which has two keys: `group` & `members` . The grou
 | membersCount | No                                                              | The number of members in the groups                                       |
 | tags         | Yes                                                             | A list of tags to identify specific groups.                               |
 
+
+---
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Use meaningful GUIDs** — Choose descriptive, unique GUIDs (e.g., `"project-alpha-team"`) that are easy to reference in your codebase.
+    - **Set group type carefully** — Group type cannot be changed after creation. Choose between PUBLIC, PASSWORD, and PRIVATE based on your use case.
+    - **Add members at creation** — Use `createGroupWithMembers()` to add initial members in a single API call instead of creating the group and adding members separately.
+    - **Store metadata** — Use the `metadata` field to store custom data (e.g., project ID, department) rather than encoding it in the group name.
+    - **Handle GUID conflicts** — If a GUID already exists, creation will fail. Check for existing groups or use unique identifiers.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"GUID already exists" error** — A group with that GUID already exists. Use a different GUID or retrieve the existing group.
+    - **"User not authorized" error** — The logged-in user may not have permission to create groups. Check your app's role settings in the Dashboard.
+    - **Members not added during creation** — Check the response object's `members` key. Individual member additions can fail (e.g., invalid UID) while the group creation succeeds.
+    - **Password group not requiring password** — Ensure `groupType` is set to `CometChat.GROUP_TYPE.PASSWORD` and a non-empty password is provided.
+    - **GUID validation error** — GUIDs can only contain alphanumeric characters, underscores, and hyphens. No spaces or special characters.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

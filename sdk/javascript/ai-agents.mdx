@@ -168,6 +168,22 @@ These events are received via the **`MessageListener`** after the run completes.
 Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
 
+<Accordion title="Best Practices">
+- **Register both listeners** — Use `AIAssistantListener` for real-time streaming events and `MessageListener` for persisted agentic messages. Both are needed for a complete experience.
+- **Handle streaming progressively** — Use `Text Message Content` events to render the assistant's reply token-by-token for a responsive UI, rather than waiting for the full reply.
+- **Track run lifecycle** — Use `Run Start` and `Run Finished` events to show loading indicators and know when the agent is done processing.
+- **Remove listeners on cleanup** — Always call both `removeAIAssistantListener()` and `removeMessageListener()` when the component unmounts.
+- **Handle tool calls gracefully** — Tool call events may occur multiple times in a single run. Display appropriate UI feedback for each tool invocation.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **No events received** — Ensure the AI Agent is configured in the CometChat Dashboard and the user is sending text messages (agents only respond to text).
+- **`onAIAssistantEventReceived` not firing** — Verify the `AIAssistantListener` is registered after successful `CometChat.init()` and `login()`.
+- **Agentic messages not arriving** — These come via `MessageListener` after the run completes. Make sure you've registered `onAIAssistantMessageReceived`, `onAIToolResultReceived`, and `onAIToolArgumentsReceived`.
+- **Duplicate events** — Check that you're not registering multiple listeners with different IDs. Remove old listeners before adding new ones.
+- **Streaming events arrive but no final message** — The run may have failed. Check for error events in the `onAIAssistantEventReceived` callback.
+</Accordion>
+
 ---
 
 ## Next Steps

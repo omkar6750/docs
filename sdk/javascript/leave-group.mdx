@@ -31,7 +31,7 @@ In order to stop receiving updates and messages for any particular joined group,
 <Tabs>
 <Tab title="Leave Group">
 ```javascript
-var GUID = "GUID";
+const GUID = "GUID";
 
 CometChat.leaveGroup(GUID).then(
 hasLeft => {
@@ -46,7 +46,7 @@ hasLeft => {
 
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
+const GUID: string = "GUID";
 
 CometChat.leaveGroup(GUID).then(
   (hasLeft: boolean) => {
@@ -123,6 +123,25 @@ For the group member left event, in the `Action` object received, the following 
 1. `action` - `left`
 2. `actionBy` - User object containing the details of the user who left the group
 3. `actionFor` - Group object containing the details of the group the user has left
+
+---
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Confirm before leaving** — Show a confirmation dialog before leaving a group, especially for groups with important conversations.
+    - **Update UI immediately** — Remove the group from the active list and disable messaging after successfully leaving.
+    - **Handle owner leaving** — If the group owner leaves, ownership should be transferred first using [Transfer Group Ownership](/sdk/javascript/transfer-group-ownership).
+    - **Clean up listeners** — Remove any group-specific listeners after leaving to prevent memory leaks and stale event handling.
+    - **Check missed events** — When re-joining a group, fetch missed messages and action events to stay up to date.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"Not a member" error** — The user is not a member of this group. Verify the GUID and check `hasJoined` status.
+    - **Owner can't leave** — Group owners must transfer ownership before leaving. Use `transferGroupOwnership()` first.
+    - **Leave events not received** — Ensure `addGroupListener()` is registered before the leave event occurs. Check listener IDs are unique.
+    - **Still receiving group messages** — Ensure `leaveGroup()` completed successfully. Check the promise resolved without errors.
+    - **Group still in conversation list** — Refresh the conversation list after leaving. The group may still appear until the list is re-fetched.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

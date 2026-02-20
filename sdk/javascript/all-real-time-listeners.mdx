@@ -61,7 +61,7 @@ To add the `UserListener`, you need to use the `addUserListener()` method provid
 <Tabs>
 <Tab title="JavaScript">
 ```js
-var listenerID = "UNIQUE_LISTENER_ID";
+const listenerID = "UNIQUE_LISTENER_ID";
 CometChat.addUserListener(
   listenerID,
   new CometChat.UserListener({
@@ -79,7 +79,7 @@ CometChat.addUserListener(
 
 <Tab title="TypeScript">
 ```typescript
-var listenerID: string = "UNIQUE_LISTENER_ID";
+const listenerID: string = "UNIQUE_LISTENER_ID";
 CometChat.addUserListener(
   listenerID,
   new CometChat.UserListener({
@@ -567,6 +567,22 @@ CometChat.removeCallListener(listenerID);
 
 </Tabs>
 
+
+<Accordion title="Best Practices">
+- **Use unique listener IDs** — Each listener must have a unique ID. Using the same ID for multiple listeners will overwrite the previous one, causing missed events.
+- **Register listeners early** — Add listeners right after `CometChat.init()` and `login()` succeed so you don't miss any events.
+- **Always clean up** — Remove all listeners when they're no longer needed (component unmount, page navigation, logout) to prevent memory leaks and duplicate callbacks.
+- **Keep listener callbacks lightweight** — Avoid heavy processing inside listener callbacks. Dispatch events to your state management layer and process asynchronously.
+- **Use specific listeners** — Only register the listener types you need. Don't register a `GroupListener` if your page only handles messages.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **Events not firing** — Ensure listeners are registered after a successful `CometChat.init()` and `login()`. Listeners registered before init have no effect.
+- **Duplicate events received** — You likely have multiple listeners registered with the same or different IDs. Check that you're removing old listeners before adding new ones.
+- **Missing events after page navigation** — Listeners are removed when the component unmounts. Re-register them when the new component mounts.
+- **`onMessagesDelivered` / `onMessagesRead` not triggering** — Delivery and read receipts must be explicitly sent by the recipient using `markAsDelivered()` / `markAsRead()`.
+- **Call events not received** — Ensure you've registered a `CallListener` and that the CometChat Calling SDK is properly initialized.
+</Accordion>
 
 ---
 

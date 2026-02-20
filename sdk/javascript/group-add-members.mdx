@@ -97,7 +97,7 @@ To receive real-time events whenever a new member is added to a group, you need 
 <Tabs>
 <Tab title="Group Listener">
 ```javascript
-var listenerID = "UNIQUE_LISTENER_ID";
+const listenerID = "UNIQUE_LISTENER_ID";
 
 CometChat.addGroupListener(
   listenerID,
@@ -118,7 +118,7 @@ CometChat.addGroupListener(
 
 <Tab title="TypeScript">
 ```typescript
-var listenerID: string = "UNIQUE_LISTENER_ID";
+const listenerID: string = "UNIQUE_LISTENER_ID";
 
 CometChat.addGroupListener(
   listenerID,
@@ -164,6 +164,22 @@ For the group member added event, in the `Action` object received, the following
 2. `actionOn` - User object containing the details of the user who was added to the group
 3. `actionBy` - User object containing the details of the user who added the member to the group
 4. `actionFor` - Group object containing the details of the group to which the member was added
+
+<Accordion title="Best Practices">
+- **Batch member additions** — Add multiple members in a single `addMembersToGroup()` call rather than calling it once per user.
+- **Set appropriate scopes** — Assign `PARTICIPANT` by default. Only use `ADMIN` or `MODERATOR` when the user genuinely needs elevated permissions.
+- **Handle partial failures** — The response array contains per-user results. Check each entry for `"success"` or an error message to handle failures gracefully.
+- **Remove listeners on cleanup** — Always call `CometChat.removeGroupListener()` when the component unmounts or the page navigates away.
+- **Validate UIDs before adding** — Ensure the UIDs exist and are not already members to avoid unnecessary API calls and confusing error responses.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **"ERR_NOT_A_MEMBER" error** — Only admins or moderators can add members. Verify the logged-in user has the correct scope in the group.
+- **Some members fail while others succeed** — `addMembersToGroup()` returns per-user results. Check the response object for individual error messages (e.g., user already a member, invalid UID).
+- **`onMemberAddedToGroup` not firing** — Ensure the group listener is registered before the add operation. Also verify the listener ID is unique and not being overwritten.
+- **Duplicate events received** — You likely have multiple listeners registered with different IDs. Remove old listeners before adding new ones.
+- **Banned members can't be added** — A banned user must be unbanned first before they can be added back to the group.
+</Accordion>
 
 ---
 

@@ -34,9 +34,9 @@ In order to start participating in group conversations, you will have to join a 
 <Tabs>
 <Tab title="Join Group">
 ```javascript
-var GUID = "GUID";
-var password = "";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
+const GUID = "GUID";
+const password = "";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
 
 CometChat.joinGroup(GUID, groupType, password).then(
 group => {
@@ -51,7 +51,7 @@ group => {
 
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
+const GUID: string = "GUID";
 
 CometChat.joinGroup(GUID, CometChat.GroupType.Public).then(
   (group: CometChat.Group) => {
@@ -136,6 +136,25 @@ For the group member joined event, in the `Action` object received, the followin
 1. `action` - `joined`
 2. `actionBy` - User object containing the details of the user who joined the group
 3. `actionFor`- Group object containing the details of the group the user has joined
+
+---
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Check `hasJoined` first** — Before calling `joinGroup()`, check the group's `hasJoined` property to avoid unnecessary API calls.
+    - **Handle password groups** — For password-protected groups, prompt the user for the password before calling `joinGroup()`.
+    - **Update UI on join** — After successfully joining, update your group list and enable messaging for that group.
+    - **Listen for join events** — Register `GroupListener` to receive real-time notifications when other members join.
+    - **Clean up listeners** — Remove group listeners when leaving the screen or component to prevent memory leaks.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"Already a member" error** — The user has already joined this group. Check `hasJoined` before attempting to join.
+    - **"Invalid password" error** — The password provided doesn't match. Ensure the password is correct for password-protected groups.
+    - **Can't join private group** — Private groups require an invitation. Users must be added by an admin using `addMembersToGroup()`.
+    - **Join events not received** — Ensure `addGroupListener()` is called before the join event occurs. Verify the listener ID is unique.
+    - **Group not found** — The GUID may be incorrect or the group may have been deleted. Verify the GUID exists.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

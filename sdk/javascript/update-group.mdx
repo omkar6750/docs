@@ -26,10 +26,10 @@ You can update the existing details of the group using the `updateGroup()` metho
 <Tabs>
 <Tab title="Update Group">
 ```javascript
-var GUID = "GUID";
-var groupName = "Hello Group";
-var groupType = CometChat.GROUP_TYPE.PUBLIC;
-var group = new CometChat.Group(GUID, groupName, groupType);
+const GUID = "GUID";
+const groupName = "Hello Group";
+const groupType = CometChat.GROUP_TYPE.PUBLIC;
+const group = new CometChat.Group(GUID, groupName, groupType);
 
 CometChat.updateGroup(group).then(
 group => {
@@ -44,11 +44,11 @@ group => {
 
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
-var groupName: string = "Hello Group!";
-var groupType: string = CometChat.GROUP_TYPE.PUBLIC;
+const GUID: string = "GUID";
+const groupName: string = "Hello Group!";
+const groupType: string = CometChat.GROUP_TYPE.PUBLIC;
 
-var group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
+const group: CometChat.Group = new CometChat.Group(GUID, groupName, groupType);
 
 CometChat.updateGroup(group).then(
   (group: CometChat.Group) => {
@@ -72,6 +72,23 @@ This method takes an instance of the `Group` class as a parameter which should c
 After a successful update of the group, you will receive an instance of `Group` class containing update information of the group.
 
 For more information on the `Group` class, please check [here](/sdk/javascript/create-group#create-a-group).
+
+---
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Only update changed fields** — Set only the fields you want to change on the Group object. Unchanged fields retain their current values.
+    - **Validate before updating** — Check that the user has admin or moderator scope before showing update options in your UI.
+    - **Update metadata carefully** — When updating metadata, merge with existing data rather than replacing it entirely to avoid losing other fields.
+    - **Refresh after update** — After a successful update, refresh the group details in your UI to reflect the changes.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"Not authorized" error** — Only admins and moderators can update group details. Check the user's scope.
+    - **Group type not changing** — Group type cannot be changed after creation. This is by design.
+    - **Update not reflected** — Ensure the update promise resolved successfully. Other members receive the update via `GroupListener`.
+    - **Metadata overwritten** — When updating metadata, the entire metadata object is replaced. Merge with existing metadata before updating.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

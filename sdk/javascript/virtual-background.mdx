@@ -130,6 +130,22 @@ The `VirtualBackground` Class is the required in case you want to change how the
 | `enforceBackgroundBlur(enforceBackgroundBlur: number)`   | This method starts the call with background blurred. To blur the background you need to pass an integer value between 1-99 which decides the blur level. **Default = 0** |
 | `enforceBackgroundImage(enforceBackgroundImage: string)` | This methods starts the call with the provided background image.                                                                                                         |
 
+<Accordion title="Best Practices">
+- **Use `enforceBackgroundBlur` for privacy** — If your app requires background privacy (e.g., healthcare, finance), enforce blur at the settings level so users can't disable it.
+- **Provide default images** — Use `setImages()` to provide a curated set of background images so users have good options without uploading their own.
+- **Test blur levels** — Blur levels range from 1–99. Test different values to find the right balance between privacy and visual quality for your use case.
+- **Optimize image URLs** — Use compressed images for custom backgrounds. Large images can slow down rendering and increase bandwidth usage.
+- **Combine with CallSettings** — Pass the `VirtualBackground` object to `CallSettingsBuilder.setVirtualBackground()` to apply settings before the call starts.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **Virtual background not appearing** — Ensure the Calls SDK is properly initialized and the call is active before calling `setBackgroundBlur()` or `setBackgroundImage()`.
+- **`openVirtualBackground()` does nothing** — The call must be active and the default layout must be enabled for the settings popup to appear.
+- **Background image not loading** — Verify the image URL is accessible (CORS-enabled) and the image format is supported (JPEG, PNG).
+- **Performance issues with blur** — High blur levels (close to 99) require more processing power. Lower the blur level on less powerful devices.
+- **Settings not persisting between calls** — Virtual background settings are per-session. Use `enforceBackgroundBlur()` or `enforceBackgroundImage()` in `VirtualBackground` to apply defaults automatically.
+</Accordion>
+
 ## Next Steps
 
 <CardGroup cols={2}>

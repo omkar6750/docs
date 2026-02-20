@@ -30,7 +30,7 @@ To delete a group you need to use the `deleteGroup()` method. The user must be a
 <Tabs>
 <Tab title="JavaScript">
 ```javascript
-var GUID = "GUID";
+const GUID = "GUID";
 
 CometChat.deleteGroup(GUID).then(
 response => {
@@ -45,7 +45,7 @@ response => {
 
 <Tab title="TypeScript">
 ```typescript
-var GUID: string = "GUID";
+const GUID: string = "GUID";
 
 CometChat.deleteGroup(GUID).then(
   (response: boolean) => {
@@ -60,7 +60,7 @@ CometChat.deleteGroup(GUID).then(
 
 <Tab title="Async/Await">
 ```javascript
-var GUID = "GUID";
+const GUID = "GUID";
 
 try {
   const response = await CometChat.deleteGroup(GUID);
@@ -80,6 +80,23 @@ The `deleteGroup()` method takes the following parameters:
 | --------- | ---------------------------------------------- |
 | `GUID`    | The GUID of the group you would like to delete |
 
+
+---
+
+<AccordionGroup>
+  <Accordion title="Best Practices">
+    - **Confirm before deleting** — Always show a confirmation dialog. Group deletion is irreversible and removes all messages and member associations.
+    - **Verify admin status** — Only group admins can delete groups. Check the user's scope before showing the delete option in your UI.
+    - **Notify members** — Consider sending a final message or notification before deleting so members are aware.
+    - **Clean up local state** — After deletion, remove the group from local caches, conversation lists, and any UI references.
+  </Accordion>
+  <Accordion title="Troubleshooting">
+    - **"Not authorized" error** — Only admins can delete groups. Verify the logged-in user's scope is `ADMIN` for this group.
+    - **Group not found** — The GUID may be incorrect or the group was already deleted. Verify the GUID exists.
+    - **Members still see the group** — Other members will receive a group deletion event via `GroupListener`. Ensure they handle `onGroupMemberLeft` or similar cleanup.
+    - **Deletion seems to hang** — Check network connectivity. The operation requires a server round-trip.
+  </Accordion>
+</AccordionGroup>
 
 ---
 

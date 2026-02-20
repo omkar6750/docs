@@ -333,6 +333,22 @@ Here's a complete implementation showing the full moderation flow:
 Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
 
+<Accordion title="Best Practices">
+- **Show pending state in UI** — When `getModerationStatus()` returns `PENDING`, display a visual indicator (spinner, dimmed message) so users know the message is being reviewed.
+- **Handle disapproved messages gracefully** — Don't just hide blocked messages silently. Show a placeholder or notification so the sender understands what happened.
+- **Register the listener early** — Add the `onMessageModerated` listener before sending messages so you don't miss any moderation results.
+- **Track pending messages** — Maintain a local map of pending message IDs so you can update the UI when moderation results arrive.
+- **Test with moderation rules** — Configure moderation rules in the Dashboard before testing. Without rules, messages won't be moderated.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **`onMessageModerated` never fires** — Ensure moderation is enabled in the CometChat Dashboard and rules are configured under Moderation > Rules.
+- **All messages show `PENDING` but never resolve** — Check that your moderation rules are properly configured and the moderation service is active in your plan.
+- **Custom messages not being moderated** — AI Moderation only supports Text, Image, and Video messages. Custom messages are not subject to moderation.
+- **Moderation status is `undefined`** — You may be using an older SDK version that doesn't support moderation. Update to the latest version.
+- **Disapproved messages still visible to recipients** — The SDK handles this automatically. If recipients still see blocked messages, verify your `onMessageModerated` handler is updating the UI correctly.
+</Accordion>
+
 ## Next Steps
 
 <CardGroup cols={2}>

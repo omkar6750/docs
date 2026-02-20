@@ -116,6 +116,22 @@ CometChat.disconnect();
 
 </Tabs>
 
+<Accordion title="Best Practices">
+- **Only disable auto-connect when needed** — The default auto-connect behavior works well for most apps. Only manage connections manually if you need fine-grained control (e.g., background/foreground transitions, battery optimization).
+- **Check login status before connecting** — Always verify the user is logged in with `CometChat.getLoggedInUser()` before calling `CometChat.connect()`.
+- **Pair with Connection Listener** — Use `CometChat.addConnectionListener()` alongside manual connection management to track the actual connection state.
+- **Reconnect on app foreground** — If you disconnect when the app goes to background, call `CometChat.connect()` when the app returns to foreground.
+- **Don't call connect/disconnect rapidly** — Allow time for the connection to establish or close before toggling again.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **No real-time events after login** — If you set `autoEstablishSocketConnection(false)`, you must call `CometChat.connect()` manually after login.
+- **`connect()` doesn't seem to work** — Ensure the user is logged in first. `connect()` requires an authenticated session.
+- **Events stop after calling `disconnect()`** — This is expected. Call `CometChat.connect()` to resume receiving events.
+- **Connection drops intermittently** — This is usually a network issue. The SDK auto-reconnects by default, but if you're managing connections manually, you need to handle reconnection logic yourself.
+- **`autoEstablishSocketConnection(false)` not taking effect** — Make sure you're passing it to the `AppSettingsBuilder` before calling `CometChat.init()`. It cannot be changed after initialization.
+</Accordion>
+
 ---
 
 ## Next Steps

@@ -139,6 +139,22 @@ For the group member scope changed event, in the `Action` object received, the f
 5. `oldScope` - The original scope of the member
 6. `newScope` - The updated scope of the member
 
+<Accordion title="Best Practices">
+- **Only admins can change scope** — The logged-in user must be the group admin to change another member's scope. Moderators cannot change scopes.
+- **Confirm before promoting** — Promoting a user to admin gives them full control over the group. Add a confirmation dialog in your UI.
+- **Remove listeners on cleanup** — Always call `CometChat.removeGroupListener()` when the component unmounts or the page navigates away.
+- **Use scope constants** — Always use `CometChat.GROUP_MEMBER_SCOPE.ADMIN`, `CometChat.GROUP_MEMBER_SCOPE.MODERATOR`, or `CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT` instead of raw strings.
+- **Update UI after scope change** — Refresh the member list or update the local state after a successful scope change to reflect the new role immediately.
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **"ERR_NOT_A_MEMBER" or permission error** — Only the group admin can change member scopes. Verify the logged-in user is the admin.
+- **Cannot demote another admin** — Only the group owner can demote admins. Regular admins can only change scope of moderators and participants.
+- **`onGroupMemberScopeChanged` not firing** — Ensure the group listener is registered before the scope change and the listener ID is unique.
+- **Scope change succeeds but UI doesn't update** — The API call returns a boolean. You need to manually update your local member list or re-fetch members after the change.
+- **Invalid scope value error** — Use the SDK constants (`CometChat.GROUP_MEMBER_SCOPE.ADMIN`, etc.) rather than raw strings like `"admin"`.
+</Accordion>
+
 ---
 
 ## Next Steps
