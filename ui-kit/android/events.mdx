@@ -2,20 +2,52 @@
 title: "Events"
 ---
 
-## Overview
+Events enable a decoupled, flexible architecture in the CometChat UI Kit. Components and Composite Components emit events in response to user interactions or state changes, allowing other parts of your application to react without direct references between components.
 
-Events enable a decoupled, flexible architecture where different parts of the application can interact without directly referencing each other. This makes it easier to create complex, interactive experiences and to extend and customize the CometChat UI Kit's functionality.
+## When to use this
 
-Both Components and Composite Components can emit events. These events are dispatched in response to certain changes or user interactions within the component, allowing other parts of the application to react accordingly and enabling dynamic, interactive behavior.
+- You need to update your UI when a user is blocked or unblocked.
+- You need to respond to group actions such as member joins, kicks, bans, or ownership transfers.
+- You need to track conversation deletions or updates in real time.
+- You need to react to messages being sent, edited, deleted, or read.
+- You need to handle call lifecycle events (outgoing, accepted, rejected, ended).
+- You need to respond to UI-level events such as panel visibility changes or active chat changes.
+
+## Prerequisites
+
+- The `cometchat-chat-uikit-android` dependency added to your project.
+- `CometChatUIKit.init()` called and completed successfully.
+- A logged-in CometChat user (call `CometChatUIKit.login()` before registering listeners).
+
+## API reference
 
 ### User Events
 
-`UserEvents` emit events when the logged-in user executes actions on another user. This class provides methods to add and remove listeners for user events, as well as methods to handle specific user actions such as blocking and unblocking users.
+`CometChatUserEvents` emits events when the logged-in user executes actions on another user. This class provides methods to add and remove listeners for user events, as well as methods to handle specific user actions such as blocking and unblocking users.
 
-1. `ccUserBlocked`: Triggered when the logged-in user blocks another user.
-2. `ccUserUnblocked`: Triggered when the logged-in user unblocks another user.
+**Events:**
+
+| Event | Description |
+| ----- | ----------- |
+| `ccUserBlocked` | Triggered when the logged-in user blocks another user. |
+| `ccUserUnblocked` | Triggered when the logged-in user unblocks another user. |
+
+**Listener registration:**
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+CometChatUserEvents.addUserListener(LISTENERS_TAG, object : CometChatUserEvents() {
+    override fun ccUserBlocked(user: User) {
+        // Perform action when user is blocked
+    }
+
+    override fun ccUserUnblocked(user: User) {
+        // Perform action when user is unblocked
+    }
+})
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 CometChatUserEvents.addUserListener(LISTENERS_TAG, new CometChatUserEvents() {
@@ -30,44 +62,33 @@ CometChatUserEvents.addUserListener(LISTENERS_TAG, new CometChatUserEvents() {
     }
 });
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-CometChatUserEvents.addUserListener(LISTENERS_TAG, object : CometChatUserEvents() {
-    override fun ccUserBlocked(user: User) {
-        // Perform action when user is blocked
-    }
-
-    override fun ccUserUnblocked(user: User) {
-        // Perform action when user is unblocked
-    }
-})
-```
-
-</Tab>
-
 </Tabs>
+
+> **What this does:** Registers a listener on `CometChatUserEvents` using a unique `LISTENERS_TAG`. The `ccUserBlocked` callback fires when the logged-in user blocks another user, and `ccUserUnblocked` fires when the logged-in user unblocks another user.
+
+---
 
 ### Group Events
 
-`GroupEvents` emits events when the logged-in user performs actions related to groups. This class provides methods to listen to various group-related events and handle them accordingly.
+`CometChatGroupEvents` emits events when the logged-in user performs actions related to groups. This class provides methods to listen to various group-related events and handle them.
 
-Following are all the group events:
+**Events:**
 
-1. `ccGroupCreated`: Triggered when the logged-in user creates a group.
-2. `ccGroupDeleted`: Triggered when the logged-in user deletes a group.
-3. `ccGroupLeft`: Triggered when the logged-in user leaves a group.
-4. `ccGroupMemberScopeChanged`: Triggered when the logged-in user changes the scope of another group member.
-5. `ccGroupMemberBanned`: Triggered when the logged-in user bans a group member from the group.
-6. `ccGroupMemberKicked`: Triggered when the logged-in user kicks another group member from the group.
-7. `ccGroupMemberUnbanned`: Triggered when the logged-in user unbans a user banned from the group.
-8. `ccGroupMemberJoined`: Triggered when the logged-in user joins a group.
-9. `ccGroupMemberAdded`: Triggered when the logged-in user adds new members to the group.
-10. `ccOwnershipChanged`: Triggered when the logged-in user transfers the ownership of their group to some other member.
+| Event | Description |
+| ----- | ----------- |
+| `ccGroupCreated` | Triggered when the logged-in user creates a group. |
+| `ccGroupDeleted` | Triggered when the logged-in user deletes a group. |
+| `ccGroupLeft` | Triggered when the logged-in user leaves a group. |
+| `ccGroupMemberScopeChanged` | Triggered when the logged-in user changes the scope of another group member. |
+| `ccGroupMemberBanned` | Triggered when the logged-in user bans a group member from the group. |
+| `ccGroupMemberKicked` | Triggered when the logged-in user kicks another group member from the group. |
+| `ccGroupMemberUnbanned` | Triggered when the logged-in user unbans a user banned from the group. |
+| `ccGroupMemberJoined` | Triggered when the logged-in user joins a group. |
+| `ccGroupMemberAdded` | Triggered when the logged-in user adds new members to the group. |
+| `ccOwnershipChanged` | Triggered when the logged-in user transfers the ownership of their group to some other member. |
 
-To listen to group events
+**Listener registration:**
 
 ```java lines
 CometChatGroupEvents.addGroupListener(LISTENERS_TAG, new CometChatGroupEvents() {
@@ -123,16 +144,33 @@ CometChatGroupEvents.addGroupListener(LISTENERS_TAG, new CometChatGroupEvents() 
 });
 ```
 
+> **What this does:** Registers a listener on `CometChatGroupEvents` using a unique `LISTENERS_TAG`. Each callback fires when the logged-in user performs the corresponding group action — creating, deleting, leaving a group, or managing members (scope change, ban, kick, unban, join, add, ownership transfer).
+
+---
+
 ### Conversation Events
 
-The `ConversationEvents` component emits events when the logged-in user performs actions related to conversations. This allows for the UI to be updated accordingly. Below are the events emitted by the Conversation Component:
+`CometChatConversationEvents` emits events when the logged-in user performs actions related to conversations. This allows the UI to be updated when conversations change.
 
-* `ccConversationDeleted`: Triggered when the logged-in user deletes a conversation.
-* `ccUpdateConversation`: Triggered when there is an update in the conversation.
+**Events:**
 
-To listen to conversation events and handle them in your application, you can use the following code snippets:
+| Event | Description |
+| ----- | ----------- |
+| `ccConversationDeleted` | Triggered when the logged-in user deletes a conversation. |
+| `ccUpdateConversation` | Triggered when there is an update in the conversation. |
+
+**Listener registration:**
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+CometChatConversationEvents.addListener("LISTENERS_TAG", object : CometChatConversationEvents() {
+    override fun ccConversationDeleted(conversation: Conversation) {
+        // Perform action when conversation is deleted
+    }
+})
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 CometChatConversationEvents.addListener("LISTENERS_TAG", new CometChatConversationEvents() {
@@ -147,40 +185,62 @@ CometChatConversationEvents.addListener("LISTENERS_TAG", new CometChatConversati
         }
 });
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-CometChatConversationEvents.addListener("LISTENERS_TAG", object : CometChatConversationEvents() {
-    override fun ccConversationDeleted(conversation: Conversation) {
-        // Perform action when conversation is deleted
-    }
-})
-```
-
-</Tab>
-
 </Tabs>
+
+> **What this does:** Registers a listener on `CometChatConversationEvents` using a unique listener tag. The `ccConversationDeleted` callback fires when the logged-in user deletes a conversation, and `ccUpdateConversation` fires when a conversation is updated.
+
+---
 
 ### Message Events
 
-`MessageEvents` emits events when various actions are performed on messages within the application. These events facilitate updating the UI accordingly. Below are the events emitted by the MessageEvents component:
+`CometChatMessageEvents` emits events when various actions are performed on messages within the application. These events facilitate updating the UI when messages change.
 
-* `ccMessageSent`: Triggered whenever a loggedIn user sends any message. It can have two states: `inProgress` and `sent`.
-* `ccMessageEdited`: Triggered whenever a loggedIn user edits any message from the list of messages. It can have two states: `inProgress` and `sent`.
-* `ccMessageDeleted`: Triggered whenever a loggedIn user deletes any message from the list of messages.
-* `ccMessageRead`: Triggered whenever a loggedIn user reads any message.
-* `ccLiveReaction`: Triggered whenever a loggedIn user clicks on live reaction.
-* `onFormMessageReceived`: Triggered when a form message is received.
-* `onCardMessageReceived`: Triggered when a card message is received.
-* `onCustomInteractiveMessageReceived`: Triggered when a custom interactive message is received.
-* `onInteractionGoalCompleted`: Triggered when an interaction goal is completed.
-* `onSchedulerMessageReceived`: Triggered when a scheduler message is received.
+**Events:**
 
-To listen to message events and handle them in your application, you can use the following code snippets:
+| Event | Description |
+| ----- | ----------- |
+| `ccMessageSent` | Triggered whenever a logged-in user sends any message. It can have two states: `inProgress` and `sent`. |
+| `ccMessageEdited` | Triggered whenever a logged-in user edits any message from the list of messages. It can have two states: `inProgress` and `sent`. |
+| `ccMessageDeleted` | Triggered whenever a logged-in user deletes any message from the list of messages. |
+| `ccMessageRead` | Triggered whenever a logged-in user reads any message. |
+| `ccLiveReaction` | Triggered whenever a logged-in user clicks on live reaction. |
+| `onFormMessageReceived` | Triggered when a form message is received. |
+| `onCardMessageReceived` | Triggered when a card message is received. |
+| `onCustomInteractiveMessageReceived` | Triggered when a custom interactive message is received. |
+| `onInteractionGoalCompleted` | Triggered when an interaction goal is completed. |
+| `onSchedulerMessageReceived` | Triggered when a scheduler message is received. |
+
+**Listener registration:**
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+CometChatMessageEvents.addListener("UNIQUE_ID", object : CometChatMessageEvents() {
+    override fun ccMessageSent(baseMessage: BaseMessage?, status: Int) {
+        // Perform action when message is sent
+    }
+
+    override fun ccMessageEdited(baseMessage: BaseMessage?, status: Int) {
+        // Perform action when message is edited
+    }
+
+    override fun ccMessageDeleted(baseMessage: BaseMessage?) {
+        // Perform action when message is deleted
+    }
+
+    override fun ccMessageRead(baseMessage: BaseMessage?) {
+        // Perform action when message is read
+    }
+
+    override fun ccLiveReaction(icon: Int) {
+        // Perform action on live reaction
+    }
+
+    // Other overridden methods for handling specific message types and actions
+})
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 CometChatMessageEvents.addListener("UNIQUE_ID", new CometChatMessageEvents() {
@@ -212,50 +272,27 @@ CometChatMessageEvents.addListener("UNIQUE_ID", new CometChatMessageEvents() {
     // Other overridden methods for handling specific message types and actions
 });
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-CometChatMessageEvents.addListener("UNIQUE_ID", object : CometChatMessageEvents() {
-    override fun ccMessageSent(baseMessage: BaseMessage?, status: Int) {
-        // Perform action when message is sent
-    }
-
-    override fun ccMessageEdited(baseMessage: BaseMessage?, status: Int) {
-        // Perform action when message is edited
-    }
-
-    override fun ccMessageDeleted(baseMessage: BaseMessage?) {
-        // Perform action when message is deleted
-    }
-
-    override fun ccMessageRead(baseMessage: BaseMessage?) {
-        // Perform action when message is read
-    }
-
-    override fun ccLiveReaction(icon: Int) {
-        // Perform action on live reaction
-    }
-
-    // Other overridden methods for handling specific message types and actions
-})
-```
-
-</Tab>
-
 </Tabs>
+
+> **What this does:** Registers a listener on `CometChatMessageEvents` using a unique ID string. The callbacks fire for message lifecycle events — sending, editing, deleting, reading messages, and reacting with live reactions. Additional overrides handle interactive message types (`onFormMessageReceived`, `onCardMessageReceived`, `onCustomInteractiveMessageReceived`, `onInteractionGoalCompleted`, `onSchedulerMessageReceived`).
+
+---
 
 ### Call Events
 
-`Call Events` emits events related to calls within the application. This class provides methods to listen to call-related events and handle them accordingly.
+`CometChatCallEvents` emits events related to calls within the application. This class provides methods to listen to call-related events and handle them.
 
-* `ccOutgoingCall`: Triggered when the logged-in user initiates an outgoing call.
-* `ccCallAccepted`: Triggered when a call is accepted.
-* `ccCallRejected`: Triggered when a call is rejected.
-* `ccCallEnded`: Triggered when a call is ended.
+**Events:**
 
-To listen to call events and handle them in your application, you can use the following code snippet:
+| Event | Description |
+| ----- | ----------- |
+| `ccOutgoingCall` | Triggered when the logged-in user initiates an outgoing call. |
+| `ccCallAccepted` | Triggered when a call is accepted. |
+| `ccCallRejected` | Triggered when a call is rejected. |
+| `ccCallEnded` | Triggered when a call is ended. |
+
+**Listener registration:**
 
 ```java lines
 CometChatCallEvents.addListener("ListenerID", new CometChatCallEvents() {
@@ -281,18 +318,24 @@ CometChatCallEvents.addListener("ListenerID", new CometChatCallEvents() {
 });
 ```
 
+> **What this does:** Registers a listener on `CometChatCallEvents` using a unique `"ListenerID"`. The callbacks fire for each stage of the call lifecycle — initiating an outgoing call, accepting, rejecting, and ending a call.
+
+---
+
 ### UI Events
 
-`UIEvents` emits events related to UI components within the CometChat UI. This class provides methods to listen to UI-related events and handle them accordingly.
+`CometChatUIEvents` emits events related to UI components within the CometChat UI Kit. This class provides methods to listen to UI-related events and handle them.
 
-Following are the UI events:
+**Events:**
 
-* `showPanel`: Triggered to show an additional UI panel with custom elements.
-* `hidePanel`: Triggered to hide a previously shown UI panel.
-* `ccActiveChatChanged`: Triggered when the active chat changes, providing information about the current message, user, and group.
-* `ccOpenChat`: Triggered to open a chat with a specific user or group.
+| Event | Description |
+| ----- | ----------- |
+| `showPanel` | Triggered to show an additional UI panel with custom elements. |
+| `hidePanel` | Triggered to hide a previously shown UI panel. |
+| `ccActiveChatChanged` | Triggered when the active chat changes, providing information about the current message, user, and group. |
+| `ccOpenChat` | Triggered to open a chat with a specific user or group. |
 
-To listen to UI events and handle them in your application, you can use the following code snippet:
+**Listener registration:**
 
 ```java lines
 CometChatUIEvents.addListener("UNIQUE_ID", new CometChatUIEvents() {
@@ -317,3 +360,47 @@ CometChatUIEvents.addListener("UNIQUE_ID", new CometChatUIEvents() {
     }
 });
 ```
+
+> **What this does:** Registers a listener on `CometChatUIEvents` using a unique ID string. The callbacks fire for UI-level actions — showing or hiding custom panels, reacting to active chat changes, and opening a chat with a specific user or group.
+
+---
+
+## Removing event listeners
+
+Each event listener class provides methods to add and remove listeners. If you register a listener, remove it when the component or activity is destroyed to prevent memory leaks. Use the same tag or ID string you passed during registration.
+
+---
+
+## Common pitfalls and fixes
+
+| Pitfall | Fix |
+| ------- | --- |
+| Forgetting to remove event listeners when an activity or fragment is destroyed, causing memory leaks and duplicate callbacks. | Remove your event listeners in your `onDestroy()` or `onDestroyView()` lifecycle callback, using the same tag you passed during registration. |
+| Using a non-unique or hardcoded listener tag, causing one listener to overwrite another. | Use a unique string for each listener registration (for example, the class name or a UUID). If two registrations share the same tag, only the last one receives callbacks. |
+| Registering a listener after the event has already fired, so the callback is never triggered. | Register your event listeners early in the component lifecycle (for example, in `onCreate()` or `onViewCreated()`), before any user interaction that could trigger the event. |
+| Expecting Kotlin-style nullable parameters in Java callbacks (or vice versa). | Match the parameter types to the language you are using. In Kotlin, message event callbacks use nullable types (for example, `BaseMessage?`), while Java callbacks use non-nullable types (for example, `BaseMessage`). |
+| Not handling all relevant callbacks in a listener, causing missed events. | Override every callback method you need. If you register a `CometChatGroupEvents` listener but only override `ccGroupCreated`, you will not receive `ccGroupMemberJoined` or other group events. |
+| Assuming events fire on the main thread and updating UI directly without checking. | Wrap UI updates inside `runOnUiThread {}` (Kotlin) or `runOnUiThread(() -> { })` (Java) to ensure thread safety when handling event callbacks. |
+
+## FAQ
+
+**How do I listen for multiple event types at the same time?**
+Register separate listeners for each event class. For example, register a `CometChatUserEvents` listener and a `CometChatMessageEvents` listener independently, each with its own unique tag or ID. There is no single listener that covers all event categories.
+
+**What is the difference between UI Kit events and SDK-level listeners?**
+UI Kit events (for example, `CometChatMessageEvents`, `CometChatUserEvents`) are emitted by UI Kit components when the logged-in user performs actions through the UI. SDK-level listeners (from the core CometChat SDK) handle real-time events from the server, such as incoming messages from other users. Use UI Kit events to keep your UI in sync with user-initiated actions, and SDK-level listeners for server-pushed updates.
+
+**Do I need to remove listeners if my activity is finishing?**
+Yes. If you do not remove listeners in `onDestroy()` or `onDestroyView()`, the listener reference persists and can cause memory leaks or duplicate callback invocations when the activity or fragment is recreated.
+
+**Can I register the same listener tag twice?**
+If you call `addListener` or `addUserListener`/`addGroupListener` with the same tag, the second registration replaces the first. Only the most recently registered listener for that tag receives callbacks.
+
+**Why does my conversation event listener only show `ccConversationDeleted` in Kotlin but both events in Java?**
+The Kotlin code sample in the original documentation demonstrates only the `ccConversationDeleted` override. The `ccUpdateConversation` callback is available in both languages. Override `ccUpdateConversation` in your Kotlin listener to receive conversation update events.
+
+## Next steps
+
+- [Methods reference](/ui-kit/android/methods) — UI Kit wrapper methods for initialization, authentication, and sending messages.
+- [Conversations component](/ui-kit/android/conversations) — Display and manage the conversation list, which reacts to conversation events.
+- [Message List component](/ui-kit/android/message-list) — Display messages in a chat, which reacts to message events.

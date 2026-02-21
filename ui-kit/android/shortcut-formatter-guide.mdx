@@ -2,26 +2,128 @@
 title: "ShortCut Formatter"
 ---
 
-## Introduction
+`ShortCutFormatter` extends `CometChatTextFormatter` to provide a mechanism for handling message shortcuts within `CometChatMessageComposer`, enabling users to type a tracking character and receive shortcut suggestions fetched from the CometChat message-shortcuts extension.
 
-The ShortCutFormatter class extends the CometChatTextFormatter class to provide a mechanism for handling shortcuts within messages. This guide will walk you through the process of using ShortCutFormatter to implement shortcut extensions in your CometChat application.
+## When to Use This
 
-## Setup
+- You want to add shortcut text expansion to the message composer (e.g., typing `!hi` expands to a predefined message)
+- You need to fetch and display message shortcuts from the CometChat `message-shortcuts` extension
+- You want to show suggestion items in the composer when a user types a shortcut trigger character
+- You need to create a custom text formatter that extends `CometChatTextFormatter`
+- You want to integrate shortcut functionality alongside other text formatters in `CometChatMessageComposer`
 
-1. **Create the ShortCutFormatter Class**: Define the `ShortCutFormatter` class by extending the `CometChatTextFormatter` class.
+## Prerequisites
+
+- CometChat Android UI Kit dependency added to your project
+- `CometChatUIKit.init()` called and completed
+- A logged-in CometChat user
+- The `message-shortcuts` CometChat extension enabled on your app
+- Familiarity with the [CometChatMessageComposer](/ui-kit/android/message-composer) component
+
+## Quick Start
+
+1. Create a `ShortCutFormatter` class that extends `CometChatTextFormatter` with `'!'` as the tracking character:
 
 <Tabs>
-<Tab title="Java">
-```java lines
-  public class ShortCutFormatter extends CometChatTextFormatter {
-      // Class implementation
-  private HashMap<String, String> messageShortcuts;
-  private List<SuggestionItem> shortcuts;
-  }
+<Tab title="Kotlin">
+```kotlin
+class ShortCutFormatterKotlin : CometChatTextFormatter('!') {
+    private val messageShortcuts: HashMap<String, String> = HashMap()
+    private val shortcuts: MutableList<SuggestionItem> = ArrayList()
+}
 ```
-
 </Tab>
+<Tab title="Java">
+```java
+public class ShortCutFormatter extends CometChatTextFormatter {
+    private HashMap<String, String> messageShortcuts;
+    private List<SuggestionItem> shortcuts;
+}
+```
+</Tab>
+</Tabs>
 
+> **What this does:** Defines a `ShortCutFormatter` class that extends `CometChatTextFormatter` with `'!'` as the tracking character. The class declares a `HashMap` to store shortcut key-value pairs and a list to hold `SuggestionItem` objects for display.
+
+2. Add a constructor that calls `prepareShortCuts()` to fetch shortcuts from the server, and override the `search()` and `onScrollToBottom()` methods (see the Implementation section for full code).
+
+3. Initialize an instance of `ShortCutFormatter`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val shortCutFormatter = ShortCutFormatter()
+```
+</Tab>
+<Tab title="Java">
+```java
+ShortCutFormatter shortCutFormatter = new ShortCutFormatter();
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Creates a new `ShortCutFormatter` instance. The constructor calls `prepareShortCuts()`, which fetches message shortcuts from the CometChat `message-shortcuts` extension.
+
+4. Get the existing text formatters from `CometChatUIKit.getDataSource()`, add the `ShortCutFormatter`, and pass the list to `CometChatMessageComposer` via `setTextFormatters()`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val cometChatMessageComposer: CometChatMessageComposer =
+            findViewById<CometChatMessageComposer>(R.id.composer)
+
+val cometChatTextFormatters = CometChatUIKit.getDataSource().getTextFormatters(this)
+cometChatTextFormatters.add(ShortCutFormatter())
+cometChatMessageComposer.setTextFormatters(cometChatTextFormatters)
+```
+</Tab>
+<Tab title="Java">
+```java
+CometChatMessageComposer cometChatMessageComposer = findViewById(R.id.composer);
+
+List<CometChatTextFormatter> cometChatTextFormatters = CometChatUIKit.getDataSource().getTextFormatters(this);
+cometChatTextFormatters.add(new ShortCutFormatter());
+cometChatMessageComposer.setTextFormatters(cometChatTextFormatters);
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Retrieves the default text formatters from `CometChatUIKit.getDataSource()`, adds the `ShortCutFormatter` to the list, and passes the combined list to `CometChatMessageComposer` via `setTextFormatters()`. The composer now supports both the default formatters and the shortcut formatter.
+
+## Core Concepts
+
+### The Text Formatter Extension Pattern
+
+`ShortCutFormatter` extends `CometChatTextFormatter`, which is the base class for all text formatters in the CometChat UI Kit. By extending this class, you can create custom formatters that plug into any component accepting text formatters via `setTextFormatters()`.
+
+The key elements of the extension pattern:
+
+- **Tracking character**: The constructor passes a character (in this case `'!'`) to `CometChatTextFormatter`. When the user types this character in the composer, the formatter activates and begins matching input against registered shortcuts.
+- **`search()` method**: Override this method to define how the formatter matches user input against available shortcuts. The method receives the current query string and updates the suggestion list.
+- **`SuggestionItem` list**: The formatter populates a list of `SuggestionItem` objects and passes them to the UI via `setSuggestionItemList()` (Java) or `suggestionItemList.value` (Kotlin). The composer displays these as selectable suggestions.
+- **`onScrollToBottom()` method**: Override this method to handle scroll-to-bottom events in the suggestion list. This is required by the `CometChatTextFormatter` base class.
+
+### How Shortcuts Work
+
+1. On initialization, `prepareShortCuts()` calls `CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", ...)` to fetch shortcut key-value pairs from the server.
+2. The fetched shortcuts are stored in a `HashMap<String, String>` where keys are shortcut triggers (e.g., `!hi`) and values are the expanded text.
+3. When the user types the tracking character `'!'` followed by text, the `search()` method checks if the combined string matches a key in the shortcuts map.
+4. If a match is found, a `SuggestionItem` is created showing the shortcut and its expansion (e.g., `!hi  =>  Hello, how are you?`), and the suggestion list is updated.
+
+## Implementation
+
+### Class Creation
+
+What you are changing: Creating the `ShortCutFormatter` class that extends `CometChatTextFormatter` to handle message shortcuts.
+
+- **Where**: A new class file in your project (e.g., `ShortCutFormatter.java` or `ShortCutFormatterKotlin.kt`)
+- **Applies to**: `CometChatMessageComposer` (via `setTextFormatters()`)
+- **Default behavior**: Without this class, the message composer has no shortcut expansion functionality
+- **Override**: Create a class extending `CometChatTextFormatter` with `'!'` as the tracking character, and declare a `HashMap` for shortcuts and a `List` for `SuggestionItem` objects
+
+**Code:**
+
+<Tabs>
 <Tab title="Kotlin">
 ```kotlin lines
 class ShortCutFormatterKotlin : CometChatTextFormatter('!') {
@@ -30,14 +132,41 @@ class ShortCutFormatterKotlin : CometChatTextFormatter('!') {
     private val shortcuts: MutableList<SuggestionItem> = ArrayList()
 }
 ```
-
 </Tab>
-
+<Tab title="Java">
+```java lines
+  public class ShortCutFormatter extends CometChatTextFormatter {
+      // Class implementation
+  private HashMap<String, String> messageShortcuts;
+  private List<SuggestionItem> shortcuts;
+  }
+```
+</Tab>
 </Tabs>
 
-2. **Constructor**: Initialize the `messageShortcuts` map and `shortcuts` list in the constructor.
+> **What this does:** Defines the `ShortCutFormatter` class extending `CometChatTextFormatter` with `'!'` as the tracking character. It declares a `HashMap<String, String>` to store shortcut key-value pairs and a `List<SuggestionItem>` to hold suggestion items displayed in the composer.
+
+- **Verify**: The class compiles without errors and extends `CometChatTextFormatter` with the `'!'` character passed to the superclass constructor.
+
+### Constructor
+
+What you are changing: Initializing the shortcuts map and list, and triggering the server fetch for shortcuts.
+
+- **Where**: The constructor of `ShortCutFormatter` (Java) or the `init` block of `ShortCutFormatterKotlin` (Kotlin)
+- **Applies to**: `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Default behavior**: Without the constructor, the `messageShortcuts` map and `shortcuts` list are not initialized, and shortcuts are not fetched from the server
+- **Override**: In Java, initialize `messageShortcuts` and `shortcuts` in the constructor and call `prepareShortCuts()`. In Kotlin, call `prepareShortCuts()` in the `init` block (properties are initialized at declaration)
+
+**Code:**
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+  init {
+        prepareShortCuts()
+    }
+```
+</Tab>
 <Tab title="Java">
 ```java lines
  public ShortCutFormatter() {
@@ -47,55 +176,25 @@ class ShortCutFormatterKotlin : CometChatTextFormatter('!') {
      shortcuts = new ArrayList<>();
  }
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-  init {
-        prepareShortCuts()
-    }
-```
-
-</Tab>
-
 </Tabs>
 
-3. **Prepare Shortcuts**: Implement the `prepareShortCuts()` method to fetch shortcuts from the server using CometChat extension.
+> **What this does:** In Kotlin, the `init` block calls `prepareShortCuts()` to fetch shortcuts from the server on initialization. In Java, the constructor calls `super('!')` to set the tracking character, initializes the `messageShortcuts` HashMap and `shortcuts` ArrayList, and calls `prepareShortCuts()` to fetch shortcuts.
+
+- **Verify**: After constructing a `ShortCutFormatter` instance, the `prepareShortCuts()` method is called, which initiates a network request to fetch message shortcuts from the CometChat `message-shortcuts` extension.
+
+### Prepare Shortcuts
+
+What you are changing: Implementing the method that fetches shortcut key-value pairs from the CometChat `message-shortcuts` extension.
+
+- **Where**: The `prepareShortCuts()` method inside `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Applies to**: `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Default behavior**: Without this method, the `messageShortcuts` map remains empty and no shortcuts are available for matching
+- **Override**: Implement `prepareShortCuts()` to call `CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", ...)` and populate the `messageShortcuts` map from the JSON response
+
+**Code:**
 
 <Tabs>
-<Tab title="Java">
-```java lines
-private void prepareShortCuts() {
-  // Implementation to fetch shortcuts from server
-  CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", null, new CometChat.CallbackListener<JSONObject>() {
-      @Override
-      public void onSuccess(JSONObject responseObject) {
-
-          Iterator<String> keysItr;
-          try {
-              JSONObject shortcutObject = responseObject.getJSONObject("data").getJSONObject("shortcuts");
-              keysItr = shortcutObject.keys();
-
-              while (keysItr.hasNext()) {
-                  String key = keysItr.next();
-                  String value = shortcutObject.getString(key);
-                  messageShortcuts.put(key, value);
-              }
-          } catch (JSONException e) {
-              e.printStackTrace();
-          }
-      }
-
-      @Override
-      public void onError(CometChatException e) {
-      }
-  });
-}
-```
-
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 private fun prepareShortCuts() {
@@ -125,32 +224,55 @@ private fun prepareShortCuts() {
             })
     }
 ```
-
 </Tab>
-
-</Tabs>
-
-4. **Override Search Method**: Override the `search()` method to search for shortcuts based on the entered query.
-
-<Tabs>
 <Tab title="Java">
 ```java lines
-@Override
-public void search(@NonNull Context context, String queryString) {
-    // Implementation to search for shortcuts
-      String query = getTrackingCharacter() + queryString;
-    shortcuts.clear();
-    if (messageShortcuts.containsKey(query)) {
-        SuggestionItem suggestionItem = new SuggestionItem("", query + "  =>  " + messageShortcuts.get(query), null, null, messageShortcuts.get(query), null, null);
-        suggestionItem.setHideLeadingIcon(true);
-        shortcuts.add(suggestionItem);
-    }
-    setSuggestionItemList(shortcuts);
+private void prepareShortCuts() {
+  // Implementation to fetch shortcuts from server
+  CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", null, new CometChat.CallbackListener<JSONObject>() {
+      @Override
+      public void onSuccess(JSONObject responseObject) {
+
+          Iterator<String> keysItr;
+          try {
+              JSONObject shortcutObject = responseObject.getJSONObject("data").getJSONObject("shortcuts");
+              keysItr = shortcutObject.keys();
+
+              while (keysItr.hasNext()) {
+                  String key = keysItr.next();
+                  String value = shortcutObject.getString(key);
+                  messageShortcuts.put(key, value);
+              }
+          } catch (JSONException e) {
+              e.printStackTrace();
+          }
+      }
+
+      @Override
+      public void onError(CometChatException e) {
+      }
+  });
 }
 ```
-
 </Tab>
+</Tabs>
 
+> **What this does:** Calls the CometChat `message-shortcuts` extension via `CometChat.callExtension()` with a GET request to `/v1/fetch`. On success, it parses the JSON response to extract the `shortcuts` object from `data`, iterates over its keys, and stores each shortcut key-value pair in the `messageShortcuts` HashMap.
+
+- **Verify**: After the extension call completes, the `messageShortcuts` HashMap contains the shortcut key-value pairs fetched from the server (e.g., `"!hi"` → `"Hello, how are you?"`). If the extension is not enabled or the request fails, the `onError` callback is invoked and the map remains empty.
+
+### Override Search Method
+
+What you are changing: Implementing the logic that matches user input against stored shortcuts and updates the suggestion list.
+
+- **Where**: The `search()` method override inside `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Applies to**: `CometChatMessageComposer` (the composer calls `search()` when the user types after the tracking character)
+- **Default behavior**: The base `CometChatTextFormatter.search()` does nothing — no suggestions are shown
+- **Override**: Override `search()` to combine the tracking character with the query string, check if the combined string exists as a key in `messageShortcuts`, and if so, create a `SuggestionItem` and update the suggestion list
+
+**Code:**
+
+<Tabs>
 <Tab title="Kotlin">
 ```kotlin lines
   override fun search(context: Context, queryString: String?) {
@@ -172,14 +294,48 @@ public void search(@NonNull Context context, String queryString) {
         suggestionItemList.value = shortcuts
     }
 ```
-
 </Tab>
-
+<Tab title="Java">
+```java lines
+@Override
+public void search(@NonNull Context context, String queryString) {
+    // Implementation to search for shortcuts
+      String query = getTrackingCharacter() + queryString;
+    shortcuts.clear();
+    if (messageShortcuts.containsKey(query)) {
+        SuggestionItem suggestionItem = new SuggestionItem("", query + "  =>  " + messageShortcuts.get(query), null, null, messageShortcuts.get(query), null, null);
+        suggestionItem.setHideLeadingIcon(true);
+        shortcuts.add(suggestionItem);
+    }
+    setSuggestionItemList(shortcuts);
+}
+```
+</Tab>
 </Tabs>
 
-5. **Handle Scroll to Bottom**: Override the `onScrollToBottom()` method if needed.
+> **What this does:** Combines the tracking character (`'!'`) with the user's query string to form the full shortcut key. Clears the current suggestions list, then checks if the `messageShortcuts` map contains the key. If a match is found, it creates a `SuggestionItem` displaying the shortcut and its expansion (e.g., `!hi  =>  Hello, how are you?`), hides the leading icon, and updates the suggestion list so the composer displays the match.
+
+- **Verify**: When the user types `!` followed by a valid shortcut key (e.g., `!hi`) in the message composer, a suggestion item appears showing the shortcut and its expanded text. If the typed text does not match any shortcut key, no suggestions are displayed.
+
+### Handle Scroll to Bottom
+
+What you are changing: Providing the required `onScrollToBottom()` override for the `CometChatTextFormatter` base class.
+
+- **Where**: The `onScrollToBottom()` method override inside `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Applies to**: `ShortCutFormatter` / `ShortCutFormatterKotlin`
+- **Default behavior**: The base class requires this method to be overridden
+- **Override**: Override `onScrollToBottom()` with an empty implementation or a placeholder, since shortcut suggestions do not require scroll-to-bottom handling
+
+**Code:**
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+override fun onScrollToBottom() {
+        TODO("Not yet implemented")
+    }
+```
+</Tab>
 <Tab title="Java">
 ```java lines
  @Override
@@ -187,45 +343,26 @@ public void search(@NonNull Context context, String queryString) {
      // Implementation if needed
  }
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-override fun onScrollToBottom() {
-        TODO("Not yet implemented")
-    }
-```
-
-</Tab>
-
 </Tabs>
 
-## Usage
+> **What this does:** Provides the required override of `onScrollToBottom()` from the `CometChatTextFormatter` base class. In this implementation, the method body is left as a placeholder because shortcut suggestions do not require scroll-to-bottom handling.
 
-1. **Initialization**: Initialize an instance of `ShortCutFormatter` in your application.
+- **Verify**: The class compiles without errors with the `onScrollToBottom()` override in place.
 
-<Tabs>
-<Tab title="Java">
-```java lines
-ShortCutFormatter shortCutFormatter = new ShortCutFormatter();
-```
+### Integration with MessageComposer
 
-</Tab>
+What you are changing: Adding the `ShortCutFormatter` to `CometChatMessageComposer` so that shortcut suggestions appear when the user types the tracking character.
 
-<Tab title="Kotlin">
-```kotlin lines
- val shortCutFormatter = ShortCutFormatter()
-```
+- **Where**: Your Activity or Fragment where you configure `CometChatMessageComposer`
+- **Applies to**: `CometChatMessageComposer`
+- **Default behavior**: Without adding the `ShortCutFormatter`, the message composer does not display shortcut suggestions when the user types `'!'`
+- **Override**: Add a `CometChatMessageComposer` to your XML layout, then in your Activity or Fragment, get the existing text formatters from `CometChatUIKit.getDataSource().getTextFormatters()`, add a `ShortCutFormatter` instance, and call `setTextFormatters()` on the composer
 
-</Tab>
+**Code:**
 
-</Tabs>
+**XML Layout:**
 
-2. **Integration**: Integrating the `ShortCutFormatter` into your CometChat application involves incorporating it within your project to handle message shortcuts. Use [MessageComposer](/ui-kit/android/message-composer) component, you can seamlessly integrate the ShortCutFormatter to manage shortcut functionalities within your application.
-
-<Tabs>
-<Tab title="XML">
 ```xml lines
 <com.cometchat.chatuikit.messagecomposer.CometChatMessageComposer
  android:id="@+id/composer"
@@ -233,22 +370,9 @@ ShortCutFormatter shortCutFormatter = new ShortCutFormatter();
  android:layout_height="match_parent" />
 ```
 
-</Tab>
-
-</Tabs>
+> **What this does:** Adds a `CometChatMessageComposer` widget to your XML layout with the id `composer`, set to fill the parent width and height.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-CometChatMessageComposer cometChatMessageComposer = findViewById(R.id.composer);
-
-List<CometChatTextFormatter> cometChatTextFormatters = CometChatUIKit.getDataSource().getTextFormatters(this);
-cometChatTextFormatters.add(new ShortCutFormatter());
-cometChatMessageComposer.setTextFormatters(cometChatTextFormatters);
-```
-
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 val cometChatMessageComposer: CometChatMessageComposer =
@@ -258,13 +382,55 @@ val cometChatTextFormatters = CometChatUIKit.getDataSource().getTextFormatters(t
 cometChatTextFormatters.add(ShortCutFormatter())
 cometChatMessageComposer.setTextFormatters(cometChatTextFormatters)
 ```
-
 </Tab>
+<Tab title="Java">
+```java lines
+CometChatMessageComposer cometChatMessageComposer = findViewById(R.id.composer);
 
+List<CometChatTextFormatter> cometChatTextFormatters = CometChatUIKit.getDataSource().getTextFormatters(this);
+cometChatTextFormatters.add(new ShortCutFormatter());
+cometChatMessageComposer.setTextFormatters(cometChatTextFormatters);
+```
+</Tab>
 </Tabs>
 
-## Example
+> **What this does:** Finds the `CometChatMessageComposer` view by its id, retrieves the default text formatters list from `CometChatUIKit.getDataSource().getTextFormatters()`, adds a new `ShortCutFormatter` instance to the list, and passes the combined list to the composer via `setTextFormatters()`. The composer now supports shortcut suggestions alongside any default formatters.
 
 <Frame>
   <img src="/images/d86e764a-shortcut_extension_guide-e21ce89a7fbb141a897f907b13dcc3c3.png" />
 </Frame>
+
+- **Verify**: After running the app, typing `!` followed by a valid shortcut key in the message composer displays a suggestion item showing the shortcut and its expanded text. Selecting the suggestion inserts the expanded text into the composer.
+
+## Common Pitfalls and Fixes
+
+| Pitfall | Fix |
+| ------- | --- |
+| Shortcut suggestions do not appear when typing `!` | Confirm that the `ShortCutFormatter` instance is added to the formatters list and that `setTextFormatters()` is called on the `CometChatMessageComposer` instance. |
+| Formatter created but not added to the formatters list | Call `cometChatTextFormatters.add(new ShortCutFormatter())` (Java) or `cometChatTextFormatters.add(ShortCutFormatter())` (Kotlin) before calling `setTextFormatters()`. If the formatter is not in the list, `setTextFormatters()` has no effect on shortcut handling. |
+| Called `setTextFormatters()` with an empty list | Add at least one formatter to the list before calling `setTextFormatters()`. Retrieve the default formatters via `CometChatUIKit.getDataSource().getTextFormatters(this)` and add the `ShortCutFormatter` to that list. |
+| `prepareShortCuts()` does not populate the shortcuts map | Confirm that the `message-shortcuts` CometChat extension is enabled on your CometChat dashboard. The `CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", ...)` call returns an empty or error response if the extension is not enabled. |
+| Shortcuts fetched but `search()` does not find matches | The `search()` method combines the tracking character `'!'` with the query string to form the lookup key. Confirm that the keys stored in `messageShortcuts` include the `'!'` prefix (e.g., `"!hi"`, not `"hi"`). |
+| `CometChatMessageComposer` not found in layout | Confirm that your XML layout includes `<com.cometchat.chatuikit.messagecomposer.CometChatMessageComposer>` with the correct `android:id` matching the `findViewById()` call. |
+
+## FAQ
+
+**Q: What tracking character does `ShortCutFormatter` use?**
+A: `ShortCutFormatter` uses `'!'` as the tracking character, passed to the `CometChatTextFormatter` superclass constructor. When the user types `!` in the message composer, the formatter activates and begins matching input against stored shortcuts.
+
+**Q: Where does `ShortCutFormatter` fetch shortcuts from?**
+A: Shortcuts are fetched from the CometChat `message-shortcuts` extension via `CometChat.callExtension("message-shortcuts", "GET", "/v1/fetch", null, ...)`. The response JSON contains a `data.shortcuts` object with key-value pairs.
+
+**Q: Can I use `ShortCutFormatter` alongside other text formatters like `CometChatMentionsFormatter`?**
+A: Yes. Retrieve the default formatters list via `CometChatUIKit.getDataSource().getTextFormatters(this)`, add the `ShortCutFormatter` to the list, and pass the combined list to `CometChatMessageComposer` via `setTextFormatters()`. All formatters in the list are active simultaneously.
+
+**Q: Do I need to implement `onScrollToBottom()` with actual logic?**
+A: The `CometChatTextFormatter` base class requires the `onScrollToBottom()` override. For `ShortCutFormatter`, the method body can be left as a placeholder because shortcut suggestions do not require scroll-to-bottom handling.
+
+**Q: What happens if the `message-shortcuts` extension is not enabled?**
+A: If the extension is not enabled, the `CometChat.callExtension()` call triggers the `onError` callback, and the `messageShortcuts` map remains empty. The `search()` method finds no matches, so no suggestions are displayed.
+
+## Next steps
+
+- [Message Composer component](/ui-kit/android/message-composer) — configure the composer where `ShortCutFormatter` is integrated via `setTextFormatters()`
+- [Mentions Formatter guide](/ui-kit/android/mentions-formatter-guide) — another text formatter implementation using `CometChatMentionsFormatter` for @mention handling

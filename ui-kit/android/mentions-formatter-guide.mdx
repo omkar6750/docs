@@ -2,33 +2,130 @@
 title: "Mentions Formatter"
 ---
 
-## Overview
+`CometChatMentionsFormatter` formats and styles @mentions within text messages, enabling users to reference other participants in a conversation with customizable appearance and click handling across the message composer, message bubbles, and conversations list.
 
-The `CometChatMentionsFormatter` class is a part of the CometChat UI Kit, a ready-to-use chat UI component library for integrating CometChat into your Android applications. This class provides functionality to format mentions within text messages displayed in the chat interface. Mentions allow users to reference other users within a conversation, providing a convenient way to direct messages or involve specific participants.
+## When to Use This
 
-## Features
+- You need to format @mentions in text messages displayed in the chat interface
+- You want to customize the text style, color, or background of mentions in the message composer
+- You want to style mentions differently in outgoing vs. incoming message bubbles
+- You need to handle click events on mentions in message bubbles (e.g., navigate to a user profile)
+- You want to control which users or group members appear in the mention suggestions list
+- You need to customize how mentions appear in the [CometChatConversations](/ui-kit/android/conversations) last-message preview
 
-* **Mention Formatting**: Automatically formats mentions within text messages based on provided styles and settings.
-* **Customizable Styles**: Allows customization of text styles for mentions, including colors, fonts, and background colors.
-* **User and Group Member Mentions**: Supports mentions for both individual users and group members, providing flexibility in communication scenarios.
-* **Mention List Generation**: Generates a list of suggested mentions based on user input, facilitating easy selection of recipients during message composition.
-* **Mention Click Handling**: Provides a listener interface for handling click events on mentions, enabling custom actions to be performed when a mention is tapped by the user.
+## Prerequisites
 
-## Usage
+- CometChat Android UI Kit dependency added to your project
+- `CometChatUIKit.init()` called and completed
+- A logged-in CometChat user
+- Familiarity with the [CometChatMessageComposer](/ui-kit/android/message-composer) component
+- Familiarity with the [CometChatMessageList](/ui-kit/android/message-list) component
+- Familiarity with the [CometChatConversations](/ui-kit/android/conversations) component
 
-To integrate the `CometChatMentionsFormatter` class into your application:
+## Quick Start
 
-1. **Initialization**: Create an instance of the `CometChatMentionsFormatter` class and configure it with desired settings, such as mention text styles and limit settings.
-
-2. **Set Mention Listeners**: Set listeners for handling mention click events (`setOnMentionClick`).
-
-3. **Format Messages**: Use the `prepareLeftMessageBubbleSpan`, `prepareRightMessageBubbleSpan`, `prepareComposerSpan`, and `prepareConversationSpan` methods to format text messages with mentions appropriately for display in the chat interface.
-
-4. **Customization**: Customize the appearance and behavior of mentions by adjusting the text styles, colors, and other formatting properties as needed.
-
-Below is an example demonstrating how to use the `CometChatMentionsFormatter` class in components such as [CometChatConversations](/ui-kit/android/conversations#settextformatters), [CometChatMessageList](/ui-kit/android/message-list#settextformatters), [CometChatMessageComposer](/ui-kit/android/message-composer#settextformatters).
+1. Create an instance of `CometChatMentionsFormatter`:
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin
+val mentionFormatter = CometChatMentionsFormatter(context)
+```
+</Tab>
+<Tab title="Java">
+```java
+CometChatMentionsFormatter mentionFormatter = new CometChatMentionsFormatter(context);
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Creates a new `CometChatMentionsFormatter` instance initialized with the given Android `Context`.
+
+2. Add the formatter to a text formatters list:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
+textFormatters.add(mentionFormatter)
+```
+</Tab>
+<Tab title="Java">
+```java
+List<CometChatTextFormatter> textFormatters = new ArrayList<>();
+textFormatters.add(mentionFormatter);
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Creates a mutable list of `CometChatTextFormatter` and adds the mentions formatter to it. This list is passed to a component in the next step.
+
+3. Pass the formatters list to a component using `setTextFormatters()`:
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin
+messageComposer.setTextFormatters(textFormatters)
+```
+</Tab>
+<Tab title="Java">
+```java
+messageComposer.setTextFormatters(textFormatters);
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Passes the text formatters list (containing the mentions formatter) to the `CometChatMessageComposer` component, enabling mention formatting in the composer. You can also pass this list to `CometChatMessageList` or `CometChatConversations` using their respective `setTextFormatters()` methods.
+
+## Core Concepts
+
+### The Formatter Pattern
+
+`CometChatMentionsFormatter` extends `CometChatTextFormatter` and plugs into any component that accepts text formatters via `setTextFormatters()`. The formatter intercepts text rendering and applies mention-specific styling and behavior.
+
+### How Mentions Work
+
+- **Mention Formatting**: The formatter automatically formats mentions within text messages based on provided styles and settings.
+- **Customizable Styles**: You can customize text styles for mentions, including colors, fonts, and background colors.
+- **User and Group Member Mentions**: The formatter supports mentions for both individual users and group members.
+- **Mention List Generation**: The formatter generates a list of suggested mentions based on user input during message composition.
+- **Mention Click Handling**: The formatter provides a listener interface for handling click events on mentions, enabling custom actions when a mention is tapped.
+
+### Formatting Methods
+
+The formatter uses these internal methods to apply mention spans in different contexts:
+
+- `prepareLeftMessageBubbleSpan` — formats mentions in incoming message bubbles
+- `prepareRightMessageBubbleSpan` — formats mentions in outgoing message bubbles
+- `prepareComposerSpan` — formats mentions in the message composer
+- `prepareConversationSpan` — formats mentions in the conversations list
+
+These methods are called automatically by the UI Kit when the formatter is attached to a component.
+
+## Implementation
+
+### Initialization and Basic Usage
+
+What you are changing: Adding `CometChatMentionsFormatter` to a component so that mentions are formatted in the chat interface.
+
+- **Where**: Your Activity or Fragment where you configure `CometChatConversations`, `CometChatMessageList`, or `CometChatMessageComposer`
+- **Applies to**: `CometChatConversations`, `CometChatMessageList`, `CometChatMessageComposer`
+- **Default behavior**: Without a mentions formatter, @mention text renders as plain text with no special styling or click handling
+- **Override**: Create a `CometChatMentionsFormatter` instance, add it to a `List<CometChatTextFormatter>`, and pass the list to the target component via `setTextFormatters()`
+
+**Code:**
+
+<Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+ // Initialize CometChatMentionsFormatter
+ val mentionFormatter = CometChatMentionsFormatter(this)
+
+val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
+textFormatters.add(mentionFormatter)
+// This can be passed as an array of formatter in CometChatConversations, MessageList or Message Composer by using setTextFormatters method.
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 // Initialize CometChatMentionsFormatter
@@ -39,58 +136,29 @@ List<CometChatTextFormatter> textFormatters = new ArrayList<>();
 textFormatters.add(mentionFormatter);
 // This can be passed as an array of formatter in CometChatConversations, MessageList or Message Composer by using setTextFormatters method.
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
- // Initialize CometChatMentionsFormatter
- val mentionFormatter = CometChatMentionsFormatter(this)
-
-val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
-textFormatters.add(mentionFormatter)
-// This can be passed as an array of formatter in CometChatConversations, MessageList or Message Composer by using setTextFormatters method.
-```
-
-</Tab>
-
 </Tabs>
 
-## Actions
+> **What this does:** Creates a `CometChatMentionsFormatter` instance, adds it to a list of text formatters, and prepares the list to be passed to `CometChatConversations`, `CometChatMessageList`, or `CometChatMessageComposer` via `setTextFormatters()`.
 
-Actions dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
+- **Verify**: After passing the formatters list to a component via `setTextFormatters()`, @mentions in messages render with styled text (colored and formatted) instead of plain text.
 
-##### setOnMentionClick
+### `setOnMentionClick` Action
 
-Setting a listener for mention-click events in Message Bubbles enhances interactivity within the chat. This listener is activated when a mention is clicked, returning the corresponding user object. This feature transforms mentions into interactive links, enabling more in-depth and contextual engagement with the user associated with the clicked mention.
+What you are changing: Adding a click listener for mentions in message bubbles so that tapping a mention triggers a custom action.
 
-**Example**
+- **Where**: `CometChatMentionsFormatter` instance, passed to `CometChatMessageComposer` via `setTextFormatters()`
+- **Applies to**: Mention text in message bubbles rendered by `CometChatMessageList`
+- **Default behavior**: Tapping a mention in a message bubble does nothing
+- **Override**: Call `setOnMentionClick()` on the `CometChatMentionsFormatter` instance with a callback that receives the `context` and the mentioned `user` object
 
 <Frame>
   <img src="/images/6edf49c4-mentions_actions-cb71d40bd7f1fb80d33459157efdb658.png" />
 </Frame>
 
+**Code:**
+
 <Tabs>
-<Tab title="Java">
-```java lines
-
-// Initialize CometChatMentionsFormatter
-CometChatMentionsFormatter mentionFormatter = new CometChatMentionsFormatter(context);
-
-// set callback for the mention click
-
-  mentionFormatter.setOnMentionClick((context, user) -> {
-        Toast.makeText(context, user.getName(), Toast.LENGTH_SHORT).show();
-  });
-
-// This can be passed as an array of formatter in CometChatMessageComposer by using setTextFormatters method.
-List<CometChatTextFormatter> textFormatters = new ArrayList<>();
-textFormatters.add(mentionFormatter);
-messageComposer.setTextFormatters(textFormatters);
-```
-
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 
@@ -108,35 +176,45 @@ val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
 textFormatters.add(mentionFormatter)
 messageComposer.setTextFormatters(textFormatters)
 ```
-
 </Tab>
+<Tab title="Java">
+```java lines
 
+// Initialize CometChatMentionsFormatter
+CometChatMentionsFormatter mentionFormatter = new CometChatMentionsFormatter(context);
+
+// set callback for the mention click
+
+  mentionFormatter.setOnMentionClick((context, user) -> {
+        Toast.makeText(context, user.getName(), Toast.LENGTH_SHORT).show();
+  });
+
+// This can be passed as an array of formatter in CometChatMessageComposer by using setTextFormatters method.
+List<CometChatTextFormatter> textFormatters = new ArrayList<>();
+textFormatters.add(mentionFormatter);
+messageComposer.setTextFormatters(textFormatters);
+```
+</Tab>
 </Tabs>
 
-## Customization
+> **What this does:** Sets a click listener on the mentions formatter that displays a `Toast` with the mentioned user's name when a mention is tapped in a message bubble. The formatter is then added to a list and passed to `CometChatMessageComposer` via `setTextFormatters()`.
 
-| Methods                           | Description                                                                                                                                                                                                                                                                                                               | Code                                                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **setMentionLimit**               | Sets the limit for the number of mentions allowed.                                                                                                                                                                                                                                                                        | `setMentionLimit(int limit)`                                                                                    |
-| **setGroupMembersRequestBuilder** | Sets the builder for fetching group members.                                                                                                                                                                                                                                                                              | `.setGroupMembersRequestBuilder(group -> new GroupMembersRequest.GroupMembersRequestBuilder(group.getGuid()));` |
-| **setUsersRequestBuilder**        | Sets the builder for fetching users.                                                                                                                                                                                                                                                                                      | `.setUsersRequestBuilder(new UsersRequest.UsersRequestBuilder().friendsOnly(true));`                            |
-| **setMentionsType**               | Supports two types of mentions: `USERS` and `USERS_AND_GROUP_MEMBERS`. If set to `USERS`, only users can be mentioned in both one-on-one and group conversations. If set to `USERS_AND_GROUP_MEMBERS`, members of a specific group can be mentioned in group chats, while all users can be mentioned in one-on-one chats. | `.setMentionsType(UIKitConstants.MentionsType.USERS_AND_GROUP_MEMBERS)`                                         |
-| **setMentionsVisibility**         | This method allows you to set the scope of mentions visibility within the app, choosing from `USERS_CONVERSATION_ONLY`, `GROUP_CONVERSATION_ONLY`, or `BOTH`. It lets you specify whether mentions are visible only in one-on-one conversations, only in group conversations, or in both.                                 | `.setMentionsVisibility(UIKitConstants.MentionsVisibility.BOTH);`                                               |
-| **setOnMentionClick**             | Sets a listener for mention click in Message Bubbles events.                                                                                                                                                                                                                                                              | `mentionFormatter.setOnMentionClick((context, user) -> {` `// Add your implementation here` `});`               |
-
-## Advance
-
-For advanced-level customization, you can set the style of the Mentions formatters. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your formatters style.
+- **Verify**: Tapping a mention in a message bubble displays a Toast showing the mentioned user's name.
 
 ### Composer Mention Text Style
 
-Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel for [CometChatMessageComposer](/ui-kit/android/message-composer) refer to the below code snippet
+What you are changing: The visual appearance of mention text inside the `CometChatMessageComposer` input field.
 
-**Example**
+- **Where**: XML theme style applied via `mentionFormatter.setMessageComposerMentionTextStyle()`
+- **Applies to**: `CometChatMessageComposer`
+- **Default behavior**: Mentions in the composer use the default `CometChatMessageComposerMentionsStyle`
+- **Override**: Define a custom style extending `CometChatMessageComposerMentionsStyle` in your `themes.xml`, then call `setMessageComposerMentionTextStyle()` on the formatter instance
 
 <Frame>
   <img src="/images/b2f00911-mentions_message_composer-b1d1dd7961bc3c2953e7439bb516200b.png" />
 </Frame>
+
+**XML Style:**
 
 ```xml themes.xml lines
 
@@ -150,7 +228,24 @@ Assigns the list of text formatters. If the provided list is not null, it sets t
 </style>
 ```
 
+> **What this does:** Defines a custom XML style for mentions in the message composer. It sets the mention text color to `#000000`, the self-mention text color to `#30A46C`, and applies `cometchatTextAppearanceBodyRegular` for both mention and self-mention text appearance.
+
+**Code:**
+
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+// Initialize CometChatMentionsFormatter
+val mentionFormatter = CometChatMentionsFormatter(context)
+// set style to customize composer mention text
+mentionFormatter.setMessageComposerMentionTextStyle(context, R.style.CustomMessageComposerMentionsStyle)
+
+// This can be passed as an array of formatter in CometChatMessageComposer by using setTextFormatters method.
+val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
+textFormatters.add(mentionFormatter)
+messageComposer.setTextFormatters(textFormatters)
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 // Initialize CometChatMentionsFormatter
@@ -164,35 +259,27 @@ List<CometChatTextFormatter> textFormatters = new ArrayList<>();
 textFormatters.add(mentionFormatter);
 messageComposer.setTextFormatters(textFormatters);
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-// Initialize CometChatMentionsFormatter
-val mentionFormatter = CometChatMentionsFormatter(context)
-// set style to customize composer mention text
-mentionFormatter.setMessageComposerMentionTextStyle(context, R.style.CustomMessageComposerMentionsStyle)
-
-// This can be passed as an array of formatter in CometChatMessageComposer by using setTextFormatters method.
-val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
-textFormatters.add(mentionFormatter)
-messageComposer.setTextFormatters(textFormatters)
-```
-
-</Tab>
-
 </Tabs>
+
+> **What this does:** Creates a `CometChatMentionsFormatter`, applies the custom `CustomMessageComposerMentionsStyle` to it, and passes it to `CometChatMessageComposer` via `setTextFormatters()`. Mentions typed in the composer input field render with the custom style.
+
+- **Verify**: Mentions typed in the message composer input field display with the custom text color (`#000000`), self-mention color (`#30A46C`), and the specified text appearance, matching the `CustomMessageComposerMentionsStyle` definition.
 
 ### Message Bubble Mention Text Style
 
-Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel for [CometChatMessageList](/ui-kit/android/message-list)
+What you are changing: The visual appearance of mention text inside incoming and outgoing message bubbles in the `CometChatMessageList`.
 
-**Example**
+- **Where**: XML theme styles applied via `mentionFormatter.setOutgoingBubbleMentionTextStyle()` and `mentionFormatter.setIncomingBubbleMentionTextStyle()`
+- **Applies to**: `CometChatMessageList`
+- **Default behavior**: Incoming mentions use `CometChatIncomingBubbleMentionsStyle` and outgoing mentions use `CometChatOutgoingBubbleMentionsStyle`
+- **Override**: Define custom styles extending `CometChatIncomingBubbleMentionsStyle` and `CometChatOutgoingBubbleMentionsStyle` in your `themes.xml`, then call `setIncomingBubbleMentionTextStyle()` and `setOutgoingBubbleMentionTextStyle()` on the formatter instance
 
 <Frame>
   <img src="/images/e2732868-mentions_message_bubble-fccf9cbdd63a54c2f734803e4480418a.png" />
 </Frame>
+
+**XML Style:**
 
 ```xml themes.xml lines
 <style name="CustomIncomingMessageBubbleMentionStyle" parent="CometChatIncomingBubbleMentionsStyle">
@@ -214,25 +301,11 @@ Assigns the list of text formatters. If the provided list is not null, it sets t
 </style>
 ```
 
+> **What this does:** Defines two custom XML styles for mentions in message bubbles. The incoming style sets mention text color to `#D6409F` (pink). The outgoing style sets mention text color to `#FFFFFF` (white) with a background color of `#F9F8FD`. Both styles set self-mention text color to `#30A46C` (green).
+
+**Code:**
+
 <Tabs>
-<Tab title="Java">
-```java lines
-// Initialize CometChatMentionsFormatter
-CometChatMentionsFormatter mentionFormatter = new CometChatMentionsFormatter(context);
-
-//set style to customize bubble mention text
-mentionFormatter.setOutgoingBubbleMentionTextStyle(context, R.style.CustomOutgoingMessageBubbleMentionStyle);
-
-mentionFormatter.setIncomingBubbleMentionTextStyle(context, R.style.CustomIncomingMessageBubbleMentionStyle);
-
-// This can be passed as an array of formatter in CometChatMessageList by using setTextFormatters method.
-List<CometChatTextFormatter> textFormatters = new ArrayList<>();
-textFormatters.add(mentionFormatter);
-messageList.setTextFormatters(textFormatters);
-```
-
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 
@@ -249,20 +322,43 @@ val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
 textFormatters.add(mentionFormatter)
 messageList.setTextFormatters(textFormatters)
 ```
-
 </Tab>
+<Tab title="Java">
+```java lines
+// Initialize CometChatMentionsFormatter
+CometChatMentionsFormatter mentionFormatter = new CometChatMentionsFormatter(context);
 
+//set style to customize bubble mention text
+mentionFormatter.setOutgoingBubbleMentionTextStyle(context, R.style.CustomOutgoingMessageBubbleMentionStyle);
+
+mentionFormatter.setIncomingBubbleMentionTextStyle(context, R.style.CustomIncomingMessageBubbleMentionStyle);
+
+// This can be passed as an array of formatter in CometChatMessageList by using setTextFormatters method.
+List<CometChatTextFormatter> textFormatters = new ArrayList<>();
+textFormatters.add(mentionFormatter);
+messageList.setTextFormatters(textFormatters);
+```
+</Tab>
 </Tabs>
+
+> **What this does:** Creates a `CometChatMentionsFormatter`, applies custom outgoing and incoming bubble mention styles, and passes the formatter to `CometChatMessageList` via `setTextFormatters()`. Mentions in message bubbles render with the custom colors and text appearance.
+
+- **Verify**: Mentions in outgoing message bubbles display with white text (`#FFFFFF`) and a `#F9F8FD` background. Mentions in incoming message bubbles display with pink text (`#D6409F`). Self-mentions in both bubble types display with green text (`#30A46C`).
 
 ### Conversations Mention Text Style
 
-Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel for [CometChatConversations](/ui-kit/android/conversations)
+What you are changing: The visual appearance of mention text in the last-message preview of the `CometChatConversations` list.
 
-**Example**
+- **Where**: XML theme style applied via `mentionFormatter.setConversationsMentionTextStyle()`
+- **Applies to**: `CometChatConversations`
+- **Default behavior**: Mentions in the conversations list use the default `CometChatConversationsMentionsStyle`
+- **Override**: Define a custom style extending `CometChatConversationsMentionsStyle` in your `themes.xml`, then call `setConversationsMentionTextStyle()` on the formatter instance
 
 <Frame>
   <img src="/images/55490fa9-mentions_conversations-1a7b847ad0af53848dc106216ac64e74.png" />
 </Frame>
+
+**XML Style:**
 
 ```xml themes.xml lines
 <style name="CustomConversationsMentionsStyle" parent="CometChatConversationsMentionsStyle">
@@ -275,7 +371,25 @@ Assigns the list of text formatters. If the provided list is not null, it sets t
 </style>
 ```
 
+> **What this does:** Defines a custom XML style for mentions in the conversations list. It sets the mention text color to `#D6409F` (pink) and the self-mention text color to `#30A46C` (green), with `cometchatTextAppearanceBodyRegular` for text appearance.
+
+**Code:**
+
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+
+// Initialize CometChatMentionsFormatter
+val mentionFormatter = CometChatMentionsFormatter(context)
+//set style to customize conversation mention text
+mentionFormatter.setConversationsMentionTextStyle(context, R.style.CustomConversationsMentionsStyle)
+
+// This can be passed as an array of formatter in CometChatConversations by using setTextFormatters method.
+val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
+textFormatters.add(mentionFormatter)
+cometChatConversations.setTextFormatters(textFormatters)
+```
+</Tab>
 <Tab title="Java">
 ```java lines
 
@@ -290,23 +404,59 @@ List<CometChatTextFormatter> textFormatters = new ArrayList<>();
 textFormatters.add(mentionFormatter);
 cometChatConversations.setTextFormatters(textFormatters);
 ```
-
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-
-// Initialize CometChatMentionsFormatter
-val mentionFormatter = CometChatMentionsFormatter(context)
-//set style to customize conversation mention text
-mentionFormatter.setConversationsMentionTextStyle(context, R.style.CustomConversationsMentionsStyle)
-
-// This can be passed as an array of formatter in CometChatConversations by using setTextFormatters method.
-val textFormatters: MutableList<CometChatTextFormatter> = ArrayList()
-textFormatters.add(mentionFormatter)
-cometChatConversations.setTextFormatters(textFormatters)
-```
-
-</Tab>
-
 </Tabs>
+
+> **What this does:** Creates a `CometChatMentionsFormatter`, applies the custom `CustomConversationsMentionsStyle`, and passes the formatter to `CometChatConversations` via `setTextFormatters()`. Mentions in the conversations list last-message preview render with the custom style.
+
+- **Verify**: Mentions in the conversations list last-message preview display with pink text (`#D6409F`) for other-user mentions and green text (`#30A46C`) for self-mentions, matching the `CustomConversationsMentionsStyle` definition.
+
+## Customization Matrix
+
+| What you want to change | Where | Property/API | Example |
+| ----------------------- | ----- | ------------ | ------- |
+| Maximum number of mentions allowed | `CometChatMentionsFormatter` | `setMentionLimit(int limit)` | `mentionFormatter.setMentionLimit(5)` |
+| Group members fetched for mention suggestions | `CometChatMentionsFormatter` | `.setGroupMembersRequestBuilder(group -> new GroupMembersRequest.GroupMembersRequestBuilder(group.getGuid()));` | `.setGroupMembersRequestBuilder(group -> new GroupMembersRequest.GroupMembersRequestBuilder(group.getGuid()));` |
+| Users fetched for mention suggestions | `CometChatMentionsFormatter` | `.setUsersRequestBuilder(new UsersRequest.UsersRequestBuilder().friendsOnly(true));` | `.setUsersRequestBuilder(new UsersRequest.UsersRequestBuilder().friendsOnly(true));` |
+| Who can be mentioned (users only or users and group members) | `CometChatMentionsFormatter` | `.setMentionsType(UIKitConstants.MentionsType.USERS_AND_GROUP_MEMBERS)` | `.setMentionsType(UIKitConstants.MentionsType.USERS_AND_GROUP_MEMBERS)` |
+| Where mentions are visible (one-on-one, group, or both) | `CometChatMentionsFormatter` | `.setMentionsVisibility(UIKitConstants.MentionsVisibility.BOTH);` | `.setMentionsVisibility(UIKitConstants.MentionsVisibility.BOTH);` |
+| Click action on a mention in message bubbles | `CometChatMentionsFormatter` | `setOnMentionClick` | `mentionFormatter.setOnMentionClick((context, user) -> { });` |
+| Mention text style in the message composer | `CometChatMentionsFormatter` | `setMessageComposerMentionTextStyle(context, styleRes)` | `mentionFormatter.setMessageComposerMentionTextStyle(context, R.style.CustomMessageComposerMentionsStyle)` |
+| Mention text style in outgoing message bubbles | `CometChatMentionsFormatter` | `setOutgoingBubbleMentionTextStyle(context, styleRes)` | `mentionFormatter.setOutgoingBubbleMentionTextStyle(context, R.style.CustomOutgoingMessageBubbleMentionStyle)` |
+| Mention text style in incoming message bubbles | `CometChatMentionsFormatter` | `setIncomingBubbleMentionTextStyle(context, styleRes)` | `mentionFormatter.setIncomingBubbleMentionTextStyle(context, R.style.CustomIncomingMessageBubbleMentionStyle)` |
+| Mention text style in conversations list | `CometChatMentionsFormatter` | `setConversationsMentionTextStyle(context, styleRes)` | `mentionFormatter.setConversationsMentionTextStyle(context, R.style.CustomConversationsMentionsStyle)` |
+
+## Common Pitfalls and Fixes
+
+| Pitfall | Fix |
+| ------- | --- |
+| Mentions render as plain text with no styling | Create a `CometChatMentionsFormatter` instance, add it to a `List<CometChatTextFormatter>`, and pass the list to the component via `setTextFormatters()`. |
+| Formatter created but not added to the formatters list | Call `textFormatters.add(mentionFormatter)` before passing the list to the component. If the formatter is not in the list, `setTextFormatters()` has no effect on mention rendering. |
+| Called `setTextFormatters()` with an empty list | Add at least one `CometChatMentionsFormatter` to the list before calling `setTextFormatters()`. |
+| Custom mention style not applied in the composer | Call `mentionFormatter.setMessageComposerMentionTextStyle(context, R.style.YourStyle)` before passing the formatter to `CometChatMessageComposer` via `setTextFormatters()`. |
+| Custom mention style not applied in message bubbles | Call both `mentionFormatter.setOutgoingBubbleMentionTextStyle()` and `mentionFormatter.setIncomingBubbleMentionTextStyle()` before passing the formatter to `CometChatMessageList` via `setTextFormatters()`. If you set only one, the other bubble type uses the default style. |
+| `setOnMentionClick` callback not firing | Ensure the formatter is passed to the component via `setTextFormatters()` after calling `setOnMentionClick()`. The callback fires only for mentions in message bubbles. |
+| Mention suggestions not showing group members | If `setMentionsType` is set to `UIKitConstants.MentionsType.USERS`, only users appear in suggestions. Set it to `UIKitConstants.MentionsType.USERS_AND_GROUP_MEMBERS` to include group members in group chats. |
+
+## FAQ
+
+**Q: Can I use `CometChatMentionsFormatter` with `CometChatConversations`, `CometChatMessageList`, and `CometChatMessageComposer` at the same time?**
+A: Yes. Create a `CometChatMentionsFormatter` instance, add it to a `List<CometChatTextFormatter>`, and pass the list to each component separately via their `setTextFormatters()` method. You can configure different styles for each component on the same formatter instance.
+
+**Q: What is the difference between `setMentionsType` with `USERS` vs. `USERS_AND_GROUP_MEMBERS`?**
+A: If set to `USERS`, only users can be mentioned in both one-on-one and group conversations. If set to `USERS_AND_GROUP_MEMBERS`, members of a specific group can be mentioned in group chats, while all users can be mentioned in one-on-one chats.
+
+**Q: What does `setMentionsVisibility` control?**
+A: `setMentionsVisibility` controls the scope of where mentions are visible. Set it to `UIKitConstants.MentionsVisibility.USERS_CONVERSATION_ONLY` for one-on-one conversations only, `UIKitConstants.MentionsVisibility.GROUP_CONVERSATION_ONLY` for group conversations only, or `UIKitConstants.MentionsVisibility.BOTH` for both.
+
+**Q: How do I customize which users appear in the mention suggestions list?**
+A: Use `setUsersRequestBuilder()` to provide a custom `UsersRequest.UsersRequestBuilder`. For example, `.setUsersRequestBuilder(new UsersRequest.UsersRequestBuilder().friendsOnly(true))` limits suggestions to friends only. Use `setGroupMembersRequestBuilder()` to customize group member suggestions.
+
+**Q: Do I need to define separate XML styles for incoming and outgoing bubble mentions?**
+A: Yes. Incoming and outgoing bubbles use separate style parents (`CometChatIncomingBubbleMentionsStyle` and `CometChatOutgoingBubbleMentionsStyle`). Define a custom style for each and apply them with `setIncomingBubbleMentionTextStyle()` and `setOutgoingBubbleMentionTextStyle()`.
+
+## Next steps
+
+- [Message Composer component](/ui-kit/android/message-composer) — configure the composer where users type and send messages with mentions
+- [Message List component](/ui-kit/android/message-list) — configure the message list where mention-styled bubbles are displayed
+- [Conversations component](/ui-kit/android/conversations) — configure the conversations list where mention-styled last-message previews appear
