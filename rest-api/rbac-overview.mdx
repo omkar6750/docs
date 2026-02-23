@@ -3,166 +3,173 @@ title: Overview
 sidebar_label: Overview
 ---
 
-## Overview
 
-Role-Based Access Control (RBAC) enables fine-grained control over **what actions a user can perform** and **what data they can access**, based on the role assigned to them (for example: `superadmin`, `admin`, `moderator`, `user`).
+This document covers two types of access control permissions:
 
-RBAC permissions are evaluated at runtime for every API request and determine whether the requested operation is allowed, denied, or restricted by additional conditions such as:
-- User relationships (all users vs friends)
-- Sender or receiver roles
-- Message categories and types
+- **[RBAC (Role-Based Access Control)](#rbac-role-based-access-control)** — Permissions applied globally based on the user's assigned role
+- **[SBAC (Scope-Based Access Control)](#sbac-scope-based-access-control)** — Permissions applied within group context based on the member's scope
 
-In addition to role-based permissions, the system also supports **scope-based permissions**, which are primarily used for **group-related actions**. Scope permissions define what a user is allowed to do **within the context of a group**, based on their group scope (for example: `owner`, `admin`, `moderator`, `participant`).
-
-Scope permissions are evaluated alongside RBAC rules to ensure that:
-- Only users with the appropriate group scope can perform group operations
-- Group-level actions respect both the user’s role and their scope within the group
-
-Each permission is defined as a **key-value rule** and applied using the RBAC Permissions API, while scope permissions are enforced automatically based on the user’s group membership and assigned scope.
+Each type is documented independently below with its own working mechanism, data types, and permission tables.
 
 ---
 
-## How RBAC Works
+## RBAC (Role-Based Access Control)
+
+<Info>
+**RBAC (Role-Based Access Control)** — Permissions applied globally based on the user's assigned role.
+</Info>
+
+Role-Based Access Control (RBAC) enables fine-grained control over **what actions a user can perform** and **what data they can access**, based on the role assigned to them (for example: `superadmin`, `admin`, `moderator`, `user`).
+
+### How RBAC Works
 
 - Permissions are configured **per role**
 - Each permission has a **default value**
 - Explicitly configured permissions override defaults
+- RBAC permissions are evaluated at runtime for every API request
 - If a permission evaluation fails, the API returns a permission-denied error
 
-RBAC supports both:
+RBAC supports:
 - **Binary permissions** (`allow` / `deny`)
 - **Scoped permissions** using additional configuration keys such as `mode`, `allowedRoles`, and `allowedMessageTypes`
 
----
+Permissions can be restricted by additional conditions such as:
+- User relationships (all users vs friends)
+- Sender or receiver roles
+- Message categories and types
 
-## Permission Structure
+### RBAC Data Types
+
+| Data Type | Description | Example Values |
+|-----------|-------------|----------------|
+| `string` | Single string value | `allow`, `deny`, `all`, `friends` |
+| `stringArray` | Array of predefined strings | `["user", "group"]`, `["text", "image"]` |
+| `rolesStringArray` | Array of role names | `["admin", "moderator"]` |
+| `customStringArray` | Array of custom user-defined strings | `["custom-type-1", "custom-type-2"]` |
+
+### RBAC Permission Structure
 
 Each RBAC permission follows this structure:
 
 | Attribute | Description |
-|--------|-------------|
+|-----------|-------------|
 | Key | The RBAC permission key used in APIs |
 | Category | Logical grouping (Users, Messages, etc.) |
 | Data Type | Expected value type |
 | Available Values | Supported values |
 | Default | Applied if not explicitly configured |
 
----
+### RBAC Permission Value Behavior
 
-## User Permissions
+#### `null` Value for Array Permissions
+When an array permission (e.g., `allowedRoles`, `allowedMimeTypes`) has a value of `null`:
+- It means **no restriction** — all values are allowed
+- This is equivalent to an empty array `[]`
 
-The following permissions control **user visibility, interaction, and profile-related actions**.
+#### `allow` / `deny` Values
+- `allow`: The action is permitted
+- `deny`: The action is blocked, returns `ERR_PERMISSION_DENIED`
 
-| type  | Category          | Order | slug                                         | Title                                 | description                                                                 | data_type         | available_values            | default |
-|-------|-------------------|-------|----------------------------------------------|---------------------------------------|-----------------------------------------------------------------------------|-------------------|-----------------------------|---------|
-| role  | Users             | 1.01  | listUsers                                    | User Listing                          | Allow or deny user listing functionality                                    | string            | allow,deny                  | allow   |
-| role  | Users             | 1.02  | listUsers.mode                               | User Listing Mode                     | Choose who can be listed: all users or friends only                         | string            | all,friends                 | all     |
-| role  | Users             | 1.03  | listUsers.allowedRoles                       | User Listing Role Filter              | Select which user roles can be listed                                       | rolesStringArray  | null                        | null    |
-| role  | Users             | 1.04  | getUserDetails                               | User Details Access                   | Allow or deny viewing detailed user information                             | string            | allow,deny                  | allow   |
-| role  | Users             | 1.05  | getUserDetails.mode                          | User Details Mode                     | Choose whose details can be viewed: all users or friends only               | string            | all,friends                 | all     |
-| role  | Users             | 1.06  | getUserDetails.allowedRoles                  | User Details Role Filter              | Select which user roles' details can be viewed                              | rolesStringArray  | null                        | null    |
-| role  | Users             | 1.07  | blockUser                                    | Block User                            | Allow or deny user blocking functionality                                   | string            | allow,deny                  | allow   |
-| role  | Users             | 1.08  | blockUser.allowedRoles                       | Block user Role Filter                | Select which user roles can be blocked                                      | rolesStringArray  | null                        | null    |
-| role  | Users             | 1.09  | listBlockedUser                              | Blocked User Listing                  | Allow or deny listing blocked users                                         | string            | allow,deny                  | allow   |
-| role  | Users             | 1.10  | listBlockedUser.allowedRoles                 | Blocked User Listing Role Filter      | Select which blocked user roles can be listed                               | rolesStringArray  | null                        | null    |
-| role  | Users             | 1.11  | unblockedUser                                | Unblock User                          | Allow or deny user unblocking functionality                                 | string            | allow,deny                  | allow   |
-| role  | Users             | 1.12  | unblockedUser.allowedRoles                   | Unblock User Role Filter              | Select which user roles can be unblocked                                    | rolesStringArray  | null                        | null    |
-| role  | Users             | 1.13  | editProfile                                  | Edit User Profile                     | Allow or deny user detail edits                                             | string            | allow,deny                  | allow   |
-| role  | Messages          | 2.01  | listMessages                                 | Message Listing                       | Allow or deny message listing functionality                                 | string            | allow,deny                  | allow   |
-| role  | Messages          | 2.02  | listMessages.mode                            | Message Listing Mode                  | Choose whose messages can be listed: all users or friends only              | string            | all,friends                 | all     |
-| role  | Messages          | 2.03  | listMessages.allowedReceiverTypes            | Message List Receiver Filter          | Select which receiver types are allowed in message lists                    | stringArray       | user,group                  | null    |
-| role  | Messages          | 2.04  | listMessages.allowedSenderRoles              | Message List Sender Filter            | Select which sender roles' messages can be listed                           | rolesStringArray  | null                        | null    |
-| role  | Messages          | 2.05  | listMessages.allowedMessageCategories        | Message List Category Filter          | Select which message categories can be listed                               | stringArray       | message,custom              | null    |
-| role  | Messages          | 2.06  | listMessages.allowedMessageTypes             | Message List Type Filter              | Select which message types can be listed                                    | stringArray       | text,image,audio,video,file | null    |
-| role  | Messages          | 2.07  | getMessageDetails                            | Message Details                       | Allow or deny fetching message details                                      | string            | allow,deny                  | allow   |
-| role  | Messages          | 2.08  | getMessageDetails.mode                       | Message Details Mode                  | Choose whose message details can be viewed: all users or friends only       | string            | all,friends                 | all     |
-| role  | Messages          | 2.09  | getMessageDetails.allowedSenderRoles         | Message Details Sender Filter         | Select which sender roles' message details can be viewed                    | rolesStringArray  | null                        | null    |
-| role  | Messages          | 2.10  | sendMessage                                  | Message Sending                       | Allow or deny message sending functionality                                 | string            | allow,deny                  | allow   |
-| role  | Messages          | 2.11  | sendMessage.mode                             | Message Sending Mode                  | Choose who can receive messages: all users or friends only                  | string            | all,friends                 | all     |
-| role  | Messages          | 2.12  | sendMessage.allowedReceiverTypes             | Message Send Receiver Filter          | Select receiver types to which the messages can be sent                     | stringArray       | user,group                  | null    |
-| role  | Messages          | 2.13  | sendMessage.allowedReceiverRoles             | Message Send Role Filter              | Select receiver roles to which the messages can be sent                     | rolesStringArray  | null                        | null    |
-| role  | Messages          | 2.14  | sendMessage.allowedMessageCategories         | Message Send Category Filter          | Select which message categories can be sent                                 | stringArray       | message,custom              | null    |
-| role  | Messages          | 2.15  | sendMessage.allowedMessageTypes              | Message Send Type Filter              | Select which message types can be sent                                      | stringArray       | text,image,audio,video,file | null    |
-| role  | Messages          | 2.16  | sendMessage.allowedCustomTypes               | Custom Message Types                  | Define custom message types that can be sent                                | customStringArray | null                        | null    |
-| role  | Messages          | 2.17  | sendMessage.allowedMimeTypes                 | Media MIME Types                      | Define MIME types allowed for media messages                                | customStringArray | null                        | null    |
-| role  | Messages          | 2.18  | editMessage                                  | Message Editing                       | Allow or deny editing of own messages                                       | string            | allow,deny                  | allow   |
-| role  | Messages          | 2.19  | deleteMessage                                | Message Deletion                      | Allow or deny deletion of own messages                                      | string            | allow,deny                  | allow   |
-| role  | Message Thread    | 3.01  | listThreadedMessages                         | Threaded Message Listing              | Allow or deny listing of threaded messages                                  | string            | allow,deny                  | allow   |
-| role  | Message Thread    | 3.02  | sendThreadedMessage                          | Thread Message Sending                | Allow or deny sending messages in threads                                   | string            | allow,deny                  | allow   |
-| role  | Message Thread    | 3.03  | sendThreadedMessage.mode                     | Thread Message Mode                   | Choose who can receive thread messages: all users or friends only           | string            | all,friends                 | all     |
-| role  | Message Thread    | 3.04  | sendThreadedMessage.allowedReceiverTypes     | Thread Receiver Filter                | Select which receiver types can receive thread messages                     | stringArray       | user,group                  | null    |
-| role  | Message Thread    | 3.05  | sendThreadedMessage.allowedReceiverRoles     | Thread Role Filter                    | Select which receiver roles can receive thread messages                     | rolesStringArray  | null                        | null    |
-| role  | Message Thread    | 3.06  | sendThreadedMessage.allowedMessageCategories | Thread Category Filter                | Select which message categories can be sent in threads                      | stringArray       | message,custom              | null    |
-| role  | Message Thread    | 3.07  | sendThreadedMessage.allowedMessageTypes      | Thread Type Filter                    | Select which message types can be sent in threads                           | stringArray       | text,image,audio,video,file | null    |
-| role  | Message Thread    | 3.08  | sendThreadedMessage.allowedCustomTypes       | Thread Custom Types                   | Define custom message types that can be sent in threads                     | customStringArray | null                        | null    |
-| role  | Message Thread    | 3.09  | sendThreadedMessage.allowedMimeTypes         | Thread Media Types                    | Define MIME types allowed for thread media messages                         | customStringArray | null                        | null    |
-| role  | Message Thread    | 3.10  | editThreadedMessage                          | Thread Message Editing                | Allow or deny editing of thread messages                                    | string            | allow,deny                  | allow   |
-| role  | Message Thread    | 3.11  | deleteThreadedMessage                        | Thread Message Deletion               | Allow or deny deletion of thread messages                                   | string            | allow,deny                  | allow   |
-| role  | Message Reactions | 4.01  | listReactions                                | Reaction Listing                      | Allow or deny viewing message reactions                                     | string            | allow,deny                  | allow   |
-| role  | Message Reactions | 4.02  | addReaction                                  | Reaction Management                   | Allow or deny adding/removing message reactions                             | string            | allow,deny                  | allow   |
-| role  | Calls             | 5.01  | initiateCall                                 | Call Initiation                       | Allow or deny call initiation functionality                                 | string            | allow,deny                  | allow   |
-| role  | Calls             | 5.02  | initiateCall.mode                            | Call Mode                             | Choose who can be called: all users or friends only                         | string            | all,friends                 | all     |
-| role  | Calls             | 5.03  | initiateCall.allowedReceiverTypes            | Call Receiver Type Filter             | Select which receiver Type can receive calls                                | rolesStringArray  | null                        | null    |
-| role  | Calls             | 5.04  | initiateCall.allowedReceiverRoles            | Call Receiver Role Filter             | Select which receiver roles can receive calls                               | rolesStringArray  | null                        | null    |
-| role  | Conversations     | 6.01  | listConversations                            | List Conversation                     | Allow or deny conversations listing functionality                           | string            | allow,deny                  | allow   |
-| role  | Conversations     | 6.02  | updateConversation                           | Update Conversation                   | Allow or deny conversation update functionality                             | string            | allow,deny                  | allow   |
-| role  | Conversations     | 6.03  | deleteConversation                           | Delete Conversation                   | Allow or deny conversation delete functionality                             | string            | allow,deny                  | allow   |
-| role  | Groups            | 7.01  | listGroups                                   | Group Listing                         | Allow or deny group listing functionality                                   | string            | allow,deny                  | allow   |
-| role  | Groups            | 7.02  | listGroups.allowedGroupTypes                 | Group List Type Filter                | Select which group types can be listed                                      | stringArray       | public,password,private     | null    |
-| role  | Groups            | 7.03  | getGroupDetails                              | Group Details                         | Allow or deny details for a group                                           | string            | allow,deny                  | allow   |
-| role  | Groups            | 7.04  | getGroupDetails.allowedGroupTypes            | Group Details Type Filter             | Select for which group types details can be fetched                         | stringArray       | public,password,private     | null    |
-| role  | Groups            | 7.05  | createGroup                                  | Group Creation                        | Allow or deny group creation functionality                                  | string            | allow,deny                  | allow   |
-| role  | Groups            | 7.06  | createGroup.allowedGroupTypes                | Group Creation Type Filter            | Select which group types can be created                                     | stringArray       | public,password,private     | null    |
-| role  | Groups            | 7.07  | joinGroup                                    | Group Joining                         | Allow or deny group joining functionality                                   | string            | allow,deny                  | allow   |
-| role  | Groups            | 7.08  | joinGroup.allowedGroupTypes                  | Group Join Type Filter                | Select which group types can be joined                                      | stringArray       | public,password,private     | null    |
-| scope | Groups            | 1.01  | editGroup                                    | Group Edit Details                    | Allow or deny group edits                                                   | string            | allow,deny                  | allow   |
-| scope | Groups            | 1.02  | deleteGroup                                  | Group Delete                          | Allow or deny group deletes                                                 | string            | allow,deny                  | allow   |
-| scope | Groups            | 1.03  | leaveGroup                                   | Group Leave                           | Allow or deny group leave                                                   | string            | allow,deny                  | allow   |
-| scope | Groups            | 1.04  | transferOwnerShip                            | Group Transfer Ownership              | Allow or deny group ownership transfer                                      | string            | allow,deny                  | allow   |
-| scope | Groups            | 1.05  | transferOwnerShip.allowedScopes              | Group Transfer Ownership Scope Filter | Select member scopes to which the group ownership can be trasferred         | stringArray       | admin,moderator,participant | null    |
-| scope | Members           | 2.01  | listMembers                                  | Member Listing                        | Allow or deny listing group members                                         | string            | allow,deny                  | allow   |
-| scope | Members           | 2.02  | listMembers.allowedScopes                    | Member List Scope Filter              | Select which member scopes can be listed                                    | stringArray       | admin,moderator,participant | null    |
-| scope | Members           | 2.03  | addMembers                                   | Member Addition                       | Allow or deny adding members to groups                                      | string            | allow,deny                  | allow   |
-| scope | Members           | 2.04  | addMembers.allowedScopes                     | Member Add Scope Filter               | Select which member scopes can be added                                     | stringArray       | admin,moderator,participant | null    |
-| scope | Members           | 2.05  | kickMembers                                  | Member Removal                        | Allow or deny kicking members from groups                                   | string            | allow,deny                  | allow   |
-| scope | Members           | 2.06  | kickMembers.allowedScopes                    | Member Kick Scope Filter              | Select which member scopes can be kicked                                    | stringArray       | admin,moderator,participant | null    |
-| scope | Members           | 2.07  | listBannedUsers                              | Banned User Listing                   | Allow or deny listing banned users                                          | string            | allow,deny                  | allow   |
-| scope | Members           | 2.08  | ban                                          | Member Banning                        | Allow or deny banning members from groups                                   | string            | allow,deny                  | allow   |
-| scope | Members           | 2.09  | ban.allowedScopes                            | Member Ban Scope Filter               | Select which member scopes can be banned                                    | stringArray       | admin,moderator,participant | null    |
-| scope | Members           | 2.10  | unban                                        | Member Unbanning                      | Allow or deny unbanning users from groups                                   | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.01  | listMessages.allowedMessageCategories        | Message Category Filter               | Select which message categories can be listed in groups                     | stringArray       | message,custom              | null    |
-| scope | Messages          | 3.02  | listMessages.allowedMessageTypes             | Message Type Filter                   | Select which message types can be listed in groups                          | stringArray       | text,image,audio,video,file | null    |
-| scope | Messages          | 3.03  | listMessages.historyBeforeJoin               | Message History                       | Allow or deny listing messages sent before joining the group                | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.04  | sendMessage                                  | Group Message Sending                 | Allow or deny sending messages in groups                                    | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.05  | sendMessage.mode                             | Group Message Mode                    | Choose who can receive messages in groups: all users or friends only        | string            | all,friends                 | all     |
-| scope | Messages          | 3.06  | sendMessage.allowedReceiverTypes             | Group Send Receiver Filter            | Select which receiver types can receive messages in groups                  | stringArray       | user,group                  | null    |
-| scope | Messages          | 3.07  | sendMessage.allowedMessageCategories         | Group Send Category Filter            | Select which message categories can be sent in groups                       | stringArray       | message,custom              | null    |
-| scope | Messages          | 3.08  | sendMessage.allowedMessageTypes              | Group Send Type Filter                | Select which message types can be sent in groups                            | stringArray       | text,image,audio,video,file | null    |
-| scope | Messages          | 3.09  | sendMessage.allowedCustomTypes               | Group Custom Message Types            | Define custom message types that can be sent in groups                      | customStringArray | null                        | null    |
-| scope | Messages          | 3.10  | sendMessage.allowedMimeTypes                 | Group Media MIME Types                | Define MIME types allowed for group media messages                          | stringArray       | null                        | null    |
-| scope | Messages          | 3.11  | editMessage                                  | Group Message Editing                 | Allow or deny editing messages in groups                                    | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.12  | editMessage.deniedSenderScopes               | Edit Restriction by Scope             | Select which sender scopes cannot have their messages edited                | stringArray       | admin,moderator,participant | null    |
-| scope | Messages          | 3.13  | deleteMessage                                | Group Message Deletion                | Allow or deny deleting messages in groups                                   | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.14  | listThreadedMessages                         | Group Thread Listing                  | Allow or deny listing threaded messages in groups                           | string            | allow,deny                  | allow   |
-| scope | Messages          | 3.15  | getThreadedMessages                          | Group Thread Details                  | Allow or deny viewing thread message details in groups                      | string            | allow,deny                  | allow   |
-| scope | Message Thread    | 4.01  | sendThreadedMessage                          | Group Thread Sending                  | Allow or deny sending messages in group threads                             | string            | allow,deny                  | allow   |
-| scope | Message Thread    | 4.02  | sendThreadedMessage.mode                     | Group Thread Mode                     | Choose who can receive thread messages in groups: all users or friends only | string            | all,friends                 | all     |
-| scope | Message Thread    | 4.03  | sendThreadedMessage.allowedReceiverTypes     | Group Thread Receiver Filter          | Select which receiver types can receive thread messages in groups           | stringArray       | user,group                  | null    |
-| scope | Message Thread    | 4.04  | sendThreadedMessage.allowedMessageCategories | Group Thread Category Filter          | Select which message categories can be sent in group threads                | stringArray       | message,custom              | null    |
-| scope | Message Thread    | 4.05  | sendThreadedMessage.allowedMessageTypes      | Group Thread Type Filter              | Select which message types can be sent in group threads                     | stringArray       | text,image,audio,video,file | null    |
-| scope | Message Thread    | 4.06  | sendThreadedMessage.allowedCustomTypes       | Group Thread Custom Types             | Define custom message types that can be sent in group threads               | customStringArray | null                        | null    |
-| scope | Message Thread    | 4.07  | sendThreadedMessage.allowedMimeTypes         | Group Thread Media Types              | Define MIME types allowed for group thread media messages                   | customStringArray | null                        | null    |
-| scope | Message Thread    | 4.08  | editThreadedMessage                          | Group Thread Editing                  | Allow or deny editing thread messages in groups                             | string            | allow,deny                  | allow   |
-| scope | Message Thread    | 4.09  | deleteThreadedMessage                        | Group Thread Deletion                 | Allow or deny deleting thread messages in groups                            | string            | allow,deny                  | allow   |
-| scope | Message Reactions | 5.01  | listReactions                                | Group Reaction Listing                | Allow or deny viewing message reactions in groups                           | string            | allow,deny                  | allow   |
-| scope | Message Reactions | 5.02  | addReaction                                  | Group Reaction Management             | Allow or deny adding/removing message reactions in groups                   | string            | allow,deny                  | allow   |
-| scope | Calls             | 6.01  | initiateCall                                 | Group Call Initiation                 | Allow or deny call initiation in groups                                     | string            | allow,deny                  | allow   |
-| scope | Calls             | 6.02  | initiateCall.mode                            | Group Call Mode                       | Choose who can be called in groups: all users or friends only               | string            | all,friends                 | all     |
-| scope | Calls             | 6.03  | joinCall                                     | Group Call Receiver Filter            | Select which member scopes can receive calls in groups                      | string            | null                        | allow   |
+#### Mode Values
+- `all`: Action applies to all users
+- `friends`: Action is restricted to friends only
 
----
+### RBAC Permissions
 
-## Example RBAC Configuration
+#### 1. Users
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 1.01 | `listUsers` | User Listing | Allow or deny user listing functionality | string | allow, deny | allow |
+| 1.02 | `listUsers.mode` | User Listing Mode | Choose who can be listed: all users or friends only | string | all, friends | all |
+| 1.03 | `listUsers.allowedRoles` | User Listing Role Filter | Select which user roles can be listed | rolesStringArray | null | null |
+| 1.04 | `getUserDetails` | User Details Access | Allow or deny viewing detailed user information | string | allow, deny | allow |
+| 1.05 | `getUserDetails.mode` | User Details Mode | Choose whose details can be viewed: all users or friends only | string | all, friends | all |
+| 1.06 | `getUserDetails.allowedRoles` | User Details Role Filter | Select which user roles' details can be viewed | rolesStringArray | null | null |
+| 1.07 | `blockUser` | Block User | Allow or deny user blocking functionality | string | allow, deny | allow |
+| 1.08 | `blockUser.allowedRoles` | Block User Role Filter | Select which user roles can be blocked | rolesStringArray | null | null |
+| 1.09 | `listBlockedUser` | Blocked User Listing | Allow or deny listing blocked users | string | allow, deny | allow |
+| 1.10 | `listBlockedUser.allowedRoles` | Blocked User Listing Role Filter | Select which blocked user roles can be listed | rolesStringArray | null | null |
+| 1.11 | `unblockedUser` | Unblock User | Allow or deny user unblocking functionality | string | allow, deny | allow |
+| 1.12 | `unblockedUser.allowedRoles` | Unblock User Role Filter | Select which user roles can be unblocked | rolesStringArray | null | null |
+| 1.13 | `editProfile` | Edit User Profile | Allow or deny user detail edits | string | allow, deny | allow |
+
+#### 2. Messages
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 2.01 | `listMessages` | Message Listing | Allow or deny message listing functionality | string | allow, deny | allow |
+| 2.02 | `listMessages.mode` | Message Listing Mode | Choose whose messages can be listed: all users or friends only | string | all, friends | all |
+| 2.03 | `listMessages.allowedReceiverTypes` | Message List Receiver Filter | Select which receiver types are allowed in message lists | stringArray | user, group | null |
+| 2.04 | `listMessages.allowedSenderRoles` | Message List Sender Filter | Select which sender roles' messages can be listed | rolesStringArray | null | null |
+| 2.05 | `listMessages.allowedMessageCategories` | Message List Category Filter | Select which message categories can be listed | stringArray | message, custom | null |
+| 2.06 | `listMessages.allowedMessageTypes` | Message List Type Filter | Select which message types can be listed | stringArray | text, image, audio, video, file | null |
+| 2.07 | `getMessageDetails` | Message Details | Allow or deny fetching message details | string | allow, deny | allow |
+| 2.08 | `getMessageDetails.mode` | Message Details Mode | Choose whose message details can be viewed: all users or friends only | string | all, friends | all |
+| 2.10 | `sendMessage` | Message Sending | Allow or deny message sending functionality | string | allow, deny | allow |
+| 2.11 | `sendMessage.mode` | Message Sending Mode | Choose who can receive messages: all users or friends only | string | all, friends | all |
+| 2.12 | `sendMessage.allowedReceiverTypes` | Message Send Receiver Filter | Select receiver types to which the messages can be sent | stringArray | user, group | null |
+| 2.13 | `sendMessage.allowedReceiverRoles` | Message Send Role Filter | Select receiver roles to which the messages can be sent | rolesStringArray | null | null |
+| 2.14 | `sendMessage.allowedMessageCategories` | Message Send Category Filter | Select which message categories can be sent | stringArray | message, custom | null |
+| 2.15 | `sendMessage.allowedMessageTypes` | Message Send Type Filter | Select which message types can be sent | stringArray | text, image, audio, video, file | null |
+| 2.16 | `sendMessage.allowedCustomTypes` | Custom Message Types | Define custom message types that can be sent | customStringArray | null | null |
+| 2.17 | `sendMessage.allowedMimeTypes` | Media MIME Types | Define MIME types allowed for media messages | customStringArray | null | null |
+| 2.18 | `editMessage` | Message Editing | Allow or deny editing of own messages | string | allow, deny | allow |
+| 2.19 | `deleteMessage` | Message Deletion | Allow or deny deletion of own messages | string | allow, deny | allow |
+
+#### 3. Message Thread
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 3.01 | `listThreadedMessages` | Threaded Message Listing | Allow or deny listing of threaded messages | string | allow, deny | allow |
+| 3.02 | `sendThreadedMessage` | Thread Message Sending | Allow or deny sending messages in threads | string | allow, deny | allow |
+| 3.03 | `sendThreadedMessage.allowedReceiverTypes` | Thread Receiver Type Filter | Select which receiver types (user/group) can receive thread messages | stringArray | user, group | null |
+| 3.05 | `sendThreadedMessage.allowedReceiverRoles` | Thread Role Filter | Select which receiver roles can receive thread messages (1-on-1 only) | rolesStringArray | null | null |
+| 3.06 | `sendThreadedMessage.allowedMessageCategories` | Thread Category Filter | Select which message categories can be sent in threads | stringArray | message, custom | null |
+| 3.07 | `sendThreadedMessage.allowedMessageTypes` | Thread Type Filter | Select which message types can be sent in threads | stringArray | text, image, audio, video, file | null |
+| 3.08 | `sendThreadedMessage.allowedCustomTypes` | Thread Custom Types | Define custom message types that can be sent in threads | customStringArray | null | null |
+| 3.09 | `sendThreadedMessage.allowedMimeTypes` | Thread Media Types | Define MIME types allowed for thread media messages | customStringArray | null | null |
+| 3.10 | `editThreadedMessage` | Thread Message Editing | Allow or deny editing of thread messages | string | allow, deny | allow |
+| 3.11 | `deleteThreadedMessage` | Thread Message Deletion | Allow or deny deletion of thread messages | string | allow, deny | allow |
+
+#### 4. Message Reactions
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 4.01 | `listReactions` | Reaction Listing | Allow or deny viewing message reactions | string | allow, deny | allow |
+| 4.02 | `addReaction` | Reaction Management | Allow or deny adding/removing message reactions | string | allow, deny | allow |
+
+#### 5. Calls
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 5.01 | `initiateCall` | Call Initiation | Allow or deny call initiation functionality | string | allow, deny | allow |
+| 5.03 | `initiateCall.allowedReceiverTypes` | Call Receiver Type Filter | Select which receiver types can receive calls | stringArray | user, group | null |
+| 5.04 | `initiateCall.allowedReceiverRoles` | Call Receiver Role Filter | Select which receiver roles can receive calls (1-on-1 only) | rolesStringArray | null | null |
+| 5.05 | `joinCall` | Call Joining | Allow or deny joining 1-on-1 calls | string | allow, deny | allow |
+
+#### 6. Conversations
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 6.01 | `listConversations` | List Conversation | Allow or deny conversations listing functionality | string | allow, deny | allow |
+| 6.02 | `updateConversation` | Update Conversation | Allow or deny conversation update functionality | string | allow, deny | allow |
+| 6.03 | `deleteConversation` | Delete Conversation | Allow or deny conversation delete functionality | string | allow, deny | allow |
+
+#### 7. Groups
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 7.01 | `listGroups` | Group Listing | Allow or deny group listing functionality | string | allow, deny | allow |
+| 7.02 | `listGroups.allowedGroupTypes` | Group List Type Filter | Select which group types can be listed | stringArray | public, password, private | null |
+| 7.03 | `getGroupDetails` | Group Details | Allow or deny details for a group | string | allow, deny | allow |
+| 7.04 | `getGroupDetails.allowedGroupTypes` | Group Details Type Filter | Select for which group types details can be fetched | stringArray | public, password, private | null |
+| 7.05 | `createGroup` | Group Creation | Allow or deny group creation functionality | string | allow, deny | allow |
+| 7.06 | `createGroup.allowedGroupTypes` | Group Creation Type Filter | Select which group types can be created | stringArray | public, password, private | null |
+| 7.07 | `joinGroup` | Group Joining | Allow or deny group joining functionality | string | allow, deny | allow |
+| 7.08 | `joinGroup.allowedGroupTypes` | Group Join Type Filter | Select which group types can be joined | stringArray | public, password | null |
+
+### RBAC Example Configuration
 
 Below is an example of restricting a `user` role:
 
@@ -173,3 +180,185 @@ Below is an example of restricting a `user` role:
     "sendThreadedMessage.allowedMessageTypes": ["image"]
   }
 }
+```
+
+### RBAC Permission Evaluation Order
+
+1. **Explicitly configured permission** for the role — Highest priority
+2. **Permission default value** (from permission definition)
+
+If a permission is not explicitly configured for a role, the default value is used.
+
+---
+
+## SBAC (Scope-Based Access Control)
+
+<Info>
+**SBAC (Scope-Based Access Control)** — Permissions applied within group context based on the member's scope.
+</Info>
+
+Scope-Based Access Control (SBAC) enables fine-grained control over **what actions a user can perform within a group**, based on their member scope (for example: `admin`, `moderator`, `participant`).
+
+### How SBAC Works
+
+- Permissions are configured **per scope** within group context
+- Each permission has a **default value**
+- Explicitly configured permissions override defaults
+- SBAC permissions are evaluated at runtime for every group-related API request
+- If a permission evaluation fails, the API returns a permission-denied error
+- SBAC permissions are evaluated alongside RBAC rules — for group operations, both must allow the action
+
+SBAC supports:
+- **Binary permissions** (`allow` / `deny`)
+- **Scoped permissions** using additional configuration keys such as `allowedScopes`, `allowedMessageTypes`, and `allowedMimeTypes`
+
+Permissions can be restricted by additional conditions such as:
+- Member scopes within the group
+- Message categories and types
+- Group-specific message history access
+
+### SBAC Data Types
+
+| Data Type | Description | Example Values |
+|-----------|-------------|----------------|
+| `string` | Single string value | `allow`, `deny`, `all`, `friends` |
+| `stringArray` | Array of predefined strings | `["admin", "moderator"]`, `["text", "image"]` |
+| `customStringArray` | Array of custom user-defined strings | `["custom-type-1", "custom-type-2"]` |
+
+### SBAC Permission Structure
+
+Each SBAC permission follows this structure:
+
+| Attribute | Description |
+|-----------|-------------|
+| Key | The SBAC permission key used in APIs |
+| Category | Logical grouping (Groups, Members, Messages, etc.) |
+| Data Type | Expected value type |
+| Available Values | Supported values |
+| Default | Applied if not explicitly configured |
+
+### SBAC Permission Value Behavior
+
+#### `null` Value for Array Permissions
+When an array permission (e.g., `allowedScopes`, `allowedMimeTypes`) has a value of `null`:
+- It means **no restriction** — all values are allowed
+- This is equivalent to an empty array `[]`
+
+#### `allow` / `deny` Values
+- `allow`: The action is permitted
+- `deny`: The action is blocked, returns `ERR_PERMISSION_DENIED`
+
+#### Mode Values
+- `all`: Action applies to all users
+- `friends`: Action is restricted to friends only
+
+### SBAC Permissions
+
+#### 1. Groups
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 1.01 | `editGroup` | Group Edit Details | Allow or deny group edits | string | allow, deny | allow |
+| 1.02 | `deleteGroup` | Group Delete | Allow or deny group deletes | string | allow, deny | allow |
+| 1.03 | `leaveGroup` | Group Leave | Allow or deny group leave | string | allow, deny | allow |
+
+#### 2. Members
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 2.01 | `listMembers` | Member Listing | Allow or deny listing group members | string | allow, deny | allow |
+| 2.02 | `listMembers.allowedScopes` | Member List Scope Filter | Select which member scopes can be listed | stringArray | admin, moderator, participant | null |
+| 2.03 | `addMembers` | Member Addition | Allow or deny adding members to groups | string | allow, deny | allow |
+| 2.04 | `addMembers.allowedScopes` | Member Add Scope Filter | Select which member scopes can be added | stringArray | admin, moderator, participant | null |
+| 2.05 | `kickMembers` | Member Removal | Allow or deny kicking members from groups | string | allow, deny | allow |
+| 2.06 | `kickMembers.allowedScopes` | Member Kick Scope Filter | Select which member scopes can be kicked | stringArray | admin, moderator, participant | null |
+| 2.07 | `listBannedUsers` | Banned Member Listing | Allow or deny listing banned members | string | allow, deny | allow |
+| 2.08 | `ban` | Member Banning | Allow or deny banning members from groups | string | allow, deny | allow |
+| 2.09 | `ban.allowedScopes` | Member Ban Scope Filter | Select which member scopes can be banned | stringArray | admin, moderator, participant | null |
+| 2.10 | `unban` | Member Unbanning | Allow or deny unbanning members from groups | string | allow, deny | allow |
+
+#### 3. Messages
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 3.01 | `listMessages.allowedMessageCategories` | Message Category Filter | Select which message categories can be listed in groups | stringArray | message, custom | null |
+| 3.02 | `listMessages.allowedMessageTypes` | Message Type Filter | Select which message types can be listed in groups | stringArray | text, image, audio, video, file | null |
+| 3.03 | `listMessages.historyBeforeJoin` | Message History | Allow or deny listing messages sent before joining the group | string | allow, deny | allow |
+| 3.04 | `sendMessage` | Group Message Sending | Allow or deny sending messages in groups | string | allow, deny | allow |
+| 3.07 | `sendMessage.allowedMessageCategories` | Group Send Category Filter | Select which message categories can be sent in groups | stringArray | message, custom | null |
+| 3.08 | `sendMessage.allowedMessageTypes` | Group Send Type Filter | Select which message types can be sent in groups | stringArray | text, image, audio, video, file | null |
+| 3.09 | `sendMessage.allowedCustomTypes` | Group Custom Message Types | Define custom message types that can be sent in groups | customStringArray | null | null |
+| 3.10 | `sendMessage.allowedMimeTypes` | Group Media MIME Types | Define MIME types allowed for group media messages | customStringArray | null | null |
+| 3.11 | `editMessage` | Group Message Editing | Allow or deny editing messages in groups | string | allow, deny | allow |
+| 3.13 | `deleteMessage` | Group Message Deletion | Allow or deny deleting messages in groups | string | allow, deny | allow |
+
+#### 4. Message Thread
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 4.00 | `listThreadedMessages` | Group Thread Listing | Allow or deny listing threaded messages in groups | string | allow, deny | allow |
+| 4.01 | `sendThreadedMessage` | Group Thread Sending | Allow or deny sending messages in group threads | string | allow, deny | allow |
+| 4.04 | `sendThreadedMessage.allowedMessageCategories` | Group Thread Category Filter | Select which message categories can be sent in group threads | stringArray | message, custom | null |
+| 4.05 | `sendThreadedMessage.allowedMessageTypes` | Group Thread Type Filter | Select which message types can be sent in group threads | stringArray | text, image, audio, video, file | null |
+| 4.06 | `sendThreadedMessage.allowedCustomTypes` | Group Thread Custom Types | Define custom message types that can be sent in group threads | customStringArray | null | null |
+| 4.07 | `sendThreadedMessage.allowedMimeTypes` | Group Thread Media Types | Define MIME types allowed for group thread media messages | customStringArray | null | null |
+| 4.08 | `editThreadedMessage` | Group Thread Editing | Allow or deny editing thread messages in groups | string | allow, deny | allow |
+| 4.09 | `deleteThreadedMessage` | Group Thread Deletion | Allow or deny deleting thread messages in groups | string | allow, deny | allow |
+
+#### 5. Message Reactions
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 5.01 | `listReactions` | Group Reaction Listing | Allow or deny viewing message reactions in groups | string | allow, deny | allow |
+| 5.02 | `addReaction` | Group Reaction Management | Allow or deny adding/removing message reactions in groups | string | allow, deny | allow |
+
+#### 6. Calls
+
+| Order | Permission Key | Title | Description | Data Type | Available Values | Default |
+|-------|---------------|-------|-------------|-----------|------------------|---------|
+| 6.01 | `initiateCall` | Group Call Initiation | Allow or deny call initiation in groups | string | allow, deny | allow |
+| 6.02 | `joinCall` | Call Joining | Allow or deny joining calls in groups | string | allow, deny | allow |
+
+### Scope Default Deny Permissions
+
+Based on the legacy CometChat group hierarchy, certain permissions are denied by default for specific scopes. These defaults apply when no explicit permission is configured.
+
+#### Owner Scope
+- **No default denies** — Full access to all group operations
+
+#### Admin Scope
+
+| Permission | Default |
+|------------|---------|
+| `deleteGroup` | deny |
+
+#### Moderator Scope
+
+| Permission | Default |
+|------------|---------|
+| `editGroup` | deny |
+| `deleteGroup` | deny |
+| `addMembers` | deny |
+
+#### Participant Scope
+
+| Permission | Default |
+|------------|---------|
+| `editGroup` | deny |
+| `deleteGroup` | deny |
+| `addMembers` | deny |
+| `kickMembers` | deny |
+| `ban` | deny |
+| `unban` | deny |
+| `listBannedUsers` | deny |
+
+### SBAC Permission Evaluation Order
+
+1. **Group-specific override** (permission_scope table) — Highest priority
+2. **Scope-based default** (permission_role table using scope as "role")
+3. **Scope default deny** (hardcoded defaults based on legacy hierarchy)
+4. **Permission default value** (from permission definition)
+
+For group context, both SBAC and RBAC permissions are evaluated:
+- For `allow`/`deny`: If EITHER denies, result is `deny`
+- For arrays: Scope permission value takes precedence (more specific)
