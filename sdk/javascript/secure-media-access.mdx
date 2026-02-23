@@ -1,0 +1,714 @@
+---
+title: "Secure Media Access"
+sidebarTitle: "Secure Media Access"
+description: "Control how media files are accessed on CometChat's secure media servers using Embedded or Header-Based token modes."
+---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```javascript
+// Configure secure media mode during SDK init
+const appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion("YOUR_REGION")
+  .setSecureMediaMode(CometChat.SecureMediaMode.HEADER_BASED)
+  .build();
+
+await CometChat.init("YOUR_APP_ID", appSettings);
+
+// Fetch a time-limited presigned URL for secure media (Header-Based mode)
+const presignedUrl = await CometChat.fetchPresignedUrl("https://files-<region>.cometchat.com/<app_id>/media/file.jpg");
+
+// Check if header-based mode is active
+const isHeaderMode = CometChatHelper.isHeaderModeEnabled();
+
+// Check if a URL requires secure access
+const needsSecure = CometChatHelper.requiresSecureAccess("https://files-<region>.cometchat.com/<app_id>/media/file.jpg");
+```
+</Info>
+
+Secure Media Access lets you control how media files (images, videos, audio, documents) are accessed on CometChat's secure media servers. The SDK supports two modes — **Embedded** (FAT appended as a query parameter automatically) and **Header-Based** (clean URLs where you fetch presigned URLs explicitly). Once Secure Media Access is enabled in the CometChat Dashboard, it cannot be disabled.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [CometChat Dashboard](https://app.cometchat.com)
+</Note>
+
+<Warning>
+Enabling Secure Media Access is **irreversible**. Once you enable this feature in the CometChat Dashboard, it cannot be disabled. All media URLs will require a valid File Access Token (FAT) for access. Make sure your application is ready to handle secure media URLs before enabling.
+</Warning>
+
+## Prerequisites
+
+Before using Secure Media Access in your application, ensure the following:
+
+1. **Enable in Dashboard:** Navigate to your CometChat Dashboard → **Chats** → **Settings** and enable the **Token Based File Access** configuration. This is a one-time setup step that activates token-based media access for your app.
+
+2. **SDK Initialization:** Your application must initialize the CometChat SDK with a valid App ID and region before configuring secure media modes. See [Setup SDK](/sdk/javascript/setup-sdk) for details.
+
+<Warning>
+Once Secure Media Access is enabled, all media URLs served by CometChat's secure media servers require a valid **File Access Token (FAT)** for access. Any request to a media URL without a valid FAT will receive a **401 Unauthorized** response. Ensure your application handles secure media URLs before enabling this feature.
+</Warning>
+
+## Secure Media Modes
+
+CometChat supports two modes for accessing media files on its secure media servers. The mode is configured during SDK initialization using `AppSettingsBuilder.setSecureMediaMode()`.
+
+### Embedded Mode (Default)
+
+Embedded Mode (`SecureMediaMode.EMBEDDED = 0`) is the default mode. In this mode, the SDK automatically appends the File Access Token (FAT) as a `?fat=<token>` query parameter to all media URLs. No additional work is required from the developer — media URLs are ready to use as-is.
+
+- The SDK handles FAT injection transparently
+- Media URLs include the token directly: `https://files-<region>.cometchat.com/<app_id>/media/file.jpg?fat=eyJhbGci...`
+- Suitable for simple integrations where clean URLs are not a concern
+- Works out of the box with `<img>`, `<video>`, and `<audio>` HTML elements
+
+### Header-Based Mode
+
+Header-Based Mode (`SecureMediaMode.HEADER_BASED = 1`) provides clean media URLs without embedded tokens. In this mode, the developer is responsible for calling `CometChat.fetchPresignedUrl()` to resolve a time-limited presigned URL before rendering media.
+
+- Media URLs remain clean without query parameters
+- Developer calls `CometChat.fetchPresignedUrl(url)` to get a presigned URL at render time
+- Presigned URLs are time-limited and grant temporary access to the media file
+- Ideal for applications that need more security, clean URLs or custom media handling logic
+
+### SecureMediaMode Enum
+
+The `CometChat.SecureMediaMode` enum defines the available secure media access modes:
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `CometChat.SecureMediaMode.EMBEDDED` | `0` | Default mode. FAT is appended as a `?fat=<token>` query parameter to media URLs automatically by the SDK. |
+| `CometChat.SecureMediaMode.HEADER_BASED` | `1` | Clean URL mode. Developer calls `CometChat.fetchPresignedUrl()` to resolve a time-limited presigned URL for media access. |
+
+## Configuration
+
+Configure the secure media mode during SDK initialization using `AppSettingsBuilder.setSecureMediaMode()`. Pass a value from the `CometChat.SecureMediaMode` enum to select your preferred mode.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Set up app settings with Header-Based secure media mode
+let appID = "YOUR_APP_ID";
+let region = "YOUR_REGION";
+let appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .setSecureMediaMode(CometChat.SecureMediaMode.HEADER_BASED)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+// Initialize the SDK with secure media mode configured
+CometChat.init(appID, appSettings).then(
+  () => {
+    console.log("Initialization completed successfully");
+    // SDK is now configured for Header-Based secure media access
+  },
+  (error) => {
+    console.log("Initialization failed with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Set up app settings with Header-Based secure media mode
+let appID: string = "YOUR_APP_ID";
+let region: string = "YOUR_REGION";
+let appSettings: CometChat.AppSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .setSecureMediaMode(CometChat.SecureMediaMode.HEADER_BASED)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+// Initialize the SDK with secure media mode configured
+CometChat.init(appID, appSettings).then(
+  (initialized: boolean) => {
+    console.log("Initialization completed successfully", initialized);
+    // SDK is now configured for Header-Based secure media access
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Initialization failed with error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Set up app settings with Header-Based secure media mode
+let appID = "YOUR_APP_ID";
+let region = "YOUR_REGION";
+let appSettings = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .setSecureMediaMode(CometChat.SecureMediaMode.HEADER_BASED)
+  .autoEstablishSocketConnection(true)
+  .build();
+
+// Initialize the SDK with secure media mode configured
+try {
+  await CometChat.init(appID, appSettings);
+  console.log("Initialization completed successfully");
+  // SDK is now configured for Header-Based secure media access
+} catch (error) {
+  console.log("Initialization failed with error:", error);
+}
+```
+</Tab>
+</Tabs>
+
+<Note>
+If you omit `setSecureMediaMode()`, the SDK defaults to **Embedded Mode** (`SecureMediaMode.EMBEDDED`). In Embedded Mode, the SDK automatically appends the FAT as a query parameter to media URLs — no additional configuration is needed.
+</Note>
+
+## Fetching Presigned URLs
+
+When using **Header-Based Mode**, call `CometChat.fetchPresignedUrl()` to resolve a time-limited presigned URL for any secure media file. The presigned URL grants temporary access to the media file without requiring additional authentication headers.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Fetch a presigned URL for a secure media file
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+CometChat.fetchPresignedUrl(mediaUrl).then(
+  (presignedUrl) => {
+    console.log("Presigned URL:", presignedUrl);
+    // Use the presigned URL to render the media (e.g., set as img src)
+  },
+  (error) => {
+    console.log("Error fetching presigned URL:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Fetch a presigned URL for a secure media file
+let mediaUrl: string = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+CometChat.fetchPresignedUrl(mediaUrl).then(
+  (presignedUrl: string) => {
+    console.log("Presigned URL:", presignedUrl);
+    // Use the presigned URL to render the media (e.g., set as img src)
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error fetching presigned URL:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Fetch a presigned URL for a secure media file
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+try {
+  const presignedUrl = await CometChat.fetchPresignedUrl(mediaUrl);
+  console.log("Presigned URL:", presignedUrl);
+  // Use the presigned URL to render the media (e.g., set as img src)
+} catch (error) {
+  console.log("Error fetching presigned URL:", error);
+}
+```
+</Tab>
+</Tabs>
+
+### Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `url` | `string` | The secure media URL to resolve. Must point to a file hosted on CometChat's secure media servers. |
+
+### Return Value
+
+| Type | Description |
+| --- | --- |
+| `Promise<string>` | Resolves with a time-limited presigned URL that grants temporary access to the media file. |
+
+## How Attachment URLs Differ
+
+When Secure Media Access is enabled, the format of media attachment URLs depends on the configured mode. Understanding this difference is important for rendering media correctly in your application.
+
+### Embedded Mode
+
+In Embedded Mode, the SDK automatically appends the File Access Token (FAT) as a `?fat=<token>` query parameter to every media URL. Attachment URLs returned by the SDK are ready to use directly — no additional processing is needed.
+
+```
+https://files-<region>.cometchat.com/<app_id>/media/file.jpg?fat=eyJhbGciOiJIUzI1NiIs...
+```
+
+- URLs are self-contained and can be used directly in `<img>`, `<video>`, or `<audio>` elements
+- The SDK handles token injection transparently when you access attachment URLs from message objects
+- No developer action is required at render time
+
+### Header-Based Mode
+
+In Header-Based Mode, attachment URLs remain clean without any token parameters. The developer must explicitly call `CometChat.fetchPresignedUrl()` at render time to resolve a time-limited presigned URL before displaying the media.
+
+```
+https://files-<region>.cometchat.com/<app_id>/media/file.jpg
+```
+
+- URLs do not contain any token information
+- Before rendering, call `CometChat.fetchPresignedUrl(url)` to get a presigned URL
+- The presigned URL is time-limited — fetch a new one if it expires
+- Gives you full control over when and how media files are loaded
+
+<Note>
+In **Embedded Mode**, you can use attachment URLs directly from message objects. In **Header-Based Mode**, always resolve the URL with `CometChat.fetchPresignedUrl()` before passing it to an image or media element.
+</Note>
+
+## API Reference
+
+The following static members are available on the `CometChat` class for working with Secure Media Access:
+
+| Member | Type | Description |
+| --- | --- | --- |
+| `CometChat.SecureMediaMode` | `enum` | Enum with two values: `EMBEDDED` (0) and `HEADER_BASED` (1). Used with `AppSettingsBuilder.setSecureMediaMode()` to configure the secure media access mode. |
+| `CometChat.getFat()` | `() => string \| null` | Returns the decoded File Access Token (FAT) for the current session, or `null` if no valid FAT is available. |
+| `CometChat.fetchPresignedUrl(url)` | `(url: string) => Promise<string>` | Resolves a time-limited presigned URL for the given secure media URL. Used in Header-Based Mode to get a temporary URL that grants access to the media file. |
+
+## Helper Methods
+
+The `CometChatHelper` class provides utility methods to check the current secure media configuration at runtime. These are synchronous methods that return values directly.
+
+### isHeaderModeEnabled()
+
+Returns `true` when all three conditions are met: the secure media mode is set to `HEADER_BASED`, a valid FAT exists for the current session, and the secure media host is configured.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Check if Header-Based mode is fully active
+let isEnabled = CometChatHelper.isHeaderModeEnabled();
+console.log("Header-Based mode enabled:", isEnabled);
+
+if (isEnabled) {
+  // Use CometChat.fetchPresignedUrl() before rendering media
+  console.log("Resolve media URLs with fetchPresignedUrl() before rendering");
+} else {
+  // Embedded mode or not configured — URLs are ready to use as-is
+  console.log("Media URLs can be used directly");
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Check if Header-Based mode is fully active
+let isEnabled: boolean = CometChatHelper.isHeaderModeEnabled();
+console.log("Header-Based mode enabled:", isEnabled);
+
+if (isEnabled) {
+  // Use CometChat.fetchPresignedUrl() before rendering media
+  console.log("Resolve media URLs with fetchPresignedUrl() before rendering");
+} else {
+  // Embedded mode or not configured — URLs are ready to use as-is
+  console.log("Media URLs can be used directly");
+}
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Check if Header-Based mode is fully active (synchronous — no await needed)
+let isEnabled = CometChatHelper.isHeaderModeEnabled();
+console.log("Header-Based mode enabled:", isEnabled);
+
+if (isEnabled) {
+  // Use CometChat.fetchPresignedUrl() before rendering media
+  console.log("Resolve media URLs with fetchPresignedUrl() before rendering");
+} else {
+  // Embedded mode or not configured — URLs are ready to use as-is
+  console.log("Media URLs can be used directly");
+}
+```
+</Tab>
+</Tabs>
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| — | — | This method takes no parameters. |
+
+| Return Type | Description |
+| --- | --- |
+| `boolean` | `true` if the mode is `HEADER_BASED`, a valid FAT exists, and the secure media host is configured. `false` otherwise. |
+
+### requiresSecureAccess(url)
+
+Returns `true` if the given URL points to the configured secure media host. Use this to determine whether a URL needs to be resolved via `CometChat.fetchPresignedUrl()` before rendering.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Check if a URL requires secure access
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+let needsSecure = CometChatHelper.requiresSecureAccess(mediaUrl);
+console.log("Requires secure access:", needsSecure);
+
+if (needsSecure && CometChatHelper.isHeaderModeEnabled()) {
+  // Resolve the URL before rendering
+  CometChat.fetchPresignedUrl(mediaUrl).then(
+    (presignedUrl) => {
+      console.log("Use this URL to render media:", presignedUrl);
+    },
+    (error) => {
+      console.log("Error fetching presigned URL:", error);
+    }
+  );
+} else {
+  // URL does not require secure access or Embedded mode handles it
+  console.log("Use the URL directly:", mediaUrl);
+}
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Check if a URL requires secure access
+let mediaUrl: string = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+let needsSecure: boolean = CometChatHelper.requiresSecureAccess(mediaUrl);
+console.log("Requires secure access:", needsSecure);
+
+if (needsSecure && CometChatHelper.isHeaderModeEnabled()) {
+  // Resolve the URL before rendering
+  CometChat.fetchPresignedUrl(mediaUrl).then(
+    (presignedUrl: string) => {
+      console.log("Use this URL to render media:", presignedUrl);
+    },
+    (error: CometChat.CometChatException) => {
+      console.log("Error fetching presigned URL:", error);
+    }
+  );
+} else {
+  // URL does not require secure access or Embedded mode handles it
+  console.log("Use the URL directly:", mediaUrl);
+}
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Check if a URL requires secure access (synchronous check)
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+let needsSecure = CometChatHelper.requiresSecureAccess(mediaUrl);
+console.log("Requires secure access:", needsSecure);
+
+if (needsSecure && CometChatHelper.isHeaderModeEnabled()) {
+  // Resolve the URL before rendering
+  try {
+    const presignedUrl = await CometChat.fetchPresignedUrl(mediaUrl);
+    console.log("Use this URL to render media:", presignedUrl);
+  } catch (error) {
+    console.log("Error fetching presigned URL:", error);
+  }
+} else {
+  // URL does not require secure access or Embedded mode handles it
+  console.log("Use the URL directly:", mediaUrl);
+}
+```
+</Tab>
+</Tabs>
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `url` | `string` | The media URL to check. The method compares the URL's host against the configured secure media host. |
+
+| Return Type | Description |
+| --- | --- |
+| `boolean` | `true` if the URL points to the configured secure media host. `false` otherwise. |
+
+## Error Handling
+
+When working with Secure Media Access, handle these common error scenarios gracefully in your application.
+
+### Feature Not Enabled
+
+If Secure Media Access is not enabled in the CometChat Dashboard, calling `CometChat.fetchPresignedUrl()` will not throw an error — it simply returns the same URL string that was passed in. Media URLs work normally without a File Access Token in this case.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Calling fetchPresignedUrl when the feature is not enabled
+let mediaUrl = "https://example.com/file.jpg";
+
+CometChat.fetchPresignedUrl(mediaUrl).then(
+  (returnedUrl) => {
+    // returnedUrl === mediaUrl — the same URL is returned as-is
+    console.log("Returned URL:", returnedUrl);
+  },
+  (error) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Calling fetchPresignedUrl when the feature is not enabled
+let mediaUrl: string = "https://example.com/file.jpg";
+
+CometChat.fetchPresignedUrl(mediaUrl).then(
+  (returnedUrl: string) => {
+    // returnedUrl === mediaUrl — the same URL is returned as-is
+    console.log("Returned URL:", returnedUrl);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Calling fetchPresignedUrl when the feature is not enabled
+let mediaUrl = "https://example.com/file.jpg";
+
+try {
+  const returnedUrl = await CometChat.fetchPresignedUrl(mediaUrl);
+  // returnedUrl === mediaUrl — the same URL is returned as-is
+  console.log("Returned URL:", returnedUrl);
+} catch (error) {
+  console.log("Error:", error);
+}
+```
+</Tab>
+</Tabs>
+
+### Invalid URL Provided
+
+If an invalid or malformed URL is passed to `CometChat.fetchPresignedUrl()`, the method does not throw an error — it returns the same string that was passed in.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Passing an invalid URL to fetchPresignedUrl
+let invalidUrl = "not-a-valid-url";
+
+CometChat.fetchPresignedUrl(invalidUrl).then(
+  (returnedUrl) => {
+    // returnedUrl === invalidUrl — the same string is returned as-is
+    console.log("Returned URL:", returnedUrl);
+  },
+  (error) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Passing an invalid URL to fetchPresignedUrl
+let invalidUrl: string = "not-a-valid-url";
+
+CometChat.fetchPresignedUrl(invalidUrl).then(
+  (returnedUrl: string) => {
+    // returnedUrl === invalidUrl — the same string is returned as-is
+    console.log("Returned URL:", returnedUrl);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Passing an invalid URL to fetchPresignedUrl
+let invalidUrl = "not-a-valid-url";
+
+try {
+  const returnedUrl = await CometChat.fetchPresignedUrl(invalidUrl);
+  // returnedUrl === invalidUrl — the same string is returned as-is
+  console.log("Returned URL:", returnedUrl);
+} catch (error) {
+  console.log("Error:", error);
+}
+```
+</Tab>
+</Tabs>
+
+### Expired File Access Token (FAT)
+
+When the File Access Token expires, media requests return a **401 Unauthorized** response. The SDK automatically refreshes the FAT on re-login. In your application, handle 401 responses by re-fetching the presigned URL.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+// Handle expired FAT by re-fetching the presigned URL
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+function loadSecureMedia(url) {
+  CometChat.fetchPresignedUrl(url).then(
+    (presignedUrl) => {
+      console.log("Presigned URL:", presignedUrl);
+      // Use the presigned URL to render media
+    },
+    (error) => {
+      console.log("Error fetching presigned URL:", error);
+      // If FAT expired, the SDK refreshes it on next login
+      // Retry after re-authentication if needed
+    }
+  );
+}
+
+loadSecureMedia(mediaUrl);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+// Handle expired FAT by re-fetching the presigned URL
+let mediaUrl: string = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+function loadSecureMedia(url: string): void {
+  CometChat.fetchPresignedUrl(url).then(
+    (presignedUrl: string) => {
+      console.log("Presigned URL:", presignedUrl);
+      // Use the presigned URL to render media
+    },
+    (error: CometChat.CometChatException) => {
+      console.log("Error fetching presigned URL:", error);
+      // If FAT expired, the SDK refreshes it on next login
+      // Retry after re-authentication if needed
+    }
+  );
+}
+
+loadSecureMedia(mediaUrl);
+```
+</Tab>
+<Tab title="Async/Await">
+```javascript
+// Handle expired FAT by re-fetching the presigned URL
+let mediaUrl = "https://files-<region>.cometchat.com/<app_id>/media/file.jpg";
+
+async function loadSecureMedia(url) {
+  try {
+    const presignedUrl = await CometChat.fetchPresignedUrl(url);
+    console.log("Presigned URL:", presignedUrl);
+    // Use the presigned URL to render media
+  } catch (error) {
+    console.log("Error fetching presigned URL:", error);
+    // If FAT expired, the SDK refreshes it on next login
+    // Retry after re-authentication if needed
+  }
+}
+
+loadSecureMedia(mediaUrl);
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Cache Presigned URLs">
+    Presigned URLs are time-limited but valid for a reasonable duration. Cache them in memory to avoid redundant network calls when rendering the same media file multiple times (e.g., in a scrolling message list). Invalidate the cache when the URL expires or returns a 401 response.
+
+    ```javascript
+    // Simple in-memory cache for presigned URLs
+    const presignedUrlCache = new Map();
+
+    function getCachedPresignedUrl(url) {
+      if (presignedUrlCache.has(url)) {
+        return Promise.resolve(presignedUrlCache.get(url));
+      }
+      return CometChat.fetchPresignedUrl(url).then((presignedUrl) => {
+        presignedUrlCache.set(url, presignedUrl);
+        return presignedUrl;
+      });
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Refresh Expired URLs">
+    Presigned URLs expire after a set duration. If a media request returns a 401 or 403 response, discard the cached URL and fetch a new presigned URL. Implement a retry mechanism that re-fetches the presigned URL once before showing an error to the user.
+
+    ```javascript
+    // Retry with a fresh presigned URL on 401/403
+    function loadMediaWithRetry(url) {
+      return CometChat.fetchPresignedUrl(url).then((presignedUrl) => {
+        return fetch(presignedUrl).then((response) => {
+          if (response.status === 401 || response.status === 403) {
+            // Token expired — fetch a new presigned URL
+            return CometChat.fetchPresignedUrl(url);
+          }
+          return presignedUrl;
+        });
+      });
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Handle 401 Responses Gracefully">
+    A 401 Unauthorized response on a media URL means the File Access Token (FAT) is missing, expired, or invalid. In your application, catch 401 errors and attempt to re-fetch the presigned URL. If the error persists, prompt the user to re-authenticate — the SDK refreshes the FAT automatically on login.
+  </Accordion>
+
+  <Accordion title="Choose Between Embedded and Header-Based Modes">
+    Use **Embedded Mode** when you want zero-effort media rendering — the SDK appends the FAT to every media URL automatically. This is ideal for simple chat UIs where you display media directly in `<img>` or `<video>` elements.
+
+    Use **Header-Based Mode** when you need clean URLs, custom caching strategies, or control over how media files are fetched. This mode is better suited for applications with custom media players, CDN proxies, or advanced image loading pipelines.
+
+    You can check the current mode at runtime using `CometChatHelper.isHeaderModeEnabled()`.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized on Media URLs">
+    **Symptom:** Media files fail to load and the server returns a 401 Unauthorized response.
+
+    **Possible causes:**
+    - Secure Media Access is enabled in the Dashboard but the SDK is not configured with a secure media mode.
+    - The File Access Token (FAT) has expired or is missing.
+    - In Header-Based Mode, you are using the raw media URL instead of a presigned URL.
+
+    **Solution:**
+    1. Verify that `setSecureMediaMode()` is called during SDK initialization.
+    2. In Header-Based Mode, always call `CometChat.fetchPresignedUrl(url)` before rendering media.
+    3. If the FAT has expired, re-authenticate the user — the SDK refreshes the FAT on login.
+    4. Use `CometChat.getFat()` to check if a valid FAT exists for the current session.
+  </Accordion>
+
+  <Accordion title="Expired Presigned URLs">
+    **Symptom:** A presigned URL that previously worked now returns a 401 or 403 response.
+
+    **Cause:** Presigned URLs are time-limited. Once the URL expires, it can no longer be used to access the media file.
+
+    **Solution:**
+    1. Discard the expired presigned URL from any local cache.
+    2. Call `CometChat.fetchPresignedUrl(url)` again with the original media URL to get a fresh presigned URL.
+    3. Implement a retry mechanism in your media loading logic to handle expired URLs automatically.
+  </Accordion>
+
+  <Accordion title="Mode Mismatch Between SDK and Media URLs">
+    **Symptom:** Media URLs contain `?fat=<token>` when you expect clean URLs, or vice versa.
+
+    **Cause:** The SDK is configured in a different mode than expected. For example, the SDK is in Embedded Mode but your code assumes Header-Based Mode.
+
+    **Solution:**
+    1. Check the configured mode using `CometChatHelper.isHeaderModeEnabled()`.
+    2. Verify the `setSecureMediaMode()` value passed during SDK initialization.
+    3. In Embedded Mode (`SecureMediaMode.EMBEDDED`), URLs automatically include `?fat=<token>` — do not call `fetchPresignedUrl()`.
+    4. In Header-Based Mode (`SecureMediaMode.HEADER_BASED`), URLs are clean — always call `fetchPresignedUrl()` before rendering.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages with secure media support
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/javascript/receive-message">
+    Handle incoming messages and render secure media attachments
+  </Card>
+  <Card title="Setup Overview" icon="gear" href="/sdk/javascript/overview">
+    Configure the SDK with AppSettings including secure media mode
+  </Card>
+  <Card title="Setup SDK" icon="code" href="/sdk/javascript/setup-sdk">
+    Install and initialize the CometChat JavaScript SDK
+  </Card>
+</CardGroup>
