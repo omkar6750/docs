@@ -3,151 +3,119 @@ title: "Sound Manager"
 description: "Manage and customize audio cues for incoming/outgoing calls and messages in CometChat React UI Kit."
 ---
 
-Control UI Kit sound cues for calls and messages. This page is for developers who want to play, override, or stop UI Kit sounds programmatically.
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Reference for AI Agents & Developers**
 
-## When to use this
-
-- You want to play default UI Kit sounds for calls or messages.
-- You want to replace default sounds with custom MP3 files.
-- You want to pause or stop ongoing sound playback.
-- You need to align sound behavior with your app’s UX.
-
-## Prerequisites
-
-- CometChat React UI Kit v6 installed: `@cometchat/chat-uikit-react`.
-- User interaction may be required before audio can play due to browser autoplay policies.
-
-## Quick start
-
-1. Import the sound manager in any module.
-
-```ts
-import { CometChatSoundManager, Sound } from "@cometchat/chat-uikit-react";
-```
-
-What this does: Makes the sound manager and sound constants available.
-
-2. Play a default sound.
-
-```ts
+```javascript
 import { CometChatSoundManager, Sound } from "@cometchat/chat-uikit-react";
 
+// Play default incoming call sound
 CometChatSoundManager.play(Sound.incomingCall);
-```
 
-What this does: Plays the default incoming call sound.
-
-3. Play a custom sound file.
-
-```ts
-import { CometChatSoundManager, Sound } from "@cometchat/chat-uikit-react";
-
+// Play custom sound
 CometChatSoundManager.play(Sound.incomingCall, "path/to/custom.mp3");
-```
 
-What this does: Plays a custom MP3 for the incoming call event.
-
-4. Pause the current sound.
-
-```ts
-import { CometChatSoundManager } from "@cometchat/chat-uikit-react";
-
+// Pause current sound
 CometChatSoundManager.pause();
 ```
 
-What this does: Stops the currently playing sound.
+- **Sound events:** `Sound.incomingCall`, `Sound.outgoingCall`, `Sound.incomingMessage`, `Sound.outgoingMessage`
+- Supports custom MP3 file paths
+</Info>
 
-## Core concepts
+## Overview
 
-- Sound events: `Sound.incomingCall`, `Sound.outgoingCall`, `Sound.incomingMessage`, `Sound.outgoingMessage`.
-- CometChatSoundManager: Helper class for playing or pausing UI Kit sounds.
-- Custom sound path: Provide an MP3 file path to override the default sound.
+The SoundManager is a helper class responsible for managing and playing various types of audio in the CometChat UI Kit. This includes sound events for incoming and outgoing calls.
 
-## Implementation
+## Methods
 
-### Play a default sound
+### Play Sound
 
-What you’re changing: Trigger a built-in UI Kit sound.
-File: Any module (for example `src/sound.ts`)
-Applies to: `CometChatSoundManager.play(sound)`
-Default behavior: Plays the built-in sound for the event.
-Override: Use a custom file path to replace the sound.
-Verify: The sound plays after a user interaction event.
+`CometChatSoundManager.play` method plays the default audio resource for incoming & outgoing calls. It also allows for customisation of the audio resources. You can pass a mp3 file asset path of your choice.
 
-```ts
-import { CometChatSoundManager, Sound } from "@cometchat/chat-uikit-react";
+Here are the available methods for triggering sound playback:
 
-export function playIncomingCallSound() {
-  CometChatSoundManager.play(Sound.incomingCall);
-}
+* `play(sound: Sound)`: This method plays predefined sounds for various events such as incoming and outgoing calls and messages.
+
+* `play(sound: Sound, filePath: string)`: This method is capable of playing a custom sound for a particular event by specifying the path to a custom MP3 file.
+
+### Pause Sound
+
+The `CometChatSoundManager.pause` method pauses the currently playing sound in the CometChatSoundManager.
+
+* `pause()`: This method pauses any sound currently being played.
+
+## Usage
+
+Here is how to use CometChatSoundManager:
+
+<Tabs>
+<Tab title="JavaScript">
+```js lines
+//Trigger the audio sound for an incoming call.
+CometChatSoundManager.play(Sound.incomingCall);
+
+//Trigger the audio sound of your choice for an incoming call.
+CometChatSoundManager.play(Sound.incomingCall, "MP3_FILE_ASSET_PATH");
+
+//Pause the ongoing audio sound
+CometChatSoundManager.pause();
 ```
 
-What this does: Plays the default incoming call sound.
+</Tab>
 
-### Play a custom sound
+<Tab title="TypeScript">
+```ts lines
+//Trigger the audio sound for an incoming call
+CometChatSoundManager.play(Sound.incomingCall);
 
-What you’re changing: Replace a default sound with a custom MP3.
-File: Any module (for example `src/sound.ts`)
-Applies to: `CometChatSoundManager.play(sound, filePath)`
-Default behavior: Uses default UI Kit sounds.
-Override: Provide a custom MP3 file path.
-Verify: Your custom file plays instead of the default.
+//Trigger the audio sound of your choice for an incoming call
+CometChatSoundManager.play(Sound.incomingCall, "MP3_FILE_ASSET_PATH");
 
-```ts
-import { CometChatSoundManager, Sound } from "@cometchat/chat-uikit-react";
-
-export function playCustomIncomingCallSound() {
-  CometChatSoundManager.play(Sound.incomingCall, "/audio/custom-incoming.mp3");
-}
+//Pause the ongoing audio sound
+CometChatSoundManager.pause();
 ```
 
-What this does: Plays a custom MP3 for incoming call events.
+</Tab>
 
-### Pause the current sound
+</Tabs>
 
-What you’re changing: Stop a currently playing sound.
-File: Any module (for example `src/sound.ts`)
-Applies to: `CometChatSoundManager.pause()`
-Default behavior: Sounds continue until finished.
-Override: Call pause when you need to stop playback.
-Verify: The sound stops immediately.
+By using the CometChatSoundManager, you can enhance the user experience in your chat application by integrating audible cues for chat interactions.
 
-```ts
-import { CometChatSoundManager } from "@cometchat/chat-uikit-react";
+***
 
-export function stopSound() {
-  CometChatSoundManager.pause();
-}
-```
+## Common Failure Modes
 
-What this does: Stops any sound currently playing.
-
-## Customization matrix
-
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Play default incoming call sound | Any module | `CometChatSoundManager.play(Sound.incomingCall)` | `CometChatSoundManager.play(Sound.incomingCall)` |
-| Play custom incoming call sound | Any module | `CometChatSoundManager.play(sound, filePath)` | `CometChatSoundManager.play(Sound.incomingCall, "/audio/incoming.mp3")` |
-| Pause current sound | Any module | `CometChatSoundManager.pause()` | `CometChatSoundManager.pause()` |
-
-## Common pitfalls and fixes
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| No sound plays | Browser autoplay policy blocks audio | Require a user interaction before playing sound. |
-| Custom sound not playing | Invalid file path or unsupported format | Use a valid MP3 path and ensure the file loads. |
-| Sound keeps playing | `pause()` not called | Call `CometChatSoundManager.pause()` to stop playback. |
+| No sound plays | Browser autoplay policy blocks audio | User must interact with the page first before audio can play |
+| Custom sound not playing | Invalid file path or unsupported format | Ensure the path is correct and the file is a valid MP3 |
+| Sound keeps playing | `pause()` not called | Call `CometChatSoundManager.pause()` to stop playback |
 
-## FAQ
+</Accordion>
+</AccordionGroup>
 
-**Do I need to initialize anything before playing sounds?**
-No. Import `CometChatSoundManager` and call `play()`.
+***
 
-**Which formats are supported for custom sounds?**
-Use MP3 files for best compatibility.
+## Next Steps
 
-## Next steps
+<CardGroup cols={2}>
+  <Card title="Localize" href="/ui-kit/react/localize">
+    Configure multi-language localization and date formatting.
+  </Card>
+  <Card title="Theme" href="/ui-kit/react/theme">
+    Customize colors, fonts, and styles.
+  </Card>
+  <Card title="Components Overview" href="/ui-kit/react/components-overview">
+    Explore all available prebuilt UI components.
+  </Card>
+  <Card title="Methods" href="/ui-kit/react/methods">
+    Init, login, logout, and other UI Kit methods.
+  </Card>
+</CardGroup>
 
-- [Localize](/ui-kit/react/localize)
-- [Theme](/ui-kit/react/theme)
-- [Methods](/ui-kit/react/methods)
+***

@@ -3,98 +3,7 @@ title: "Core"
 description: "Overview of CometChat's core chat features including instant messaging, media sharing, read receipts, typing indicators, user presence, reactions, mentions, threaded conversations, search, and moderation — with the UI Kit components that power each feature."
 ---
 
-Build the core CometChat chat experience in React with the UI Kit components that power messaging, media, receipts, presence, reactions, threads, search, and moderation. This page is for developers who want a complete, line-by-line implementation reference.
-
-## When to use this
-
-- You need a complete 1:1 or group chat surface with message list, header, and composer.
-- You want built-in behaviors like read receipts, typing indicators, and user presence.
-- You need media sharing, reactions, and quoted replies out of the box.
-- You want mentions and threaded conversations in chats.
-- You need conversation search and message moderation and reporting workflows.
-
-## Prerequisites
-
-- CometChat React UI Kit v6 installed: `@cometchat/chat-uikit-react`.
-- CometChat app credentials: `APP_ID`, `REGION`, and `AUTH_KEY` from the CometChat Dashboard, configured per [React.js Integration](/ui-kit/react/react-js-integration).
-- UI Kit initialization and login must complete before rendering any UI Kit component: `CometChatUIKit.init()` and `CometChatUIKit.login()`.
-- Moderation and report message require moderation rules and flagged message handling configured in [Moderation overview](/moderation/overview) and [Flagged Messages](/moderation/flagged-messages).
-
-## Quick start
-
-1. Install the UI Kit package.
-
-```bash
-npm install @cometchat/chat-uikit-react
-```
-
-What this does: Installs the React UI Kit package.
-
-2. Create `src/cometchat.ts` and initialize the UI Kit.
-
-```ts
-import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
-
-export async function initCometChat() {
-  const UIKitSettings = new UIKitSettingsBuilder()
-    .setAppId("APP_ID")
-    .setRegion("REGION")
-    .setAuthKey("AUTH_KEY")
-    .build();
-
-  await CometChatUIKit.init(UIKitSettings);
-  await CometChatUIKit.login("UID");
-}
-```
-
-What this does: Initializes the UI Kit and logs in a user.
-
-3. Update `src/App.tsx` to render a direct chat view.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageHeader,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageHeader user={chatUser} />
-      <CometChatMessageList user={chatUser} />
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Initializes CometChat, loads the target user, and renders the header, message list, and composer for a 1:1 chat.
-
-4. Replace `APP_ID`, `REGION`, `AUTH_KEY`, `UID`, and `TARGET_UID` with real values from your CometChat app.
-5. Run your app and verify that you can send text and media messages and see read receipts.
-
-## Core concepts
-
+{/* TL;DR for Agents and Quick Reference */}
 <Info>
 **Quick Reference for AI Agents & Developers**
 
@@ -113,68 +22,26 @@ Key components for core chat features:
 <Info>
 **AI Agent Component Spec**
 
-- Package: `@cometchat/chat-uikit-react`
-- Required setup: `CometChatUIKit.init()` and `CometChatUIKit.login()`
-- Primary components: `CometChatConversations`, `CometChatMessageList`, `CometChatMessageComposer`, `CometChatMessageHeader`
-- CSS class prefix: `.cometchat-`
+**Package:** `@cometchat/chat-uikit-react`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Core features covered:** Instant Messaging, Media Sharing, Read Receipts, Mark as Unread, Typing Indicator, User Presence, Reactions, Mentions, Quoted Reply, Search, Threaded Conversations, Moderation, Report Message, Group Chat
+**Primary components:** `CometChatConversations`, `CometChatMessageList`, `CometChatMessageComposer`, `CometChatMessageHeader`
+**CSS class prefix:** `.cometchat-`
 </Info>
 
-- `CometChatUIKit.init()` and `CometChatUIKit.login()` must complete before any UI Kit component renders.
-- `CometChat.User` and `CometChat.Group` are the required inputs for message components.
-- `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` form the core chat surface.
-- Message actions (reply, reaction, report) are available from the message actions menu in `CometChatMessageList`.
+## Overview
 
-## Implementation
+The UI Kit comprises a variety of components, each designed to work seamlessly with one another to deliver a comprehensive and intuitive chat experience.
 
-### Base 1:1 chat surface
 
-What you’re changing: Build the main 1:1 chat panel with header, message list, and composer.
-File: `src/App.tsx`
-Applies to: `CometChatMessageHeader`, `CometChatMessageList`, `CometChatMessageComposer`
-Default behavior: Renders the core chat surface and enables instant messaging, media sharing, read receipts, reactions, quoted replies, typing indicator, and presence for the active user chat.
-Override: Use `hideReceipts`, `templates`, or `hideVoiceRecording` on the corresponding components.
-Verify: You can send text and media, see receipt states, and use message actions such as reaction and reply.
+Here's how different UI Kit components work together to achieve CometChat's Core features:
 
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageHeader,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
 
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
+<Note>
+**Before using these components:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
 
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageHeader user={chatUser} />
-      <CometChatMessageList user={chatUser} />
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Initializes CometChat, loads the target user, and renders the core 1:1 chat UI.
-
-#### Instant Messaging
+## Instant Messaging
 
 At the heart of CometChat's functionality is the ability to support real-time text messaging. Users can send and receive instant messages, fostering quick and efficient communication.
 
@@ -182,366 +49,213 @@ At the heart of CometChat's functionality is the ability to support real-time te
   <img src="/images/94312eb7-intro_web_screens-7ee27b256c54ea069273e198ec2aad4e.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Message Composer](/ui-kit/react/message-composer) | Enables users to write and send a variety of messages. |
-| [Message List](/ui-kit/react/message-list) | Renders a list of sent and received messages using text bubbles. |
+| Components                                              | Functionality                                                                                                                                    |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Message Composer](/ui-kit/react/message-composer) | The [Message Composer](/ui-kit/react/message-composer) is a Component that enables users to write and send a variety of messages.           |
+| [Message List](/ui-kit/react/message-list)         | The [Message List](/ui-kit/react/message-list) is a Component that renders a list of messages sent and messages received using Text Bubble. |
 
-#### Media Sharing
+## Media Sharing
 
-Beyond text, CometChat allows users to share images, videos, audio files, and documents.
+Beyond text, CometChat allows users to share various media types within their conversations. This includes images, videos, audio files, and documents, enriching the chat experience and enabling more comprehensive communication.
 
 <Frame>
   <img src="/images/56d32794-feature_media_sharing_web_screens-85d19aa1d4efea1f5bfec8a718e67d1c.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Message Composer](/ui-kit/react/message-composer) | Provides an action sheet for sharing media files. |
-| [Message List](/ui-kit/react/message-list) | Renders image, file, audio, and video message bubbles. |
+| Components                                              | Functionality                                                                                                                                                                                                        |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message Composer](/ui-kit/react/message-composer) | The [Message Composer](/ui-kit/react/message-composer) component includes an ActionSheet. This ActionSheet serves as a menu appearing over the app's context, offering various options for sharing media files. |
+| [Message List](/ui-kit/react/message-list)         | The [Message List](/ui-kit/react/message-list) component is responsible for rendering various Media Message bubbles, such as Image, File, Audio & Video Bubble.                                                 |
 
-#### Read Receipts
+## Read Receipts
 
-Read receipts show delivery and read status for messages.
+CometChat's Read Receipts feature provides visibility into the message status, letting users know when a message has been delivered and read. This brings clarity to the communication and ensures users are informed about the status of their messages.
 
 <Frame>
   <img src="/images/bf16bef1-feature_read_receipt_web_screens-68fddd4e39d86dfcb7d41b5e945dcdc3.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Conversations](/ui-kit/react/conversations) | Shows delivery status of the last message in each conversation. |
-| [Message List](/ui-kit/react/message-list) | Displays read receipt status on each message bubble. |
-| Message Information | Provides per-message delivery and read status details. |
+| Components                                        | Functionality                                                                                                                                                                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Conversations](/ui-kit/react/conversations) | [Conversations](/ui-kit/react/conversations) is a component that renders conversation list item. Conversation item also displays the delivery status of the last message providing users with real-time updates on the status of their messages.              |
+| [Message List](/ui-kit/react/message-list)   | [Message List](/ui-kit/react/message-list) is a component that renders different types of message bubbles. Read receipt status is an integral part of all message bubbles, no matter the type and provides real-time updates about the status of the message. |
+| Message Information                               | Message Information component provides transparency into the status of each sent message, giving the sender insights into whether their message has been delivered and read.                                                                                       |
 
-#### Mark as Unread
+## Mark as Unread
 
-Mark as Unread lets users flag a conversation as unread and jump back to the first unread message.
+ Mark as Unread feature allows users to manually mark messages as unread, helping them keep track of important conversations they want to revisit later. When enabled, the message list can automatically start from the first unread message, making it easier to pick up where you left off.
 
 <Frame>
   <img src="/images/mark-as-unread-react-uikit-overview.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Message List](/ui-kit/react/message-list) | Provides the Mark as unread option in message actions and can start from the first unread message. |
-| [Conversations](/ui-kit/react/conversations) | Updates and displays unread counts in real time. |
+| Components                                        | Functionality                                                                                                                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message List](/ui-kit/react/message-list)   | [Message List](/ui-kit/react/message-list) provides the "Mark as unread" option in message actions and supports starting from the first unread message when enabled. |
+| [Conversations](/ui-kit/react/conversations) | [Conversations](/ui-kit/react/conversations) component listens to conversation updates and reflects the updated unread count in real-time.              |
 
-#### Typing Indicator
+## Typing Indicator
 
-Typing indicators show when someone is actively typing.
+The Typing Indicator feature in CometChat shows when a user is typing a response in real-time, fostering a more interactive and engaging chat environment. This feature enhances the real-time communication experience, making conversations feel more natural and fluid.
 
 <Frame>
   <img src="/images/5de16f7b-feature_typing_indicator_web_screens-da2f83292de9815655d0b5b0ff6fef6f.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Conversations](/ui-kit/react/conversations) | Shows typing status in conversation list items. |
-| [Message Header](/ui-kit/react/message-header) | Displays typing status in the header in real time. |
+| Components                                          | Functionality                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Conversations](/ui-kit/react/conversations)   | [Conversations](/ui-kit/react/conversations) is a component that renders conversation list item. Conversations item also shows real-time typing status indicators. This means that if a user in a one-on-one chat or a participant in a group chat is currently typing a message.                        |
+| [Message Header](/ui-kit/react/message-header) | [Message Header](/ui-kit/react/message-header) that renders details of User or Groups in ToolBar. The Message Header also handles the typing indicator functionality. When a user or a member in a group is typing, the Message Header dynamically updates to display a `typing...` status in real-time. |
 
-#### User Presence
+## User Presence
 
-Presence shows whether a user is online or offline.
+CometChat's User Presence feature allows users to see whether their contacts are online, offline. This helps users know the best time to initiate a conversation and sets expectations about response times.
 
 <Frame>
   <img src="/images/dc91a3ce-feature_status_indicator_web_screens-b7e131fd1b9b8b61db986a037c711e06.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Conversations](/ui-kit/react/conversations) | Shows presence indicators in conversation list items. |
-| [Message Header](/ui-kit/react/message-header) | Shows presence for the active user or group. |
-| [Users](/ui-kit/react/users) | Shows presence in the users list. |
-| [Group Members](/ui-kit/react/group-members) | Shows presence for group members. |
+| Components                                          | Functionality                                                                                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Conversations](/ui-kit/react/conversations)   | [Conversations](/ui-kit/react/conversations) is a component that renders conversation list item. Conversations item also shows user presence information.      |
+| [Message Header](/ui-kit/react/message-header) | [Message Header](/ui-kit/react/message-header) that renders details of user/group. The Message Header also handles user presence information.                  |
+| [Users](/ui-kit/react/users)                   | [Users](/ui-kit/react/users) renders list of users available in your app.It also responsible to render users presence information.                             |
+| [Group Members](/ui-kit/react/group-members)   | [Group Members](/ui-kit/react/group-members) renders list of users available in the group. The Group Members component also handles user presence information. |
 
-#### Reactions
+## Reactions
 
-Reactions let users respond to messages with emoji without typing a reply.
+CometChat's Reactions feature adds a layer of expressiveness to your chat application by allowing users to react to messages. With reactions, users can convey a range of emotions or express their thoughts on a particular message without typing out a full response, enhancing their user experience and fostering greater engagement.
 
 <Frame>
   <img src="/images/a1c1501b-reactions_web_screens-f04b4e202fdd5d9fd9c86056eed31247.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Message List](/ui-kit/react/message-list) | Displays reactions on message bubbles. |
+| Components                                      | Functionality                                                                                                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message List](/ui-kit/react/message-list) | [Message List](/ui-kit/react/message-list) is a component that renders different types of message bubbles. Reactions are an integral part and offer a more engaging, expressive way for users to respond to messages. |
 
-#### Quoted Replies
+## Mentions
 
-Quoted replies let users reply to specific messages with context.
-
-<Frame>
-  <img src="/images/f42ad8d3-swipe-to-reply_web_screens-c9204e4c244ca55a7ffe6c9498299625.png" />
-</Frame>
-
-| Components | Functionality |
-| --- | --- |
-| [Message List](/ui-kit/react/message-list) | Provides the Reply action for messages. |
-| [Message Composer](/ui-kit/react/message-composer) | Displays the quoted message above the input field. |
-
-### Group chat with mentions
-
-What you’re changing: Render a group chat view that supports mentions.
-File: `src/App.tsx`
-Applies to: `CometChatMessageHeader`, `CometChatMessageList`, `CometChatMessageComposer`
-Default behavior: Mentions appear in the composer and message list, including group mentions like `@all`.
-Override: Use `templates` for message rendering or `hideVoiceRecording` for input behavior.
-Verify: Typing `@` shows mention suggestions and `@all` notifies the group.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageHeader,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const group = await CometChat.getGroup("GUID");
-      if (isMounted) setChatGroup(group);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatGroup) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageHeader group={chatGroup} />
-      <CometChatMessageList group={chatGroup} />
-      <CometChatMessageComposer group={chatGroup} />
-    </div>
-  );
-}
-```
-
-What this does: Initializes CometChat, loads a group, and renders a group chat UI with mentions support.
-
-#### Mentions
-
-Mentions help users address individuals or groups like `@all` in chats.
+Mentions is a robust feature provided by CometChat that enhances the interactivity and clarity of group or 1-1 chats by allowing users to directly address or refer to specific individuals in a conversation. The feature also supports group mentions like @all, enabling users to quickly notify all members in a group chat simultaneously.
 
 <Frame>
   <img src="/images/a4778ade-mentions_web_screens-554df9099f110c592be8b32b750d64d2.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Conversations](/ui-kit/react/conversations) | Shows conversations where mentions occurred. |
-| [Message Composer](/ui-kit/react/message-composer) | Enables tagging users and groups. |
-| [Message List](/ui-kit/react/message-list) | Renders mentions in messages. |
+| Components                                              | Functionality                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Conversations](/ui-kit/react/conversations)       | [Conversations](/ui-kit/react/conversations) component provides an enhanced user experience by integrating the Mentions feature. This means that from the conversation list itself, users can see where they or someone else have been specifically mentioned. |
+| [Message Composer](/ui-kit/react/message-composer) | [Message Composer](/ui-kit/react/message-composer) is a component that allows users to craft and send various types of messages, including the usage of the mentions feature for direct addressing within the conversation.                                    |
+| [Message List](/ui-kit/react/message-list)         | [Message List](/ui-kit/react/message-list) is a component that displays a list of sent and received messages. It also supports the rendering of Mentions, enhancing the readability and interactivity of conversations.                                        |
 
-#### Group Chat
+## Threaded Conversations
 
-CometChat supports group conversations for teams and communities.
-
-<Frame>
-  <img src="/images/f42ad8d3-group_chat_web_screens-c9204e4c244ca55a7ffe6c9498299625.png" />
-</Frame>
-
-For a detailed guide, see [Groups](/ui-kit/react/groups).
-
-### Threaded conversations and search
-
-What you’re changing: Add thread entry points and a search surface for messages and conversations.
-File: `src/App.tsx`
-Applies to: `CometChatMessageList`, `CometChatSearch`
-Default behavior: Threaded replies appear on message bubbles, and search scans conversations and messages.
-Override: Use `onThreadRepliesClick`, `onConversationClicked`, `onMessageClicked`, `searchIn`, and `searchFilters`.
-Verify: Clicking a thread entry triggers your handler, and search results show conversations or messages.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList, CometChatSearch } from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatSearch
-        onConversationClicked={(conversation) => console.log("Conversation:", conversation)}
-        onMessageClicked={(message) => console.log("Message:", message)}
-      />
-      <CometChatMessageList
-        user={chatUser}
-        onThreadRepliesClick={(message) => console.log("Thread message:", message)}
-      />
-    </div>
-  );
-}
-```
-
-What this does: Renders a search UI and a message list with a threaded replies click handler.
-
-#### Threaded Conversations
-
-Threaded conversations allow replies to specific messages.
+The Threaded Conversations feature enables users to respond directly to a specific message in a chat. This keeps conversations organized and enhances the user experience by maintaining context, especially in group chats.
 
 <Frame>
   <img src="/images/c61ec9db-threaded_conversations-3aa9e480dfcc47159d393052f19f313f.png" />
 </Frame>
 
-| Components | Functionality |
-| --- | --- |
-| [Threaded Message Preview](/ui-kit/react/threaded-message-preview) | Displays the parent message with the number of replies. |
+| Components                                                              | Functionality                                                                                                                                   |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Threaded Message Preview](/ui-kit/react/threaded-message-preview) | [Threaded Message Preview](/ui-kit/react/threaded-message-preview) component displays the parent message along with the number of replies. |
 
-#### Conversation and Advanced Search
+## Quoted Replies
 
-Search helps users find conversations, messages, and media in real time.
+Quoted Replies is a robust feature provided by CometChat that enables users to quickly reply to specific messages by selecting the "Reply" option from a message's action menu. This enhances context, keeps conversations organized, and improves overall chat experience in both 1-1 and group chats.
 
 <Frame>
-  <img src="/images/1ab7cd1b-search_message_item_view_default_web_screens-2895b996369fcaa0e59203664c628b7b.png" />
+  <img src="/images/f42ad8d3-swipe-to-reply_web_screens-c9204e4c244ca55a7ffe6c9498299625.png" />
 </Frame>
 
-For a detailed guide, see [Search](/ui-kit/react/search).
+| Components                                        | Functionality                                                                                                                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message List](/ui-kit/react/message-list)        | [Message List](/ui-kit/react/message-list) supports replying to messages via the "Reply" option. Users can select "Reply" on a message to open the composer with the quoted reply pre-filled, maintaining context.                   |
+| [Message Composer](/ui-kit/react/message-composer) | [Message Composer](/ui-kit/react/message-composer) works seamlessly with Quoted Message by showing the quoted reply above the input field, letting users compose their response in proper context.            |
 
-### Moderation and report message
+## Group Chat
 
-What you’re changing: Enable moderation and reporting in the message list UI.
-File: `src/App.tsx`
-Applies to: `CometChatMessageList`
-Default behavior: Moderated content is displayed according to moderation rules, and the Report Message action appears in the message actions menu.
-Override: Moderation rules are configured in the CometChat Dashboard.
-Verify: Blocked content displays according to rules, and users can report messages.
+CometChat facilitates Group Chats, allowing users to have conversations with multiple participants simultaneously. This feature is crucial for team collaborations, group discussions, social communities, and more.
 
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
+<Frame>
+  <img src="/images/f42ad8d3-group_chat_web_screens-c9204e4c244ca55a7ffe6c9498299625.png" />
+</Frame>
 
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
+For a comprehensive understanding and guide on implementing and using the Groups feature in CometChat, you should refer to our detailed guide on [Groups](/ui-kit/react/groups).
 
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+## Moderation
 
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageList
-        user={chatUser}
-        onError={(error) => console.error("MessageList error:", error)}
-      />
-    </div>
-  );
-}
-```
-
-What this does: Renders a message list that automatically reflects moderation rules and allows message reporting.
-
-#### Moderation
-
-Moderation filters and manages inappropriate content based on your rules.
+CometChat's Message Moderation feature helps maintain a safe and respectful chat environment by automatically filtering and managing inappropriate content. Messages can be automatically blocked or flagged based on predefined rules, ensuring harmful content is handled before it reaches users.
 
 <Frame>
   <img src="/images/react-uikit-moderation-overview.png" />
 </Frame>
 
 <Note>
-Learn more about setting up moderation rules in [Moderation overview](/moderation/overview).
+Learn more about setting up moderation rules and managing content in the [Moderation](/moderation/overview) documentation.
 </Note>
 
-| Components | Functionality |
-| --- | --- |
-| [Message List](/ui-kit/react/message-list) | Displays moderated messages based on your settings. |
+| Components                                      | Functionality                                                                                                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message List](/ui-kit/react/message-list) | [Message List](/ui-kit/react/message-list) automatically handles moderated messages, displaying blocked content appropriately based on your moderation settings. |
 
-#### Report Message
+After implementing moderation rules, users can report messages they find inappropriate or harmful. As a next step, you can enable the **[Report Message](#report-message)** feature to allow users to flag messages for review by moderators.
 
-Users can report messages and submit a reason and remarks.
+## Report Message
+
+The Report Message feature allows users to report inappropriate or harmful messages within the chat. Users can choose from predefined reasons and provide additional remarks for detailed context. This feature helps maintain a safe and respectful chat environment.
+
+<Note>
+Learn more about how flagged messages are handled, reviewed, and moderated in the [Flagged Messages](/moderation/flagged-messages) documentation.
+</Note>
 
 <Frame>
   <img src="/images/react-uikit-report-message-overview.png" />
 </Frame>
 
-<Note>
-Learn how flagged messages are handled in [Flagged Messages](/moderation/flagged-messages).
-</Note>
+| Components                                      | Functionality                                                                                                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Message List](/ui-kit/react/message-list) | [Message List](/ui-kit/react/message-list) provides the "Report Message" option in the message actions menu, allowing users to initiate the reporting process for inappropriate messages. |
 
-| Components | Functionality |
-| --- | --- |
-| [Message List](/ui-kit/react/message-list) | Provides the Report Message option in the message actions menu. |
+## Conversation and Advanced Search
 
-## Customization matrix
+Conversation and Advanced Search is a powerful feature provided by CometChat that enables users to quickly find conversations, messages, and media across chats in real time. It supports filters, scopes, and custom actions, allowing users to locate content efficiently while keeping the chat experience smooth and intuitive.
 
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Hide read receipts in message bubbles | `CometChatMessageList` | `hideReceipts` | `hideReceipts={true}` |
-| Hide read receipts in conversation list | `CometChatConversations` | `hideReceipts` | `hideReceipts={true}` |
-| Customize message bubble rendering | `CometChatMessageList` | `templates` | `templates={customTemplates}` |
-| Handle thread click behavior | `CometChatMessageList` | `onThreadRepliesClick` | `onThreadRepliesClick={openThread}` |
-| Change conversation selection behavior | `CometChatConversations` | `onItemClick` | `onItemClick={(c) => setActive(c)}` |
-| Hide voice recording in composer | `CometChatMessageComposer` | `hideVoiceRecording` | `hideVoiceRecording={true}` |
-| Hide user status in header | `CometChatMessageHeader` | `hideUserStatus` | `hideUserStatus={true}` |
-| Adjust search scope or filters | `CometChatSearch` | `searchIn`, `searchFilters` | `searchIn={["messages"]}` |
+<Frame>
+  <img src="/images/1ab7cd1b-search_message_item_view_default_web_screens-2895b996369fcaa0e59203664c628b7b.png" />
+</Frame>
 
-## Common pitfalls and fixes
+For a comprehensive understanding and guide on implementing and using the Groups feature in CometChat, you should refer to our detailed guide on [Groups](/ui-kit/react/groups).
 
-| Symptom | Likely cause | Fix |
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Components do not render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering any UI Kit component. |
-| Components render but show no data | User not logged in | Call `CometChatUIKit.login("UID")` after init. |
-| Message list is empty | `chatUser` or `chatGroup` not loaded | Fetch a valid `CometChat.User` or `CometChat.Group` before rendering. |
-| Message list throws errors | Both `user` and `group` props provided | Pass only one of `user` or `group`. |
-| Mark as Unread does not appear | Message actions not visible | Ensure message actions are enabled in `CometChatMessageList` and the user has permission. |
-| Mentions do not show suggestions | Using a 1:1 chat or user missing mention permissions | Use a group chat and ensure the user is a group member. |
-| Search shows no results | `CometChatSearch` rendered before login | Render search after `CometChatUIKit.login()` completes. |
-| SSR hydration error in Next.js | UI Kit uses browser APIs | Render UI Kit components in `useEffect` or use a client-only import. |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Callback not firing | Wrong prop name or signature | Check the Actions section on the component page for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
 
-## FAQ
+</Accordion>
+</AccordionGroup>
 
-**Do I need both Message List and Message Composer?**
-Yes. `CometChatMessageList` renders messages, and `CometChatMessageComposer` sends new messages.
+---
 
-**Can I use core features without Conversations?**
-Yes. You can render a direct user or group chat by passing a `CometChat.User` or `CometChat.Group` to the message components.
+## Next Steps
 
-**Where do I enable moderation and reporting?**
-Set up moderation rules in [Moderation overview](/moderation/overview) and manage flagged messages in [Flagged Messages](/moderation/flagged-messages).
-
-**How do I switch between user and group chats?**
-Handle `onItemClick` in `CometChatConversations`, detect whether the conversation is a user or group, and pass the correct object to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer`.
-
-## Next steps
-
-- [Components Overview](/ui-kit/react/components-overview)
-- [Theme](/ui-kit/react/theme)
-- [Call Features](/ui-kit/react/call-features)
+<CardGroup cols={2}>
+  <Card title="Components Overview" icon="grid-2" href="/ui-kit/react/components-overview">
+    Browse all available UI Kit components
+  </Card>
+  <Card title="Theme" icon="palette" href="/ui-kit/react/theme">
+    Customize the look and feel of your chat UI
+  </Card>
+  <Card title="Call Features" icon="phone" href="/ui-kit/react/call-features">
+    Add audio and video calling to your app
+  </Card>
+  <Card title="AI Features" icon="robot" href="/ui-kit/react/ai-features">
+    Explore AI-powered chat capabilities
+  </Card>
+</CardGroup>

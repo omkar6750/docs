@@ -3,96 +3,7 @@ title: "Smart Chat Features"
 description: "Learn about the AI-powered features in CometChat's React UI Kit, including Conversation Starter, Smart Replies, and Conversation Summary."
 ---
 
-Enable CometChat AI features in the Dashboard and surface them in your React UI Kit chat UI. This page is for developers who want Conversation Starter, Smart Replies, and Conversation Summary with minimal setup.
-
-## When to use this
-
-- You want AI-generated opening messages for new conversations.
-- You want AI-generated reply suggestions in the message composer.
-- You want AI-generated conversation summaries for long chats.
-- You want these features to appear automatically in UI Kit components.
-- You want to enable or disable AI features from the CometChat Dashboard.
-
-## Prerequisites
-
-- CometChat React UI Kit v6 installed: `@cometchat/chat-uikit-react`.
-- `CometChatUIKit.init()` and `CometChatUIKit.login()` complete before rendering UI Kit components.
-- AI features enabled in the CometChat Dashboard under [AI User Copilot overview](/fundamentals/ai-user-copilot/overview).
-
-## Quick start
-
-1. Enable **Conversation Starter**, **Smart Replies**, and **Conversation Summary** in the CometChat Dashboard. Use [AI User Copilot overview](/fundamentals/ai-user-copilot/overview).
-2. Install the UI Kit package.
-
-```bash
-npm install @cometchat/chat-uikit-react
-```
-
-What this does: Installs the React UI Kit package.
-
-3. Create `src/cometchat.ts` and initialize the UI Kit.
-
-```ts
-import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
-
-export async function initCometChat() {
-  const UIKitSettings = new UIKitSettingsBuilder()
-    .setAppId("APP_ID")
-    .setRegion("REGION")
-    .setAuthKey("AUTH_KEY")
-    .build();
-
-  await CometChatUIKit.init(UIKitSettings);
-  await CometChatUIKit.login("UID");
-}
-```
-
-What this does: Initializes CometChat UI Kit and logs in a user.
-
-4. Update `src/App.tsx` to render the Message List and Message Composer.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageList user={chatUser} />
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Renders the UI Kit components where AI features appear.
-
-5. Replace `APP_ID`, `REGION`, `AUTH_KEY`, `UID`, and `TARGET_UID` with real values.
-6. Run your app and verify AI suggestions appear in the message list and composer.
-
-## Core concepts
-
+{/* TL;DR for Agents and Quick Reference */}
 <Info>
 **Quick Reference for AI Agents & Developers**
 
@@ -101,147 +12,91 @@ Key components for AI features:
 - **Message Composer** → [CometChatMessageComposer](/ui-kit/react/message-composer) (Smart Replies, Conversation Summary)
 - **AI Assistant Chat** → [CometChatAIAssistantChat](/ui-kit/react/ai-assistant-chat)
 
-AI features are enabled via the [CometChat Dashboard](/fundamentals/ai-user-copilot/overview) and auto-integrate into UI Kit components.
+AI features are enabled via the [CometChat Dashboard](/fundamentals/ai-user-copilot/overview) — no additional code required once activated.
 </Info>
 
-- Conversation Starter: AI-generated opening lines shown at the start of a new chat.
-- Smart Replies: AI-generated reply suggestions shown in the message composer action sheet.
-- Conversation Summary: AI-generated summary of a long conversation shown in the message composer action sheet.
-- Auto-integration: Once enabled in the Dashboard, these features appear automatically in UI Kit components.
+<Info>
+**AI Agent Component Spec**
 
-## Implementation
+**Package:** `@cometchat/chat-uikit-react`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()` + AI features enabled in Dashboard
+**AI features covered:** Conversation Starter, Smart Replies, Conversation Summary
+**Primary components:** `CometChatMessageList`, `CometChatMessageComposer`
+**Activation:** Enable each AI feature from the CometChat Dashboard — UI Kit auto-integrates them
+</Info>
 
-### Conversation Starter in Message List
+## Overview
 
-What you’re changing: Render the message list so Conversation Starter can appear.
-File: `src/App.tsx`
-Applies to: `CometChatMessageList`
-Default behavior: Shows AI conversation starters when a new chat begins.
-Override: Enable or disable Conversation Starter in the CometChat Dashboard.
-Verify: When you open a new chat, suggested opening lines appear.
+CometChat's AI capabilities greatly enhance user interaction and engagement in your application. Let's understand how the React UI Kit achieves these features.
 
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
+## Smart Chat Features
 
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
+### Conversation Starter
 
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+When a user initiates a new chat, the UI kit displays a list of suggested opening lines that users can select, making it easier for them to start a conversation. These suggestions are powered by CometChat's AI, which predicts contextually relevant conversation starters.
 
-  if (!chatUser) return null;
+For a comprehensive understanding and guide on implementing and using the Conversation Starter, refer to our specific guide on the [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter).
 
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageList user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Renders the message list where Conversation Starter suggestions appear.
+Once you have successfully activated the [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter) from your CometChat Dashboard, the feature will automatically be incorporated into the [MessageList](/ui-kit/react/message-list) Component of UI Kits.
 
 <Frame>
   <img src="/images/1cad4411-ai_conversation_starter_web_screens-e086f83ee4ee395ce75328ecc6e7d45b.png" />
 </Frame>
 
-### Smart Replies and Conversation Summary in Message Composer
+### Smart Replies
 
-What you’re changing: Render the message composer so Smart Replies and Conversation Summary appear.
-File: `src/App.tsx`
-Applies to: `CometChatMessageComposer`
-Default behavior: Shows Smart Replies and Conversation Summary in the action sheet.
-Override: Enable or disable Smart Replies and Conversation Summary in the CometChat Dashboard.
-Verify: The composer action sheet shows reply suggestions and summary options.
+Smart Replies are AI-generated responses to messages. They can predict what a user might want to say next by analyzing the context of the conversation. This allows for quicker and more convenient responses, especially on mobile devices.
 
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageComposer } from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
+For a comprehensive understanding and guide on implementing and using the Smart Replies, refer to our specific guide on the [Smart Replies](/fundamentals/ai-user-copilot/smart-replies).
 
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Renders the message composer where Smart Replies and Conversation Summary appear.
+Once you have successfully activated the [Smart Replies](/fundamentals/ai-user-copilot/smart-replies) from your CometChat Dashboard, the feature will automatically be incorporated into the Action sheet of [MessageComposer](/ui-kit/react/message-composer) Component of UI Kits.
 
 <Frame>
   <img src="/images/52f05152-ai_smart_replies_web_screens-8ac3840804809fd9402814764093c6fc.png" />
 </Frame>
 
+### Conversation Summary
+
+The Conversation Summary feature provides concise summaries of long conversations, allowing users to catch up quickly on missed chats. This feature uses natural language processing to determine the main points in a conversation.
+
+For a comprehensive understanding and guide on implementing and using the Conversation Summary, refer to our specific guide on the [Conversation Summary](/fundamentals/ai-user-copilot/conversation-summary).
+
+Once you have successfully activated the [Conversation Summary](/fundamentals/ai-user-copilot/conversation-summary) from your CometChat Dashboard, the feature will automatically be incorporated into the Action sheet of [MessageComposer](/ui-kit/react/message-composer) Component of UI Kits.
+
 <Frame>
   <img src="/images/d83c9272-ai_conversation_summary_web_screens-b5e1d99c765f9c0c6f1e80d2b7e89421.png" />
 </Frame>
 
-## Customization matrix
-
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Enable Conversation Starter | CometChat Dashboard | AI User Copilot toggle | Enable **Conversation Starter** in [AI User Copilot overview](/fundamentals/ai-user-copilot/overview) |
-| Enable Smart Replies | CometChat Dashboard | AI User Copilot toggle | Enable **Smart Replies** in [AI User Copilot overview](/fundamentals/ai-user-copilot/overview) |
-| Enable Conversation Summary | CometChat Dashboard | AI User Copilot toggle | Enable **Conversation Summary** in [AI User Copilot overview](/fundamentals/ai-user-copilot/overview) |
-| Show Conversation Starter UI | `CometChatMessageList` | Component render | `<CometChatMessageList user={chatUser} />` |
-| Show Smart Replies and Summary UI | `CometChatMessageComposer` | Component render | `<CometChatMessageComposer user={chatUser} />` |
-
-## Common pitfalls and fixes
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| AI features not appearing | Feature not activated in the CometChat Dashboard | Enable the feature in [AI User Copilot overview](/fundamentals/ai-user-copilot/overview). |
-| Component does not render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering UI Kit components. |
-| Component renders but no AI suggestions | User not logged in | Call `CometChatUIKit.login("UID")` after init. |
-| Conversation Starter not showing | Feature not enabled or no conversation context | Enable [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter) and start a new chat. |
-| Smart Replies not appearing | Feature not enabled | Enable [Smart Replies](/fundamentals/ai-user-copilot/smart-replies). |
-| Conversation Summary not appearing | Feature not enabled | Enable [Conversation Summary](/fundamentals/ai-user-copilot/conversation-summary). |
-| SSR hydration error | UI Kit uses browser APIs | Render UI Kit components in `useEffect` or use `ssr: false` in Next.js. |
+| AI features not appearing | Feature not activated in CometChat Dashboard | Enable the specific AI feature from your [Dashboard](/fundamentals/ai-user-copilot/overview) |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but no AI suggestions | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Conversation Starter not showing | Feature not enabled or no conversation context | Ensure [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter) is activated in Dashboard |
+| Smart Replies not appearing in composer | Feature not enabled in Dashboard | Ensure [Smart Replies](/fundamentals/ai-user-copilot/smart-replies) is activated in Dashboard |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
 
-## FAQ
+</Accordion>
+</AccordionGroup>
 
-**Do I need to write custom code for AI features?**
-No. Once enabled in the Dashboard, they auto-integrate into UI Kit components.
+---
 
-**Where do Smart Replies and Conversation Summary appear?**
-They appear in the action sheet of [Message Composer](/ui-kit/react/message-composer).
+## Next Steps
 
-**Where do Conversation Starter suggestions appear?**
-They appear in [Message List](/ui-kit/react/message-list) when a new conversation starts.
-
-## Next steps
-
-- [AI Assistant Chat](/ui-kit/react/ai-assistant-chat)
-- [Message List](/ui-kit/react/message-list)
-- [Message Composer](/ui-kit/react/message-composer)
+<CardGroup cols={2}>
+  <Card title="AI Assistant Chat" icon="robot" href="/ui-kit/react/ai-assistant-chat">
+    Add an AI-powered assistant to your chat
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Customize the message list where AI features appear
+  </Card>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Customize the composer with Smart Replies and Summary
+  </Card>
+  <Card title="Core Features" icon="comments" href="/ui-kit/react/core-features">
+    Explore core chat features like messaging and reactions
+  </Card>
+</CardGroup>

@@ -3,95 +3,7 @@ title: "Extensions"
 description: "Overview of CometChat's extensions grouped by Dashboard categories (User Experience, User Engagement, Collaboration, Security, Customer Support, Smart Chat Features) and how they auto-integrate into React UI Kit components."
 ---
 
-Enable CometChat extensions from the Dashboard and have them automatically appear inside your React UI Kit chat experience. This page helps you turn on extensions, render the right components, and verify where each extension surfaces.
-
-## When to use this
-
-- You want to add stickers, polls, translation, or link previews without custom UI.
-- You need collaboration tools like whiteboard or collaborative documents.
-- You want security features like disappearing messages.
-- You need customer support integrations like Chatwoot or Intercom.
-- You want AI-powered chat features like Smart Replies or Conversation Summary.
-
-## Prerequisites
-
-- CometChat React UI Kit v6 installed: `@cometchat/chat-uikit-react`.
-- UI Kit initialization and login must complete before rendering any UI Kit component: `CometChatUIKit.init()` and `CometChatUIKit.login()`.
-- Extensions must be activated in the CometChat Dashboard. See [Extensions overview](/fundamentals/extensions-overview).
-
-## Quick start
-
-1. Enable one or more extensions in the CometChat Dashboard. Use [Extensions overview](/fundamentals/extensions-overview).
-2. Install the UI Kit.
-
-```bash
-npm install @cometchat/chat-uikit-react
-```
-
-What this does: Installs the React UI Kit package.
-
-3. Initialize the UI Kit and log in a user in `src/cometchat.ts`.
-
-```ts
-import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
-
-export async function initCometChat() {
-  const UIKitSettings = new UIKitSettingsBuilder()
-    .setAppId("APP_ID")
-    .setRegion("REGION")
-    .setAuthKey("AUTH_KEY")
-    .build();
-
-  await CometChatUIKit.init(UIKitSettings);
-  await CometChatUIKit.login("UID");
-}
-```
-
-What this does: Initializes CometChat UI Kit and logs in a user.
-
-4. Render `CometChatMessageComposer` and `CometChatMessageList` in `src/App.tsx`.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageList user={chatUser} />
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Renders the message list and composer where most extensions appear.
-
-5. Run your app and verify extension UI appears based on the extensions you enabled.
-
-## Core concepts
-
+{/* TL;DR for Agents and Quick Reference */}
 <Info>
 **Quick Reference for AI Agents & Developers**
 
@@ -99,206 +11,155 @@ Key components that support extensions:
 - **Message Composer** → [CometChatMessageComposer](/ui-kit/react/message-composer) (Stickers, Polls, Whiteboard, Document)
 - **Message List** → [CometChatMessageList](/ui-kit/react/message-list) (Translation, Link Preview, Thumbnails)
 
-Extensions are enabled via the [CometChat Dashboard](/fundamentals/extensions-overview) and auto-integrate into UI Kit components.
+Extensions are enabled via the [CometChat Dashboard](/fundamentals/extensions-overview) — no additional code required once activated.
+
+Supported extensions: User Experience, User Engagement, Collaboration, Security, Customer Support, Smart Chat Features
 </Info>
 
 <Info>
 **AI Agent Component Spec**
 
-- Package: `@cometchat/chat-uikit-react`
-- Required setup: `CometChatUIKit.init()` and `CometChatUIKit.login()`
-- Primary components: `CometChatMessageComposer`, `CometChatMessageList`
-- Activation: Enable each extension from the CometChat Dashboard
+**Package:** `@cometchat/chat-uikit-react`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()` + Extensions enabled in Dashboard
+**Extensions covered:** User Experience, User Engagement, Collaboration, Security, Customer Support, Smart Chat Features
+**Primary components:** `CometChatMessageComposer`, `CometChatMessageList`
+**Activation:** Enable each extension from the CometChat Dashboard — UI Kit auto-integrates them
 </Info>
 
-- Extension: A feature enabled from the CometChat Dashboard that appears automatically in UI Kit components.
-- Auto-integration: Once enabled, supported extensions render inside Message List or Message Composer without extra code.
-- Action Sheet: The attachment menu in `CometChatMessageComposer` where items like Polls, Whiteboard, and Document appear.
+## Overview
 
-## Implementation
+CometChat's UI Kit offers built-in support for various extensions, enriching the chatting experience with enhanced functionality. These extensions augment your chat application, making it more interactive, secure, and efficient.
 
-### Initialize UI Kit
 
-What you’re changing: Add UI Kit initialization and login.
-File: `src/cometchat.ts`
-Applies to: `CometChatUIKit.init()`, `CometChatUIKit.login()`
-Default behavior: Enables UI Kit features and extensions for the logged-in user.
-Override: Use a different auth flow if needed in [Methods](/ui-kit/react/methods).
-Verify: UI Kit components render without errors after init and login.
+<Note>
+**Before using extensions:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. Extensions must also be activated from the [CometChat Dashboard](/fundamentals/extensions-overview).
+</Note>
 
-```ts
-import { CometChatUIKit, UIKitSettingsBuilder } from "@cometchat/chat-uikit-react";
+Activating extensions within CometChat is a straightforward process through your application's dashboard. For detailed instructions, refer to our guide on [Extensions](/fundamentals/extensions-overview).
 
-export async function initCometChat() {
-  const UIKitSettings = new UIKitSettingsBuilder()
-    .setAppId("APP_ID")
-    .setRegion("REGION")
-    .setAuthKey("AUTH_KEY")
-    .build();
+Once you've enabled your desired extension in the dashboard, it seamlessly integrates into your CometChat application upon initialization and successful login. It's important to note that extension features will only be available if they are supported by the CometChat UI Kit.
 
-  await CometChatUIKit.init(UIKitSettings);
-  await CometChatUIKit.login("UID");
-}
-```
+CometChat's UI Kit provides native support for a wide range of powerful extensions. This effortless integration enables you to enhance your chat application with engaging features without any additional coding. Simply enable the desired extensions from the CometChat Dashboard, and they will automatically enhance the relevant components of your application, providing a richer and more engaging experience for your users.
 
-What this does: Initializes CometChat UI Kit and logs in a user.
+## Built-in Extensions
 
-### Render extension surfaces
-
-What you’re changing: Render the components that surface extension UI.
-File: `src/App.tsx`
-Applies to: `CometChatMessageList`, `CometChatMessageComposer`
-Default behavior: Enabled extensions automatically appear in the composer or message list.
-Override: Customize UI behavior using component props documented on [Message Composer](/ui-kit/react/message-composer) and [Message List](/ui-kit/react/message-list).
-Verify: Polls, stickers, translation, previews, and other enabled extensions show up.
-
-```tsx
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageComposer,
-  CometChatMessageList,
-} from "@cometchat/chat-uikit-react";
-import { initCometChat } from "./cometchat";
-
-export default function App() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      await initCometChat();
-      const user = await CometChat.getUser("TARGET_UID");
-      if (isMounted) setChatUser(user);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!chatUser) return null;
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <CometChatMessageList user={chatUser} />
-      <CometChatMessageComposer user={chatUser} />
-    </div>
-  );
-}
-```
-
-What this does: Renders the UI Kit components where extensions are auto-integrated.
-
-## Built-in extensions by category
+Here's a guide on how you can enable and integrate these extensions. The grouping below mirrors the CometChat Dashboard.
 
 ### User Experience
 
-**Bitly**
-Shortens long URLs in text messages using Bitly.
-Guide: [Bitly Extension](/fundamentals/bitly)
+#### Bitly
 
-**Link Preview**
-Shows a title, description, and thumbnail for shared URLs.
-Guide: [Link Preview Extension](/fundamentals/link-preview)
-Where it appears: Message bubbles in [Message List](/ui-kit/react/message-list).
+The Bitly extension allows you to shorten long URLs in your text messages using Bitly's URL shortening service. For a comprehensive understanding and guide on implementing and using the Bitly Extension, refer to our specific guide on the [Bitly Extension](/fundamentals/bitly).
+
+#### Link Preview
+
+The Link Preview extension provides a summary of the URL shared in the chat. It includes the title, a description, and a thumbnail image from the web page. For a comprehensive understanding and guide on implementing and using the Link Preview Extension, refer to our specific guide on the [Link Preview Extension](/fundamentals/link-preview).
+
+Once you have successfully activated the [Link Preview Extension](/fundamentals/link-preview) from your CometChat Dashboard, the feature will automatically be incorporated into the Message Bubble of [MessageList Component](/ui-kit/react/message-list) component of UI Kits.
 
 <Frame>
   <img src="/images/0219d225-extension_link_preview_web_screens-3c9e0774d6a45316df0ee48ee2338c2d.png" />
 </Frame>
 
-**Message Shortcuts**
-Expands short codes into predefined messages.
-Guide: [Message Shortcuts Extension](/fundamentals/message-shortcuts)
+#### Message Shortcuts
 
-**Pin Message**
-Pins important messages in a conversation.
-Guide: [Pin Message Extension](/fundamentals/pin-message)
+The Message Shortcuts extension enables users to send predefined messages using short codes. For example, typing `!hb` can automatically expand to `Happy birthday!`. For a comprehensive understanding and guide on implementing and using the Message Shortcuts Extension, refer to our specific guide on the [Message Shortcuts Extension](/fundamentals/message-shortcuts).
 
-**Rich Media Preview**
-Generates rich preview panels for URLs using iFramely.
-Guide: [Rich Media Preview Extension](/fundamentals/rich-media-preview)
+#### Pin Message
 
-**Save Message**
-Saves messages privately for later reference.
-Guide: [Save Message Extension](/fundamentals/save-message)
+The Pin Message extension allows users to pin important messages in a conversation, making them easily accessible for all participants. For a comprehensive understanding and guide on implementing and using the Pin Message Extension, refer to our specific guide on the [Pin Message Extension](/fundamentals/pin-message).
 
-**Thumbnail Generation**
-Creates smaller preview images for shared media.
-Guide: [Thumbnail Generation Extension](/fundamentals/thumbnail-generation)
-Where it appears: Image bubbles in [Message List](/ui-kit/react/message-list).
+#### Rich Media Preview
+
+The Rich Media Preview extension generates rich preview panels for URLs shared in messages, fetching detailed information from popular sites using iFramely. For a comprehensive understanding and guide on implementing and using the Rich Media Preview Extension, refer to our specific guide on the [Rich Media Preview Extension](/fundamentals/rich-media-preview).
+
+#### Save Message
+
+The Save Message extension allows users to bookmark messages for later reference. Saved messages are private and visible only to the user who saved them. For a comprehensive understanding and guide on implementing and using the Save Message Extension, refer to our specific guide on the [Save Message Extension](/fundamentals/save-message).
+
+#### Thumbnail Generation
+
+The Thumbnail Generation extension automatically creates a smaller preview image whenever a larger image is shared, helping to reduce the upload/download time and bandwidth usage. For a comprehensive understanding and guide on implementing and using the Thumbnail Generation Extension, refer to our specific guide on the [Thumbnail Generation Extension](/fundamentals/thumbnail-generation).
+
+Once you have successfully activated the [Thumbnail Generation Extension](/fundamentals/thumbnail-generation) from your CometChat Dashboard, the feature will automatically be incorporated into the Message Bubble of [MessageList Component](/ui-kit/react/message-list) component of UI Kits.
 
 <Frame>
   <img src="/images/382b5743-extension_thumbnail_generation_web_screens-b660bc307ecd540c0a7301e65ca0af5b.png" />
 </Frame>
 
-**TinyURL**
-Shortens URLs using TinyURL.
-Guide: [TinyURL Extension](/fundamentals/tinyurl)
+#### TinyURL
 
-**Voice Transcription**
-Converts audio messages into text.
-Guide: [Voice Transcription Extension](/fundamentals/voice-transcription)
+The TinyURL extension provides URL shortening capabilities for messages, similar to Bitly but using the TinyURL service. For a comprehensive understanding and guide on implementing and using the TinyURL Extension, refer to our specific guide on the [TinyURL Extension](/fundamentals/tinyurl).
+
+#### Voice Transcription
+
+The Voice Transcription extension converts audio messages into text, making it easier to read voice messages without playing them. For a comprehensive understanding and guide on implementing and using the Voice Transcription Extension, refer to our specific guide on the [Voice Transcription Extension](/fundamentals/voice-transcription).
 
 ### User Engagement
 
-**Giphy**
-Search and share GIFs in conversations.
-Guide: [Giphy Extension](/fundamentals/giphy)
+#### Giphy
 
-**Message Translation**
-Translates messages to the user’s locale.
-Guide: [Message Translation Extension](/fundamentals/message-translation)
-Where it appears: Action sheet in [Message List](/ui-kit/react/message-list).
+The Giphy extension allows users to search for and share GIFs in their conversations, adding a fun and expressive element to chats. For a comprehensive understanding and guide on implementing and using the Giphy Extension, refer to our specific guide on the [Giphy Extension](/fundamentals/giphy).
+
+#### Message Translation
+
+The Message Translation extension in CometChat is designed to translate any message into your local locale. It eliminates language barriers, making the chat more inclusive. For a comprehensive understanding and guide on implementing and using the Message Translation Extension, refer to our specific guide on the [Message Translation Extension](/fundamentals/message-translation).
+
+Once you have successfully activated the [Message Translation Extension](/fundamentals/message-translation) from your CometChat Dashboard, the feature will automatically be incorporated into the Action Sheet of [MessageList Component](/ui-kit/react/message-list) component of UI Kits.
 
 <Frame>
   <img src="/images/0baa8eed-extension_message_translation_web_screens-4e96a6b7bc989197532d49ca83f77977.png" />
 </Frame>
 
-**Polls**
-Creates polls inside conversations.
-Guide: [Polls Extension](/fundamentals/polls)
-Where it appears: Action sheet in [Message Composer](/ui-kit/react/message-composer).
+#### Polls
+
+The Polls extension enhances group discussions by allowing users to create polls. Users can ask questions with a predefined list of answers, enabling a quick, organized way to gather group opinions. For a comprehensive understanding and guide on implementing and using the Polls Extension, refer to our specific guide on the [Polls Extension](/fundamentals/polls).
+
+Once you have successfully activated the [Polls Extension](/fundamentals/polls) from your CometChat Dashboard, the feature will automatically be incorporated into the Action Sheet of the [Message Composer](/ui-kit/react/message-composer) component of UI Kits.
 
 <Frame>
   <img src="/images/cc12b78b-extension_poll_web_screens-d48dc40c1a77ad81b6382607d7721b19.png" />
 </Frame>
 
-**Reminders**
-Sets reminders for messages or personal reminders.
-Guide: [Reminders Extension](/fundamentals/reminders)
+#### Reminders
 
-**Stickers**
-Adds sticker packs to chats.
-Guide: [Sticker Extension](/fundamentals/stickers)
-Where it appears: [Message Composer](/ui-kit/react/message-composer).
+The Reminders extension allows users to set reminders for messages or create personal reminders. When a reminder is due, a bot sends a notification message to the user. For a comprehensive understanding and guide on implementing and using the Reminders Extension, refer to our specific guide on the [Reminders Extension](/fundamentals/reminders).
+
+#### Stickers
+
+The Stickers extension allows users to express their emotions more creatively. It adds a much-needed fun element to the chat by allowing users to send various pre-designed stickers. For a comprehensive understanding and guide on implementing and using the Sticker Extension, refer to our specific guide on the [Sticker Extension](/fundamentals/stickers).
+
+Once you have successfully activated the [Sticker Extension](/fundamentals/stickers) from your CometChat Dashboard, the feature will automatically be incorporated into the [Message Composer](/ui-kit/react/message-composer) component of UI Kits.
 
 <Frame>
   <img src="/images/f3262629-extension_sticker_web_screens-6e10335c8a82dea2b11cc875c44b606e.png" />
 </Frame>
 
-**Stipop**
-Adds Stipop sticker library.
-Guide: [Stipop Extension](/fundamentals/stickers-stipop)
+#### Stipop
 
-**Tenor**
-Search and share GIFs from Tenor.
-Guide: [Tenor Extension](/fundamentals/tenor)
+The Stipop extension integrates the world's trendiest sticker platform into your chat, allowing users to search for and send stickers from Stipop's extensive library. For a comprehensive understanding and guide on implementing and using the Stipop Extension, refer to our specific guide on the [Stipop Extension](/fundamentals/stickers-stipop).
+
+#### Tenor
+
+The Tenor extension allows users to search for and share GIFs from Tenor's library in their conversations. For a comprehensive understanding and guide on implementing and using the Tenor Extension, refer to our specific guide on the [Tenor Extension](/fundamentals/tenor).
 
 ### Collaboration
 
-**Collaborative Document**
-Collaborate on documents in real time.
-Guide: [Collaborative Document Extension](/fundamentals/collaborative-document)
-Where it appears: Action sheet in [Message Composer](/ui-kit/react/message-composer).
+#### Collaborative Document
+
+With the Collaborative Document extension, users can work together on a shared document. This feature is essential for remote teams where document collaboration is a recurring requirement. For a comprehensive understanding and guide on implementing and using the Collaborative Document Extension, refer to our specific guide on the [Collaborative Document Extension](/fundamentals/collaborative-document).
+
+Once you have successfully activated the [Collaborative Document Extension](/fundamentals/collaborative-document) from your CometChat Dashboard, the feature will automatically be incorporated into the Action Sheet of the [Message Composer](/ui-kit/react/message-composer) component of UI Kits.
 
 <Frame>
   <img src="/images/ed4f9ead-extension_collaborative_document_web_screens-b636764a036d286a66cf81bf43cadf19.png" />
 </Frame>
 
-**Collaborative Whiteboard**
-Collaborate on a shared whiteboard.
-Guide: [Collaborative Whiteboard Extension](/fundamentals/collaborative-whiteboard)
-Where it appears: Action sheet in [Message Composer](/ui-kit/react/message-composer).
+#### Collaborative Whiteboard
+
+The Collaborative Whiteboard extension facilitates real-time collaboration. Users can draw, brainstorm, and share ideas on a shared digital whiteboard. For a comprehensive understanding and guide on implementing and using the Collaborative Whiteboard Extension, refer to our specific guide on the [Collaborative Whiteboard Extension](/fundamentals/collaborative-whiteboard).
+
+Once you have successfully activated the [Collaborative Whiteboard Extension](/fundamentals/collaborative-whiteboard) from your CometChat Dashboard, the feature will automatically be incorporated into the Action Sheet of the [Message Composer](/ui-kit/react/message-composer) component of UI Kits.
 
 <Frame>
   <img src="/images/6baee6d6-extension_whiteboard_web_screens-5ab03b904a0a2f6550d86c701c5fcda2.png" />
@@ -306,72 +167,67 @@ Where it appears: Action sheet in [Message Composer](/ui-kit/react/message-compo
 
 ### Security
 
-**Disappearing Messages**
-Messages disappear after a set time.
-Guide: [Disappearing Messages Extension](/fundamentals/disappearing-messages)
+#### Disappearing Messages
+
+The Disappearing Messages extension allows users to send messages that automatically disappear after a specified time interval. This works for both one-on-one and group messages. For a comprehensive understanding and guide on implementing and using the Disappearing Messages Extension, refer to our specific guide on the [Disappearing Messages Extension](/fundamentals/disappearing-messages).
 
 ### Customer Support
 
-**Chatwoot**
-Enables support conversations via Chatwoot.
-Guide: [Chatwoot Extension](/fundamentals/chatwoot)
+#### Chatwoot
 
-**Intercom**
-Enables support conversations via Intercom.
-Guide: [Intercom Extension](/fundamentals/intercom)
+The Chatwoot extension makes customer support seamless by allowing your users to communicate with your support team directly through CometChat, eliminating the need for a separate support interface. For a comprehensive understanding and guide on implementing and using the Chatwoot Extension, refer to our specific guide on the [Chatwoot Extension](/fundamentals/chatwoot).
+
+#### Intercom
+
+The Intercom extension integrates Intercom's customer support platform with CometChat, enabling users to chat with your support team using the same chat interface they use for regular conversations. For a comprehensive understanding and guide on implementing and using the Intercom Extension, refer to our specific guide on the [Intercom Extension](/fundamentals/intercom).
 
 ### Smart Chat Features
 
-**Conversation Starter**
-AI-generated opening messages.
-Guide: [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter) and [AI Features](/ui-kit/react/ai-features)
+#### Conversation Starter
 
-**Smart Replies**
-AI-generated reply suggestions.
-Guide: [Smart Replies](/fundamentals/ai-user-copilot/smart-replies) and [AI Features](/ui-kit/react/ai-features)
+Conversation Starter suggests AI-generated opening messages to help users begin a new chat. For a comprehensive understanding and guide on implementing and using Conversation Starter, refer to our specific guide on the [Conversation Starter](/fundamentals/ai-user-copilot/conversation-starter) and the [AI Features](/ui-kit/react/ai-features) overview.
 
-**Conversation Summary**
-AI-written conversation recap.
-Guide: [Conversation Summary](/fundamentals/ai-user-copilot/conversation-summary) and [AI Features](/ui-kit/react/ai-features)
+#### Smart Replies
 
-## Customization matrix
+Smart Replies provide AI-generated response suggestions to keep conversations flowing. For a comprehensive understanding and guide on implementing and using Smart Replies, refer to our specific guide on the [Smart Replies](/fundamentals/ai-user-copilot/smart-replies) and the [AI Features](/ui-kit/react/ai-features) overview.
 
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Enable or disable an extension | CometChat Dashboard | Extensions toggle | Enable **Polls** in [Extensions overview](/fundamentals/extensions-overview) |
-| Show Polls, Whiteboard, or Document | `CometChatMessageComposer` | Component render | `<CometChatMessageComposer user={chatUser} />` |
-| Show Link Preview or Thumbnails | `CometChatMessageList` | Component render | `<CometChatMessageList user={chatUser} />` |
-| Adjust extension UI placement | UI Kit components | Component props | Use props documented on [Message Composer](/ui-kit/react/message-composer) or [Message List](/ui-kit/react/message-list) |
+#### Conversation Summary
 
-## Common pitfalls and fixes
+Conversation Summary generates an AI-written recap of a conversation when needed. For a comprehensive understanding and guide on implementing and using Conversation Summary, refer to our specific guide on the [Conversation Summary](/fundamentals/ai-user-copilot/conversation-summary) and the [AI Features](/ui-kit/react/ai-features) overview.
+
+---
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Extension feature not appearing | Extension not enabled in Dashboard | Enable it in [Extensions overview](/fundamentals/extensions-overview). |
-| Component does not render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. |
-| Component renders but no extension UI | User not logged in | Call `CometChatUIKit.login("UID")` after init. |
-| Stickers not showing | Sticker extension not enabled | Enable [Sticker Extension](/fundamentals/stickers). |
-| Polls option missing | Polls extension not enabled | Enable [Polls Extension](/fundamentals/polls). |
-| Link preview not rendering | Link Preview extension not enabled | Enable [Link Preview Extension](/fundamentals/link-preview). |
-| Extensions show for some users but not others | Different app credentials in different environments | Verify `APP_ID`, `REGION`, and `AUTH_KEY` match the same app. |
-| SSR hydration error | UI Kit uses browser APIs | Render in `useEffect` or use `ssr: false` for Next.js. |
+| Extension feature not appearing | Extension not activated in CometChat Dashboard | Enable the specific extension from your [Dashboard](/fundamentals/extensions-overview) |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but no extension UI | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Stickers not showing in composer | Sticker extension not enabled | Activate [Sticker Extension](/fundamentals/stickers) in Dashboard |
+| Polls option missing from action sheet | Polls extension not enabled | Activate [Polls Extension](/fundamentals/polls) in Dashboard |
+| Link preview not rendering in messages | Link Preview extension not enabled | Activate [Link Preview Extension](/fundamentals/link-preview) in Dashboard |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
 
-## FAQ
+</Accordion>
+</AccordionGroup>
 
-**Do I need to write code for each extension?**
-No. Once enabled in the Dashboard, supported extensions auto-integrate into UI Kit components.
+---
 
-**Where do I see Polls, Whiteboard, or Collaborative Document?**
-These appear in the action sheet of [Message Composer](/ui-kit/react/message-composer).
+## Next Steps
 
-**Where do I see Link Preview and Thumbnail Generation?**
-These render inside message bubbles in [Message List](/ui-kit/react/message-list).
-
-**Can I use extensions without the UI Kit?**
-This page is specific to UI Kit integration. For non-UI Kit usage, refer to the individual extension guides in [Extensions overview](/fundamentals/extensions-overview).
-
-## Next steps
-
-- [Message Composer](/ui-kit/react/message-composer)
-- [Message List](/ui-kit/react/message-list)
-- [AI Features](/ui-kit/react/ai-features)
+<CardGroup cols={2}>
+  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
+    Customize the composer where most extensions appear
+  </Card>
+  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
+    Customize the message list for extension-rendered content
+  </Card>
+  <Card title="Core Features" icon="comments" href="/ui-kit/react/core-features">
+    Explore core chat features like messaging and reactions
+  </Card>
+  <Card title="AI Features" icon="robot" href="/ui-kit/react/ai-features">
+    Explore AI-powered chat capabilities
+  </Card>
+</CardGroup>

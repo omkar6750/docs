@@ -4,392 +4,456 @@ sidebarTitle: "Localize"
 description: "Configure multi-language localization, custom translations, and date/time formatting in CometChat React UI Kit."
 ---
 
-Configure localization for UI Kit text and date/time formatting. This page is for developers who need exact language codes, translation keys, and date formatting controls.
-
-## When to use this
-
-- You want the UI Kit to appear in the user’s language.
-- You need custom translations for specific labels or features.
-- You need custom date and time formats.
-- You want to control language detection and fallback behavior.
-- You want to localize moderation reasons and mention labels.
-
-## Prerequisites
-
-- CometChat React UI Kit v6 installed: `@cometchat/chat-uikit-react`.
-- UI Kit initialized and user logged in before rendering components.
-- Use supported language codes from the table below (for example `en-US`, `fr`, `es`).
-- If adding translations, call `CometChatLocalize.init()` first, then `CometChatLocalize.addTranslation()`.
-
-## Quick start
-
-1. Create `src/cometchat-localize.ts` and initialize localization.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function initLocalization() {
-  CometChatLocalize.init({
-    language: "es",
-    fallbackLanguage: "en-US",
-    disableAutoDetection: false,
-  });
-}
-```
-
-What this does: Sets the default language to Spanish and falls back to English.
-
-2. (Optional) Add custom translations.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function addCustomTranslations() {
-  CometChatLocalize.addTranslation({
-    "en-US": { welcome_message: "Welcome!" },
-    es: { welcome_message: "Bienvenido!" },
-  });
-}
-```
-
-What this does: Adds a custom translation key in English and Spanish.
-
-3. (Optional) Switch languages at runtime.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function setLanguage(language: string) {
-  CometChatLocalize.setCurrentLanguage(language);
-}
-```
-
-What this does: Changes the UI language without reloading the app.
-
-## Core concepts
-
+{/* TL;DR for Agents and Quick Reference */}
 <Info>
 **Quick Reference for AI Agents & Developers**
 
-```ts
+```javascript
 import { CometChatLocalize } from "@cometchat/chat-uikit-react";
 
+// Set language
 CometChatLocalize.setCurrentLanguage("fr");
 
+// Init with full config
 CometChatLocalize.init({
   language: "es",
   fallbackLanguage: "en-US",
   disableAutoDetection: false,
 });
 
+// Add custom translations
 CometChatLocalize.addTranslation({
-  "en-US": { welcome_message: "Welcome!" },
+  "en-US": { "welcome_message": "Welcome!" }
 });
 ```
 
-What this does: Shows the primary methods used to set language, initialize, and add translations.
+- **19 supported languages** including en-US, fr, de, es, ja, ko, zh, and more
+- **CalendarObject** for custom date/time formatting
+- [GitHub source](https://github.com/cometchat/cometchat-uikit-react/blob/v6/src/resources/CometChatLocalize/cometchat-localize.ts)
 </Info>
 
-- CometChatLocalize: Static class that manages language selection and date/time formatting.
-- Language JSON files: Built-in translations stored in the UI Kit repository.
-- CalendarObject: Defines how dates and times are formatted for today, yesterday, and other days.
+## **Overview**
 
-### Supported languages
+React UI Kit provides **multi-language localization** to **adapt** the UI elements based on the user's preferred language settings. The **CometChatLocalize** class allows developers to:
 
-React UI Kit supports the following languages:
+* **Automatically detect and apply a language** based on browser/device settings.
+* **Manually change the UI language**.
+* **Format date and time** based on localization settings.
 
-| Language | Code |
-| --- | --- |
-| English (United States) | `en-US` |
+The v6 React UI Kit expands support for **multiple languages** and allows developers to define **custom translations**.\
+The localization system now includes **language JSON files**, which store translations, and an **improved CometChatLocalize class**, which handles language detection and formatting.
+
+***
+
+### **Supported Languages**
+
+React UI Kit currently supports **19 languages**:
+
+| Language                 | Code    |
+| ------------------------ | ------- |
+| English (United States)  | `en-US` |
 | English (United Kingdom) | `en-GB` |
-| Dutch | `nl` |
-| French | `fr` |
-| German | `de` |
-| Hindi | `hi` |
-| Italian | `it` |
-| Japanese | `ja` |
-| Korean | `ko` |
-| Portuguese | `pt` |
-| Russian | `ru` |
-| Spanish | `es` |
-| Turkish | `tr` |
-| Chinese | `zh` |
-| Chinese (Traditional) | `zh-TW` |
-| Malay | `ms` |
-| Swedish | `sv` |
-| Lithuanian | `lt` |
-| Hungarian | `hu` |
+| Dutch                    | `nl`    |
+| French                   | `fr`    |
+| German                   | `de`    |
+| Hindi                    | `hi`    |
+| Italian                  | `it`    |
+| Japanese                 | `ja`    |
+| Korean                   | `ko`    |
+| Portuguese               | `pt`    |
+| Russian                  | `ru`    |
+| Spanish                  | `es`    |
+| Turkish                  | `tr`    |
+| Chinese                  | `zh`    |
+| Chinese (Traditional)    | `zh-TW` |
+| Malay                    | `ms`    |
+| Swedish                  | `sv`    |
+| Lithuanian               | `lt`    |
+| Hungarian                | `hu`    |
 
-Language JSON files: [Language JSON Files](https://github.com/cometchat/cometchat-uikit-react/tree/v6/src/resources/CometChatLocalize/resources)
+🔗 **View JSON files for all supported languages** in the GitHub repository:\
+➡ [Language JSON Files](https://github.com/cometchat/cometchat-uikit-react/tree/v6/src/resources/CometChatLocalize/resources)
 
-### LocalizationSettings
+***
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `language` | `string` | Language code for the current localization. |
-| `translationsForLanguage` | `{ [key: string]: any }` | Key-value pairs for translations in the current language. |
-| `disableAutoDetection` | `boolean` | Disable automatic browser language detection. |
-| `fallbackLanguage` | `string` | Fallback language if the primary language is not available. |
-| `disableDateTimeLocalization` | `boolean` | Disable localization for date and time values. |
-| `timezone` | `string` | Timezone for date and time formatting. |
-| `calendarObject` | `CalendarObject` | Custom calendar format for date and time formatting. |
-| `missingKeyHandler` | `(key: string) => string` | Function that handles missing translation keys. |
+## **CometChatLocalize**
 
-### CalendarObject
+The `CometChatLocalize` class provides methods for managing localization in the UI Kit.
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `today` | `string` | Format for dates that are today. |
-| `yesterday` | `string` | Format for dates that are yesterday. |
-| `lastWeek` | `string` | Format for dates within the last 7 days. |
-| `otherDays` | `string` | Format for older dates. |
-| `relativeTime` | `object` | Format for relative time strings. |
-| `relativeTime.minute` | `string` | Format for a single minute. |
-| `relativeTime.minutes` | `string` | Format for multiple minutes. |
-| `relativeTime.hour` | `string` | Format for a single hour. |
-| `relativeTime.hours` | `string` | Format for multiple hours. |
+🔗 **View full class file in the GitHub repository:**\
+➡ [CometChatLocalize](https://github.com/cometchat/cometchat-uikit-react/blob/v6/src/resources/CometChatLocalize/cometchat-localize.ts)
 
-## Implementation
+***
 
-### Initialize CometChatLocalize
+### **LocalizationSettings**
 
-What you’re changing: Set default localization behavior.
-File: `src/cometchat-localize.ts`
-Applies to: `CometChatLocalize.init()`
-Default behavior: UI Kit uses default language and date formatting.
-Override: Set language, fallback, timezone, and calendar object.
-Verify: UI text and timestamps render in the selected language and format.
+The `LocalizationSettings` interface defines various **localization settings** for an application or component. It allows developers to configure the language, translations, time zone, and calendar formatting while providing options for automatic detection and missing key handling.
 
-```ts
+| Property                      | Type                      | Description                                                                                         |
+| ----------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `language`                    | `string`                  | The language code (e.g., `"en"`, `"fr"`) for the current localization.                              |
+| `translationsForLanguage`     | `{ [key: string]: any }`  | An object containing key-value pairs for translations in the current language.                      |
+| `disableAutoDetection`        | `boolean`                 | Disables automatic language detection based on the browser or device settings.                      |
+| `fallbackLanguage`            | `string`                  | The **fallback language code** to use if the primary language is not available.                     |
+| `disableDateTimeLocalization` | `boolean`                 | Disables localization for **date and time values**, forcing the default format.                     |
+| `timezone`                    | `string`                  | The **timezone** used for date and time formatting (e.g., `"America/New_York"`, `"Europe/London"`). |
+| `calendarObject`              | `CalendarObject`          | A **custom calendar format** using `CalendarObject` to define localized date and time formatting.   |
+| `missingKeyHandler`           | `(key: string) => string` | A function that **handles missing translation keys**, allowing custom error handling or fallbacks.  |
+
+***
+
+**Example**
+
+```javascript
 import { CometChatLocalize } from "@cometchat/chat-uikit-react";
 import { CalendarObject } from "./CalendarObject";
 
-export function initLocalization() {
-  CometChatLocalize.init({
-    language: "es",
-    fallbackLanguage: "en-US",
+CometChatLocalize.init({
+    language: "es", // Default language set to Spanish
+    fallbackLanguage: "en-US", // Use English if the preferred language is not available
     translationsForLanguage: {
-      es: {
-        welcome_message: "Bienvenido a CometChat!",
-        logout_message: "Has cerrado sesión con éxito.",
-      },
-      fr: {
-        welcome_message: "Bienvenue sur CometChat!",
-        logout_message: "Vous vous êtes déconnecté avec succès.",
-      },
+        "es": { 
+            "welcome_message": "¡Bienvenido a CometChat!", 
+            "logout_message": "Has cerrado sesión con éxito." 
+        },
+        "fr": {
+            "welcome_message": "Bienvenue sur CometChat!",
+            "logout_message": "Vous vous êtes déconnecté avec succès."
+        }
     },
-    disableAutoDetection: false,
-    disableDateTimeLocalization: false,
-    timezone: "Europe/Madrid",
+    disableAutoDetection: false, // Allow automatic detection of browser/device language
+    disableDateTimeLocalization: false, // Enable localization for date and time
+    timezone: "Europe/Madrid", // Set time zone for date and time formatting
     calendarObject: new CalendarObject({
-      today: "[Hoy a las] hh:mm A",
-      yesterday: "[Ayer a las] hh:mm A",
-      lastWeek: "[Última semana el] dddd",
-      otherDays: "DD MMM YYYY, hh:mm A",
-      relativeTime: {
-        minute: "%d minuto atrás",
-        minutes: "%d minutos atrás",
-        hour: "%d hora atrás",
-        hours: "%d horas atrás",
-      },
+        today: "[Hoy a las] hh:mm A",
+        yesterday: "[Ayer a las] hh:mm A",
+        lastWeek: "[Última semana el] dddd",
+        otherDays: "DD MMM YYYY, hh:mm A",
+        relativeTime: {
+            minute: "%d minuto atrás",
+            minutes: "%d minutos atrás",
+            hour: "%d hora atrás",
+            hours: "%d horas atrás",
+        }
     }),
-    missingKeyHandler: (key) => `Missing translation: ${key}`,
-  });
-}
-```
-
-What this does: Initializes localization with language, fallback, custom translations, and date formatting.
-
-<Note>
-Define localization settings inside your CometChat UI Kit initialization flow. See [React.js Integration](/ui-kit/react/react-js-integration).
-</Note>
-
-### Add custom translations
-
-What you’re changing: Extend or override translation keys.
-File: `src/cometchat-localize.ts`
-Applies to: `CometChatLocalize.addTranslation()`
-Default behavior: UI Kit uses built-in translation JSON files.
-Override: Add custom keys or new languages.
-Verify: Custom keys render instead of defaults.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function addCustomTranslations() {
-  CometChatLocalize.addTranslation({
-    "en-US": { welcome_message: "Welcome to CometChat!" },
-  });
-}
-```
-
-What this does: Adds a custom translation key in English.
-
-### Report message reason translations
-
-What you’re changing: Add translations for moderation report reasons.
-File: `src/cometchat-localize.ts`
-Applies to: `flag_message_reason_id_<reason_id>` keys
-Default behavior: Default reasons are translated in the UI Kit.
-Override: Add custom reason IDs to translations.
-Verify: Report reason labels show localized text.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function addReportReasonTranslations() {
-  CometChatLocalize.addTranslation({
-    "en-GB": {
-      flag_message_reason_id_dislike: "I just don't like it",
-    },
-    es: {
-      flag_message_reason_id_dislike: "Simplemente no me gusta",
-    },
-  });
-}
-```
-
-What this does: Adds localized labels for a custom report reason.
-
-### Mention all label translations
-
-What you’re changing: Add translations for custom mention-all labels.
-File: `src/cometchat-localize.ts`
-Applies to: `message_composer_mention_<label>` keys
-Default behavior: Default `message_composer_mention_all` is provided.
-Override: Add translations for custom mention labels.
-Verify: Custom mention labels appear localized in the composer.
-
-```ts
-import { CometChatLocalize } from "@cometchat/chat-uikit-react";
-
-export function addMentionAllTranslations() {
-  CometChatLocalize.addTranslation({
-    "en-GB": {
-      message_composer_mention_channel: "channel",
-    },
-    es: {
-      message_composer_mention_channel: "canal",
-    },
-  });
-}
-```
-
-What this does: Adds localized labels for a custom mention-all label.
-
-### CalendarObject for date and time formatting
-
-What you’re changing: Customize date and time formatting globally.
-File: `src/cometchat-localize.ts`
-Applies to: `calendarObject` in `CometChatLocalize.init()`
-Default behavior: UI Kit uses its default calendar formatting.
-Override: Provide a `CalendarObject`.
-Verify: Dates in message headers and lists use your format.
-
-```ts
-import { CalendarObject } from "./CalendarObject";
-
-export const customCalendar = new CalendarObject({
-  today: "[Hoy a las] hh:mm A",
-  yesterday: "[Ayer a las] hh:mm A",
-  lastWeek: "[Última semana el] dddd",
-  otherDays: "DD MMM YYYY, hh:mm A",
-  relativeTime: {
-    minute: "%d minuto atrás",
-    minutes: "%d minutos atrás",
-    hour: "%d hora atrás",
-    hours: "%d horas atrás",
-  },
+    missingKeyHandler: (key) => `🔍 Missing translation for: ${key}`, // Custom handler for missing translations
 });
 ```
 
-What this does: Defines a custom calendar format for dates and relative time.
+***
 
-### Component-specific date formatting
+### **CalendarObject**
 
-What you’re changing: Apply a custom CalendarObject to a single component.
-File: `src/App.tsx`
-Applies to: Component prop such as `lastActiveAtDateTimeFormat`
-Default behavior: Component uses global calendar settings.
-Override: Pass a `CalendarObject` prop to the component.
-Verify: Only that component shows the custom date format.
+The `CalendarObject` class defines customizable formatting for date and time representation. It allows you to format dates based on whether they are today, yesterday, last week, or other days. It also supports relative time formatting for minutes and hours.
 
-```tsx
+<Warning>
+Notice
+
+Changing this format will **globally update** the date and time representation wherever it is used in the component.\
+However, if a **component-specific** `CalendarObject` is provided, it will take **higher precedence** over the global settings.
+
+</Warning>
+
+| Property               | Type     | Description                                                                                     |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `today`                | `string` | Custom formatting for dates that fall on the same day. Example: `"Today at hh:mm A"`            |
+| `yesterday`            | `string` | Custom formatting for dates that fall on the previous day. Example: `"Yesterday at hh:mm A"`    |
+| `lastWeek`             | `string` | Custom formatting for dates within the last 7 days. Example: `"Last week on dddd"`              |
+| `otherDays`            | `string` | Custom formatting for dates that do not fit other categories. Example: `"DD MMM YYYY, hh:mm A"` |
+| `relativeTime`         | `object` | Custom formatting for relative time expressions (e.g., "2 hours ago").                          |
+| `relativeTime.minute`  | `string` | Formatting for a single minute. Example: `"%d minute ago"`                                      |
+| `relativeTime.minutes` | `string` | Formatting for multiple minutes. Example: `"%d minutes ago"`                                    |
+| `relativeTime.hour`    | `string` | Formatting for a single hour. Example: `"%d hour ago"`                                          |
+| `relativeTime.hours`   | `string` | Formatting for multiple hours. Example: `"%d hours ago"`                                        |
+
+***
+
+**Example**
+
+```javascript
+import { CometChatLocalize } from "@cometchat/chat-uikit-react";
 import { CalendarObject } from "./CalendarObject";
-import { CometChatMessageHeader } from "@cometchat/chat-uikit-react";
 
-export default function HeaderWithCustomDate({ groupObj }) {
-  return (
-    <CometChatMessageHeader
-      group={groupObj}
-      lastActiveAtDateTimeFormat={new CalendarObject({
-        today: "[Today at] hh:mm A",
-        yesterday: "[Yesterday at] hh:mm A",
+new CalendarObject({
+        today: "[Hoy a las] hh:mm A",
+        yesterday: "[Ayer a las] hh:mm A",
+        lastWeek: "[Última semana el] dddd",
         otherDays: "DD MMM YYYY, hh:mm A",
-      })}
-    />
-  );
-}
+        relativeTime: {
+            minute: "%d minuto atrás",
+            minutes: "%d minutos atrás",
+            hour: "%d hora atrás",
+            hours: "%d horas atrás",
+        }
+    })
 ```
 
-What this does: Applies a custom date format only to the Message Header component.
+***
 
-### Utility methods
+### **Component Guide**
 
-What you’re changing: Read or update localization values at runtime.
-File: Any app module
-Applies to: `CometChatLocalize` methods
-Default behavior: Uses the current language and default detection.
-Override: Call these methods as needed.
-Verify: Returned values reflect the current localization state.
+<Warning>
+Note
 
-```ts
+The translation configurations mentioned in this section are to be defined inside the 
+<a href="/ui-kit/react/react-js-integration#step-3:-initialize-cometchat-ui-kit">ComeChat's init() method callback.</a> 
+</Warning>
+
+#### Report Message
+
+To add translations for any flag reason, a key in the form of `flag_message_reason_id_{reason_id}` is to be defined with the translated strings to be displayed for that `reason_id` in the UI. The translations for `flag_message_reason_id_spam`, `flag_message_reason_id_sexual`, `flag_message_reason_id_harassment` are present by default.
+
+**Usage**
+* Define translations for custom flag message reasons.
+* The reason name would be displayed when the required translation is not found.
+
+**Example**
+
+```javascript
 import { CometChatLocalize } from "@cometchat/chat-uikit-react";
 
-const userLang = CometChatLocalize.getBrowserLanguage();
-const currentLang = CometChatLocalize.getCurrentLanguage();
-const defaultLang = CometChatLocalize.getDefaultLanguage();
-const translatedText = CometChatLocalize.getLocalizedString("welcome_message");
+// Add translations for flag reason keys for the required languages
+CometChatLocalize.addTranslation({
+    "en-GB": {
+        "flag_message_reason_id_dislike": "I just don't like it",
+    },
+    "es": {
+        "flag_message_reason_id_dislike": "Simplemente no me gusta",
+    }
+});
+```
 
+#### Mention All
+
+To add translations for a custom `mentionAllLabel`, a key in the form of `message_composer_mention_{label}` is to be defined with the translated strings to be displayed for that label in the UI. The translations for `message_composer_mention_all` is present by default.
+
+**Usage**
+* Define translations for custom mentionAllLabel.
+* Helps customize the `@all` label used in the app while mentioning all group members.
+
+**Example**
+
+```javascript
+import { CometChatLocalize } from "@cometchat/chat-uikit-react";
+
+// Add translations for mentionAllLabel for the required languages
+CometChatLocalize.addTranslation({
+    "en-GB": {
+        "message_composer_mention_channel": "channel",
+    },
+    "es": {
+        "message_composer_mention_channel": "canal",
+    }
+});
+```
+
+***
+
+### **Methods**
+
+#### Initialize CometChatLocalize
+
+This method initializes the localization system with default values and optional configurations.
+
+**Usage**
+
+* Set the default language, timezone, and fallback settings.
+* Define a custom calendar format if required.
+* Customize how missing keys are handled.
+
+**Example**
+
+```javascript
+import { CometChatLocalize } from "@cometchat/chat-uikit-react";
+
+// Initialize localization settings
+CometChatLocalize.init({
+    language: "es", // Default language: Spanish
+    fallbackLanguage: "en-US", // Fallback if translation is missing
+    disableAutoDetection: false, // Enable browser language detection
+    timezone: "Europe/Madrid",
+    missingKeyHandler: (key) => `Missing translation: ${key}`,
+});
+```
+
+***
+
+#### Get Browser Language
+
+This method detects the language set in the user's browser or device settings.
+
+**Usage**
+
+* Automatically set the app’s language based on the user’s browser settings.
+* Helps in making the UI multilingual without requiring user input.
+
+**Example**
+
+```javascript
+const userLang = CometChatLocalize.getBrowserLanguage();
+console.log(userLang);
+```
+
+***
+
+#### Get Localized String
+
+This method fetches localized text based on the current language.
+
+**Usage**
+
+* Retrieve translations dynamically without hardcoding values in multiple languages.
+* Useful for UI elements, buttons, alerts, and system messages.
+
+**Example**
+
+```javascript
+const translatedText = CometChatLocalize.getLocalizedString("welcome_message");
+```
+
+***
+
+#### Get Current Language
+
+This method returns the currently set language for the UI Kit.
+
+**Usage**
+
+* Useful to debug and display the currently active language.
+* Helps when dynamically switching between languages.
+
+**Example**
+
+```javascript
+console.log(CometChatLocalize.getCurrentLanguage());
+```
+
+***
+
+#### Get Default Language
+
+This method returns the system-preferred language.
+
+**Usage**
+
+* If disableAutoDetection is enabled, the method returns the fallback language.
+* If auto-detection is enabled, it returns the browser's preferred language.
+
+**Example**
+
+```javascript
+console.log(CometChatLocalize.getDefaultLanguage());
+```
+
+***
+
+#### Set Current Language
+
+This method updates the language at runtime without reloading the application.
+
+**Usage**
+
+* Allow users to change the language via a settings menu.
+* Ensure that UI elements are updated instantly after changing the language.
+
+**Example**
+
+```javascript
 CometChatLocalize.setCurrentLanguage("fr");
 ```
 
-What this does: Reads the detected language, current language, default language, and a translated string, then switches to French.
+***
 
-## Customization matrix
+#### Add Custom Translations
 
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Default language | `CometChatLocalize.init()` | `language` | `language: "es"` |
-| Fallback language | `CometChatLocalize.init()` | `fallbackLanguage` | `fallbackLanguage: "en-US"` |
-| Disable auto-detection | `CometChatLocalize.init()` | `disableAutoDetection` | `disableAutoDetection: true` |
-| Custom translations | `CometChatLocalize.addTranslation()` | translation keys | `{ "en-US": { welcome_message: "Welcome!" } }` |
-| Date/time formatting | `CometChatLocalize.init()` | `calendarObject` | `calendarObject: new CalendarObject({ ... })` |
-| Per-component date format | Component props | `lastActiveAtDateTimeFormat` | `lastActiveAtDateTimeFormat={new CalendarObject({ ... })}` |
+This method allows you to add custom translations to the existing ones dynamically. It ensures that new translations are merged into the existing localization data.
 
-## Common pitfalls and fixes
+**Usage**
+
+* You can define custom translation keys and override the existing translations.
+* You can add new languages to the existing translations.
+* Useful when you want to support additional words or phrases not present in the default language files.
+
+**Example**
+
+```javascript
+CometChatLocalize.addTranslation({
+    "en-US": { "welcome_message": "Welcome to CometChat!" }
+});
+```
+
+***
+
+#### **Customisation**
+
+CometChat UI Kit provides **flexible customization options** for date/time format. Users can configure **global settings** using `CometChatLocalize.init()` or pass a `CalendarObject` directly to individual components for **component-specific** customization.
+
+* **Global Configuration:** When settings are provided in `CometChatLocalize.init()`, all UI components will automatically use the configured date/time formats.
+* **Component-Specific Configuration:** If a `CalendarObject` is passed to a component, it **overrides** the global settings and applies only to that specific instance.
+
+**Global Configuration Example**
+
+To apply a **custom date format** globally across the whole UI Kit.
+
+```php
+CometChatLocalize.init({
+   calendarObject:new CalendarObject({
+        today: " hh:mm A",
+        yesterday: "[Yesterday],
+        otherDays: "DD MMM YYYY, hh:mm A"
+    })
+});
+```
+
+**Component-Specific Customization Example**
+
+To apply a **custom date format** only within a specific component.
+
+```csharp
+<CometChatMessageHeader 
+    group={groupObj} 
+    lastActiveAtDateTimeFormat={new CalendarObject({
+        today: "[Today at] hh:mm A",
+        yesterday: "[Yesterday at] hh:mm A",
+        otherDays: "DD MMM YYYY, hh:mm A"
+    })}
+/>
+```
+
+
+## Common Failure Modes
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| UI text not translated | Language code not matching supported codes | Use supported codes like `en-US`, `fr`, `es`. |
-| Custom translations not appearing | `addTranslation` called before `init` | Call `CometChatLocalize.init()` first. |
-| Date/time format unchanged | `disableDateTimeLocalization` set to `true` | Set `disableDateTimeLocalization: false`. |
-| Component-level CalendarObject ignored | Prop name mismatch | Use the exact prop name for the component. |
-| Missing translation key shows raw key | No `missingKeyHandler` configured | Add a `missingKeyHandler` in init config. |
+| UI text not translated | Language code not matching supported codes | Check the supported languages table for exact codes (e.g., `en-US` not `en`) |
+| Custom translations not appearing | `addTranslation` called before `init` | Call `CometChatLocalize.init()` first, then `addTranslation()` |
+| Date/time format unchanged | `disableDateTimeLocalization` set to `true` | Set `disableDateTimeLocalization: false` in init config |
+| Component-level CalendarObject ignored | Prop name mismatch | Check the component docs for the exact prop name (e.g., `lastActiveAtDateTimeFormat`) |
+| Missing translation key shows raw key | No `missingKeyHandler` configured | Add a `missingKeyHandler` function in init config |
 
-## FAQ
+</Accordion>
+</AccordionGroup>
 
-**Can I add new languages beyond the built-in set?**
-Yes. Use `CometChatLocalize.addTranslation()` with a new language code.
+***
 
-**Does component-specific formatting override global formatting?**
-Yes. Component props take precedence over `CometChatLocalize.init()`.
+## Next Steps
 
-**Where is the CometChatLocalize source?**
-Use the [CometChatLocalize source](https://github.com/cometchat/cometchat-uikit-react/blob/v6/src/resources/CometChatLocalize/cometchat-localize.ts).
+<CardGroup cols={2}>
+  <Card title="Sound Manager" href="/ui-kit/react/sound-manager">
+    Configure audio cues for calls and messages.
+  </Card>
+  <Card title="Theme" href="/ui-kit/react/theme">
+    Customize colors, fonts, and styles.
+  </Card>
+  <Card title="Components Overview" href="/ui-kit/react/components-overview">
+    Explore all available prebuilt UI components.
+  </Card>
+  <Card title="Methods" href="/ui-kit/react/methods">
+    Init, login, logout, and other UI Kit methods.
+  </Card>
+</CardGroup>
 
-## Next steps
-
-- [Sound Manager](/ui-kit/react/sound-manager)
-- [Theme](/ui-kit/react/theme)
-- [Components Overview](/ui-kit/react/components-overview)
+***
