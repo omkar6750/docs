@@ -69,7 +69,7 @@ When you click **Export**, a "Review Your Export" modal appears (Step 1 of 3). T
 
 ## **Preview Customizations (Optional)**
 
-Before integrating the UI Kit Builder into your project, you can preview the chat experience by following these steps. This step is completely optional and can be skipped if you want to directly integrate the UI Kit Builder into your project.
+Before integrating the **UI Kit Builder** into your project, you can preview the chat experience by following these steps. This step is completely optional and can be skipped if you want to directly integrate the **UI Kit Builder** into your project.
 
 > You can preview the experience:
 >
@@ -92,7 +92,11 @@ Before integrating the UI Kit Builder into your project, you can preview the cha
 
 ## **Integration with CometChat UI Kit Builder (React Router)**
 
+Follow these steps to integrate CometChat UI Kit Builder into your existing React Router project:
+
 ### **Step 1: Install Dependencies**
+
+Run the following command to install the required dependencies:
 
 ```ruby
 npm install @cometchat/chat-uikit-react@6.3.9 @cometchat/calls-sdk-javascript
@@ -100,82 +104,96 @@ npm install @cometchat/chat-uikit-react@6.3.9 @cometchat/calls-sdk-javascript
 
 ### **Step 2: Copy CometChat Folder**
 
-Copy the `cometchat-app-react/src/CometChat` folder inside your `src/app` directory.
+Copy the `cometchat-app-react/src/CometChat` folder into your project's `src` directory.
 
----
+### **Step 3: Initialize CometChat UI Kit**
 
-### **Step 3: Create & Initialize `CometChatNoSSR.tsx`**
+Initialize CometChat in your app's entry file. Select your setup:
 
-Directory Structure:
+<Tabs>
+<Tab title="Vite">
 
-```swift
-src/app/
-├── CometChat/
-└── CometChatNoSSR/
-    └── CometChatNoSSR.tsx
-```
-
-```tsx {11-13} src/app/CometChatNoSSR/CometChatNoSSR.tsx
-import React, { useEffect, useState } from "react";
+```tsx {12-14} src/main.tsx
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
 import {
-  CometChatUIKit,
   UIKitSettingsBuilder,
+  CometChatUIKit,
 } from "@cometchat/chat-uikit-react";
-import CometChatApp from "../CometChat/CometChatApp";
-import { CometChatProvider } from "../CometChat/context/CometChatContext";
-import { setupLocalization } from "../CometChat/utils/utils";
+import { setupLocalization } from "./CometChat/utils/utils.ts";
+import { CometChatProvider } from "./CometChat/context/CometChatContext";
 
 export const COMETCHAT_CONSTANTS = {
   APP_ID: "YOUR_APP_ID", // Replace with your App ID
   REGION: "YOUR_REGION", // Replace with your App Region
-  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key
+  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
 };
 
-const CometChatNoSSR: React.FC = () => {
-  const [initialized, setInitialized] = useState(false);
+const uiKitSettings = new UIKitSettingsBuilder()
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const UIKitSettings = new UIKitSettingsBuilder()
-      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-      .setRegion(COMETCHAT_CONSTANTS.REGION)
-      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-      .subscribePresenceForAllUsers()
-      .build();
-
-    CometChatUIKit.init(UIKitSettings)
-      ?.then(() => {
-        setupLocalization();
-        console.log("Initialization completed successfully");
-        setInitialized(true);
-      })
-      .catch((error) => console.error("Initialization failed", error));
-  }, []);
-
-  if (!initialized) {
-    return <div>Initializing Chat...</div>;
-  }
-
-  return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <CometChatProvider>
-        <CometChatApp />
-      </CometChatProvider>
-    </div>
+CometChatUIKit.init(uiKitSettings)?.then(() => {
+  setupLocalization();
+  createRoot(document.getElementById("root")!).render(
+    <CometChatProvider>
+      <App />
+    </CometChatProvider>,
   );
+});
+```
+
+</Tab>
+
+<Tab title="CRA">
+
+```tsx {12-14} src/index.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import {
+  UIKitSettingsBuilder,
+  CometChatUIKit,
+} from "@cometchat/chat-uikit-react";
+import { setupLocalization } from "./CometChat/utils/utils";
+import { CometChatProvider } from "./CometChat/context/CometChatContext";
+
+export const COMETCHAT_CONSTANTS = {
+  APP_ID: "YOUR_APP_ID", // Replace with your App ID
+  REGION: "YOUR_REGION", // Replace with your App Region
+  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
 };
 
-export default CometChatNoSSR;
+const uiKitSettings = new UIKitSettingsBuilder()
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
+
+CometChatUIKit.init(uiKitSettings)?.then(() => {
+  setupLocalization();
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <CometChatProvider>
+      <App />
+    </CometChatProvider>,
+  );
+});
 ```
+
+</Tab>
+
+</Tabs>
 
 <Info>
 
 Your app credentials (`APP_ID`, `AUTH_KEY`, `REGION`) are prepopulated in the exported code. If you need to use different credentials, you can find them in the Credentials block of your app's [Overview section](https://app.cometchat.com) on the CometChat Dashboard.
 
 </Info>
-
----
 
 ### **Step 4: User Authentication**
 
@@ -198,7 +216,7 @@ Log in the user after initialization — useful when login happens later in your
 ```ts
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
-const UID = "cometchat-uid-1"; // Replace with your actual UID
+const UID = "YOUR_UID"; // Replace with your actual UID
 
 CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
   if (!user) {
@@ -214,14 +232,13 @@ CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
   }
 });
 ```
-
 </Tab>
 
 <Tab title="JavaScript">
 ```js
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
-const UID = "cometchat-uid-1"; // Replace with your actual UID
+const UID = "YOUR_UID"; // Replace with your actual UID
 
 CometChatUIKit.getLoggedinUser().then((user) => {
   if (!user) {
@@ -237,183 +254,127 @@ CometChatUIKit.getLoggedinUser().then((user) => {
   }
 });
 ```
-
 </Tab>
-
 </Tabs>
 
 **Login During Initialization**
 
 Alternatively, log in the user immediately inside `CometChatUIKit.init()` — ideal for apps that authenticate on startup.
 
-In this step, we create a React component that will only run on the client (no SSR). Inside the useEffect hook, we:
-
-1. Build the CometChat UIKit settings using your App ID, Region, and Auth Key.
-2. Initialize CometChatUIKit with those settings and set up localization.
-3. Check if a user is already logged in; if not, perform a login with a hard-coded UID (replace "UID" with your actual user ID).
-
 <Tabs>
 <Tab title="TypeScript">
-```ts {13-15}
-import React, { useEffect, useState } from "react";
+```ts {12-14}
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
 import {
-  CometChatUIKit,
   UIKitSettingsBuilder,
+  CometChatUIKit,
 } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import CometChatApp from "../CometChat/CometChatApp";
-import { CometChatProvider } from "../CometChat/context/CometChatContext";
-import { setupLocalization } from "../CometChat/utils/utils";
+import { setupLocalization } from "./CometChat/utils/utils";
+import { CometChatProvider } from "./CometChat/context/CometChatContext";
 
-// Replace these with your actual keys
 export const COMETCHAT_CONSTANTS = {
-  APP_ID: "YOUR_APP_ID", // Your App ID
-  REGION: "YOUR_REGION", // Your App Region
-  AUTH_KEY: "YOUR_AUTH_KEY", // Your Auth Key
+  APP_ID: "YOUR_APP_ID", // Replace with your App ID
+  REGION: "YOUR_REGION", // Replace with your App Region
+  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
 };
 
-const CometChatNoSSR: React.FC = () => {
-  const [initialized, setInitialized] = useState(false);
-  const [user, setUser] = useState<CometChat.User | null>(null);
+const uiKitSettings = new UIKitSettingsBuilder()
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
 
-  useEffect(() => {
-    // Exit if not running in the browser
-    if (typeof window === "undefined") return;
+CometChatUIKit.init(uiKitSettings)?.then(() => {
+  setupLocalization();
 
-    const UIKitSettings = new UIKitSettingsBuilder()
-      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-      .setRegion(COMETCHAT_CONSTANTS.REGION)
-      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-      .subscribePresenceForAllUsers()
-      .build();
+  const UID = "YOUR_UID"; // Replace with your actual UID
 
-    CometChatUIKit.init(UIKitSettings)
-      ?.then(() => {
-        console.log("Initialization completed");
-        setupLocalization();
-        setInitialized(true);
-
-        const UID = "cometchat-uid-1"; // Replace with your actual UID
-
-        CometChatUIKit.getLoggedinUser().then((loggedInUser) => {
-          if (!loggedInUser) {
-            CometChatUIKit.login(UID)
-              .then((newUser) => {
-                console.log("Login successful:", newUser);
-                setUser(newUser);
-              })
-              .catch((error) => {
-                console.error("Login failed:", error);
-              });
-          } else {
-            console.log("User already logged in:", loggedInUser);
-            setUser(loggedInUser);
-          }
-        });
-      })
-      .catch((error) => {
-        console.error("CometChat initialization failed:", error);
-      });
-  }, []);
-
-  if (!initialized || !user) {
-    return <div>Initializing Chat...</div>;
-  }
-
-  return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <CometChatProvider>
-        <CometChatApp />
-      </CometChatProvider>
-    </div>
-  );
-};
-
-export default CometChatNoSSR;
+  CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
+    if (!user) {
+      CometChatUIKit.login(UID)
+        .then((loggedUser: CometChat.User) => {
+          console.log("Login Successful:", loggedUser);
+          // Mount your app
+          ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+            <CometChatProvider>
+              <App />
+            </CometChatProvider>
+          );
+        })
+        .catch((error) => console.error("Login Failed:", error));
+    } else {
+      // User already logged in, mount app directly
+      console.log("User already logged in:", user);
+      ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+        <CometChatProvider>
+          <App />
+        </CometChatProvider>
+      );
+    }
+  });
+});
 ```
-
 </Tab>
 
 <Tab title="JavaScript">
-```js {13-15}
-import React, { useEffect, useState } from "react";
+```js {12-14}
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
 import {
-  CometChatUIKit,
   UIKitSettingsBuilder,
+  CometChatUIKit,
 } from "@cometchat/chat-uikit-react";
-import CometChatApp from "../CometChat/CometChatApp";
-import { CometChatProvider } from "../CometChat/context/CometChatContext";
-import { setupLocalization } from "../CometChat/utils/utils";
+import { setupLocalization } from "./CometChat/utils/utils";
+import { CometChatProvider } from "./CometChat/context/CometChatContext";
 
-// Replace these with your actual keys
 export const COMETCHAT_CONSTANTS = {
-  APP_ID: "YOUR_APP_ID", // Your App ID
-  REGION: "YOUR_REGION", // Your App Region
-  AUTH_KEY: "YOUR_AUTH_KEY", // Your Auth Key
+  APP_ID: "YOUR_APP_ID", // Replace with your App ID
+  REGION: "YOUR_REGION", // Replace with your App Region
+  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key or leave blank if you are authenticating using Auth Token
 };
 
-const CometChatNoSSR = () => {
-  const [initialized, setInitialized] = useState(false);
-  const [user, setUser] = useState(null);
+const uiKitSettings = new UIKitSettingsBuilder()
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
 
-  useEffect(() => {
-    // Exit if not running in the browser
-    if (typeof window === "undefined") return;
+CometChatUIKit.init(uiKitSettings)?.then(() => {
+  setupLocalization();
 
-    const UIKitSettings = new UIKitSettingsBuilder()
-      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-      .setRegion(COMETCHAT_CONSTANTS.REGION)
-      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-      .subscribePresenceForAllUsers()
-      .build();
+  const UID = "YOUR_UID"; // Replace with your actual UID
 
-    CometChatUIKit.init(UIKitSettings)
-      ?.then(() => {
-        console.log("Initialization completed");
-        setupLocalization();
-        setInitialized(true);
-
-        const UID = "cometchat-uid-1"; // Replace with your actual UID
-
-        CometChatUIKit.getLoggedinUser().then((loggedInUser) => {
-          if (!loggedInUser) {
-            CometChatUIKit.login(UID)
-              .then((newUser) => {
-                console.log("Login successful:", newUser);
-                setUser(newUser);
-              })
-              .catch((error) => {
-                console.error("Login failed:", error);
-              });
-          } else {
-            console.log("User already logged in:", loggedInUser);
-            setUser(loggedInUser);
-          }
-        });
-      })
-      .catch((error) => {
-        console.error("CometChat initialization failed:", error);
-      });
-  }, []);
-
-  if (!initialized || !user) {
-    return <div>Initializing Chat...</div>;
-  }
-
-  return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <CometChatProvider>
-        <CometChatApp />
-      </CometChatProvider>
-    </div>
-  );
-};
-
-export default CometChatNoSSR;
+  CometChatUIKit.getLoggedinUser().then((user) => {
+    if (!user) {
+      CometChatUIKit.login(UID)
+        .then((loggedUser) => {
+          console.log("Login Successful:", loggedUser);
+          // Mount your app
+          ReactDOM.createRoot(document.getElementById("root")).render(
+            <CometChatProvider>
+              <App />
+            </CometChatProvider>
+          );
+        })
+        .catch((error) => console.error("Login Failed:", error));
+    } else {
+      // User already logged in, mount app directly
+      console.log("User already logged in:", user);
+      ReactDOM.createRoot(document.getElementById("root")).render(
+        <CometChatProvider>
+          <App />
+        </CometChatProvider>
+      );
+    }
+  });
+});
 ```
-
 </Tab>
-
 </Tabs>
 
 <Note>
@@ -426,150 +387,88 @@ Auth Key is perfect for prototyping. For production apps, switch to [Auth Token]
 
 ---
 
-### **Step 5: Disable SSR and Render the CometChat Component**
+### **Step 5: Render the CometChatApp Component**
 
-Create a file CometChat.tsx inside the routes folder:
+Render the chat UI by adding `CometChatApp` to your component:
 
 ```javascript
-import React, { lazy, Suspense } from "react";
-import "@cometchat/chat-uikit-react/css-variables.css";
+import CometChatApp from "./CometChat/CometChatApp";
 
-// Lazy load the CometChat component
-const CometChatComponent = lazy(
-  () => import("../CometChatNoSSR/CometChatNoSSR"),
-);
-
-export default function Home() {
+const App = () => {
   return (
-    <Suspense fallback={<div>Loading Chat...</div>}>
-      <CometChatComponent />
-    </Suspense>
+    /* CometChatApp requires a parent with explicit height & width to render correctly.
+     Adjust the height and width as needed.
+     */
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatApp />
+    </div>
   );
-}
+};
+
+export default App;
 ```
-
-Now, create a route for CometChat in your routes file:
-
-```typescript
-import { type RouteConfig, index, route } from "@react-router/dev/routes";
-
-export default [
-  index("routes/home.tsx"),
-  route("chat", "routes/CometChat.tsx"), // Chat Route
-] satisfies RouteConfig;
-```
-
-<Note>
-
-Why disable SSR? CometChat UI Kit Builder relies on browser APIs such as window, document, and WebSockets. Since React Router renders on the server by default, disabling SSR for this component prevents runtime errors.
-
-</Note>
 
 #### **Render with Default User and Group**
 
 You can also render the component with default user and group selection:
 
-```javascript {12-14}
-import React, { useEffect, useState } from "react";
-import {
-  CometChatUIKit,
-  UIKitSettingsBuilder,
-} from "@cometchat/chat-uikit-react";
-import CometChatApp from "../CometChat/CometChatApp";
-import { CometChatProvider } from "../CometChat/context/CometChatContext";
-import { setupLocalization } from "../CometChat/utils/utils";
+<Tabs>
+<Tab title="TypeScript">
+```tsx
+import { useEffect, useState } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-export const COMETCHAT_CONSTANTS = {
-  APP_ID: "YOUR_APP_ID", // Replace with your App ID
-  REGION: "YOUR_REGION", // Replace with your App Region
-  AUTH_KEY: "YOUR_AUTH_KEY", // Replace with your Auth Key
-};
-
-// Functional Component
-const CometChatNoSSR: React.FC = () => {
-  const [user, setUser] = useState<CometChat.User | undefined>(undefined);
-
-  const [selectedUser, setSelectedUser] = useState<CometChat.User | undefined>(
-    undefined
-  );
-  const [selectedGroup, setSelectedGroup] = useState<
-    CometChat.Group | undefined
-  >(undefined);
-
+import CometChatApp from "./CometChat/CometChatApp";
+const App = () => {
+  const [selectedUser, setSelectedUser] =
+    useState<CometChat.User | undefined>(undefined);
+  const [selectedGroup, setSelectedGroup] =
+    useState<CometChat.Group | undefined>(undefined);
   useEffect(() => {
-    const UIKitSettings = new UIKitSettingsBuilder()
-      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-      .setRegion(COMETCHAT_CONSTANTS.REGION)
-      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-      .subscribePresenceForAllUsers()
-      .build();
-    // Initialize CometChat UIKit
-    CometChatUIKit.init(UIKitSettings)
-      ?.then(() => {
-        setupLocalization();
-        console.log("Initialization completed successfully");
-        CometChatUIKit.getLoggedinUser().then((loggedInUser) => {
-          if (!loggedInUser) {
-            CometChatUIKit.login("cometchat-uid-1") // Replace with your logged in user UID
-              .then((user) => {
-                console.log("Login Successful", { user });
-                setUser(user);
-              })
-              .catch((error) => console.error("Login failed", error));
-          } else {
-            console.log("Already logged-in", { loggedInUser });
-            setUser(loggedInUser);
-          }
-        });
-      })
-      .catch((error) => console.error("Initialization failed", error));
+    const UID = "cometchat-uid-2"; // Replace with your User ID
+    CometChat.getUser(UID).then(setSelectedUser).catch(console.error);
+    // const GUID = "cometchat-guid-1"; // Replace with your Group ID
+    // CometChat.getGroup(GUID).then(setSelectedGroup).catch(console.error);
   }, []);
-
-  useEffect(() => {
-    if (user) {
-      // Fetch user or group from CometChat SDK whose chat you want to load.
-
-      /** Fetching User */
-      const UID = "cometchat-uid-2"; // Replace with your actual UID
-      CometChat.getUser(UID).then(
-        (user) => {
-          setSelectedUser(user);
-        },
-        (error) => {
-          console.log("User fetching failed with error:", error);
-        }
-      );
-
-      /** Fetching Group */
-      // const GUID = "cometchat-guid-1"; // Replace with your actual GUID
-      // CometChat.getGroup(GUID).then(
-      //   (group) => {
-      //     setSelectedGroup(group);
-      //   },
-      //   (error) => {
-      //     console.log("User fetching failed with error:", error);
-      //   }
-      // );
-    }
-  }, [user]);
-
   return (
-    /* The CometChatApp component requires a parent element with an explicit height and width
-   to render properly. Ensure the container has defined dimensions, and adjust them as needed
-   based on your layout requirements. */
-    <div style={{ width: "100vw", height: "100dvh" }}>
-      <CometChatProvider>
-        {(selectedUser || selectedGroup) && (
-          <CometChatApp user={selectedUser} group={selectedGroup} />
-        )}
-      </CometChatProvider>
+    /* CometChatApp requires a parent with explicit height & width to render correctly.
+      Adjust the height and width as needed.
+     */
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatApp user={selectedUser} group={selectedGroup} />
     </div>
   );
 };
-
-export default CometChatNoSSR;
+export default App;
 ```
+</Tab>
+
+<Tab title="JavaScript">
+```jsx
+import { useEffect, useState } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import CometChatApp from "./CometChat/CometChatApp";
+const App = () => {
+  const [selectedUser, setSelectedUser] = useState(undefined);
+  const [selectedGroup, setSelectedGroup] = useState(undefined);
+  useEffect(() => {
+    const UID = "cometchat-uid-2"; // Replace with your User ID
+    CometChat.getUser(UID).then(setSelectedUser).catch(console.error);
+    // const GUID = "cometchat-guid-1"; // Replace with your Group ID
+    // CometChat.getGroup(GUID).then(setSelectedGroup).catch(console.error);
+  }, []);
+  return (
+    /* CometChatApp requires a parent with explicit height & width to render correctly.
+      Adjust the height and width as needed.
+     */
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatApp user={selectedUser} group={selectedGroup} />
+    </div>
+  );
+};
+export default App;
+```
+</Tab>
+</Tabs>
 
 #### Without Sidebar Mode
 
@@ -582,20 +481,23 @@ When the sidebar is hidden via the **Without Sidebar** option in UI Kit Builder,
 
 Pass the `user` or `group` prop to specify which conversation opens by default.
 
----
+### **Step 6: Run the App**
 
-### **Step 6: Run Your Application**
+Start your application with the appropriate command based on your setup:
 
-1. **Start the development server**
+<Tabs>
+<Tab title="Vite / Next.js">
+```
+npm run dev
+```
+</Tab>
 
-   ```bash
-   npm run dev
-   ```
-
-2. **Verify the chat interface**
-
-   - In your browser, navigate to the `/chat` route (e.g., `http://localhost:3000/chat`).
-   - Confirm that the chat experience loads as expected.
+<Tab title="Create React App (CRA)">
+```
+npm start
+```
+</Tab>
+</Tabs>
 
 ---
 
