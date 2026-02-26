@@ -64,7 +64,7 @@ Configuration interface for `CometChatLocalize.init()`.
 | `disableDateTimeLocalization` | `boolean` | Disables localization for date and time values, forcing the default format |
 | `timezone` | `string` | Timezone for date and time formatting (e.g., `"America/New_York"`, `"Europe/London"`) |
 | `calendarObject` | `CalendarObject` | Custom calendar format for localized date and time formatting |
-| `missingKeyHandler` | `(key: string) => string` | Handles missing translation keys with custom error handling or fallbacks |
+| `missingKeyHandler` | `(key: string) => void` | Handles missing translation keys with custom error handling or fallbacks |
 
 
 ```javascript
@@ -251,6 +251,37 @@ Adds custom translations to the existing ones dynamically. New translations are 
 CometChatLocalize.addTranslation({
     "en-US": { "welcome_message": "Welcome to CometChat!" }
 });
+```
+
+### formatDate
+
+Formats a Unix timestamp (seconds) based on a `CalendarObject` configuration. Uses the timezone set via `init()`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `timestamp` | `number` | Unix timestamp in seconds |
+| `calendarObject` | `CalendarObject` | Calendar configuration for formatting |
+
+Returns a formatted date `string`.
+
+```javascript
+import { CometChatLocalize } from "@cometchat/chat-uikit-react";
+import { CalendarObject } from "@cometchat/chat-uikit-react";
+
+const formatted = CometChatLocalize.formatDate(1700000000, new CalendarObject({
+    today: "hh:mm A",
+    yesterday: "[Yesterday]",
+    lastWeek: "dddd",
+    otherDays: "DD MMM YYYY, hh:mm A"
+}));
+```
+
+### getDateLocaleLanguage
+
+Returns the language code used for date localization. If `disableDateTimeLocalization` is `true`, returns `"en-US"`. Otherwise returns the current language.
+
+```javascript
+const dateLang = CometChatLocalize.getDateLocaleLanguage();
 ```
 
 ---
