@@ -19,7 +19,7 @@ description: "Display and manage the list of all available groups with icons, na
 | Primary output | `CometChat.Group` object (from `onItemClick`) |
 | Primary hook points | `onItemClick`, `onSelect`, `onError`, `groupsRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
 | CSS root class | `.cometchat-groups` |
-| Real-time events | `CometChatGroupEvents.ccGroupCreated`, `CometChatGroupEvents.ccGroupDeleted`, `CometChatGroupEvents.ccGroupMemberAdded`, `CometChatGroupEvents.ccGroupLeft` |
+| Real-time events | `CometChatGroupEvents.ccGroupCreated`, `CometChatGroupEvents.ccGroupDeleted`, `CometChatGroupEvents.ccGroupMemberJoined`, `CometChatGroupEvents.ccGroupMemberAdded`, `CometChatGroupEvents.ccGroupLeft`, `CometChatGroupEvents.ccGroupMemberKicked`, `CometChatGroupEvents.ccGroupMemberBanned`, `CometChatGroupEvents.ccOwnershipChanged` |
 
 </Accordion>
 
@@ -236,14 +236,20 @@ The default page size is 30. Reducing it with `setLimit` can improve initial loa
 
 The CometChatGroups component does not emit any custom UI events directly.
 
-Group lifecycle events are available via `CometChatGroupEvents` — subscribable from anywhere in the application.
+The component internally subscribes to group lifecycle events via `CometChatGroupEvents`:
 
-| Event | When it fires | Payload type |
+| Event | When it fires | What it does inside the component |
 | --- | --- | --- |
-| `CometChatGroupEvents.ccGroupCreated` | A new group is created | `CometChat.Group` |
-| `CometChatGroupEvents.ccGroupDeleted` | A group is deleted | `CometChat.Group` |
-| `CometChatGroupEvents.ccGroupMemberAdded` | Members are added to a group | `{ userAddedIn: CometChat.Group, usersAdded: CometChat.User[], addedBy: CometChat.User }` |
-| `CometChatGroupEvents.ccGroupLeft` | A user leaves a group | `{ leftGroup: CometChat.Group, leftUser: CometChat.User }` |
+| `CometChatGroupEvents.ccGroupCreated` | A new group is created | Prepends the group to the list |
+| `CometChatGroupEvents.ccGroupDeleted` | A group is deleted | Removes the group from the list |
+| `CometChatGroupEvents.ccGroupMemberJoined` | A user joins a group | Updates the group in the list |
+| `CometChatGroupEvents.ccGroupMemberKicked` | A member is kicked from a group | Updates the group in the list |
+| `CometChatGroupEvents.ccGroupLeft` | A user leaves a group | Removes (private) or updates (public/password) the group |
+| `CometChatGroupEvents.ccGroupMemberBanned` | A member is banned from a group | Updates the group in the list |
+| `CometChatGroupEvents.ccGroupMemberAdded` | Members are added to a group | Updates the group in the list |
+| `CometChatGroupEvents.ccOwnershipChanged` | Group ownership is transferred | Updates the group in the list |
+
+These events are subscribable from anywhere in the application.
 
 #### Subscribe
 
@@ -264,13 +270,13 @@ const deletedSub = CometChatGroupEvents.ccGroupDeleted.subscribe(
 );
 
 const memberAddedSub = CometChatGroupEvents.ccGroupMemberAdded.subscribe(
-  (item: { userAddedIn: CometChat.Group; usersAdded: CometChat.User[]; addedBy: CometChat.User }) => {
+  (item: { messages: CometChat.Action[]; usersAdded: CometChat.User[]; userAddedIn: CometChat.Group; userAddedBy: CometChat.User }) => {
     console.log("Members added to:", item.userAddedIn.getName());
   }
 );
 
 const leftSub = CometChatGroupEvents.ccGroupLeft.subscribe(
-  (item: { leftGroup: CometChat.Group; leftUser: CometChat.User }) => {
+  (item: { userLeft: CometChat.User; leftGroup: CometChat.Group; message: CometChat.Action }) => {
     console.log("User left group:", item.leftGroup.getName());
   }
 );
@@ -292,10 +298,12 @@ The component automatically listens to SDK group events internally for real-time
 
 | SDK Listener | What it does inside the component |
 | --- | --- |
-| `onGroupMemberJoined` | Adds the group to the list or updates member count |
-| `onGroupMemberLeft` | Updates member count or removes group if current user left |
-| `onGroupMemberKicked` / `onGroupMemberBanned` | Updates group metadata and member count |
-| `onMemberAddedToGroup` | Updates member count |
+| `onGroupMemberJoined` | Updates member count, sets `hasJoined` if current user joined |
+| `onGroupMemberLeft` | Updates member count, sets `hasJoined(false)` if current user left |
+| `onMemberAddedToGroup` | Updates member count, adds group to list if current user was added |
+| `onGroupMemberKicked` | Updates member count, sets `hasJoined(false)` if current user was kicked |
+| `onGroupMemberBanned` | Removes group if current user was banned, otherwise updates member count |
+| `onGroupMemberScopeChanged` | Updates scope if current user's scope changed, updates member count |
 
 #### React StrictMode Note
 
