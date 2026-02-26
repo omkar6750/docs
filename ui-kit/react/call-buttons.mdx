@@ -3,46 +3,32 @@ title: "Call Buttons"
 description: "Add voice and video call buttons to initiate calls using the CometChatCallButtons component."
 ---
 
-<Accordion title="AI Agent Component Spec">
-- **Package:** `@cometchat/chat-uikit-react`
-- **Import:** `import { CometChatCallButtons } from "@cometchat/chat-uikit-react";`
-- **Minimal JSX:** `<CometChatCallButtons user={chatUser} />`
-- **Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
-- **Key props:** `user` (CometChat.User), `group` (CometChat.Group), `hideVideoCallButton` (boolean), `hideVoiceCallButton` (boolean), `onError` (callback)
-- **CSS class:** `.cometchat-call-button`
-- **Events:** `ccCallRejected`, `ccCallEnded`, `ccOutgoingCall`, `ccMessageSent`
-</Accordion>
-
-## Overview
-
-The `Call Button` is a Component that provides users with the ability to make calls, access call-related functionalities, and control call settings. Clicking this button typically triggers the call to be placed to the desired recipient.
-
-Import path: `import { CometChatCallButtons } from "@cometchat/chat-uikit-react";`
-
 <Frame>
   <img src="/images/daaefbc1-55et9fX2XqpdHqxA4UAAAAACAXvO2Cn8xyPfrx48ffz527Nhvf3zg3wuUlUDn3abJAAAAAElFTkSuQmCC.png" />
 </Frame>
 
-<Note>
-**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
-</Note>
+<Accordion title="AI Agent Component Spec">
 
-## Why Use / When to Use
+| Field | Value |
+| --- | --- |
+| Purpose | Voice and video call initiation buttons for user or group conversations |
+| Package | `@cometchat/chat-uikit-react` |
+| Import | `import { CometChatCallButtons } from "@cometchat/chat-uikit-react";` |
+| Used in experiences | Chat header, user profile, conversation toolbar |
+| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
+| Primary output | Call initiation, call lifecycle events |
+| Primary hook points | `onError`, `callSettingsBuilder`, `OutgoingCallConfiguration` |
+| CSS root class | `.cometchat-call-button` |
+| Real-time events | `CometChatCallEvents.ccCallRejected`, `CometChatCallEvents.ccCallEnded`, `CometChatCallEvents.ccOutgoingCall`, `CometChatMessageEvents.ccMessageSent` |
 
-- Add voice and video call buttons to a chat header or user profile so users can initiate calls directly
-- Provide one-tap calling for both 1-on-1 user calls and group calls from a single component
-- Selectively show or hide voice and video call buttons using `hideVoiceCallButton` and `hideVideoCallButton` props
-- Customize the calling experience with `CallSettingsBuilder` to control audio-only vs. video call settings
-- Listen for call lifecycle events (`ccCallRejected`, `ccCallEnded`, `ccOutgoingCall`, `ccMessageSent`) to trigger UI updates or analytics
-- Handle call errors gracefully with the `onError` callback for logging or custom error UI
-- Configure the child `CometChatOutgoingCall` component via `OutgoingCallConfiguration` for advanced outgoing call customization
+</Accordion>
 
-## Usage
+## Base Code and Stylesheet
 
-### Integration
+Renders voice and video call buttons for a user or group conversation.
 
 <Tabs>
-<Tab title="TypeScript">
+<Tab title="CallButtonDemo.tsx">
 ```tsx lines
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
@@ -60,51 +46,63 @@ const CallButtonDemo = () => {
 
 export default CallButtonDemo;
 ```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = useState(null);
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-  return <CometChatCallButtons user={chatUser} />;
-};
-
-export default CallButtonDemo;
-```
 </Tab>
 </Tabs>
 
-### Actions
+Root CSS class for style overrides:
 
-[Actions](/ui-kit/react/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
+```css lines
+.cometchat-call-button {
+  /* overrides here */
+}
+```
 
-#### 1. onError
+## Functionality
 
-This action doesn't change the behavior of the component but rather listens for any errors that occur in the Call Button component.
+Props that control component behavior, grouped by surface area.
 
-<Tabs>
-<Tab title="TypeScript">
+### Data
+
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `user` | `CometChat.User` | `undefined` | Sets the user for 1-on-1 call buttons | Pass either `user` or `group`, not both |
+| `group` | `CometChat.Group` | `undefined` | Sets the group for group call buttons | Pass either `user` or `group`, not both |
+
+### UI Visibility Toggles
+
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `hideVideoCallButton` | `boolean` | `false` | Hides the video call button | — |
+| `hideVoiceCallButton` | `boolean` | `false` | Hides the voice call button | — |
+
+## Actions
+
+[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
+
+### Predefined Actions
+
+Clicking a call button initiates a call via the SDK. The component renders `CometChatOutgoingCall` internally.
+
+### User-Defined Actions
+
+#### onError
+
+Fires when the component encounters an error.
+
+| Detail | Value |
+| --- | --- |
+| When it fires | Any internal error during call initiation |
+| Payload type | `(error: CometChat.CometChatException) => void` |
+| What devs typically do next | Log to error tracking service |
+
 ```ts lines
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-import React from "react";
 
 const CallButtonDemo = () => {
   const [chatUser, setChatUser] = React.useState<CometChat.User>();
   React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
+    CometChat.getUser("uid").then((user) => setChatUser(user));
   }, []);
 
   const handleOnError = (error: CometChat.CometChatException) => {
@@ -113,398 +111,128 @@ const CallButtonDemo = () => {
 
   return <CometChatCallButtons user={chatUser} onError={handleOnError} />;
 };
-
-export default CallButtonDemo;
 ```
 
-</Tab>
+## Filters
 
-<Tab title="JavaScript">
-```js lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+Set `CallSettingsBuilder` to customize the calling experience. Refer to [CallSettingsBuilder](/sdk/javascript/direct-call#settings).
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = useState(null);
-
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const handleOnError = (error) => {
-    console.log("Your Custom on error actions", error);
-  };
-
-  return <CometChatCallButtons user={chatUser} onError={handleOnError} />;
-};
-
-export default CallButtonDemo;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Filters
-
-You can set `CallSettingsBuilder` in the Call Buttons Component to customise the calling experience. To know more about the filters available please refer to [CallSettingsBuilder](/sdk/javascript/direct-call#settings).
-
-<Tabs>
-<Tab title="TypeScript">
 ```ts lines
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-import React from "react";
 
 const CallButtonDemo = () => {
   const [chatUser, setChatUser] = React.useState<CometChat.User>();
-
   React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
+    CometChat.getUser("uid").then((user) => setChatUser(user));
   }, []);
 
   const getCallSettingsBuilder = (call: CometChat.Call) => {
     return new CometChatCalls.CallSettingsBuilder()
       .setIsAudioOnlyCall(
         call?.getType() === CometChatUIKitConstants.MessageTypes.audio
-          ? true
-          : false
       )
       .build();
   };
 
-  return (
-    <CometChatCallButtons
-      user={chatUser}
-      callSettingsBuilder={getCallSettingsBuilder}
-    />
-  );
+  return <CometChatCallButtons user={chatUser} callSettingsBuilder={getCallSettingsBuilder} />;
 };
-
-export default CallButtonDemo;
 ```
 
-</Tab>
+## Events
 
-<Tab title="JavaScript">
-```js lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+### UI Events
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = useState(null);
+Events emitted by the CallButtons component:
 
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
+| Event | Source | When it fires |
+| --- | --- | --- |
+| `ccCallRejected` | `CometChatCallEvents` | Initiated call is rejected |
+| `ccCallEnded` | `CometChatCallEvents` | Call ends |
+| `ccOutgoingCall` | `CometChatCallEvents` | User initiates a voice/video call |
+| `ccMessageSent` | `CometChatMessageEvents` | Call message is sent |
 
-  const getCallSettingsBuilder = (call) => {
-    return new CometChatCalls.CallSettingsBuilder()
-      .setIsAudioOnlyCall(
-        call?.getType() === CometChatUIKitConstants.MessageTypes.audio
-          ? true
-          : false
-      )
-      .build();
-  };
+#### Subscribe
 
-  return (
-    <CometChatCallButtons
-      user={chatUser}
-      callSettingsBuilder={getCallSettingsBuilder}
-    />
-  );
-};
-
-export default CallButtonDemo;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Events
-
-[Events](/ui-kit/react/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
-
-The list of events emitted by the `Call Buttons` component is as follows.
-
-| Event              | Description                                                                                               |
-| ------------------ | --------------------------------------------------------------------------------------------------------- |
-| **ccCallRejected** | This event is triggered when the initiated call is rejected by the receiver.                              |
-| **ccCallEnded**    | This event is triggered when the initiated call successfully ends.                                        |
-| **ccOutgoingCall** | This event is triggered when the user initiates a voice/video call.                                       |
-| **ccMessageSent**  | This event is triggered when the sent message is in transit and also when it is received by the receiver. |
-
-***
-
-<Tabs>
-<Tab title="Add Listener">
 ```tsx lines
 const ccCallRejected = CometChatCallEvents.ccCallRejected.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
+  (call: CometChat.Call) => { /* Your Code */ }
 );
 
 const ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
+  (call: CometChat.Call) => { /* Your Code */ }
 );
 
 const ccOutgoingCall = CometChatCallEvents.ccOutgoingCall.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
+  (call: CometChat.Call) => { /* Your Code */ }
 );
 
 const ccMessageSent = CometChatMessageEvents.ccMessageSent.subscribe(() => {
-  //Your Code
+  /* Your Code */
 });
 ```
 
-</Tab>
+#### Unsubscribe
 
-</Tabs>
-
-***
-
-<Tabs>
-<Tab title="Remove Listener">
 ```tsx lines
 ccCallRejected?.unsubscribe();
-
 ccCallEnded?.unsubscribe();
-
 ccOutgoingCall?.unsubscribe();
-
 ccMessageSent?.unsubscribe();
 ```
 
-</Tab>
+### SDK Events (Real-Time)
 
-</Tabs>
+The component internally listens to SDK call events for real-time updates. No manual attachment needed.
 
-***
+## Advanced: Custom View Slots
 
-### Style
+The CallButtons component renders [CometChatOutgoingCall](/ui-kit/react/outgoing-call) internally. Customize the outgoing call sub-component using `OutgoingCallConfiguration`.
 
-Using CSS you can customize the look and feel of the component in your app like the color, size, shape, and fonts. The root CSS class for this component is `.cometchat-call-button`.
+### OutgoingCallConfiguration
 
-**Example**
+| Property | Type | Description |
+| --- | --- | --- |
+| `customSoundForCalls` | `string` | Custom sound for outgoing calls |
+| `disableSoundForCalls` | `boolean` | Disables outgoing call sound |
+| `onError` | `(error: CometChat.CometChatException) => void` | Error callback |
+| `onCloseClicked` | `() => void` | Cancel button callback |
+| `titleView` | `JSX.Element` | Custom title view |
+| `subtitleView` | `JSX.Element` | Custom subtitle view |
+| `avatarView` | `JSX.Element` | Custom avatar view |
+| `cancelButtonView` | `JSX.Element` | Custom cancel button view |
+
+Refer to [CometChatOutgoingCall](/ui-kit/react/outgoing-call) for details on each property.
+
+## Theme and Styling
+
+Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-call-button`.
 
 <Frame>
   <img src="/images/3b154ea9-wPyMSRehgR7CgAAAAAElFTkSuQmCC.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-import React from "react";
-
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return <CometChatCallButtons user={chatUser} />;
-};
-
-export default CallButtonDemo;
+```tsx lines
+<CometChatCallButtons user={chatUser} />
 ```
 
-</Tab>
-
-<Tab title="JavaScript">
-```js lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = useState(null);
-
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return <CometChatCallButtons user={chatUser} />;
-};
-
-export default CallButtonDemo;
-```
-
-</Tab>
-
-<Tab title="CSS">
 ```css lines
 .cometchat-call-button {
   display: flex;
-  width: 183px;
-  height: 64px;
   padding: 8px 16px;
   justify-content: center;
   align-items: center;
-  border-bottom: 1px solid #f5f5f5;
   background: #fff;
 }
 
-.cometchat-call-button .cometchat-call-button__voice,
-.cometchat-call-button .cometchat-call-button__video {
-  width: auto;
-  height: auto;
-}
-
 .cometchat .cometchat-button {
-  display: flex;
-  width: 52px;
-  height: 40px;
-  justify-content: center;
-  padding: 8px 20px;
-  align-items: center;
   border-radius: 8px;
   border: 1px solid #e8e8e8;
   background: #edeafa;
 }
 
-.cometchat .cometchat-button:hover {
-  background-color: #edeafa;
-}
-
 .cometchat-call-button .cometchat-call-button__video .cometchat-button__icon,
 .cometchat-call-button .cometchat-call-button__voice .cometchat-button__icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
   background-color: #6852d6;
 }
 ```
-
-</Tab>
-
-</Tabs>
-
-## Advanced Features
-
-The Call Buttons component renders [CometChatOutgoingCall](/ui-kit/react/outgoing-call) internally. You can customize the outgoing call sub-component using `OutgoingCallConfiguration`.
-
-### Configurations
-
-You can customize the properties of the `CometChatOutgoingCall` component by making use of the `OutgoingCallConfiguration`. Below properties are available in `OutgoingCallConfiguration`.
-
-| Property                   | Description                                                                     | Code                                                                               |
-| -------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **User**                   | Sets the user object for Call Buttons                                           | `user={chatUser}`                                                                  |
-| **Group**                  | Used to set the group object for Call Buttons                                   | `group={chatGroup}`                                                                |
-| **Custom Sound**           | Specifies a custom sound to play for outgoing calls.                            | `customSoundForCalls='Your Custom Sound For Calls'`                                |
-| **Disable Sound**          | Disables the sound of outgoing calls.                                           | `disableSoundForCalls={false}`                                                     |
-| **On Error**               | Callback function triggered when an error occurs in the call buttons component. | `onError={(error: CometChat.CometChatException)=>{ console.log('error', error) }}` |
-| **Cancel Call Clicked**    | Callback function triggered when the cancel button is clicked.                  | `onCloseClicked={()=>{console.log("Outgoing call canceled")}}`                     |
-| **Title View**             | This prop renders the custom title view for the outgoing call.                  | `titleView={<>Custom Title View</>}`                                               |
-| **Sub Title View**         | This prop renders the custom sub title view for the outgoing call.              | `subtitleView={<>Custom Sub Title View</>}`                                        |
-| **Avatar View**            | This prop renders the custom avatar view for the outgoing call.                 | `avatarView={<>Custom Avatar View</>}`                                             |
-| **Cancel Button View**     | This prop renders the custom cancel-call button view for the outgoing call.     | `cancelButtonView={<>Custom Cancel Button View</>}`                                |
-| **Hide Video Call Button** | Used to hide the video call button.                                             | `hideVideoCallButton={true}`                                                       |
-| **Hide Voice Call Button** | Used to hide the voice call button.                                             | `hideVoiceCallButton={true}`                                                       |
-
-You can refer to [CometChatOutgoingCall](/ui-kit/react/outgoing-call) component to know more about each of the above properties.
-
-### Customization Matrix
-
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Override behavior on call error | Component props | `onError` callback | `onError={(error) => console.log(error)}` |
-| Toggle visibility of call buttons | Component props | `hideVideoCallButton`, `hideVoiceCallButton` boolean props | `hideVideoCallButton={true}` |
-| Customize call settings | Component props | `callSettingsBuilder` function | `callSettingsBuilder={(call) => new CometChatCalls.CallSettingsBuilder().build()}` |
-| Configure outgoing call sub-component | Component props | `OutgoingCallConfiguration` | See Configurations table above |
-| Change colors, fonts, spacing | Global CSS | Target `.cometchat-call-button` class | `.cometchat-call-button { background: #fff; }` |
-
-## Pagination, Batching, and Performance
-
-Pagination does not apply to the Call Buttons component. The Call Buttons component renders voice and video call action buttons and does not fetch or paginate lists of data. For list-based pagination, see the [Conversations](/ui-kit/react/conversations), [Users](/ui-kit/react/users), or [Call Logs](/ui-kit/react/call-logs) components.
-
-## Error Handling and Retries
-
-The Call Buttons component supports an `onError` callback prop that fires when an error occurs within the component. You can use this to log errors or display custom error UI.
-
-See the `onError` callback example in [Basic Usage > Actions](#actions) for the implementation pattern. The `onError` prop receives a `CometChat.CometChatException` object containing the error details.
-
-<AccordionGroup>
-<Accordion title="Common Failure Modes">
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
-| Component renders but shows no buttons | Neither `user` nor `group` prop provided | Pass a valid `CometChat.User` or `CometChat.Group` object |
-| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
-| Only voice or video button visible | `hideVideoCallButton` or `hideVoiceCallButton` set to `true` | Set the corresponding hide prop to `false` |
-| Call fails to initiate | Calls SDK not installed | Install `@cometchat/calls-sdk-javascript`. See [Call Features](/ui-kit/react/call-features) |
-| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
-
-</Accordion>
-</AccordionGroup>
-
-## Configuration and Environment
-
-The CometChatCallButtons component requires `CometChatUIKit.init()` to be called with a valid `appId` and `region` before rendering. The user must be logged in via `CometChatUIKit.login()`. The component depends on the `@cometchat/chat-uikit-react` package, which includes `@cometchat/chat-sdk-javascript` as a peer dependency.
-
-The Call Buttons component also requires the CometChat Calls SDK (`@cometchat/calls-sdk-javascript`) as a peer dependency for call functionality. The `callSettingsBuilder` prop uses `CometChatCalls.CallSettingsBuilder` from this package to configure call settings.
-
-React 18+ is supported. For Next.js, wrap the component in `useEffect` or use dynamic imports with `ssr: false` to avoid SSR hydration errors. See [Next.js Integration](/ui-kit/react/next-js-integration) and [React.js Integration](/ui-kit/react/react-js-integration) for setup details.
-
-## Files and Media
-
-Files and media handling does not apply to the Call Buttons component. The Call Buttons component provides voice and video call initiation controls but does not render or send media. For file and media support, see the [Message Composer](/ui-kit/react/message-composer) and [Message List](/ui-kit/react/message-list) components.
-
-## Logging, Tracing, and Observability
-
-To troubleshoot issues with the Call Buttons component (such as calls not initiating or callbacks not firing), enable CometChat SDK debug logging. Set the log level to `DEBUG` during `CometChat.init()` to see detailed SDK activity in the browser console. The component emits `ccCallRejected`, `ccCallEnded`, `ccOutgoingCall`, and `ccMessageSent` events via `CometChatCallEvents` and `CometChatMessageEvents` that can be used for observability and analytics. Refer to the CometChat SDK documentation for the full logging configuration API.
-
-## Versioning, Beta Features, and Breaking Changes
-
-### Current Version
-
-This documentation covers CometChat React UI Kit V6 (`@cometchat/chat-uikit-react@6.x`).
-
-### Upgrading from V5
-
-If you are migrating from V5, see the [Upgrading from V5](/ui-kit/react/upgrading-from-v5) guide for a complete list of breaking changes and migration steps.
-
----
-
-### Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Outgoing Call" icon="phone-arrow-up-right" href="/ui-kit/react/outgoing-call">
-    Manage outgoing voice and video call UI
-  </Card>
-  <Card title="Incoming Call" icon="phone-arrow-down-left" href="/ui-kit/react/incoming-call">
-    Handle incoming voice and video calls
-  </Card>
-  <Card title="Call Logs" icon="clock-rotate-left" href="/ui-kit/react/call-logs">
-    Display call history and call log details
-  </Card>
-  <Card title="Call Features" icon="video" href="/ui-kit/react/call-features">
-    Overview of all calling capabilities
-  </Card>
-</CardGroup>
