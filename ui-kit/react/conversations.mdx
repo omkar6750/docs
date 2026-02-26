@@ -15,13 +15,13 @@ description: "Display and manage the list of recent conversations for the logged
 | Primary output | `CometChat.Conversation` object (from `onItemClick`) |
 | Primary hook points | `onItemClick`, `onSelect`, `onError`, `onSearchBarClicked`, `conversationsRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
 | CSS root class | `.cometchat-conversations` |
-| Real-time events | `CometChatConversationEvents.ccConversationDeleted` |
+| Real-time events | `CometChatConversationEvents.ccConversationDeleted`, `CometChatConversationEvents.ccUpdateConversation`, `CometChatConversationEvents.ccMarkConversationAsRead` |
 
 </Accordion>
 
 ## Base Code and Stylesheet
 
-Requires `CometChatUIKit.init()` + `CometChatUIKit.login()` before rendering. Renders a scrollable list of recent conversations.
+Renders a scrollable list of recent conversations.
 
 <Tabs>
 <Tab title="ConversationsDemo.tsx">
@@ -71,14 +71,6 @@ Root CSS class for style overrides:
 
 Small functional customizations for fine-tuning the component experience — text, icons, and UI element visibility.
 
-```tsx lines
-<div className="conversations" style={{ width: "100%", height: "100%" }}>
-  <div>
-    <CometChatConversations title="Your Custom Title" />
-  </div>
-</div>
-```
-
 Props that control component behavior, grouped by surface area.
 
 ### Data and Loading
@@ -104,6 +96,7 @@ Props that control component behavior, grouped by surface area.
 | `hideUserStatus` | `boolean` | `false` | Hides online/offline status indicator | — |
 | `hideGroupType` | `boolean` | `false` | Hides the group type icon | — |
 | `showSearchBar` | `boolean` | `false` | Shows a search bar at the top of the list | — |
+| `showScrollbar` | `boolean` | `false` | Shows the scrollbar in the conversation list | — |
 
 ### State and UX Behavior
 
@@ -111,7 +104,6 @@ Props that control component behavior, grouped by surface area.
 | --- | --- | --- | --- | --- |
 | `disableSoundForMessages` | `boolean` | `false` | Disables the notification sound for incoming messages | — |
 | `customSoundForMessages` | `string` | built-in sound | URL to a custom audio file for incoming message notifications | Must be a valid audio URL accessible from the browser |
-| `title` | `string` | `"Chats"` | Sets the header title text | — |
 
 ### Custom Views (Render Props)
 
@@ -131,7 +123,7 @@ These replace sections of the default UI. See [Custom View Slots](#custom-view-s
 
 ### Predefined Actions
 
-No predefined navigation or routing behavior. All interaction responses are delegated to the callbacks below.
+Devs can specify custom behavior for predefined actions like navigation or routing. 
 
 ### User-Defined Actions
 
@@ -246,7 +238,7 @@ Refer to [ConversationRequestBuilder](/sdk/javascript/retrieve-conversations) fo
 | Filter by user tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setUserTags(["premium"])` |
 | Filter by group tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setGroupTags(["support"])` |
 
-### Copy-Paste Example
+### Example
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
@@ -273,6 +265,8 @@ The CometChatConversations component emits events via `CometChatConversationEven
 | Event | When it fires | Payload type |
 | --- | --- | --- |
 | `CometChatConversationEvents.ccConversationDeleted` | A conversation is deleted from the list | `CometChat.Conversation` |
+| `CometChatConversationEvents.ccUpdateConversation` | A conversation is updated (e.g., last message change, metadata update) | `CometChat.Conversation` |
+| `CometChatConversationEvents.ccMarkConversationAsRead` | A conversation is marked as read | `CometChat.Conversation` |
 
 #### Subscribe
 
@@ -280,9 +274,21 @@ The CometChatConversations component emits events via `CometChatConversationEven
 import { CometChatConversationEvents } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const subscription = CometChatConversationEvents.ccConversationDeleted.subscribe(
+const deletedSub = CometChatConversationEvents.ccConversationDeleted.subscribe(
   (conversation: CometChat.Conversation) => {
     console.log("Conversation deleted:", conversation.getConversationId());
+  }
+);
+
+const updatedSub = CometChatConversationEvents.ccUpdateConversation.subscribe(
+  (conversation: CometChat.Conversation) => {
+    console.log("Conversation updated:", conversation.getConversationId());
+  }
+);
+
+const readSub = CometChatConversationEvents.ccMarkConversationAsRead.subscribe(
+  (conversation: CometChat.Conversation) => {
+    console.log("Conversation marked as read:", conversation.getConversationId());
   }
 );
 ```
@@ -291,7 +297,9 @@ const subscription = CometChatConversationEvents.ccConversationDeleted.subscribe
 
 ```tsx lines
 // In useEffect cleanup or component unmount
-subscription?.unsubscribe();
+deletedSub?.unsubscribe();
+updatedSub?.unsubscribe();
+readSub?.unsubscribe();
 ```
 
 ### SDK Events (Real-Time)
