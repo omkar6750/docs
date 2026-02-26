@@ -17,7 +17,7 @@ description: "Display and manage the list of all available users with avatars, n
 | Used in experiences | User directory, contact list, new chat user picker, group member addition |
 | Copy-paste base | See [Base Code](#base-code--stylesheet) below |
 | Primary output | `CometChat.User` object (from `onItemClick`) |
-| Primary hook points | `onItemClick`, `onSelect`, `onEmpty`, `onError`, `usersRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
+| Primary hook points | `onItemClick`, `onSelect`, `onEmpty`, `onError`, `usersRequestBuilder`, `searchRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
 | CSS root class | `.cometchat-users` |
 | Real-time events | None emitted directly. Component auto-reflects SDK user presence changes (`onUserOnline`, `onUserOffline`). |
 
@@ -75,6 +75,7 @@ Props that control component behavior, grouped by surface area.
 | Property | Type | Default | Effect | Pitfall |
 | --- | --- | --- | --- | --- |
 | `usersRequestBuilder` | `CometChat.UsersRequestBuilder` | SDK default (30 per page) | Controls which users load and in what order | Pass the builder, not a built request |
+| `searchRequestBuilder` | `CometChat.UsersRequestBuilder` | Same as `usersRequestBuilder` | Controls filtering when the search bar is active | Keeps search results consistent with the main list filters |
 | `activeUser` | `CometChat.User` | `undefined` | Highlights the specified user in the list | Must be a reference-equal object from the SDK |
 | `searchKeyword` | `string` | `""` | Pre-fills the search and filters the user list | — |
 
@@ -92,14 +93,15 @@ Props that control component behavior, grouped by surface area.
 | `hideSearch` | `boolean` | `false` | Hides the default search bar | — |
 | `hideError` | `boolean` | `false` | Hides the default and custom error views | Also suppresses `errorView` if set |
 | `hideUserStatus` | `boolean` | `false` | Hides the online/offline status indicator | — |
-| `showSectionHeader` | `boolean` | `false` | Displays alphabetical section headers (A, B, C…) | — |
+| `showSectionHeader` | `boolean` | `true` | Displays alphabetical section headers (A, B, C…) | — |
 | `showScrollbar` | `boolean` | `false` | Shows the scrollbar in the user list | — |
 
 ### State and UX Behavior
 
 | Property | Type | Default | Effect | Pitfall |
 | --- | --- | --- | --- | --- |
-| `sectionHeaderKey` | `(user: CometChat.User) => string` | `getName` | The function used to extract the section header character from each user | Only relevant when `showSectionHeader={true}` |
+| `sectionHeaderKey` | `keyof CometChat.User` | `getName` | The property on the user object used to extract the section header character | Only relevant when `showSectionHeader={true}` |
+| `disableLoadingState` | `boolean` | `false` | Disables the loading state while fetching users | Useful when updating the request builder without clearing the list |
 
 ### Custom Views (Render Props)
 
@@ -246,11 +248,33 @@ import { CometChat } from "@cometchat/chat-sdk-javascript";
 
 The default page size is 30. Reducing it with `setLimit` can improve initial load time on slower connections. The component uses infinite scroll — the next page loads automatically as the user scrolls to the bottom.
 
+### Search Request Builder
+
+The `searchRequestBuilder` uses `UsersRequestBuilder` to filter the search list independently, keeping uniformity between the displayed user list and searched results.
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+<CometChatUsers
+  searchRequestBuilder={new CometChat.UsersRequestBuilder()
+    .setLimit(15)
+    .setSearchKeyword("alice")}
+/>;
+```
+
 ## Events
 
 ### UI Events
 
 The CometChatUsers component does not emit any custom UI events.
+
+The component internally subscribes to user lifecycle events via `CometChatUserEvents`:
+
+| Event | What it does inside the component |
+| --- | --- |
+| `CometChatUserEvents.ccUserBlocked` | Updates the blocked user in the list |
+| `CometChatUserEvents.ccUserUnblocked` | Updates the unblocked user in the list |
 
 ### SDK Events (Real-Time)
 
