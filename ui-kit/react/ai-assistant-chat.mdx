@@ -3,74 +3,32 @@ title: "AI Assistant Chat"
 description: "Build an AI agent chat experience with streaming responses, quick suggestions, chat history, and custom tools using the CometChatAIAssistantChat component."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
-
-```tsx lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-// Minimal usage — requires a CometChat.User (the AI agent)
-const [agent, setAgent] = React.useState<CometChat.User>();
-React.useEffect(() => {
-  CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-}, []);
-
-<CometChatAIAssistantChat user={agent} />
-
-// With common props
-<CometChatAIAssistantChat
-  user={agent}
-  streamingSpeed={30}
-  suggestedMessages={["Help", "Summarize"]}
-  showCloseButton={true}
-/>
-```
-</Info>
-
-<Info>
-**AI Agent Component Spec**
-
-**Package:** `@cometchat/chat-uikit-react`
-**Import:** `import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";`
-**Minimal JSX:** `<CometChatAIAssistantChat user={agent} />`
-**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()` + `CometChat.getUser("assistant_uid")`
-**Key props:** `user` (CometChat.User, required), `streamingSpeed` (number), `suggestedMessages` (string[]), `hideNewChat` (boolean), `hideChatHistory` (boolean)
-**CSS class:** `.cometchat-ai-assistant-chat`
-**Events:** none emitted directly
-</Info>
-
-## Overview
-
-`CometChatAIAssistantChat` is a composite component that assembles the message header, message list, and message composer to provide an AI agent chat experience. It supports streaming responses, quick starter suggestions, "New Chat" to reset context, and a chat history sidebar.
-
-Import path: `import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";`
-
 <Frame>
   <img src="/images/react-uikit_ai-assistant-chat-overview.png" />
 </Frame>
 
-<Note>
-**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
-</Note>
+<Accordion title="AI Agent Component Spec">
 
-## Why Use / When to Use
+| Field | Value |
+| --- | --- |
+| Purpose | Composite AI agent chat with streaming responses, quick suggestions, new-chat reset, and chat history sidebar |
+| Package | `@cometchat/chat-uikit-react` |
+| Import | `import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";` |
+| Used in experiences | Dedicated AI assistant panel, embedded AI chat widget |
+| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
+| Primary output | Send button click (from `onSendButtonClick`), back/close navigation |
+| Primary hook points | `onBackButtonClicked`, `onCloseButtonClicked`, `onSendButtonClick`, `onError`, view slots (`headerItemView`, `headerTitleView`, `headerSubtitleView`, `emptyChatImageView`, `emptyChatGreetingView`, `emptyChatIntroMessageView`, `aiAssistantTools`, `templates`) |
+| CSS root class | `.cometchat-ai-assistant-chat` |
+| Real-time events | None emitted directly |
 
-- Build a dedicated AI agent chat experience with streaming responses and quick starter suggestions
-- Provide a "New Chat" button to reset conversation context so users can start fresh topics
-- Display a chat history sidebar so users can revisit previous AI conversations
-- Customize the empty state with greeting messages, intro text, and images to match your brand
-- Hook into assistant tool/function calls during replies using `CometChatAIAssistantTools`
-- Override header, message list, and composer behavior through view slot props for full control
-- Handle errors from the underlying header, list, or composer via the `onError` callback
+</Accordion>
 
-## Usage
+## Base Code and Stylesheet
 
-### Integration
+Renders an AI agent chat experience. Requires a `CometChat.User` representing the AI agent.
 
 <Tabs>
-<Tab title="TypeScript">
+<Tab title="AIAssistantChatDemo.tsx">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -80,64 +38,80 @@ export function AIAssistantChatDemo() {
     const [agent, setAgent] = React.useState<CometChat.User>();
 
     React.useEffect(() => {
-        // Replace with your assistant UID
         CometChat.getUser("assistant_uid").then((u) => setAgent(u));
     }, []);
 
     if (!agent) return null;
 
-    return(
-        <>
-            <CometChatAIAssistantChat user={agent} />
-        </>
-    ); 
+    return <CometChatAIAssistantChat user={agent} />;
 }
 ```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = useState(null);
-
-    useEffect(() => {
-        // Replace with your assistant UID
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return(
-        <>
-            <CometChatAIAssistantChat user={agent} />
-        </>
-    ); 
-}
-
-```
-
 </Tab>
 </Tabs>
 
-<Warning>
-  A `CometChat.User` (the AI agent) is required to start the assistant chat.
-</Warning>
+Root CSS class for style overrides:
 
-### Actions
+```css lines
+.cometchat-ai-assistant-chat {
+  /* overrides here */
+}
+```
 
-[Actions](/ui-kit/react/components-overview#actions) control how a component behaves. You can hook into the following callbacks:
+## Functionality
 
-#### 1. onBackButtonClicked
+Props that control component behavior, grouped by surface area.
 
-Called when the header back button is clicked (visible when `showBackButton` is true).
+### Data
 
-<Tabs>
-<Tab title="TypeScript">
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `user` | `CometChat.User` | — | Required. The AI agent user object. | Must be fetched via `CometChat.getUser()` before passing |
+| `streamingSpeed` | `number` | `30` | Characters-per-second speed for streaming replies | — |
+| `suggestedMessages` | `string[]` | `[]` | Quick prompt suggestions for the empty state | — |
+| `loadLastAgentConversation` | `boolean` | `false` | Loads the most recent existing agent conversation on mount | — |
+| `parentMessageId` | `number` | `undefined` | Loads a specific agent conversation. Takes priority over `loadLastAgentConversation` | — |
+
+### UI Visibility Toggles
+
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `hideSuggestedMessages` | `boolean` | `false` | Hides the suggestions section | — |
+| `hideNewChat` | `boolean` | `false` | Hides the New Chat button in header | — |
+| `hideChatHistory` | `boolean` | `false` | Hides the History button/sidebar | — |
+| `showBackButton` | `boolean` | `false` | Shows back button in header | — |
+| `showCloseButton` | `boolean` | `false` | Shows close button in header | — |
+
+### Custom Views (Render Props)
+
+| Property | Type | Effect |
+| --- | --- | --- |
+| `emptyView` | `JSX.Element` | Custom empty state for the message list |
+| `loadingView` | `JSX.Element` | Custom loading view |
+| `errorView` | `JSX.Element` | Custom error view |
+| `emptyChatGreetingView` | `JSX.Element` | Custom greeting title (default uses metadata.greetingMessage or user name) |
+| `emptyChatIntroMessageView` | `JSX.Element` | Custom intro subtitle (default uses metadata.introductoryMessage) |
+| `emptyChatImageView` | `JSX.Element` | Custom empty state image |
+
+## Actions
+
+[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
+
+### Predefined Actions
+
+The component internally manages message sending, streaming responses, new-chat reset, and chat history navigation.
+
+### User-Defined Actions
+
+#### onBackButtonClicked
+
+Fires when the header back button is clicked. Requires `showBackButton={true}`.
+
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks the back button |
+| Payload type | `() => void` |
+| What devs typically do next | Navigate back to previous view |
+
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -162,51 +136,20 @@ export function AIAssistantChatDemo() {
             showBackButton={true}
             onBackButtonClicked={handleBack}
         />
-    ); 
-}
-
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    const handleBack = () => {
-        // your custom action
-    };
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat 
-            user={agent} 
-            showBackButton={true}
-            onBackButtonClicked={handleBack} 
-        />
     );
 }
 ```
 
-</Tab>
-</Tabs>
+#### onCloseButtonClicked
 
-#### 2. onCloseButtonClicked
+Fires when the header close button is clicked. Requires `showCloseButton={true}`.
 
-Called when the header close button is clicked (visible when `showCloseButton` is true).
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks the close button |
+| Payload type | `() => void` |
+| What devs typically do next | Close the assistant panel |
 
-<Tabs>
-<Tab title="TypeScript">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -226,55 +169,25 @@ export function AIAssistantChatDemo() {
     if (!agent) return null;
 
     return (
-        <CometChatAIAssistantChat 
-            user={agent} 
-            showCloseButton={true} 
-            onCloseButtonClicked={handleClose} 
+        <CometChatAIAssistantChat
+            user={agent}
+            showCloseButton={true}
+            onCloseButtonClicked={handleClose}
         />
     );
 }
 ```
 
-</Tab>
+#### onSendButtonClick
 
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+Fires when the composer send button is clicked.
 
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks the send button |
+| Payload type | `() => void` |
+| What devs typically do next | Track analytics, custom pre-send logic |
 
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    const handleClose = () => {
-        // your custom action
-    };
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat 
-            user={agent} 
-            showCloseButton={true} 
-            onCloseButtonClicked={handleClose} 
-        />
-    );
-}
-```
-
-</Tab>
-</Tabs>
-
-#### 3. onSendButtonClick
-
-Called when the composer send button is clicked.
-
-<Tabs>
-<Tab title="TypeScript">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -294,57 +207,29 @@ export function AIAssistantChatDemo() {
     if (!agent) return null;
 
     return (
-        <CometChatAIAssistantChat 
+        <CometChatAIAssistantChat
             user={agent}
-            onSendButtonClick={handleSendButton} 
+            onSendButtonClick={handleSendButton}
         />
     );
 }
 ```
 
-</Tab>
+#### onError
 
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+Fires when the component encounters an error from the underlying header, list, or composer.
 
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
+| Detail | Value |
+| --- | --- |
+| When it fires | Any internal error during rendering or data fetching |
+| Payload type | `(error: CometChat.CometChatException) => void` |
+| What devs typically do next | Log to error tracking service |
 
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    const handleSendButton = () => {
-        // your custom action
-    };
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat 
-            user={agent}
-            onSendButtonClick={handleSendButton} 
-        />
-    );
-}
-```
-
-</Tab>
-</Tabs>
-
-#### 4. onError
-
-Listen to errors from the underlying header, list, or composer.
-
-<Tabs>
-<Tab title="TypeScript">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
+
 export function AIAssistantChatDemo() {
     const [agent, setAgent] = React.useState<CometChat.User>();
 
@@ -359,257 +244,57 @@ export function AIAssistantChatDemo() {
     if (!agent) return null;
 
     return (
-        <CometChatAIAssistantChat 
-            user={agent} 
-            onError={handleError} 
-        />
-    );
-}
-```
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    const handleError = (error: CometChat.CometChatException) => {
-        // your error handling
-    };
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat 
-            user={agent} 
-            onError={handleError} 
-        />
-    )
-}
-```
-
-</Tab>
-</Tabs>
-
-***
-
-### Filters
-
-The AI Assistant Chat component does not expose dedicated filter or `RequestBuilder` props. The component manages its own data fetching internally for AI conversations.
-
-### Events
-
-The AI Assistant Chat component does not emit global events directly. It composes the message header, message list, and message composer internally. For event handling, use the `onBackButtonClicked`, `onCloseButtonClicked`, `onSendButtonClick`, and `onError` callback props documented in the [Actions](#actions) section above.
-
-***
-
-### Style
-
-You can set the CSS of the AI Assistant Chat component to customize the styling. The root CSS class for this component is `.cometchat-ai-assistant-chat`.
-
-<Frame>
-  <img src="/images/react-uikit_ai-assistant-chat-style.png" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```tsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo = () => {
-    const [agent, setAgent] = React.useState<CometChat.User>();
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return (
-        <div className="cometchat-assistant-chat__wrapper">
-            <CometChatAIAssistantChat user={agent} />
-        </div>
-    );
-}
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo = () => {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return (
-        <div className="cometchat-assistant-chat__wrapper">
-            <CometChatAIAssistantChat user={agent} />
-        </div>
-    );
-}
-```
-
-</Tab>
-
-<Tab title="CSS">
-```css lines
-.cometchat-ai-assistant-chat
-  .cometchat-ai-assistant-chat__suggested-message-pill {
-    background: #30a46c;
-    color: #ffffff;
-    text-align: center;
-    font-family: "Times New Roman";
-    font-size: 9px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 120%;
-}
-
-.cometchat-ai-assistant-chat
-  .cometchat-ai-assistant-chat__suggested-message-pill
-  .cometchat-ai-assistant-chat__suggested-message-icon {
-    background: #ffffff;
-    width: 9.55px;
-    height: 9.55px;
-}
-.cometchat-ai-assistant-chat
-  .cometchat-ai-assistant-chat__header-auxiliary-view
-  .cometchat-button
-  .cometchat-button__icon-default {
-    background: #30a46c;
-}
-```
-
-</Tab>
-</Tabs>
-
-### Functionality
-
-These props tailor the experience. Most message options (copy/edit/delete/react, receipts, date separators, etc.) are disabled by default for assistant chats.
-
-Here is a code snippet demonstrating how you can customize the functionality of the AI Assistant Chat component.
-
-<Tabs>
-<Tab title="TypeScript">
-```tsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo = () => {
-    const [agent, setAgent] = React.useState<CometChat.User>();
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    // Example: Set streaming speed to 30 characters per second
-    // and show close button
-    // You can also customize suggestions, empty state, etc.
-    return (
         <CometChatAIAssistantChat
             user={agent}
-            showCloseButton={true}
-            setStreamingSpeed={30}
-        />
-    )
-}
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo = () => {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    // Example: Set streaming speed to 30 characters per second
-    // and show close button
-    // You can also customize suggestions, empty state, etc.
-    return (
-        <CometChatAIAssistantChat
-            user={agent}
-            showCloseButton={true}
-            setStreamingSpeed={30}
+            onError={handleError}
         />
     );
 }
 ```
 
-</Tab>
-</Tabs>
+## Filters
 
-Below is a list of customizations along with corresponding code snippets
+The AI Assistant Chat component does not expose `RequestBuilder` or filter props. The component manages AI conversation data fetching internally.
 
-| Property | Description | Code |
-| --- | --- | --- |
-| `user` | Required `CometChat.User` representing the AI agent. | `user={agent}` |
-| `streamingSpeed` | Characters-per-second speed for streaming replies. Default `30`. | `streamingSpeed={50}` |
-| `suggestedMessages` | Array of quick prompts for the empty state. | `suggestedMessages={["Help", "Summarize"]}` |
-| `hideSuggestedMessages` | Hide the suggestions section. | `hideSuggestedMessages={true}` |
-| `hideNewChat` | Hide the New Chat button in header. | `hideNewChat={true}` |
-| `hideChatHistory` | Hide the History button/sidebar. | `hideChatHistory={true}` |
-| `showBackButton` | Show back button in header. | `showBackButton` |
-| `showCloseButton` | Show close button in header. | `showCloseButton` |
-| `onBackButtonClicked` | Back button handler. | `onBackButtonClicked={() => {}}` |
-| `onCloseButtonClicked` | Close button handler. | `onCloseButtonClicked={() => {}}` |
-| `onSendButtonClick` | Send button handler. | `onSendButtonClick={() => {}}` |
-| `onError` | Error handler. | `onError={handleError}` |
-| `emptyView` | Custom empty state for the list. | `emptyView={<Empty/>}` |
-| `loadingView` | Custom loading view. | `loadingView={<Loading/>}` |
-| `errorView` | Custom error view. | `errorView={<Error/>}` |
-| `emptyChatGreetingView` | Custom empty title (default uses metadata.greetingMessage or user name). | `emptyChatGreetingView={<h3/>}` |
-| `emptyChatIntroMessageView` | Custom empty subtitle (default uses metadata.introductoryMessage). | `emptyChatIntroMessageView={<p/>}` |
-| `emptyChatImageView` | Custom empty image. | `emptyChatImageView={<img/>}` |
-| `aiAssistantTools` | Provide tool/function handlers for the assistant. | `aiAssistantTools={tools}` |
-| `loadLastAgentConversation` | Loads the most recent existing agent conversation if one is available. | `loadLastAgentConversation={true}` |
-| `parentMessageId` | The parent message ID to load a specific agent conversation. Takes priority over `loadLastAgentConversation`. | `parentMessageId={12345}` |
+## Events
 
-## Advanced Features
+### UI Events
 
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
+The AI Assistant Chat component does not emit global UI events. For interaction handling, use the callback props documented in [Actions](#actions).
 
-### Custom View Slots
+### SDK Events (Real-Time)
 
-#### Header Views
+The component internally manages SDK communication for AI streaming. No manual listener attachment needed.
 
-Customize header sections using the following props: `headerItemView`, `headerTitleView`, `headerSubtitleView`, `headerLeadingView`, `headerTrailingView`, and `headerAuxiliaryButtonView`. These customizations are done in the similar way as the [Message Header](/ui-kit/react/message-header#advanced-features) component.
+## Advanced: Custom View Slots
+
+Customization override points for the AI assistant chat UI.
+
+### Slot Catalog
+
+| Slot | Params | What it replaces | Section |
+| --- | --- | --- | --- |
+| `headerItemView` | `JSX.Element` | Entire header list item | Header |
+| `headerTitleView` | `JSX.Element` | Header title text | Header |
+| `headerSubtitleView` | `JSX.Element` | Header subtitle text | Header |
+| `headerLeadingView` | `JSX.Element` | Header avatar / left section | Header |
+| `headerTrailingView` | `JSX.Element` | Header right section | Header |
+| `headerAuxiliaryButtonView` | `JSX.Element` | Header auxiliary buttons (New Chat, History) | Header |
+| `emptyChatImageView` | `JSX.Element` | Empty state image | Empty state |
+| `emptyChatGreetingView` | `JSX.Element` | Empty state greeting title | Empty state |
+| `emptyChatIntroMessageView` | `JSX.Element` | Empty state intro subtitle | Empty state |
+| `aiAssistantTools` | `CometChatAIAssistantTools` | Tool/function call handlers | AI tools |
+| `templates` | `CometChatMessageTemplate[]` | Message bubble templates | Message list |
+
+### Header Views
+
+Customize header sections using `headerItemView`, `headerTitleView`, `headerSubtitleView`, `headerLeadingView`, `headerTrailingView`, and `headerAuxiliaryButtonView`. These follow the same pattern as the [CometChatMessageHeader](/ui-kit/react/message-header#advanced-custom-view-slots) component.
 
 <Note>
-The header's "New Chat" and "History" buttons are built-in. You can override them by providing a custom `headerAuxiliaryButtonView`.
+The header's "New Chat" and "History" buttons are built-in. Override them by providing a custom `headerAuxiliaryButtonView`.
 </Note>
 
-#### Assistant Tools
+### aiAssistantTools
 
 Pass an instance of `CometChatAIAssistantTools` to enable tool/function calls during assistant replies.
 
@@ -621,7 +306,7 @@ import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
 import { CometChatAIAssistantTools } from "@cometchat/chat-uikit-react";
 
-export function AIAssistantChatDemo = () => {
+export function AIAssistantChatDemo() {
     const [agent, setAgent] = React.useState<CometChat.User>();
 
     React.useEffect(() => {
@@ -630,45 +315,9 @@ export function AIAssistantChatDemo = () => {
 
     const tools = new CometChatAIAssistantTools({
         getCurrentWeather: ({ location }: { location: string }) => {
-            // call your backend or a public API
             console.log("Fetching weather for", location);
         },
         createTicket: ({ title }: { title: string }) => {
-            // open your internal ticketing flow
-            console.log("Create ticket:", title);
-        },
-    });
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat user={agent} aiAssistantTools={tools} />
-    );
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-import { CometChatAIAssistantTools } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo = () => {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    const tools = new CometChatAIAssistantTools({
-        getCurrentWeather: ({ location }: { location: string }) => {
-            // call your backend or a public API
-            console.log("Fetching weather for", location);
-        },
-        createTicket: ({ title }: { title: string }) => {
-            // open your internal ticketing flow
             console.log("Create ticket:", title);
         },
     });
@@ -680,20 +329,17 @@ export function AIAssistantChatDemo = () => {
     );
 }
 ```
-
 </Tab>
 </Tabs>
 
-#### Empty Chat Image View
+### emptyChatImageView
 
-Provide a custom image for the empty state using `emptyChatImageView`.
+Provide a custom image for the empty state.
 
 <Frame>
   <img src="/images/react-uikit_ai-assistant-chat-empty_chat_image_view.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -717,38 +363,9 @@ export function AIAssistantChatDemo() {
 }
 ```
 
-</Tab>
+### emptyChatGreetingView
 
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat
-            user={agent}
-            emptyChatImageView={<img src={"ICON_URL"} height={60} width={60} />}
-        />
-    )
-}
-```
-
-</Tab>
-</Tabs>
-
-#### Empty Chat Greeting View
-
-Override the empty state greeting message view using the `emptyChatGreetingView` prop. 
+Override the empty state greeting message.
 
 <Frame>
   <img src="/images/react-uikit_ai-assistant-chat-empty_chat_greeeting_view.png" />
@@ -783,40 +400,7 @@ export function AIAssistantChatDemo() {
     );
 }
 ```
-
 </Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat
-            user={agent}
-            emptyChatGreetingView={
-                <div className="cometchat-ai-assistant-chat__empty-chat-greeting">
-                    <span className="plan-name">Free Plan</span> .
-                    <span className="upgrade-button">Upgrade</span>
-                </div>
-            }
-        />
-    )
-}
-```
-
-</Tab>
-
 <Tab title="CSS">
 ```css lines
 .cometchat-ai-assistant-chat__empty-chat-greeting {
@@ -841,9 +425,9 @@ export function AIAssistantChatDemo() {
 </Tab>
 </Tabs>
 
-#### Empty Chat Intro Message View
+### emptyChatIntroMessageView
 
-You can override the empty chat intro message view using the `emptyChatIntroMessageView` prop.
+Override the empty chat intro message.
 
 <Frame>
   <img src="/images/react-uikit_ai-assistant-chat-empty_chat_intro_message_view.png" />
@@ -877,39 +461,7 @@ export function AIAssistantChatDemo() {
     );
 }
 ```
-
 </Tab>
-
-<Tab title="JavaScript">
-```jsx lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
-
-export function AIAssistantChatDemo() {
-    const [agent, setAgent] = React.useState(null);
-
-    React.useEffect(() => {
-        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
-    }, []);
-
-    if (!agent) return null;
-
-    return (
-        <CometChatAIAssistantChat
-            user={agent}
-            emptyChatIntroMessageView={
-                <div className="cometchat-ai-assistant-chat__empty-chat-intro">
-                    Hey, nice to see you What's new?
-                </div>
-            }
-        />
-    );
-}
-```
-
-</Tab>
-
 <Tab title="CSS">
 ```css lines
 .cometchat-ai-assistant-chat__empty-chat-intro {
@@ -934,14 +486,10 @@ export function AIAssistantChatDemo() {
 </Tab>
 </Tabs>
 
-#### Templates
+### templates
 
-[CometChatMessageTemplate](/ui-kit/react/message-template) is a pre-defined structure for creating message views that can be used as a starting point or blueprint for creating message views often known as message bubbles. For more information, you can refer to [CometChatMessageTemplate](/ui-kit/react/message-template).
+Set custom message templates to control message bubble rendering. Refer to [CometChatMessageTemplate](/ui-kit/react/message-template) for details.
 
-You can set message Templates to AIAssistantChat by using the following code snippet.
-
-<Tabs>
-<Tab title="TypeScript">
 ```ts lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -974,125 +522,61 @@ export function AIAssistantChatDemo() {
 }
 ```
 
-</Tab>
+## Theme and Styling
 
-<Tab title="JavaScript">
-```js lines
+Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-ai-assistant-chat`.
+
+<Frame>
+  <img src="/images/react-uikit_ai-assistant-chat-style.png" />
+</Frame>
+
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatAIAssistantChat,
-  ChatConfigurator
-} from "@cometchat/chat-uikit-react";
+import { CometChatAIAssistantChat } from "@cometchat/chat-uikit-react";
 
 export function AIAssistantChatDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
+    const [agent, setAgent] = React.useState<CometChat.User>();
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
+    React.useEffect(() => {
+        CometChat.getUser("assistant_uid").then((u) => setAgent(u));
+    }, []);
 
-  const getTemplates = () => {
-    let templates = ChatConfigurator.getDataSource().getAllMessageTemplates();
-    templates.map((data) => {
-      data.footerView = (message) => {}; //custom view here
-    });
-    return templates;
-  };
+    if (!agent) return null;
 
-  return chatUser ? (
-    <div>
-      <CometChatAIAssistantChat user={chatUser} templates={getTemplates()} />
-    </div>
-  ) : null;
+    return (
+        <div className="cometchat-assistant-chat__wrapper">
+            <CometChatAIAssistantChat user={agent} />
+        </div>
+    );
 }
 ```
 
-</Tab>
+```css lines
+.cometchat-ai-assistant-chat
+  .cometchat-ai-assistant-chat__suggested-message-pill {
+    background: #30a46c;
+    color: #ffffff;
+    text-align: center;
+    font-family: "Times New Roman";
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%;
+}
 
-</Tabs>
+.cometchat-ai-assistant-chat
+  .cometchat-ai-assistant-chat__suggested-message-pill
+  .cometchat-ai-assistant-chat__suggested-message-icon {
+    background: #ffffff;
+    width: 9.55px;
+    height: 9.55px;
+}
 
-### Customization Matrix
-
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Override behavior on user interaction | Component props | `on<Event>` callbacks | `onSendButtonClick={() => handleSend()}` |
-| Toggle visibility of UI elements | Component props | `hide<Feature>` boolean props | `hideNewChat={true}` |
-| Replace a section of the chat UI | Component props | `<slot>View` render props | `emptyChatGreetingView={<CustomGreeting />}` |
-| Provide assistant tool handlers | Component props | `aiAssistantTools` | `aiAssistantTools={new CometChatAIAssistantTools({...})}` |
-| Customize message templates | Component props | `templates` | `templates={getTemplates()}` |
-| Change colors, fonts, spacing | Global CSS | Target `.cometchat-ai-assistant-chat` class | `.cometchat-ai-assistant-chat { border-radius: 12px; }` |
-
-## Pagination, Batching, and Performance
-
-Pagination does not apply to the AI Assistant Chat component. The component manages AI conversation data internally and does not expose `RequestBuilder` or `setLimit` props. For list-based pagination, see the [Conversations](/ui-kit/react/conversations), [Users](/ui-kit/react/users), or [Message List](/ui-kit/react/message-list) components.
-
-## Error Handling and Retries
-
-The AI Assistant Chat component supports an `onError` callback prop that fires when an error occurs within the underlying header, list, or composer. You can use this to log errors or display custom error UI.
-
-See the `onError` callback example in [Basic Usage > Actions](#actions) for the implementation pattern. The `onError` prop receives a `CometChat.CometChatException` object containing the error details.
-
-The component also supports `errorView` to render a custom error state, and `loadingView` to render a custom loading state. See the [Functionality](#functionality) table for these props.
-
-<AccordionGroup>
-<Accordion title="Common Failure Modes">
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
-| Component renders but shows nothing | `user` prop not provided or is `null` | Pass a valid `CometChat.User` object fetched via `CometChat.getUser("assistant_uid")` |
-| No streaming response | AI agent not configured in CometChat Dashboard | Set up an AI agent in the Dashboard and use its UID |
-| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
-| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
-| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
-
-</Accordion>
-</AccordionGroup>
-
-## Configuration and Environment
-
-The CometChatAIAssistantChat component requires `CometChatUIKit.init()` to be called with a valid `appId` and `region` before rendering. The user must be logged in via `CometChatUIKit.login()`. Additionally, a `CometChat.User` representing the AI agent must be fetched via `CometChat.getUser("assistant_uid")` and passed as the `user` prop.
-
-The component depends on the `@cometchat/chat-uikit-react` package, which includes `@cometchat/chat-sdk-javascript` as a peer dependency. The AI agent must be configured in the CometChat Dashboard for streaming responses to work.
-
-React 18+ is supported. For Next.js, wrap the component in `useEffect` or use dynamic imports with `ssr: false` to avoid SSR hydration errors. See [Next.js Integration](/ui-kit/react/next-js-integration) and [React.js Integration](/ui-kit/react/react-js-integration) for setup details.
-
-## Files and Media
-
-Files and media handling does not apply to the AI Assistant Chat component. The AI Assistant Chat component provides a text-based AI conversation experience and does not render or send media attachments. For file and media support, see the [Message Composer](/ui-kit/react/message-composer) and [Message List](/ui-kit/react/message-list) components.
-
-## Logging, Tracing, and Observability
-
-To troubleshoot issues with the AI Assistant Chat component (such as the agent not responding or streaming not working), enable CometChat SDK debug logging. Set the log level to `DEBUG` during `CometChat.init()` to see detailed SDK activity in the browser console. The `onError` callback prop can be used to capture and log errors from the underlying header, list, or composer for observability and analytics. Refer to the CometChat SDK documentation for the full logging configuration API.
-
-## Versioning, Beta Features, and Breaking Changes
-
-### Current Version
-
-This documentation covers CometChat React UI Kit V6 (`@cometchat/chat-uikit-react@6.x`).
-
-### Upgrading from V5
-
-If you are migrating from V5, see the [Upgrading from V5](/ui-kit/react/upgrading-from-v5) guide for a complete list of breaking changes and migration steps.
-
----
-
-### Next Steps
-
-<CardGroup cols={2}>
-  <Card title="AI Features" icon="wand-magic-sparkles" href="/ui-kit/react/ai-features">
-    Overview of all AI capabilities in the UI Kit
-  </Card>
-  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
-    Render messages in a conversation
-  </Card>
-  <Card title="Message Template" icon="puzzle-piece" href="/ui-kit/react/message-template">
-    Customize message bubble rendering
-  </Card>
-  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
-    Customize the conversation header
-  </Card>
-</CardGroup>
+.cometchat-ai-assistant-chat
+  .cometchat-ai-assistant-chat__header-auxiliary-view
+  .cometchat-button
+  .cometchat-button__icon-default {
+    background: #30a46c;
+}
+```
