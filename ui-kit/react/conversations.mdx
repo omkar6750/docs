@@ -1,235 +1,115 @@
 ---
 title: "Conversations"
-description: "Display and manage the list of recent conversations for the logged-in user using the CometChatConversations component in the React UI Kit."
+description: "Scrollable list of recent one-on-one and group conversations for the logged-in user."
 ---
 
-<Frame>
-  <img src="/images/264a5cc0-list_item_view_default_web_screens-981f3ae54a9cef1c1f774bbda2f05a81.png" />
-</Frame>
-
-<Accordion title="AI Agent Component Spec">
-
-| Field | Value |
-| --- | --- |
-| Purpose | Scrollable list of recent one-on-one and group conversations for the logged-in user |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatConversations } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | [One-to-one chat](/ui-kit/react/react-js-integration), Tab-based chat, Conversations + Messages layout |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | `CometChat.Conversation` object (from `onItemClick`) |
-| Primary hook points | `onItemClick`, `onSelect`, `onError`, `onSearchBarClicked`, `conversationsRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
-| CSS root class | `.cometchat-conversations` |
-| Real-time events | `CometChatConversationEvents.ccConversationDeleted`, `CometChatConversationEvents.ccUpdateConversation`, `CometChatConversationEvents.ccMarkConversationAsRead` |
-
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders a scrollable list of recent conversations.
-
 <Tabs>
-<Tab title="ConversationsDemo.tsx">
-```tsx lines
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatConversations` is a sidebar list component. It renders recent conversations and emits the selected `CometChat.Conversation` via `onItemClick`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a standard two-panel chat layout.
+
+```tsx
+import { useState } from "react";
 import {
   CometChatConversations,
-  TitleAlignment,
+  CometChatMessageHeader,
+  CometChatMessageList,
+  CometChatMessageComposer,
 } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function ChatApp() {
+  const [selectedUser, setSelectedUser] = useState<CometChat.User>();
+  const [selectedGroup, setSelectedGroup] = useState<CometChat.Group>();
+
+  const handleItemClick = (conversation: CometChat.Conversation) => {
+    const entity = conversation.getConversationWith();
+    if (entity instanceof CometChat.User) {
+      setSelectedUser(entity);
+      setSelectedGroup(undefined);
+    } else if (entity instanceof CometChat.Group) {
+      setSelectedGroup(entity);
+      setSelectedUser(undefined);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+      <div style={{ width: 480, height: "100%" }}>
+        <CometChatConversations onItemClick={handleItemClick} />
+      </div>
+      {selectedUser || selectedGroup ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <CometChatMessageHeader user={selectedUser} group={selectedGroup} />
+          <CometChatMessageList user={selectedUser} group={selectedGroup} />
+          <CometChatMessageComposer user={selectedUser} group={selectedGroup} />
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: "grid", placeItems: "center", background: "#F5F5F5", color: "#727272" }}>
+          Select a conversation
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+[Open in CodeSandbox](https://link.cometchat.com/react-conversation-list-message)
+
+<Frame>
+  <img src="/images/e6411d13-chat_experience_sidebar_message-35c431d8bf694e5690e4e0f3a74165af.png" />
+</Frame>
+
+---
+
+## Minimal Render
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
 function ConversationsDemo() {
   return (
-    <div className="conversations" style={{ width: "100%", height: "100%" }}>
-      <div>
-        <CometChatConversations />
-      </div>
+    <div style={{ width: "100%", height: "100%" }}>
+      <CometChatConversations />
     </div>
   );
 }
 
 export default ConversationsDemo;
 ```
-</Tab>
-<Tab title="App.tsx">
-```tsx lines
-import { ConversationsDemo } from "./ConversationsDemo";
 
-export default function App() {
+<Frame>
+  <img src="/images/264a5cc0-list_item_view_default_web_screens-981f3ae54a9cef1c1f774bbda2f05a81.png" />
+</Frame>
+
+Root CSS class: `.cometchat-conversations`
+
+---
+
+## Filtering Conversations
+
+Pass a `CometChat.ConversationsRequestBuilder` to `conversationsRequestBuilder`. Pass the builder instance — not the result of `.build()`.
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function FilteredConversations() {
   return (
-    <div className="App">
-      <ConversationsDemo />
-    </div>
+    <CometChatConversations
+      conversationsRequestBuilder={
+        new CometChat.ConversationsRequestBuilder()
+          .setConversationType("user")
+          .setLimit(10)
+      }
+    />
   );
 }
 ```
-</Tab>
-</Tabs>
-
-Root CSS class for style overrides:
-
-```css lines
-.cometchat-conversations {
-  /* overrides here */
-}
-```
-
-## Functionality
-
-Small functional customizations for fine-tuning the component experience — text, icons, and UI element visibility.
-
-Props that control component behavior, grouped by surface area.
-
-### Data and Loading
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `conversationsRequestBuilder` | `CometChat.ConversationsRequestBuilder` | SDK default (30 per page) | Controls which conversations load and in what order | Forgetting `.build()` is not needed — pass the builder, not the built request |
-| `activeConversation` | `CometChat.Conversation` | `undefined` | Highlights the specified conversation in the list | Must be a reference-equal object from the SDK; a manually constructed object won't match |
-
-### Selection Behavior
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `selectionMode` | `SelectionMode` | `SelectionMode.none` | Enables single or multi-select checkboxes on list items | Must pair with `onSelect` to capture selections |
-
-### UI Visibility Toggles
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `hideReceipts` | `boolean` | `false` | Hides message read/delivery receipt indicators | — |
-| `hideError` | `boolean` | `false` | Hides the default and custom error views | Also suppresses `errorView` if set |
-| `hideDeleteConversation` | `boolean` | `false` | Hides the delete option in the context menu | — |
-| `hideUserStatus` | `boolean` | `false` | Hides online/offline status indicator | — |
-| `hideGroupType` | `boolean` | `false` | Hides the group type icon | — |
-| `showSearchBar` | `boolean` | `false` | Shows a search bar at the top of the list | — |
-| `showScrollbar` | `boolean` | `false` | Shows the scrollbar in the conversation list | — |
-
-### State and UX Behavior
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `disableSoundForMessages` | `boolean` | `false` | Disables the notification sound for incoming messages | — |
-| `customSoundForMessages` | `string` | built-in sound | URL to a custom audio file for incoming message notifications | Must be a valid audio URL accessible from the browser |
-
-### Custom Views (Render Props)
-
-These replace sections of the default UI. See [Custom View Slots](#custom-view-slots) for full examples.
-
-| Property | Type | Effect |
-| --- | --- | --- |
-| `searchView` | `JSX.Element` | Replaces the default search bar |
-| `loadingView` | `JSX.Element` | Shown while conversations are loading |
-| `emptyView` | `JSX.Element` | Shown when there are no conversations |
-| `errorView` | `JSX.Element` | Shown when an error occurs |
-
-
-## Actions
-
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
-
-### Predefined Actions
-
-Devs can specify custom behavior for predefined actions like navigation or routing. 
-
-### User-Defined Actions
-
-#### onItemClick
-
-Fires when a user taps a conversation row. Primary navigation hook — typically used to set the active conversation and render the message view.
-
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks/taps a conversation list item |
-| Payload type | `(conversation: CometChat.Conversation) => void` |
-| What devs typically do next | Set active conversation in state, navigate to message view |
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const getOnItemClick = (conversation: CometChat.Conversation) => {
-  console.log("ItemClick:", conversation);
-  // Your custom action here
-};
-
-<CometChatConversations onItemClick={getOnItemClick} />;
-```
-
-#### onSelect
-
-Fires when a conversation is selected or deselected in multi-select mode. Requires `selectionMode` to be set.
-
-| Detail | Value |
-| --- | --- |
-| When it fires | User checks/unchecks a conversation in selection mode |
-| Payload type | `(conversation: CometChat.Conversation, selected: boolean) => void` |
-| What devs typically do next | Track selected conversations for batch operations (delete, mute) |
-
-```tsx lines
-import {
-  CometChatConversations,
-  SelectionMode,
-} from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const getOnSelect = (
-  conversation: CometChat.Conversation,
-  selected: boolean
-) => {
-  console.log("Selected, ", conversation.getConversationId(), selected);
-  // Your custom action on select
-};
-
-<CometChatConversations
-  selectionMode={SelectionMode.multiple}
-  onSelect={getOnSelect}
-/>;
-```
-
-#### onError
-
-Fires when the component encounters an error (network failure, auth issue, etc.).
-
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error during data fetching or rendering |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service, show custom toast |
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const handleOnError = (error: CometChat.CometChatException) => {
-  // Your exception handling code
-};
-
-<CometChatConversations onError={handleOnError} />;
-```
-
-#### onSearchBarClicked
-
-Fires when the user clicks the search bar (requires `showSearchBar={true}`).
-
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks/focuses the search bar |
-| Payload type | `() => void` |
-| What devs typically do next | Open a custom search overlay, track analytics |
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react";
-
-const handleSearchClick = () => {
-  console.log("Search bar clicked");
-};
-
-<CometChatConversations onSearchBarClicked={handleSearchClick} />;
-```
-
-## Filters
-
-Control which conversations appear using `ConversationsRequestBuilder`. Pass the builder (not a built request) to the `conversationsRequestBuilder` prop.
-
-Refer to [ConversationRequestBuilder](/sdk/javascript/retrieve-conversations) for the full API.
 
 ### Filter Recipes
 
@@ -242,110 +122,185 @@ Refer to [ConversationRequestBuilder](/sdk/javascript/retrieve-conversations) fo
 | Filter by user tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setUserTags(["premium"])` |
 | Filter by group tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setGroupTags(["support"])` |
 
-### Example
+Default page size is 30. The component uses infinite scroll — the next page loads as the user scrolls to the bottom.
 
-```tsx lines
+Refer to [ConversationRequestBuilder](/sdk/javascript/retrieve-conversations) for the full builder API.
+
+---
+
+## Actions and Events
+
+### Callback Props
+
+#### onItemClick
+
+Fires when a conversation row is tapped. Primary navigation hook — set the active conversation and render the message view.
+
+```tsx
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-<CometChatConversations
-  conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(
-    10
-  )}
-/>;
+function ConversationsWithClick() {
+  const handleItemClick = (conversation: CometChat.Conversation) => {
+    console.log("Selected:", conversation.getConversationId());
+  };
+
+  return <CometChatConversations onItemClick={handleItemClick} />;
+}
 ```
 
-### Performance Note
+#### onSelect
 
-The default page size is 30. Reducing it with `setLimit` can improve initial load time on slower connections. The component uses infinite scroll — the next page loads automatically as the user scrolls to the bottom.
+Fires when a conversation is checked/unchecked in multi-select mode. Requires `selectionMode` to be set.
 
+```tsx
+import { useState } from "react";
+import {
+  CometChatConversations,
+  SelectionMode,
+} from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-## Events
+function BatchSelectDemo() {
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
-### UI Events
+  const handleSelect = (conversation: CometChat.Conversation, isSelected: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const id = conversation.getConversationId();
+      isSelected ? next.add(id) : next.delete(id);
+      return next;
+    });
+  };
 
-The CometChatConversations component emits events via `CometChatConversationEvents`. Global events — subscribable from anywhere in the application.
+  return (
+    <CometChatConversations
+      selectionMode={SelectionMode.multiple}
+      onSelect={handleSelect}
+    />
+  );
+}
+```
 
-| Event | When it fires | Payload type |
+#### onError
+
+Fires on internal errors (network failure, auth issue, SDK exception).
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function ConversationsWithErrorHandler() {
+  return (
+    <CometChatConversations
+      onError={(error: CometChat.CometChatException) => {
+        console.error("CometChatConversations error:", error);
+      }}
+    />
+  );
+}
+```
+
+#### onSearchBarClicked
+
+Fires when the search bar is clicked. Requires `showSearchBar={true}`.
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+function ConversationsWithSearch() {
+  return (
+    <CometChatConversations
+      showSearchBar={true}
+      onSearchBarClicked={() => {
+        console.log("Search bar clicked");
+      }}
+    />
+  );
+}
+```
+
+### Global UI Events
+
+`CometChatConversationEvents` emits events subscribable from anywhere in the application. Subscribe in a `useEffect` and unsubscribe on cleanup.
+
+| Event | Fires when | Payload |
 | --- | --- | --- |
-| `CometChatConversationEvents.ccConversationDeleted` | A conversation is deleted from the list | `CometChat.Conversation` |
-| `CometChatConversationEvents.ccUpdateConversation` | A conversation is updated (e.g., last message change, metadata update) | `CometChat.Conversation` |
-| `CometChatConversationEvents.ccMarkConversationAsRead` | A conversation is marked as read | `CometChat.Conversation` |
+| `ccConversationDeleted` | A conversation is deleted from the list | `CometChat.Conversation` |
+| `ccUpdateConversation` | A conversation is updated (last message change, metadata update) | `CometChat.Conversation` |
+| `ccMarkConversationAsRead` | A conversation is marked as read | `CometChat.Conversation` |
 
-#### Subscribe
+When to use: sync external UI with conversation state changes. For example, update an unread count badge in a tab bar when `ccMarkConversationAsRead` fires, or remove a conversation from a custom sidebar when `ccConversationDeleted` fires.
 
-```tsx lines
+```tsx
+import { useEffect } from "react";
 import { CometChatConversationEvents } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const deletedSub = CometChatConversationEvents.ccConversationDeleted.subscribe(
-  (conversation: CometChat.Conversation) => {
-    console.log("Conversation deleted:", conversation.getConversationId());
-  }
-);
+function useConversationEvents() {
+  useEffect(() => {
+    const deletedSub = CometChatConversationEvents.ccConversationDeleted.subscribe(
+      (conversation: CometChat.Conversation) => {
+        console.log("Deleted:", conversation.getConversationId());
+      }
+    );
+    const updatedSub = CometChatConversationEvents.ccUpdateConversation.subscribe(
+      (conversation: CometChat.Conversation) => {
+        console.log("Updated:", conversation.getConversationId());
+      }
+    );
+    const readSub = CometChatConversationEvents.ccMarkConversationAsRead.subscribe(
+      (conversation: CometChat.Conversation) => {
+        console.log("Marked as read:", conversation.getConversationId());
+      }
+    );
 
-const updatedSub = CometChatConversationEvents.ccUpdateConversation.subscribe(
-  (conversation: CometChat.Conversation) => {
-    console.log("Conversation updated:", conversation.getConversationId());
-  }
-);
-
-const readSub = CometChatConversationEvents.ccMarkConversationAsRead.subscribe(
-  (conversation: CometChat.Conversation) => {
-    console.log("Conversation marked as read:", conversation.getConversationId());
-  }
-);
+    return () => {
+      deletedSub?.unsubscribe();
+      updatedSub?.unsubscribe();
+      readSub?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
-#### Unsubscribe
+### SDK Events (Real-Time, Automatic)
 
-```tsx lines
-// In useEffect cleanup or component unmount
-deletedSub?.unsubscribe();
-updatedSub?.unsubscribe();
-readSub?.unsubscribe();
-```
+The component listens to these SDK events internally. No manual attachment needed unless additional side effects are required.
 
-### SDK Events (Real-Time)
-
-The component automatically listens to these SDK events internally for real-time updates. No manual attachment needed unless additional side effects are required.
-
-| SDK Listener | What it does inside the component |
+| SDK Listener | Internal behavior |
 | --- | --- |
-| `onTextMessageReceived` / `onMediaMessageReceived` / `onCustomMessageReceived` | Moves the conversation to the top, updates last message preview and unread count |
+| `onTextMessageReceived` / `onMediaMessageReceived` / `onCustomMessageReceived` | Moves conversation to top, updates last message preview and unread count |
 | `onTypingStarted` / `onTypingEnded` | Shows/hides typing indicator in the subtitle |
-| `onMessagesDelivered` / `onMessagesRead` | Updates receipt ticks (unless `hideReceipts={true}`) |
-| `onUserOnline` / `onUserOffline` | Updates the online/offline status dot (unless `hideUserStatus={true}`) |
-| `onMemberAddedToGroup` / `onGroupMemberLeft` / etc. | Updates group conversation metadata |
+| `onMessagesDelivered` / `onMessagesRead` / `onMessagesDeliveredToAll` / `onMessagesReadByAll` | Updates receipt ticks (unless `hideReceipts={true}`) |
+| `onUserOnline` / `onUserOffline` | Updates online/offline status dot (unless `hideUserStatus={true}`) |
+| `onGroupMemberJoined` / `onGroupMemberLeft` / `onGroupMemberKicked` / `onGroupMemberBanned` / `onMemberAddedToGroup` | Updates group conversation metadata |
 
-#### Automatic updates vs. manual refresh
+Automatic: new messages, typing indicators, receipts, user presence, group membership changes.
 
-- Automatic: new messages, typing indicators, receipts, user presence, group membership changes
-- Manual: deleting a conversation via the SDK directly (not through the component's context menu) requires emitting `CometChatConversationEvents.ccConversationDeleted` for the UI to update
+Manual: deleting a conversation via the SDK directly (not through the component's context menu) requires emitting `CometChatConversationEvents.ccConversationDeleted` for the UI to update.
 
-#### React StrictMode Note
+**React StrictMode note:** In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
 
-In React 18 StrictMode, `useEffect` runs twice on mount in development. SDK listeners may be registered twice. The component handles cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
+---
 
-## Advanced: Custom View Slots
+## Custom View Slots
 
-Customization override points for the conversation list UI. Each slot receives the conversation object and returns JSX.
+Each slot replaces a section of the default UI. Slots that accept a conversation parameter receive the `CometChat.Conversation` object for that row.
 
-### Slot Catalog
-
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `itemView` | `(conversation: CometChat.Conversation) => JSX.Element` | Entire list item row | Whole item |
-| `leadingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Avatar / left section | Sub-section (leading) |
-| `trailingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Timestamp / badge / right section | Sub-section (trailing) |
-| `titleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Name / title text | Sub-section (title) |
-| `subtitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Last message preview text | Sub-section (subtitle) |
-| `headerView` | `JSX.Element` | Entire header bar | Whole section |
-| `searchView` | `JSX.Element` | Search bar | Whole section |
-| `loadingView` | `JSX.Element` | Loading spinner | Empty/loading/error |
-| `emptyView` | `JSX.Element` | Empty state | Empty/loading/error |
-| `errorView` | `JSX.Element` | Error state | Empty/loading/error |
-| `options` | `(conversation: CometChat.Conversation) => CometChatOption[]` | Context menu / hover actions | Whole item |
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `itemView` | `(conversation: CometChat.Conversation) => JSX.Element` | Entire list item row |
+| `leadingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Avatar / left section |
+| `titleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Name / title text |
+| `subtitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Last message preview |
+| `trailingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Timestamp / badge / right section |
+| `headerView` | `JSX.Element` | Entire header bar |
+| `searchView` | `JSX.Element` | Search bar |
+| `loadingView` | `JSX.Element` | Loading spinner |
+| `emptyView` | `JSX.Element` | Empty state |
+| `errorView` | `JSX.Element` | Error state |
+| `options` | `(conversation: CometChat.Conversation) => CometChatOption[]` | Context menu / hover actions |
 
 ### itemView
 
@@ -365,37 +320,38 @@ Customized:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
   CometChatListItem,
   CometChatConversations,
+  CometChatDate,
 } from "@cometchat/chat-uikit-react";
 
-const getItemView = (conversation: CometChat.Conversation) => {
-  const title = conversation.getConversationWith().getName();
-  const timestamp = conversation?.getLastMessage()?.getSentAt();
+function CustomItemViewConversations() {
+  const getItemView = (conversation: CometChat.Conversation) => {
+    const title = conversation.getConversationWith().getName();
+    const timestamp = conversation?.getLastMessage()?.getSentAt();
 
-  return (
-    <CometChatListItem
-      title={title}
-      avatarName={title}
-      id={conversation.getConversationId()}
-      trailingView={<CometChatDate timestamp={timestamp} />}
-      onListItemClicked={() => {
-        // Logic here
-      }}
-    />
-  );
-};
+    return (
+      <CometChatListItem
+        title={title}
+        avatarName={title}
+        id={conversation.getConversationId()}
+        trailingView={<CometChatDate timestamp={timestamp} />}
+        onListItemClicked={() => {
+          // handle click
+        }}
+      />
+    );
+  };
 
-<CometChatConversations
-  itemView={getItemView} // Custom list item view
-/>;
+  return <CometChatConversations itemView={getItemView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-conversations .cometchat-avatar {
   border-radius: 8px;
   width: 32px;
@@ -417,73 +373,75 @@ Replace the avatar / left section. Typing-aware avatar example.
   <img src="/images/5f55a4a0-conversations_leadingview-3b297f3151794854485fc087d0c0aeec.png" />
 </Frame>
 
-```ts lines
-import React from "react";
+```tsx
+import { useEffect, useRef, useState } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
   CometChatConversations,
   CometChatAvatar,
+  CometChatUIKitLoginListener,
 } from "@cometchat/chat-uikit-react";
-import { useEffect, useRef, useState } from "react";
-const [isTyping, setIsTyping] = useState<boolean>(false);
-const typingObjRef = useRef<CometChat.TypingIndicator | null>(null);
 
-useEffect(() => {
-  //adding typing listeners
-  const messageListenerId: string = "typing_demo_" + new Date().getTime();
-  CometChat.addMessageListener(
-    messageListenerId,
-    new CometChat.MessageListener({
-      onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
-        typingObjRef.current = typingIndicator;
-        setIsTyping(true);
-      },
-      onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
-        if (
-          typingObjRef.current &&
-          typingObjRef.current.getSender().getUid() ==
-            typingIndicator.getSender().getUid()
-        ) {
-          typingObjRef.current = null;
-          setIsTyping(false);
-        }
-      },
-    })
-  );
-  return () => {
-    CometChat.removeMessageListener(messageListenerId);
+function TypingAwareConversations() {
+  const [isTyping, setIsTyping] = useState(false);
+  const typingObjRef = useRef<CometChat.TypingIndicator | null>(null);
+  const loggedInUser = CometChatUIKitLoginListener.getLoggedInUser();
+
+  useEffect(() => {
+    const listenerId = "typing_demo_" + Date.now();
+    CometChat.addMessageListener(
+      listenerId,
+      new CometChat.MessageListener({
+        onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
+          typingObjRef.current = typingIndicator;
+          setIsTyping(true);
+        },
+        onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
+          if (
+            typingObjRef.current &&
+            typingObjRef.current.getSender().getUid() ===
+              typingIndicator.getSender().getUid()
+          ) {
+            typingObjRef.current = null;
+            setIsTyping(false);
+          }
+        },
+      })
+    );
+    return () => {
+      CometChat.removeMessageListener(listenerId);
+    };
+  }, []);
+
+  const getLeadingView = (conversation: CometChat.Conversation) => {
+    const entity = conversation.getConversationWith();
+    const isUser = entity instanceof CometChat.User;
+    const isGroup = entity instanceof CometChat.Group;
+
+    const isMyTyping = isUser
+      ? (entity as CometChat.User).getUid() ===
+          typingObjRef.current?.getSender().getUid() &&
+        loggedInUser?.getUid() === typingObjRef.current?.getReceiverId()
+      : isGroup &&
+        (entity as CometChat.Group).getGuid() ===
+          typingObjRef.current?.getReceiverId();
+
+    const avatar = isUser
+      ? (entity as CometChat.User).getAvatar()
+      : (entity as CometChat.Group).getIcon();
+
+    return (
+      <div className="conversations__leading-view">
+        <CometChatAvatar
+          image={isTyping && isMyTyping ? undefined : avatar}
+          name={isTyping && isMyTyping ? undefined : entity.getName()}
+        />
+      </div>
+    );
   };
-}, [setIsTyping]);
 
-// Custom leading view component
-const CustomLeadingView = (conversation: CometChat.Conversation) => {
-  const conversationObj = conversation.getConversationWith();
-  const isUser = conversationObj instanceof CometChat.User;
-  const isGroup = conversationObj instanceof CometChat.Group;
-
-  // Check if the current user is typing
-  const isMyTyping = isUser
-    ? (conversationObj as CometChat.User).getUid() ===
-        typingObjRef.current?.getSender().getUid() &&
-      loggedInUser?.getUid() === typingObjRef.current?.getReceiverId()
-    : isGroup &&
-      (conversationObj as CometChat.Group).getGuid() ===
-        typingObjRef.current?.getReceiverId();
-
-  // Determine avatar and name
-  const avatar = isUser
-    ? (conversationObj as CometChat.User).getAvatar()
-    : (conversationObj as CometChat.Group).getIcon();
-  const name = isTyping && isMyTyping ? undefined : conversationObj.getName();
-  const image = isTyping && isMyTyping ? "TYPING_ICON_HERE" : avatar;
-
-  return (
-    <div className="conversations__leading-view">
-      <CometChatAvatar image={image} name={name} />
-    </div>
-  );
-};
-<CometChatConversations leadingView={CustomLeadingView} />;
+  return <CometChatConversations leadingView={getLeadingView} />;
+}
 ```
 
 ### trailingView
@@ -496,57 +454,48 @@ Replace the timestamp / badge / right section. Relative time badge example.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import React from "react";
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
-// Custom trailing view component
-const CustomTrailingButtonView = (conv: CometChat.Conversation) => {
-  if (!conv.getLastMessage()) {
-    return <></>;
-  }
-  const timestamp = conv.getLastMessage()?.getSentAt() * 1000;
-  const now = new Date();
-  const time = new Date(timestamp);
+function RelativeTimeConversations() {
+  const getTrailingView = (conv: CometChat.Conversation) => {
+    if (!conv.getLastMessage()) return <></>;
 
-  // Calculate time difference
-  const diffInMs = now.getTime() - time.getTime();
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const timestamp = conv.getLastMessage()?.getSentAt() * 1000;
+    const now = Date.now();
+    const diffInMinutes = Math.floor((now - timestamp) / (1000 * 60));
+    const diffInHours = Math.floor((now - timestamp) / (1000 * 60 * 60));
 
-  // Determine the labels
-  let backgroundColorClass = "conversations__trailing-view-min"; // Default (less than 1 hour)
-  let topLabel = `${diffInMinutes}`; // Default minutes
-  let bottomLabel = `${diffInMinutes === 1 ? "Min ago" : "Mins ago"}`; // Default "Mins ago"
+    let className = "conversations__trailing-view-min";
+    let topLabel = `${diffInMinutes}`;
+    let bottomLabel = diffInMinutes === 1 ? "Min ago" : "Mins ago";
 
-  if (diffInHours >= 1 && diffInHours <= 10) {
-    // 1-10 hours
-    backgroundColorClass = "conversations__trailing-view-hour";
-    topLabel = `${diffInHours}`;
-    bottomLabel = `${diffInHours === 1 ? "Hour ago" : "Hours ago"}`;
-  } else if (diffInHours > 10) {
-    // More than 10 hours
-    backgroundColorClass = "conversations__trailing-view-date";
-    topLabel = time.toLocaleDateString("en-US", { day: "numeric" });
-    bottomLabel = time.toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-  }
-  return (
-    <div className={`conversations__trailing-view ${backgroundColorClass}`}>
-      <span className="conversations__trailing-view-time">{topLabel}</span>
-      <span className="conversations__trailing-view-status">{bottomLabel}</span>
-    </div>
-  );
-};
+    if (diffInHours >= 1 && diffInHours <= 10) {
+      className = "conversations__trailing-view-hour";
+      topLabel = `${diffInHours}`;
+      bottomLabel = diffInHours === 1 ? "Hour ago" : "Hours ago";
+    } else if (diffInHours > 10) {
+      className = "conversations__trailing-view-date";
+      const time = new Date(timestamp);
+      topLabel = time.toLocaleDateString("en-US", { day: "numeric" });
+      bottomLabel = time.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
 
-<CometChatConversations trailingView={CustomTrailingButtonView} />;
+    return (
+      <div className={`conversations__trailing-view ${className}`}>
+        <span className="conversations__trailing-view-time">{topLabel}</span>
+        <span className="conversations__trailing-view-status">{bottomLabel}</span>
+      </div>
+    );
+  };
+
+  return <CometChatConversations trailingView={getTrailingView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .conversations__trailing-view {
   display: flex;
   flex-direction: column;
@@ -556,33 +505,23 @@ const CustomTrailingButtonView = (conv: CometChat.Conversation) => {
   height: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
 }
 
-.conversations__trailing-view-min {
-  background-color: #e0d4f7;
-}
-
-.conversations__trailing-view-hour {
-  background-color: #fff3cd;
-}
-
-.conversations__trailing-view-date {
-  background-color: #f8d7da;
-}
+.conversations__trailing-view-min { background-color: #e0d4f7; }
+.conversations__trailing-view-hour { background-color: #fff3cd; }
+.conversations__trailing-view-date { background-color: #f8d7da; }
 
 .conversations__trailing-view-time {
-  font-size: 20px;
-  font-weight: bold;
+  font: 600 18px Roboto;
   color: #4a3f99;
   margin-bottom: 4px;
-  font: 600 18px Roboto;
 }
 
 .conversations__trailing-view-status {
   font: 600 8px Roboto;
   color: #6a5b99;
 }
+
 .cometchat-conversations .cometchat-list-item__trailing-view {
   height: 50px;
 }
@@ -590,10 +529,9 @@ const CustomTrailingButtonView = (conv: CometChat.Conversation) => {
 </Tab>
 </Tabs>
 
-
 ### titleView
 
-Replace the name / title text. User status inline example.
+Replace the name / title text. Inline user status example.
 
 <Frame>
   <img src="/images/015d947c-conversations_titleview-b5822bb42232ef47727b553cbf1facd8.png" />
@@ -601,57 +539,53 @@ Replace the name / title text. User status inline example.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import React from "react";
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
-// Custom title view component
-const customTitleView = (conversation: CometChat.Conversation) => {
-  let user =
-    conversation.getConversationType() == "user"
-      ? (conversation.getConversationWith() as CometChat.User)
-      : undefined;
-  return (
-    <div className="conversations__title-view">
-      <span className="conversations__title-view-name">
-        {user
-          ? conversation.getConversationWith().getName() + " • "
-          : conversation.getConversationWith().getName()}
-      </span>
-      {user ? (
-        <span className="conversations__title-view-status">
-          {user.getStatusMessage()}
-        </span>
-      ) : null}
-    </div>
-  );
-};
+function StatusTitleConversations() {
+  const getTitleView = (conversation: CometChat.Conversation) => {
+    const user =
+      conversation.getConversationType() === "user"
+        ? (conversation.getConversationWith() as CometChat.User)
+        : undefined;
 
-<CometChatConversations titleView={customTitleView} />;
+    return (
+      <div className="conversations__title-view">
+        <span className="conversations__title-view-name">
+          {user
+            ? conversation.getConversationWith().getName() + " · "
+            : conversation.getConversationWith().getName()}
+        </span>
+        {user && (
+          <span className="conversations__title-view-status">
+            {user.getStatusMessage()}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  return <CometChatConversations titleView={getTitleView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-conversations .conversations__title-view {
   display: flex;
   gap: 4px;
   width: 100%;
 }
 
-.cometchat-conversations
-  .conversations__title-view
-  .conversations__title-view-name {
+.conversations__title-view-name {
   color: #141414;
   font: 500 16px/19.2px Roboto;
-  text-align: left;
 }
-.cometchat-conversations
-  .conversations__title-view
-  .conversations__title-view-status {
+
+.conversations__title-view-status {
   color: #6852d6;
   font: 400 16px/19.2px Roboto;
-  text-align: left;
 }
 ```
 </Tab>
@@ -675,52 +609,48 @@ Customized:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
-const subtitleView = (conversation: CometChat.Conversation) => {
-  if (conversation.getConversationType() === "user") {
+function formatTimestamp(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleString();
+}
+
+function SubtitleConversations() {
+  const getSubtitleView = (conversation: CometChat.Conversation) => {
+    if (conversation.getConversationType() === "user") {
+      return (
+        <>
+          Last active:{" "}
+          {formatTimestamp(
+            (conversation.getConversationWith() as CometChat.User).getLastActiveAt()
+          )}
+        </>
+      );
+    }
     return (
       <>
-        Last Message at:{" "}
-        {getFormattedTimestamp(
-          (
-            conversation.getConversationWith() as CometChat.User
-          ).getLastActiveAt()
-        )}
-      </>
-    );
-  } else {
-    return (
-      <>
-        Created at:{" "}
-        {getFormattedTimestamp(
+        Created:{" "}
+        {formatTimestamp(
           (conversation.getConversationWith() as CometChat.Group).getCreatedAt()
         )}
       </>
     );
-  }
-};
+  };
 
-function getFormattedTimestamp(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleString();
+  return <CometChatConversations subtitleView={getSubtitleView} />;
 }
-
-<CometChatConversations subtitleView={subtitleView} />;
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-conversations .cometchat-list-item__body-subtitle {
   overflow: hidden;
   color: var(--cometchat-text-color-secondary, #727272);
   text-overflow: ellipsis;
   white-space: nowrap;
   font: var(--cometchat-font-body-regular);
-  font-family: "SF Pro";
-  font-style: normal;
 }
 ```
 </Tab>
@@ -736,31 +666,31 @@ Replace the entire header bar.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import {
   CometChatButton,
   CometChatConversations,
+  getLocalizedString,
 } from "@cometchat/chat-uikit-react";
 
-const getHeaderView = () => {
+function CustomHeaderConversations() {
   return (
-    <div className="conversations__header">
-      <div className="conversations__header__title">{localize("CHATS")}</div>
-      <CometChatButton
-        onClick={() => {
-          // logic here
-        }}
-        iconURL={ICON_URL}
-      />
-    </div>
+    <CometChatConversations
+      headerView={
+        <div className="conversations__header">
+          <div className="conversations__header__title">
+            {getLocalizedString("CHATS")}
+          </div>
+          <CometChatButton onClick={() => { /* handle click */ }} />
+        </div>
+      }
+    />
   );
-};
-
-<CometChatConversations headerView={getHeaderView()} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .conversations__header {
   display: flex;
   width: 100%;
@@ -768,27 +698,27 @@ const getHeaderView = () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex: 1 0 0;
-  align-self: stretch;
   border-radius: 10px;
   border: 1px solid #e8e8e8;
   background: #edeafa;
 }
+
 .conversations__header__title {
   overflow: hidden;
   color: #141414;
   text-overflow: ellipsis;
   font: 700 24px Roboto;
 }
+
 .conversations__header .cometchat-button .cometchat-button__icon {
   background: #141414;
 }
+
 .conversations__header .cometchat-button {
   width: 24px;
   border: none;
   background: transparent;
   border-radius: 0;
-  display: block;
 }
 ```
 </Tab>
@@ -812,51 +742,43 @@ Customized:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
   CometChatOption,
   CometChatConversations,
 } from "@cometchat/chat-uikit-react";
 
-const getOptions = (conversation: CometChat.Conversation) => {
-  return [
+function CustomOptionsConversations() {
+  const getOptions = (conversation: CometChat.Conversation) => [
     new CometChatOption({
       title: "Delete",
-      iconURL: deleteIcon,
       id: "delete",
-      onClick: () => {
-        // Logic here
-      },
+      onClick: () => { /* delete logic */ },
     }),
     new CometChatOption({
       title: "Mute Notification",
       id: "mute",
-      onClick: () => {
-        // Logic here
-      },
+      onClick: () => { /* mute logic */ },
     }),
     new CometChatOption({
       title: "Mark as Unread",
       id: "unread",
-      onClick: () => {
-        // Logic here
-      },
+      onClick: () => { /* mark unread logic */ },
     }),
     new CometChatOption({
       title: "Block",
       id: "block",
-      onClick: () => {
-        // Logic here
-      },
+      onClick: () => { /* block logic */ },
     }),
   ];
-};
 
-<CometChatConversations options={getOptions} />;
+  return <CometChatConversations options={getOptions} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-conversations .cometchat-menu-list__main-menu-item-icon-delete {
   background: red;
 }
@@ -865,281 +787,180 @@ const getOptions = (conversation: CometChat.Conversation) => {
   background: transparent;
   box-shadow: none;
 }
-
-.cometchat-conversations .cometchat-menu-list__sub-menu-icon {
-  -webkit-mask: url(./assets/down-arrow.svg) center center no-repeat;
-  -webkit-mask-size: contain;
-}
 ```
 </Tab>
 </Tabs>
 
-#### Structure of CometChatOption
-
-| Name | Description |
-| --- | --- |
-| `id` | Unique identifier for each option |
-| `title` | Heading text for each option |
-| `iconURL` | Asset URL of the icon for each option |
-| `onClick` | Method invoked when user clicks the option |
-
-### TextFormatters
-
-Assigns custom text formatters to the conversation subtitle. If not provided, default formatters from the data source are used. To configure Mentions, see [CometChatMentionsFormatter](/ui-kit/react/mentions-formatter-guide).
-
-<Tabs>
-<Tab title="ShortCutFormatter.ts">
-```ts lines
-import { CometChatTextFormatter } from "@cometchat/chat-uikit-react";
-import DialogHelper from "./Dialog";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-class ShortcutFormatter extends CometChatTextFormatter {
-  private shortcuts: { [key: string]: string } = {};
-  private dialogIsOpen: boolean = false;
-  private dialogHelper = new DialogHelper();
-  private currentShortcut: string | null = null; // Track the currently open shortcut
-
-  constructor() {
-    super();
-    this.setTrackingCharacter("!");
-    CometChat.callExtension("message-shortcuts", "GET", "v1/fetch", undefined)
-      .then((data: any) => {
-        if (data && data.shortcuts) {
-          this.shortcuts = data.shortcuts;
-        }
-      })
-      .catch((error) => console.log("error fetching shortcuts", error));
-  }
-
-  onKeyDown(event: KeyboardEvent) {
-    const caretPosition =
-      this.currentCaretPosition instanceof Selection
-        ? this.currentCaretPosition.anchorOffset
-        : 0;
-    const textBeforeCaret = this.getTextBeforeCaret(caretPosition);
-
-    const match = textBeforeCaret.match(/!([a-zA-Z]+)$/);
-    if (match) {
-      const shortcut = match[0];
-      const replacement = this.shortcuts[shortcut];
-      if (replacement) {
-        // Close the currently open dialog, if any
-        if (this.dialogIsOpen && this.currentShortcut !== shortcut) {
-          this.closeDialog();
-        }
-        this.openDialog(replacement, shortcut);
-      }
-    }
-  }
-
-  getCaretPosition() {
-    if (!this.currentCaretPosition?.rangeCount) return { x: 0, y: 0 };
-    const range = this.currentCaretPosition?.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    return {
-      x: rect.left,
-      y: rect.top,
-    };
-  }
-
-  openDialog(buttonText: string, shortcut: string) {
-    this.dialogHelper.createDialog(
-      () => this.handleButtonClick(buttonText),
-      buttonText
-    );
-    this.dialogIsOpen = true;
-    this.currentShortcut = shortcut;
-  }
-
-  closeDialog() {
-    this.dialogHelper.closeDialog(); // Use DialogHelper to close the dialog
-    this.dialogIsOpen = false;
-    this.currentShortcut = null;
-  }
-
-  handleButtonClick = (buttonText: string) => {
-    if (this.currentCaretPosition && this.currentRange) {
-      // Inserting the replacement text corresponding to the shortcut
-      const shortcut = Object.keys(this.shortcuts).find(
-        (key) => this.shortcuts[key] === buttonText
-      );
-      if (shortcut) {
-        const replacement = this.shortcuts[shortcut];
-        this.addAtCaretPosition(
-          replacement,
-          this.currentCaretPosition,
-          this.currentRange
-        );
-      }
-    }
-    if (this.dialogIsOpen) {
-      this.closeDialog();
-    }
-  };
-
-  getFormattedText(text: string): string {
-    return text;
-  }
-
-  private getTextBeforeCaret(caretPosition: number): string {
-    if (
-      this.currentRange &&
-      this.currentRange.startContainer &&
-      typeof this.currentRange.startContainer.textContent === "string"
-    ) {
-      const textContent = this.currentRange.startContainer.textContent;
-      if (textContent.length >= caretPosition) {
-        return textContent.substring(0, caretPosition);
-      }
-    }
-    return "";
-  }
-}
-
-export default ShortcutFormatter;
-```
-</Tab>
-<Tab title="Dialog.tsx">
-```tsx lines
-import React from "react";
-import ReactDOM from "react-dom";
-
-interface DialogProps {
-  onClick: () => void;
-  buttonText: string;
-}
-
-const Dialog: React.FC<DialogProps> = ({ onClick, buttonText }) => {
-  console.log("buttonText", buttonText);
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: "300px",
-        top: "664px",
-        width: "800px",
-        height: "45px",
-      }}
-    >
-      <button
-        style={{
-          width: "800px",
-          height: "100%",
-          cursor: "pointer",
-          backgroundColor: "#f2e6ff",
-          border: "2px solid #9b42f5",
-          borderRadius: "12px",
-          textAlign: "left",
-          paddingLeft: "20px",
-          font: "600 15px sans-serif, Inter",
-        }}
-        onClick={onClick}
-      >
-        {buttonText}
-      </button>
-    </div>
-  );
-};
-
-export default class DialogHelper {
-  private dialogContainer: HTMLDivElement | null = null;
-
-  createDialog(onClick: () => void, buttonText: string) {
-    this.dialogContainer = document.createElement("div");
-    document.body.appendChild(this.dialogContainer);
-
-    ReactDOM.render(
-      <Dialog onClick={onClick} buttonText={buttonText} />,
-      this.dialogContainer
-    );
-  }
-
-  closeDialog() {
-    if (this.dialogContainer) {
-      ReactDOM.unmountComponentAtNode(this.dialogContainer);
-      this.dialogContainer.remove();
-      this.dialogContainer = null;
-    }
-  }
+```ts
+// CometChatOption interface
+interface CometChatOption {
+  id?: string;       // Unique identifier
+  title?: string;    // Display text
+  iconURL?: string;  // Icon asset URL
+  onClick?: () => void; // Click handler
 }
 ```
-</Tab>
-<Tab title="Usage">
-```tsx lines
+
+### textFormatters
+
+Custom text formatters for the conversation subtitle. Array of `CometChatTextFormatter` instances. If not provided, default formatters from the data source are used.
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
 import ShortcutFormatter from "./ShortCutFormatter";
 
-<CometChatConversations textFormatters={[new ShortcutFormatter()]} />;
+function FormattedConversations() {
+  return (
+    <CometChatConversations textFormatters={[new ShortcutFormatter()]} />
+  );
+}
 ```
-</Tab>
-</Tabs>
+
+See [CometChatMentionsFormatter](/ui-kit/react/mentions-formatter-guide) for mention formatting.
 
 ### lastMessageDateTimeFormat
 
 Customize the last message timestamp format using a `CalendarObject`.
 
-Default format:
-
-```ts lines
-new CalendarObject({
-  today: `hh:mm A`, // Example: "10:30 AM"
-  yesterday: `[yesterday]`, // Example: "yesterday"
-  otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
-});
+```ts
+// CalendarObject interface (from source)
+class CalendarObject {
+  today?: string;
+  yesterday?: string;
+  lastWeek?: string;
+  otherDays?: string;
+  relativeTime?: {
+    minute?: string;
+    minutes?: string;
+    hour?: string;
+    hours?: string;
+  };
+}
 ```
 
-Custom format example:
-
-```ts lines
+```tsx
 import {
   CometChatConversations,
   CalendarObject,
 } from "@cometchat/chat-uikit-react";
 
-// Define a custom date format pattern
-function getDateFormat() {
+function CustomDateConversations() {
   const dateFormat = new CalendarObject({
-    today: `DD MMM, hh:mm A`, // Example: "25 Jan, 10:30 AM"
-    yesterday: `DD MMM, hh:mm A`, // Example: "25 Jan, 10:30 AM"
-    otherDays: `DD MMM, hh:mm A`, // Example: "25 Jan, 10:30 AM"
+    today: "DD MMM, hh:mm A",
+    yesterday: "DD MMM, hh:mm A",
+    otherDays: "DD MMM, hh:mm A",
   });
-  return dateFormat;
-}
 
-// Apply the custom format to the CometChatConversations component
-<CometChatConversations lastMessageDateTimeFormat={getDateFormat()} />;
+  return <CometChatConversations lastMessageDateTimeFormat={dateFormat} />;
+}
 ```
 
 <Note>
 If no property is passed in the [CalendarObject](/ui-kit/react/localize#calendarobject), the component checks the [global configuration](/ui-kit/react/localize#customisation) first. If also missing there, the component's default formatting applies.
 </Note>
 
+---
 
-## Theme and Styling
+## Common Patterns
 
-The root CSS class is `.cometchat-conversations`. All styling is done via CSS — no style object props.
+### Custom empty state with CTA
 
-### Key CSS Selectors
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
 
-| What to change | Selector |
+function EmptyStateConversations() {
+  return (
+    <CometChatConversations
+      emptyView={
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <p>No conversations yet</p>
+          <button onClick={() => { /* navigate to contacts */ }}>
+            Start a conversation
+          </button>
+        </div>
+      }
+    />
+  );
+}
+```
+
+### Hide all chrome — minimal list
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+function MinimalConversations() {
+  return (
+    <CometChatConversations
+      hideReceipts={true}
+      hideUserStatus={true}
+      hideGroupType={true}
+      hideDeleteConversation={true}
+    />
+  );
+}
+```
+
+### Conversations with search
+
+```tsx
+import { CometChatConversations } from "@cometchat/chat-uikit-react";
+
+function SearchableConversations() {
+  return (
+    <CometChatConversations
+      showSearchBar={true}
+      showScrollbar={true}
+    />
+  );
+}
+```
+
+---
+
+## CSS Architecture
+
+The component uses CSS custom properties (design tokens) defined in `@cometchat/chat-uikit-react/css-variables.css`. The cascade:
+
+1. Global tokens (e.g., `--cometchat-primary-color`, `--cometchat-background-color-01`) are set on the `.cometchat` root wrapper.
+2. Component CSS (`.cometchat-conversations`) consumes these tokens via `var()` with fallback values.
+3. Overrides target `.cometchat-conversations` descendant selectors in a global stylesheet.
+
+To scope overrides to a single instance when multiple `CometChatConversations` exist on the same page, wrap the component in a container and scope selectors:
+
+```css
+.sidebar-left .cometchat-conversations .cometchat-badge {
+  background: #e5484d;
+}
+```
+
+Overrides survive component updates because the component never sets inline styles on these elements — all styling flows through CSS classes and custom properties.
+
+### Key Selectors
+
+| Target | Selector |
 | --- | --- |
+| Root | `.cometchat-conversations` |
 | Header title | `.cometchat-conversations .cometchat-list__header-title` |
-| List item body title | `.cometchat-conversations .cometchat-list-item__body-title` |
+| List item | `.cometchat-conversations .cometchat-list-item` |
+| Body title | `.cometchat-conversations .cometchat-list-item__body-title` |
+| Avatar | `.cometchat-conversations .cometchat-avatar` |
 | Avatar text | `.cometchat-conversations .cometchat-avatar__text` |
 | Unread badge | `.cometchat-conversations .cometchat-badge` |
 | Subtitle text | `.cometchat-conversations .cometchat-conversations__subtitle-text` |
-| Avatar shape | `.cometchat-conversations .cometchat-avatar` |
 | Status indicator | `.cometchat-conversations .cometchat-status-indicator` |
 | Read receipts | `.cometchat-conversations .cometchat-receipts-read` |
+| Active item | `.cometchat-conversations__list-item-active .cometchat-list-item` |
+| Typing indicator | `.cometchat-conversations__subtitle-typing` |
+| Trailing view | `.cometchat-conversations__trailing-view` |
 
-### Minimal "Change One Thing" Example
+### Example: Brand-themed conversations
 
 <Frame>
   <img src="/images/46655ced-style_custom_web_screens-967e2c7c42b5c97c59c10a9212aef0c4.png" />
 </Frame>
 
-```css lines
+```css
 .cometchat-conversations .cometchat-list-item__body-title,
 .cometchat-conversations .cometchat-list__header-title,
 .cometchat-conversations .cometchat-avatar__text,
@@ -1173,7 +994,7 @@ The root CSS class is `.cometchat-conversations`. All styling is done via CSS �
 
 ### Customization Matrix
 
-| What you want to change | Where | Property/API | Example |
+| What to change | Where | Property/API | Example |
 | --- | --- | --- | --- |
 | Override behavior on user interaction | Component props | `on<Event>` callbacks | `onItemClick={(c) => setActive(c)}` |
 | Filter which conversations appear | Component props | `conversationsRequestBuilder` | `conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(10)}` |
@@ -1181,12 +1002,583 @@ The root CSS class is `.cometchat-conversations`. All styling is done via CSS �
 | Replace a section of the list item | Component props | `<slot>View` render props | `itemView={(conversation) => <div>...</div>}` |
 | Change colors, fonts, spacing | Global CSS | Target `.cometchat-conversations` class | `.cometchat-conversations .cometchat-badge { background: #e5484d; }` |
 
-### Component API Pattern
+---
 
-| Customization Type | Prop Pattern | Example |
+## Accessibility
+
+The component renders a scrollable list of interactive items. Each conversation row is keyboard-focusable and activates on Enter/Space. The context menu (options) is accessible via keyboard. The unread badge count is exposed as text content. Avatar images include the conversation name as alt text.
+
+For screen readers, the conversation list is rendered as a semantic list. Status indicators (online/offline, group type icons) use CSS mask images — add `aria-label` attributes via `itemView` if screen reader descriptions are needed for these visual indicators.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional. Sorted alphabetically.
+
+### activeConversation
+
+Highlights the specified conversation in the list.
+
+| | |
+| --- | --- |
+| Type | `CometChat.Conversation` |
+| Default | `undefined` |
+
+Must be a reference-equal object from the SDK; a manually constructed object will not match.
+
+---
+
+### conversationsRequestBuilder
+
+Controls which conversations load and in what order.
+
+| | |
+| --- | --- |
+| Type | `CometChat.ConversationsRequestBuilder` |
+| Default | SDK default (30 per page) |
+
+Pass the builder instance, not the result of `.build()`.
+
+---
+
+### customSoundForMessages
+
+URL to a custom audio file for incoming message notifications.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | Built-in sound |
+
+Must be a valid audio URL accessible from the browser.
+
+---
+
+### disableSoundForMessages
+
+Disables the notification sound for incoming messages.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### emptyView
+
+Custom component displayed when there are no conversations.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in empty state |
+
+---
+
+### errorView
+
+Custom component displayed when an error occurs.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in error state |
+
+Hidden when `hideError={true}`.
+
+---
+
+### headerView
+
+Custom component rendered as the entire header bar.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in header with title |
+
+---
+
+### hideDeleteConversation
+
+Hides the delete option in the context menu.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideError
+
+Hides the default and custom error views.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+Also suppresses `errorView` if set.
+
+---
+
+### hideGroupType
+
+Hides the group type icon (public/private/password).
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideReceipts
+
+Hides message read/delivery receipt indicators.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideUserStatus
+
+Hides the online/offline status indicator.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### itemView
+
+Custom renderer for the entire list item row.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in list item |
+
+---
+
+### lastMessageDateTimeFormat
+
+Format for displaying the timestamp of the last message.
+
+| | |
+| --- | --- |
+| Type | `CalendarObject` |
+| Default | Component default (`hh:mm A` today, `[yesterday]`, `DD/MM/YYYY` other days) |
+
+```ts
+class CalendarObject {
+  today?: string;
+  yesterday?: string;
+  lastWeek?: string;
+  otherDays?: string;
+  relativeTime?: {
+    minute?: string;
+    minutes?: string;
+    hour?: string;
+    hours?: string;
+  };
+}
+```
+
+Falls back to [global calendar configuration](/ui-kit/react/localize#customisation) if not set.
+
+---
+
+### leadingView
+
+Custom renderer for the avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in avatar |
+
+---
+
+### loadingView
+
+Custom component displayed during the loading state.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in shimmer |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `((error: CometChat.CometChatException) => void) \| null` |
+| Default | `undefined` |
+
+---
+
+### onItemClick
+
+Callback fired when a conversation row is clicked.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => void` |
+| Default | `undefined` |
+
+---
+
+### onSearchBarClicked
+
+Callback fired when the search bar is clicked. Requires `showSearchBar={true}`.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onSelect
+
+Callback fired when a conversation is selected/deselected. Requires `selectionMode` to be set.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation, selected: boolean) => void` |
+| Default | `undefined` |
+
+---
+
+### options
+
+Custom context menu / hover actions for each conversation item.
+
+| | |
+| --- | --- |
+| Type | `((conversation: CometChat.Conversation) => CometChatOption[]) \| null` |
+| Default | Built-in delete option |
+
+```ts
+class CometChatOption {
+  id?: string;
+  title?: string;
+  iconURL?: string;
+  onClick?: () => void;
+}
+```
+
+---
+
+### searchView
+
+Custom search bar component in the header.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in search bar |
+
+---
+
+### selectionMode
+
+Enables single or multi-select checkboxes on list items.
+
+| | |
+| --- | --- |
+| Type | `SelectionMode` |
+| Default | `SelectionMode.none` |
+
+```ts
+enum SelectionMode {
+  single,    // 0
+  multiple,  // 1
+  none,      // 2
+}
+```
+
+Must pair with `onSelect` to capture selections.
+
+---
+
+### showScrollbar
+
+Shows the scrollbar in the conversation list.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### showSearchBar
+
+Shows a search bar at the top of the list.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### subtitleView
+
+Custom renderer for the last message preview text.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### textFormatters
+
+Custom text formatters for the conversation subtitle.
+
+| | |
+| --- | --- |
+| Type | `CometChatTextFormatter[]` |
+| Default | Default formatters from data source |
+
+See [CometChatMentionsFormatter](/ui-kit/react/mentions-formatter-guide) for mention formatting.
+
+---
+
+### titleView
+
+Custom renderer for the name / title text.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in title |
+
+---
+
+### trailingView
+
+Custom renderer for the timestamp / badge / right section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in trailing view |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
 | --- | --- | --- |
-| Callback actions | `on<Event>={(param) => {}}` | `onItemClick={(conversation) => {}}` |
-| Data filtering | `conversationsRequestBuilder={builder}` | `conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(10)}` |
-| Toggle features | `hide<Feature>={true\|false}` | `hideReceipts={true}` |
-| Custom rendering | `<slot>View={(<params>) => JSX}` | `itemView={(conversation) => <div>...</div>}` |
-| CSS overrides | Target `.cometchat-conversations` class in global CSS | `.cometchat-conversations .cometchat-list-item { ... }` |
+| `CometChatConversationEvents.ccConversationDeleted` | `CometChat.Conversation` | Conversation deleted from list |
+| `CometChatConversationEvents.ccUpdateConversation` | `CometChat.Conversation` | Conversation updated |
+| `CometChatConversationEvents.ccMarkConversationAsRead` | `CometChat.Conversation` | Conversation marked as read |
+
+All events are `Subject<CometChat.Conversation>` from RxJS. Subscribe with `.subscribe()`, unsubscribe with the returned subscription's `.unsubscribe()`.
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-conversations` |
+| Header title | `.cometchat-conversations .cometchat-list__header-title` |
+| List item | `.cometchat-conversations .cometchat-list-item` |
+| Body title | `.cometchat-conversations .cometchat-list-item__body-title` |
+| Avatar | `.cometchat-conversations .cometchat-avatar` |
+| Avatar text | `.cometchat-conversations .cometchat-avatar__text` |
+| Unread badge | `.cometchat-conversations .cometchat-badge` |
+| Subtitle text | `.cometchat-conversations .cometchat-conversations__subtitle-text` |
+| Subtitle sender | `.cometchat-conversations__subtitle-text-sender` |
+| Status indicator (online) | `.cometchat-conversations__list-item-online .cometchat-list-item__status` |
+| Group type (password) | `.cometchat-conversations__list-item-password .cometchat-list-item__status` |
+| Group type (private) | `.cometchat-conversations__list-item-private .cometchat-list-item__status` |
+| Read receipts | `.cometchat-conversations__subtitle-receipts-read` |
+| Delivered receipts | `.cometchat-conversations__subtitle-receipts-delivered` |
+| Sent receipts | `.cometchat-conversations__subtitle-receipts-sent` |
+| Error receipts | `.cometchat-conversations__subtitle-receipts-error` |
+| Active item | `.cometchat-conversations__list-item-active .cometchat-list-item` |
+| Typing indicator | `.cometchat-conversations__subtitle-typing` |
+| Trailing view | `.cometchat-conversations__trailing-view` |
+| Badge count | `.cometchat-conversations__trailing-view-badge-count` |
+| Empty state | `.cometchat-conversations__empty-state-view` |
+| Error state | `.cometchat-conversations__error-state-view` |
+| Shimmer loading | `.cometchat-conversations__shimmer` |
+| Context menu | `.cometchat-conversations__trailing-view-options` |
+| Mentions highlight | `.cometchat-conversations__subtitle-text .cometchat-mentions` |
+| @you mentions | `.cometchat-conversations__subtitle-text .cometchat-mentions-you` |
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatConversations",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatConversations } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Scrollable list of recent one-on-one and group conversations for the logged-in user.",
+  "cssRootClass": ".cometchat-conversations",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(conversation: CometChat.Conversation) => void"
+  },
+  "props": {
+    "data": {
+      "conversationsRequestBuilder": {
+        "type": "CometChat.ConversationsRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "activeConversation": {
+        "type": "CometChat.Conversation",
+        "default": "undefined"
+      },
+      "lastMessageDateTimeFormat": {
+        "type": "CalendarObject",
+        "default": "Component default (hh:mm A today, [yesterday], DD/MM/YYYY other days)",
+        "note": "Falls back to global CometChatLocalize.calendarObject if not set"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(conversation: CometChat.Conversation) => void",
+      "onSelect": "(conversation: CometChat.Conversation, selected: boolean) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null",
+      "onSearchBarClicked": "() => void"
+    },
+    "visibility": {
+      "hideReceipts": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideDeleteConversation": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "showSearchBar": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "sound": {
+      "disableSoundForMessages": { "type": "boolean", "default": false },
+      "customSoundForMessages": { "type": "string", "default": "built-in" }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
+        "default": "SelectionMode.none"
+      }
+    },
+    "viewSlots": {
+      "itemView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "leadingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "titleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "subtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "trailingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "headerView": "JSX.Element",
+      "searchView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element",
+      "options": "((conversation: CometChat.Conversation) => CometChatOption[]) | null"
+    },
+    "formatting": {
+      "textFormatters": {
+        "type": "CometChatTextFormatter[]",
+        "default": "default formatters from data source"
+      }
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatConversationEvents.ccConversationDeleted",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation deleted from list"
+    },
+    {
+      "name": "CometChatConversationEvents.ccUpdateConversation",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation updated"
+    },
+    {
+      "name": "CometChatConversationEvents.ccMarkConversationAsRead",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation marked as read"
+    }
+  ],
+  "sdkListeners": [
+    "onTextMessageReceived",
+    "onMediaMessageReceived",
+    "onCustomMessageReceived",
+    "onTypingStarted",
+    "onTypingEnded",
+    "onMessagesDelivered",
+    "onMessagesRead",
+    "onMessagesDeliveredToAll",
+    "onMessagesReadByAll",
+    "onUserOnline",
+    "onUserOffline",
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onMemberAddedToGroup"
+  ],
+  "compositionExample": {
+    "description": "Sidebar conversations wired to message view",
+    "components": [
+      "CometChatConversations",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemClick emits CometChat.Conversation -> extract User/Group via getConversationWith() -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined",
+      "relativeTime": {
+        "minute": "string | undefined",
+        "minutes": "string | undefined",
+        "hour": "string | undefined",
+        "hours": "string | undefined"
+      }
+    },
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    },
+    "SelectionMode": {
+      "single": 0,
+      "multiple": 1,
+      "none": 2
+    }
+  }
+}
+```
+
+</Tab>
+</Tabs>
