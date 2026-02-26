@@ -58,6 +58,62 @@ CometChat.addReaction(messageId, emoji)
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `addReaction()` returns the updated message object with the reaction added:
+```json
+{
+  "reactions": [],
+  "mentionedUsers": [],
+  "mentionedMe": false,
+  "receiverId": "cometchat-uid-7",
+  "type": "text",
+  "receiverType": "user",
+  "category": "message",
+  "data": {
+    "text": "Message for Reactions",
+    "reactions": [
+      {
+        "reaction": "😊",
+        "count": 1,
+        "reactedByMe": true
+      }
+    ]
+  },
+  "text": "Message for Reactions",
+  "id": "25327",
+  "conversationId": "cometchat-uid-6_user_cometchat-uid-7",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-6",
+    "name": "Ronald Jerry",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-6.webp",
+    "lastActiveAt": 1772004288,
+    "role": "default",
+    "status": "offline",
+    "tags": []
+  },
+  "receiver": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-7",
+    "name": "Henry Marino",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+    "lastActiveAt": 1772005334,
+    "role": "default",
+    "status": "online",
+    "tags": []
+  },
+  "sentAt": 1772006757,
+  "deliveredAt": 1772006757,
+  "readAt": 1772006757,
+  "updatedAt": 1772006757
+}
+```
+</Accordion>
+
 <Note>
 
 You can react on text message, media message and custom message
@@ -101,14 +157,63 @@ CometChat.removeReaction(messageId, emoji)
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `removeReaction()` returns the updated message object with the reaction removed:
+```json
+{
+  "reactions": [],
+  "mentionedUsers": [],
+  "mentionedMe": false,
+  "receiverId": "cometchat-uid-7",
+  "type": "text",
+  "receiverType": "user",
+  "category": "message",
+  "data": {
+    "text": "Message for Reactions"
+  },
+  "text": "Message for Reactions",
+  "id": "25327",
+  "conversationId": "cometchat-uid-6_user_cometchat-uid-7",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-6",
+    "name": "Ronald Jerry",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-6.webp",
+    "lastActiveAt": 1772004288,
+    "role": "default",
+    "status": "offline",
+    "tags": []
+  },
+  "receiver": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-7",
+    "name": "Henry Marino",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+    "lastActiveAt": 1772005334,
+    "role": "default",
+    "status": "online",
+    "tags": []
+  },
+  "sentAt": 1772006757,
+  "deliveredAt": 1772006757,
+  "readAt": 1772006757,
+  "updatedAt": 1772006757
+}
+```
+</Accordion>
+
 ## Fetch Reactions for a Message
 
-To get all reactions for a specific message, first create a `ReactionRequest` using `ReactionRequestBuilder`. You can specify the number of reactions to fetch with `setLimit` with max limit 100. For this, you will require the ID of the message. This ID needs to be passed to the `setMessageId()` method of the builder class. The `setReaction()` will allow you to fetch details for specific reaction or emoji.
+To get all reactions for a specific message, first create a `ReactionsRequest` using `ReactionsRequestBuilder`. You can specify the number of reactions to fetch with `setLimit` with max limit 100. For this, you will require the ID of the message. This ID needs to be passed to the `setMessageId()` method of the builder class. The `setReaction()` will allow you to fetch details for specific reaction or emoji.
 
 | Setting               | Description                                                                                                                                                                                                            |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `setMessageId(value)` | Specifies the unique identifier of the message for which you want to fetch reactions. This parameter is mandatory as it tells the SDK which message's reactions are being requested.                                   |
-| `setReaction(value)`  | Filters the reactions fetched by the specified reaction type (e.g., "😊", "😂", "👍"). When set, this method will cause the `ReactionRequest` to only retrieve details of the provided reaction for the given message. |
+| `setReaction(value)`  | Filters the reactions fetched by the specified reaction type (e.g., "😊", "😂", "👍"). When set, this method will cause the `ReactionsRequest` to only retrieve details of the provided reaction for the given message. |
 
 ## Fetch Next
 
@@ -120,16 +225,16 @@ The `fetchNext()` method fetches the next set of reactions for the message.
 let limit = 10;
 let messageId = 1;
 
-let reactionRequest = new CometChat.ReactionRequestBuilder()
+let reactionsRequest = new CometChat.ReactionsRequestBuilder()
 .setMessageId(messageId)
 .setLimit(limit)
 .build();
 
-reactionRequest.fetchNext().then(
-    messages => {
-      console.log("list fetched:", messages);
+reactionsRequest.fetchNext().then(
+    reactions => {
+      console.log("list fetched:", reactions);
     },
-    error => {a
+    error => {
       console.log('list fetching failed with error:', error);
     },
   );
@@ -142,14 +247,14 @@ reactionRequest.fetchNext().then(
 let limit:number = 10;
 let messageId:number = 1;
 
-let reactionRequest = new CometChat.ReactionRequestBuilder()
+let reactionsRequest = new CometChat.ReactionsRequestBuilder()
 .setMessageId(messageId)
 .setLimit(limit)
 .build();
 
-reactionRequest.fetchNext().then(
-    (messages: MessageReaction[]) => {
-      console.log("list fetched:", messages);
+reactionsRequest.fetchNext().then(
+    (reactions: CometChat.MessageReaction[]) => {
+      console.log("list fetched:", reactions);
     },
     (error: CometChat.CometChatException) => {
       console.log('list fetching failed with error:', error);
@@ -171,16 +276,16 @@ The `fetchPrevious()` method fetches the previous set of reactions for the messa
 let limit = 10;
 let messageId = 1;
 
-let reactionRequest = new CometChat.ReactionRequestBuilder()
+let reactionsRequest = new CometChat.ReactionsRequestBuilder()
 .setMessageId(messageId)
 .setLimit(limit)
 .build();
 
-reactionRequest.fetchPrevious().then(
-    messages => {
-      console.log("list fetched:", messages);
+reactionsRequest.fetchPrevious().then(
+    reactions => {
+      console.log("list fetched:", reactions);
     },
-    error => {a
+    error => {
       console.log('list fetching failed with error:', error);
     },
   );
@@ -193,14 +298,14 @@ reactionRequest.fetchPrevious().then(
 let limit:number = 10;
 let messageId:number = 1;
 
-let reactionRequest = new CometChat.ReactionRequestBuilder()
+let reactionsRequest = new CometChat.ReactionsRequestBuilder()
 .setMessageId(messageId)
 .setLimit(limit)
 .build();
 
-reactionRequest.fetchPrevious().then(
-    (messages: MessageReaction[]) => {
-      console.log("list fetched:", messages);
+reactionsRequest.fetchPrevious().then(
+    (reactions: CometChat.MessageReaction[]) => {
+      console.log("list fetched:", reactions);
     },
     (error: CometChat.CometChatException) => {
       console.log('list fetching failed with error:', error);
@@ -211,6 +316,33 @@ reactionRequest.fetchPrevious().then(
 </Tab>
 
 </Tabs>
+
+<Accordion title="Sample Console Output">
+**On Success** — `fetchNext()` or `fetchPrevious()` returns an array of `MessageReaction` objects:
+```json
+[
+  {
+    "id": "20014",
+    "messageId": "25327",
+    "reaction": "❤️",
+    "uid": "cometchat-uid-7",
+    "reactedAt": 1772007024,
+    "reactedBy": {
+      "hasBlockedMe": false,
+      "blockedByMe": false,
+      "deactivatedAt": 0,
+      "uid": "cometchat-uid-7",
+      "name": "Henry Marino",
+      "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+      "lastActiveAt": 1772007237,
+      "role": "default",
+      "status": "online"
+    }
+  }
+  // ... more reactions up to the specified limit
+]
+```
+</Accordion>
 
 
 ## Real-time Reaction Events
@@ -251,6 +383,58 @@ CometChat.addMessageListener(listenerID, {
 </Tab>
 
 </Tabs>
+
+<Accordion title="Sample Console Output">
+**On Event** — `onMessageReactionAdded` returns the reaction event data:
+```json
+{
+  "parentMessageId": null,
+  "reaction": {
+    "id": "20013",
+    "messageId": "25327",
+    "reaction": "❤️",
+    "uid": "cometchat-uid-7",
+    "reactedAt": 1772006766,
+    "reactedBy": {
+      "uid": "cometchat-uid-7",
+      "name": "Henry Marino",
+      "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+      "status": "online",
+      "role": "default",
+      "lastActiveAt": 1772005334
+    }
+  },
+  "receiverId": "cometchat-uid-6",
+  "receiverType": "user",
+  "conversationId": "cometchat-uid-6_user_cometchat-uid-7"
+}
+```
+
+**On Event** — `onMessageReactionRemoved` returns the reaction event data:
+```json
+{
+  "parentMessageId": null,
+  "reaction": {
+    "id": "20013",
+    "messageId": "25327",
+    "reaction": "❤️",
+    "uid": "cometchat-uid-7",
+    "reactedAt": 1772006766,
+    "reactedBy": {
+      "uid": "cometchat-uid-7",
+      "name": "Henry Marino",
+      "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+      "status": "online",
+      "role": "default",
+      "lastActiveAt": 1772005334
+    }
+  },
+  "receiverId": "cometchat-uid-6",
+  "receiverType": "user",
+  "conversationId": "cometchat-uid-6_user_cometchat-uid-7"
+}
+```
+</Accordion>
 
 ## Removing a Reaction Listener
 
@@ -302,6 +486,19 @@ message.getReactions()
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `getReactions()` returns an array of reaction counts:
+```json
+[
+  {
+    "reaction": "❤️",
+    "count": 1,
+    "reactedByMe": true
+  }
+]
+```
+</Accordion>
+
 ## Check if Logged-in User has Reacted on Message
 
 To check if the logged-in user has reacted on a particular message or not, You can use the `getReactedByMe()` method on any `ReactionCount` object instance. This method will return a boolean value, `true` if the logged-in user has reacted on that message, otherwise `false`.
@@ -311,7 +508,7 @@ To check if the logged-in user has reacted on a particular message or not, You c
 ```javascript
 let reactions = message.getReactions();
 reactions.forEach((reaction) => {
-reaction.getReactedByMe(); //Return true is logged-in user reacted on that message, otherwise false
+reaction.getReactedByMe(); //Returns true if logged-in user reacted on that message, otherwise false
 })
 ```
 
@@ -321,7 +518,7 @@ reaction.getReactedByMe(); //Return true is logged-in user reacted on that messa
 ```typescript
 let reactions:CometChat.ReactionCount[] = message.getReactions();
 reactions.forEach((reaction:CometChat.ReactionCount) => {
-reaction.getReactedByMe(); //Return true is logged-in user reacted on that message, otherwise false
+reaction.getReactedByMe(); //Returns true if logged-in user reacted on that message, otherwise false
 })
 ```
 
@@ -380,6 +577,24 @@ action
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success (REACTION_ADDED)** — `updateMessageWithReactionInfo()` returns the updated message. Calling `getReactions()` on it shows:
+```json
+[
+  {
+    "reactedByMe": false,
+    "reaction": "👍",
+    "count": 1
+  }
+]
+```
+
+**On Success (REACTION_REMOVED)** — When the last reaction is removed, `getReactions()` returns an empty array:
+```json
+[]
+```
+</Accordion>
+
 
 ## Best Practices
 
@@ -417,7 +632,7 @@ action
     Make sure you are calling `getReactedByMe()` on the `ReactionCount` objects returned by `message.getReactions()`, not on the raw reaction event data. Also verify that the logged-in user is the same user who added the reaction.
   </Accordion>
   <Accordion title="fetchNext() or fetchPrevious() returns empty array">
-    Confirm that the `messageId` passed to `ReactionRequestBuilder.setMessageId()` is correct and that the message actually has reactions. If using `setReaction()` to filter by a specific emoji, ensure the emoji string matches exactly (including any variation selectors).
+    Confirm that the `messageId` passed to `ReactionsRequestBuilder.setMessageId()` is correct and that the message actually has reactions. If using `setReaction()` to filter by a specific emoji, ensure the emoji string matches exactly (including any variation selectors).
   </Accordion>
 </AccordionGroup>
 

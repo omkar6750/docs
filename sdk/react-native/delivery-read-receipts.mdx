@@ -22,7 +22,7 @@ CometChat.addMessageListener("LISTENER_ID", new CometChat.MessageListener({
 </Info>
 
 <Note>
-**Available via:** [SDK](/sdk/react-native/delivery-read-receipts) | [REST API](/rest-api/conversations/mark-user-conversation-as-delivered) | [UI Kits](/ui-kits/react-native/overview)
+**Available via:** [SDK](/sdk/react-native/delivery-read-receipts) | [REST API](/rest-api/conversations/mark-user-conversation-as-delivered) | [UI Kits](/ui-kit/react-native/overview)
 </Note>
 
 ## Mark Messages as Delivered
@@ -249,6 +249,16 @@ CometChat.markAsDelivered(message).then(
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `markAsDelivered()` returns a confirmation object:
+```json
+{
+  "messageId": "25323",
+  "type": "text"
+}
+```
+</Accordion>
+
 ## Mark Messages as Read
 
 *In other words, as a recipient, how do I inform the sender I've read a message?*
@@ -455,6 +465,16 @@ CometChat.markAsRead(message).then(
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `markAsRead()` returns a confirmation object:
+```json
+{
+  "messageId": "25323",
+  "type": "text"
+}
+```
+</Accordion>
+
 ## Mark Messages as Unread
 
 {/* Mark a message as unread — CometChat.markMessageAsUnread(message)
@@ -530,6 +550,85 @@ CometChat.markMessageAsUnread(message).then(
 
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `markMessageAsUnread()` returns the updated `Conversation` object with the new unread count:
+```json
+{
+  "conversationId": "cometchat-uid-6_user_cometchat-uid-7",
+  "conversationType": "user",
+  "unreadMentionsCount": 0,
+  "lastReadMessageId": "25323",
+  "unreadMessageCount": 1,
+  "lastMessage": {
+    "reactions": [],
+    "mentionedUsers": [
+      {
+        "hasBlockedMe": false,
+        "blockedByMe": false,
+        "deactivatedAt": 0,
+        "uid": "cometchat-uid-7",
+        "name": "Henry Marino",
+        "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+        "lastActiveAt": 1772005334,
+        "role": "default",
+        "status": "online"
+      }
+    ],
+    "mentionedMe": true,
+    "receiverId": "cometchat-uid-7",
+    "type": "text",
+    "receiverType": "user",
+    "category": "message",
+    "text": "Hello <@uid:cometchat-uid-7>, this is a test mention!",
+    "id": "25326",
+    "conversationId": "cometchat-uid-6_user_cometchat-uid-7",
+    "sender": {
+      "hasBlockedMe": false,
+      "blockedByMe": false,
+      "deactivatedAt": 0,
+      "uid": "cometchat-uid-6",
+      "name": "Ronald Jerry",
+      "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-6.webp",
+      "lastActiveAt": 1772004288,
+      "role": "default",
+      "status": "offline",
+      "tags": []
+    },
+    "receiver": {
+      "hasBlockedMe": false,
+      "blockedByMe": false,
+      "deactivatedAt": 0,
+      "uid": "cometchat-uid-7",
+      "name": "Henry Marino",
+      "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+      "lastActiveAt": 1772005334,
+      "role": "default",
+      "status": "online",
+      "tags": []
+    },
+    "sentAt": 1772006074,
+    "deliveredAt": 1772006158,
+    "readAt": 1772006158,
+    "updatedAt": 1772006158
+  },
+  "latestMessageId": "",
+  "conversationWith": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-6",
+    "name": "Ronald Jerry",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-6.webp",
+    "lastActiveAt": 1772004288,
+    "role": "default",
+    "status": "offline",
+    "tags": [],
+    "conversationId": "cometchat-uid-6_user_cometchat-uid-7"
+  }
+}
+```
+</Accordion>
+
 ## Receive Delivery & Read Receipts
 
 *In other words, as a recipient, how do I know when a message I sent has been delivered or read by someone?*
@@ -601,6 +700,98 @@ CometChat.addMessageListener(
 </Tab>
 
 </Tabs>
+
+<Accordion title="Sample Console Output">
+**On Event** — `onMessagesDelivered` returns a `MessageReceipt` object for user conversations:
+```json
+{
+  "receiptType": "delivery",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-7",
+    "name": "Henry Marino",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+    "lastActiveAt": 1771853565,
+    "role": "default",
+    "status": "online",
+    "tags": []
+  },
+  "receiverType": "user",
+  "receiver": "cometchat-uid-6",
+  "deliveredAt": 1772005348,
+  "messageId": "25323",
+  "timestamp": 1772005348
+}
+```
+
+**On Event** — `onMessagesRead` returns a `MessageReceipt` object for user conversations:
+```json
+{
+  "receiptType": "read",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "cometchat-uid-7",
+    "name": "Henry Marino",
+    "avatar": "https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-7.webp",
+    "lastActiveAt": 1771853565,
+    "role": "default",
+    "status": "online",
+    "tags": []
+  },
+  "receiverType": "user",
+  "receiver": "cometchat-uid-6",
+  "readAt": 1772005377,
+  "messageId": "25323",
+  "timestamp": 1772005377
+}
+```
+
+**On Event** — `onMessagesDeliveredToAll` returns a `MessageReceipt` object for group conversations (sender is System):
+```json
+{
+  "receiptType": "deliveredToAll",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "app_system",
+    "name": "System",
+    "role": "default",
+    "status": "offline"
+  },
+  "receiverType": "group",
+  "receiver": "tg1",
+  "deliveredAt": 1772005516,
+  "messageId": "25325",
+  "timestamp": 1772005516
+}
+```
+
+**On Event** — `onMessagesReadByAll` returns a `MessageReceipt` object for group conversations (sender is System):
+```json
+{
+  "receiptType": "readByAll",
+  "sender": {
+    "hasBlockedMe": false,
+    "blockedByMe": false,
+    "deactivatedAt": 0,
+    "uid": "app_system",
+    "name": "System",
+    "role": "default",
+    "status": "offline"
+  },
+  "receiverType": "group",
+  "receiver": "tg1",
+  "readAt": 1772005546,
+  "messageId": "25325",
+  "timestamp": 1772005546
+}
+```
+</Accordion>
 
 <Warning>
 **Listener Cleanup Required** — Always remove your message listener when the component unmounts or the listener is no longer needed to avoid memory leaks and duplicate event handling:

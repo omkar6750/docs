@@ -24,7 +24,7 @@ await CometChat.flagMessage("MESSAGE_ID", payload);
 Flagging messages allows users to report inappropriate content to moderators or administrators. When a message is flagged, it appears in the [CometChat Dashboard](https://app.cometchat.com) under **Moderation > Flagged Messages** for review.
 
 <Note>
-**Available via:** [SDK](/sdk/react-native/flag-message) | [REST API](/rest-api/chat-apis) | [UI Kits](/ui-kits/react-native/overview)
+**Available via:** [SDK](/sdk/react-native/flag-message) | [REST API](/rest-api/moderation/flag-a-message) | [UI Kits](/ui-kit/react-native/core-features#report-message)
 </Note>
 
 <Note>
@@ -95,20 +95,37 @@ Before flagging a message, retrieve the list of available flag reasons configure
   </Tab>
 </Tabs>
 
-### Response
-
-The response is an array of flag reason objects:
-
-```javascript
+<Accordion title="Sample Console Output">
+**On Success** — `getFlagReasons()` returns an array of flag reason objects:
+```json
 [
-  { "id": "spam", "reason": "Spam or misleading" },
-  { "id": "harassment", "reason": "Harassment or bullying" },
-  { "id": "hate_speech", "reason": "Hate speech" },
-  { "id": "violence", "reason": "Violence or dangerous content" },
-  { "id": "inappropriate", "reason": "Inappropriate content" },
-  { "id": "other", "reason": "Other" }
+  {
+    "id": "spam",
+    "name": "Spam",
+    "description": "Repeated, promotional, or irrelevant content",
+    "createdAt": 1761627675,
+    "updatedAt": 1761627675,
+    "default": false
+  },
+  {
+    "id": "sexual",
+    "name": "Sexual Content",
+    "description": "Explicit or inappropriate content",
+    "createdAt": 1761627675,
+    "updatedAt": 1761627675,
+    "default": false
+  },
+  {
+    "id": "harassment",
+    "name": "Harassment / Bullying",
+    "description": "Insulting or threatening behavior",
+    "createdAt": 1761627675,
+    "updatedAt": 1761627675,
+    "default": false
+  }
 ]
 ```
+</Accordion>
 
 ## Flag a Message
 
@@ -153,6 +170,16 @@ To flag a message, use the `flagMessage()` method with the message ID and a payl
   </Tab>
 </Tabs>
 
+<Accordion title="Sample Console Output">
+**On Success** — `flagMessage()` returns a success response:
+```json
+{
+  "success": true,
+  "message": "Message 25300 has been flagged successfully."
+}
+```
+</Accordion>
+
 ### Parameters
 
 | Parameter | Type | Required | Description |
@@ -160,15 +187,6 @@ To flag a message, use the `flagMessage()` method with the message ID and a payl
 | messageId | string | Yes | The ID of the message to flag |
 | payload.reasonId | string | Yes | ID of the flag reason (from `getFlagReasons()`) |
 | payload.remark | string | No | Additional context or explanation from the user |
-
-### Response
-
-```javascript
-{
-  "success": true,
-  "message": "Message with id {{messageId}} has been flagged successfully"
-}
-```
 
 ## Complete Example
 
