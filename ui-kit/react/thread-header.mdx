@@ -3,47 +3,32 @@ title: "Thread Header"
 description: "CometChatThreadHeader component displays the parent message of a threaded conversation with reply count, allowing users to view and navigate threaded message discussions."
 ---
 
-<Accordion title="AI Agent Component Spec">
-- **Package:** `@cometchat/chat-uikit-react`
-- **Import:** `import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";`
-- **Minimal JSX:** `<CometChatThreadHeader parentMessage={parentMessage} />`
-- **Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
-- **Key props:** `parentMessage: CometChat.BaseMessage` (required)
-- **CSS class:** `.cometchat-thread-header`
-- **Events:** None
-</Accordion>
-
-## Overview
-
-CometChatThreadHeader is a Component that displays the parent message & number of replies of thread.
-
-Import path: `import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";`
-
 <Frame>
   <img src="/images/a5456902-threaded_message_preview_overview_web_screens-0f6df1fc848c99494f5ef81c5c44393f.png" />
 </Frame>
 
-<Note>
-**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
-</Note>
+<Accordion title="AI Agent Component Spec">
 
-## Why Use / When to Use
+| Field | Value |
+| --- | --- |
+| Purpose | Displays the parent message and reply count at the top of a threaded conversation view |
+| Package | `@cometchat/chat-uikit-react` |
+| Import | `import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";` |
+| Used in experiences | Thread view header, threaded message panel |
+| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
+| Primary output | Close callback (from `onClose`) |
+| Primary hook points | `onClose`, `onError`, `messageBubbleView`, `template` |
+| CSS root class | `.cometchat-thread-header` |
+| Real-time events | None emitted |
 
-- Display the parent message of a threaded conversation at the top of the thread view
-- Show the reply count for a thread so users can gauge discussion activity
-- Provide a close button so users can exit the thread and return to the main conversation
-- Customize the message bubble rendering within the thread header using custom views
-- Control visibility of date headers and reply counts via boolean props
-- Customize date and time formatting for separator and message timestamps using `CalendarObject`
+</Accordion>
 
-## Usage
+## Base Code and Stylesheet
 
-### Integration
-
-The following code snippet illustrates how you can directly incorporate the CometChatThreadHeader component into your Application.
+Renders the parent message bubble and reply count for a threaded conversation.
 
 <Tabs>
-<Tab title="TypeScript">
+<Tab title="ThreadHeaderDemo.tsx">
 ```tsx lines
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -68,48 +53,80 @@ export function ThreadHeaderDemo() {
   ) : null;
 }
 ```
-
 </Tab>
+<Tab title="App.tsx">
+```tsx lines
+import { ThreadHeaderDemo } from "./ThreadHeaderDemo";
 
-<Tab title="JavaScript">
-```jsx lines
-import React, { useState, useEffect } from "react";
-import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
+export default function App() {
+  return (
+    <div className="App">
+      <ThreadHeaderDemo />
+    </div>
+  );
+}
+```
+</Tab>
+</Tabs>
 
-export function ThreadHeaderDemo() {
-  const [parentMessage, setParentMessage] = useState(null);
-  const [chatWithUser, setChatWithUser] = useState(null);
+Root CSS class for style overrides:
 
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatWithUser(user);
-    });
-    CometChat.getMessageDetails("Parent Message Id").then((message) => {
-      setParentMessage(message);
-    });
-  }, []);
-
-  return chatWithUser && parentMessage ? (
-    <CometChatThreadHeader parentMessage={parentMessage} />
-  ) : null;
+```css lines
+.cometchat-thread-header {
+  /* overrides here */
 }
 ```
 
-</Tab>
+## Functionality
 
-</Tabs>
+Props that control component behavior, grouped by surface area.
 
-### Actions
+### Data
 
-[Actions](/ui-kit/react/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `parentMessage` | `CometChat.BaseMessage` | — (required) | Sets the parent message displayed in the thread header | Must be a valid message object |
+| `template` | `CometChatMessageTemplate` | SDK default | Custom template for the parent message bubble rendering | Template `type`/`category` must match the parent message |
 
-**Example**
+### UI Visibility Toggles
 
-In this example, we are overriding the `onClose` of the ThreadedMesssage Component.
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `hideDate` | `boolean` | `false` | Hides the date header | — |
+| `hideReplyCount` | `boolean` | `false` | Hides the reply count | — |
+| `showScrollbar` | `boolean` | `false` | Shows the scrollbar in the component | — |
 
-<Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
+### Date Formatting
+
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `separatorDateTimeFormat` | `CalendarObject` | `DD MMM, YYYY` | Customizes the date separator timestamp | Falls back to global config, then component default |
+| `messageSentAtDateTimeFormat` | `CalendarObject` | `hh:mm A` | Customizes the message sent-at timestamp | Falls back to global config, then component default |
+
+<Note>
+If a property is not passed in the CalendarObject, the component checks the [global configuration](/ui-kit/react/localize#customisation) first, then falls back to the component's default formatting.
+</Note>
+
+## Actions
+
+[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
+
+### Predefined Actions
+
+The component has no built-in navigation behavior. The close button fires `onClose` but does not navigate automatically.
+
+### User-Defined Actions
+
+#### onClose
+
+Fires when the close button is clicked.
+
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks the close button |
+| Payload type | `() => void` |
+| What devs typically do next | Close the thread panel, navigate back to main conversation |
+
 ```tsx lines
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -142,78 +159,45 @@ export function ThreadHeaderDemo() {
 }
 ```
 
-</Tab>
+#### onError
 
-</Tabs>
+Fires when the component encounters an error.
 
-### Events
+| Detail | Value |
+| --- | --- |
+| When it fires | Any internal error during rendering |
+| Payload type | `(error: CometChat.CometChatException) => void` |
+| What devs typically do next | Log to error tracking service |
 
-[Events](/ui-kit/react/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
+## Filters
 
-The ThreadHeader Component does not emit any events of its own.
+The ThreadHeader component does not have any exposed filters. It displays a single parent message and reply count.
 
-### Style
+## Events
 
-Using Style you can customize the look and feel of the component in your app, These parameters typically control elements such as the color, size, shape, and fonts used within the component. The root CSS class for this component is `.cometchat-thread-header`.
+### UI Events
 
-<Frame>
-  <img src="/images/43bea373-threaded_message_preview_style_web_screens-054bad3659d73ab2a927d3ba7dd9160a.png" />
-</Frame>
+The ThreadHeader component does not emit any custom UI events.
 
-<Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
-```tsx lines
-import React from "react";
-import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
+### SDK Events (Real-Time)
 
-export function ThreadHeaderDemo() {
-  const [parentMessage, setParentMessage] =
-    React.useState<CometChat.BaseMessage>();
-  const [chatWithUser, setChatWithUser] = React.useState<CometChat.User>();
+The component internally listens to SDK events for real-time reply count updates. No manual attachment needed.
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatWithUser(user);
-    });
-    CometChat.getMessageDetails("Parent Message Id").then((message) => {
-      setParentMessage(message);
-    });
-  }, []);
+## Advanced: Custom View Slots
 
-  return chatWithUser && parentMessage ? (
-    <CometChatThreadHeader parentMessage={parentMessage} />
-  ) : null;
-}
-```
+Customization override points for the thread header UI.
 
-</Tab>
+### Slot Catalog
 
-<Tab title="ThreadHeaderDemo.css">
-```css lines
-.cometchat .cometchat-thread-header {
-  background-color: #edeafa;
-}
+| Slot | Params | What it replaces | Section |
+| --- | --- | --- | --- |
+| `messageBubbleView` | `(message: CometChat.BaseMessage) => JSX.Element` | Parent message bubble | Whole item |
+| `template` | `CometChatMessageTemplate` | Message template for bubble rendering | Whole item |
 
-.cometchat .cometchat-thread-header__reply-bar-count {
-  color: #6852d6;
-}
+### messageBubbleView
 
-.cometchat .cometchat-thread-header__reply-bar-divider {
-  color: #6852d6;
-}
-```
+Replace the parent message bubble with a custom view.
 
-</Tab>
-
-</Tabs>
-
-### Functionality
-
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
-
-<Tabs>
-<Tab title="ThreadHeaderDemo.tsx">
 ```tsx lines
 import React from "react";
 import { CometChatThreadHeader } from "@cometchat/chat-uikit-react";
@@ -232,7 +216,6 @@ export function ThreadHeaderDemo() {
     CometChat.getUser("uid").then((user) => {
       setChatWithUser(user);
     });
-
     CometChat.getMessageDetails("Parent Message Id").then((message) => {
       setParentMessage(message);
     });
@@ -247,196 +230,70 @@ export function ThreadHeaderDemo() {
 }
 ```
 
-</Tab>
+### Date Time Format Customization
 
-</Tabs>
+#### separatorDateTimeFormat
 
-Below is a list of customizations along with corresponding code snippets
-
-| Property                                            | Description                                                          | Code                                                                              |
-| --------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Parent Message**                                  | Represents the parent message for displaying threaded conversations. | `parentMessage={message}`                                                         |
-| **Message Bubble View**                             | A custom view for rendering the message bubble.                      | `messageBubbleView={(message: CometChat.BaseMessage) => <>Custom Bubble View</>}` |
-| [**Template**](/ui-kit/react/message-template) | Template for customizing the appearance of the message.              | `template={"PASS_CUSTOM_MESSAGE_TEMPLATE"}`                                       |
-| **Hide Date**                                       | Hides the visibility of the date header.                             | `hideDate={true}`                                                                 |
-| **Hide Reply Count**                                | Hides the visibility of the reply count.                             | `hideReplyCount={true}`                                                           |
-| **Show Scrollbar**                                  | Controls the visibility of the scrollbar in the component.           | `showScrollbar={true}`                                                            |
-| **On Error**                                        | Callback function triggered when an error occurs.                    | `onError={(error: CometChat.CometChatException) => console.log(error)}`           |
-
-## Advanced Features
-
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
-
-### Separator DateTime Format
-
-The `separatorDateTimeFormat` property allows you to customize the **Date Separator** timestamp displayed in the Threaded Message Preview.
-
-Default Date Time Format:
-
-```ruby
-new CalendarObject({
-    today: `DD MMM, YYYY`,   // Example: "25 Jan, 2025"
-    yesterday: `DD MMM, YYYY`, // Example: "25 Jan, 2025"
-    otherDays: `DD MMM, YYYY`,  // Example: "25 Jan, 2025"
-});
-```
-
-The following example demonstrates how to modify the **Date Separator** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
 ```ts lines
 import {
   CometChatThreadHeader,
-  CalendarObject
+  CalendarObject,
 } from "@cometchat/chat-uikit-react";
 
-// Define a custom date format pattern
 function getDateFormat() {
   const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
   });
   return dateFormat;
 }
 
-// Apply the custom format to the CometChatThreadHeader component
 <CometChatThreadHeader separatorDateTimeFormat={getDateFormat()} />;
 ```
 
-</Tab>
+#### messageSentAtDateTimeFormat
 
-</Tabs>
-
-<Note>
-
-**Fallback Mechanism**
-
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
-
-</Note>
-
-### Message SentAt DateTime Format
-
-The `messageSentAtDateTimeFormat` property allows you to customize the **Message SentAt** timestamp displayed in the Threaded Message Preview.
-
-Default Date Time Format:
-
-```javascript lines
-new CalendarObject({
-    today: "hh:mm A" // Example: "12:00 PM"
-    yesterday: "hh:mm A", // Example: "01:00 AM"
-    otherDays: `hh:mm A`, // Example: "09:30 PM"
-});
-```
-
-The following example demonstrates how to modify the **Message SentAt** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
 ```ts lines
 import {
   CometChatThreadHeader,
-  CalendarObject
+  CalendarObject,
 } from "@cometchat/chat-uikit-react";
 
-// Define a custom date format pattern
 function getDateFormat() {
   const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
   });
   return dateFormat;
 }
 
-// Apply the custom format to the CometChatThreadHeader component
-<CometChatThreadHeader  messageSentAtDateTimeFormat={getDateFormat()} />;
+<CometChatThreadHeader messageSentAtDateTimeFormat={getDateFormat()} />;
 ```
 
-</Tab>
+## Theme and Styling
 
-</Tabs>
+Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-thread-header`.
 
-<Note>
+<Frame>
+  <img src="/images/43bea373-threaded_message_preview_style_web_screens-054bad3659d73ab2a927d3ba7dd9160a.png" />
+</Frame>
 
-**Fallback Mechanism**
+```tsx lines
+<CometChatThreadHeader parentMessage={parentMessage} />
+```
 
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
+```css lines
+.cometchat .cometchat-thread-header {
+  background-color: #edeafa;
+}
 
-</Note>
+.cometchat .cometchat-thread-header__reply-bar-count {
+  color: #6852d6;
+}
 
-### Customization Matrix
-
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Override behavior on user interaction | Component props | `on<Event>` callbacks | `onClose={() => console.log("closed")}` |
-| Toggle visibility of UI elements | Component props | `hide<Feature>` / `show<Feature>` boolean props | `hideReplyCount={true}` |
-| Replace the message bubble rendering | Component props | `messageBubbleView` render prop | `messageBubbleView={(msg) => <>Custom Bubble</>}` |
-| Customize date/time formatting | Component props | `separatorDateTimeFormat`, `messageSentAtDateTimeFormat` | `separatorDateTimeFormat={new CalendarObject({...})}` |
-| Change colors, fonts, spacing | Global CSS | Target `.cometchat-thread-header` class | `.cometchat .cometchat-thread-header { background-color: #edeafa; }` |
-
-## Pagination, Batching, and Performance
-
-Pagination does not apply to the ThreadHeader component. The ThreadHeader displays the parent message and reply count for a single thread and does not fetch or paginate lists of data. For list-based pagination, see the [Conversations](/ui-kit/react/conversations), [Users](/ui-kit/react/users), or [Message List](/ui-kit/react/message-list) components.
-
-## Error Handling and Retries
-
-The ThreadHeader component supports an `onError` callback prop that fires when an error occurs during rendering or data fetching. You can use this to log errors or display custom error UI. The `onError` prop receives a `CometChat.CometChatException` object containing the error details — see the Functionality table above for the inline usage pattern: `onError={(error: CometChat.CometChatException) => console.log(error)}`.
-
-<AccordionGroup>
-<Accordion title="Common Failure Modes">
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
-| No parent message displayed | `parentMessage` prop not passed or invalid | Ensure a valid `CometChat.BaseMessage` object is passed |
-| Reply count not updating | Real-time events not connected | Check WebSocket connection status |
-| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
-
-</Accordion>
-</AccordionGroup>
-
-## Configuration and Environment
-
-The CometChatThreadHeader component requires `CometChatUIKit.init()` to be called with a valid `appId` and `region` before rendering. The user must be logged in via `CometChatUIKit.login()`. The component depends on the `@cometchat/chat-uikit-react` package, which includes `@cometchat/chat-sdk-javascript` as a peer dependency.
-
-React 18+ is supported. For Next.js, wrap the component in `useEffect` or use dynamic imports with `ssr: false` to avoid SSR hydration errors. See [Next.js Integration](/ui-kit/react/next-js-integration) and [React.js Integration](/ui-kit/react/react-js-integration) for setup details.
-
-## Files and Media
-
-Files and media handling does not apply to the ThreadHeader component. The header displays the parent message and reply count but does not render or send media directly. For file and media support, see the [Message Composer](/ui-kit/react/message-composer) and [Message List](/ui-kit/react/message-list) components.
-
-## Logging, Tracing, and Observability
-
-To troubleshoot issues with the ThreadHeader component (such as the parent message not displaying or reply count not updating), enable CometChat SDK debug logging. Set the log level to `DEBUG` during `CometChat.init()` to see detailed SDK activity in the browser console. Refer to the CometChat SDK documentation for the full logging configuration API.
-
-## Versioning, Beta Features, and Breaking Changes
-
-### Current Version
-
-This documentation covers CometChat React UI Kit V6 (`@cometchat/chat-uikit-react@6.x`).
-
-### Upgrading from V5
-
-If you are migrating from V5, see the [Upgrading from V5](/ui-kit/react/upgrading-from-v5) guide for a complete list of breaking changes and migration steps.
-
----
-
-### Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
-    Display user/group details in the toolbar
-  </Card>
-  <Card title="Message List" icon="messages" href="/ui-kit/react/message-list">
-    Render messages in a chat view
-  </Card>
-  <Card title="Guide: Threaded Messages" icon="book" href="/ui-kit/react/guide-threaded-messages">
-    Step-by-step guide for implementing threaded messages
-  </Card>
-  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
-    Customize message bubble rendering
-  </Card>
-</CardGroup>
+.cometchat .cometchat-thread-header__reply-bar-divider {
+  color: #6852d6;
+}
+```
