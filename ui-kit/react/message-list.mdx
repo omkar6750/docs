@@ -3,49 +3,32 @@ title: "Message List"
 description: "CometChatMessageList component renders a scrollable list of sent and received messages including text, media, reactions, read receipts, and threaded replies. Supports custom message templates, date separators, and CSS styling."
 ---
 
-<Accordion title="AI Agent Component Spec">
-- **Package:** `@cometchat/chat-uikit-react`
-- **Import:** `import { CometChatMessageList } from "@cometchat/chat-uikit-react";`
-- **Minimal JSX:** `<CometChatMessageList user={chatUser} />` or `<CometChatMessageList group={chatGroup} />`
-- **Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
-- **Key props:** `user: CometChat.User`, `group: CometChat.Group`, `messagesRequestBuilder: CometChat.MessagesRequestBuilder`, `templates: CometChatMessageTemplate[]`, `hideReceipts: boolean`
-- **CSS class:** `.cometchat-message-list`
-- **Events:** `CometChatMessageEvents`
-</Accordion>
-
-## Overview
-
-`MessageList` is a composite component that displays a list of messages and effectively manages real-time operations. It includes various types of messages such as Text Messages, Media Messages, Stickers, and more.
-
-Import path: `import { CometChatMessageList } from "@cometchat/chat-uikit-react";`
-
 <Frame>
   <img src="/images/6612965e-message_list_overview_web_screens-26a01662c72f3b38c4b5d66f020f5d07.png" />
 </Frame>
 
-<Note>
-**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
-</Note>
+<Accordion title="AI Agent Component Spec">
 
-## Why Use / When to Use
+| Field | Value |
+| --- | --- |
+| Purpose | Scrollable list of sent and received messages with text, media, reactions, read receipts, threaded replies, date separators, and AI features |
+| Package | `@cometchat/chat-uikit-react` |
+| Import | `import { CometChatMessageList } from "@cometchat/chat-uikit-react";` |
+| Used in experiences | Chat view, threaded conversations, message detail panel |
+| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
+| Primary output | Message interactions (thread replies, reactions, edits, deletes) |
+| Primary hook points | `onThreadRepliesClick`, `onError`, `onReactionClick`, `onReactionListItemClick`, `messagesRequestBuilder`, `templates`, view slots (`headerView`, `footerView`) |
+| CSS root class | `.cometchat-message-list` |
+| Real-time events | `CometChatMessageEvents.ccMessageEdited`, `CometChatMessageEvents.ccMessageDeleted`, `CometChatMessageEvents.ccMessageRead`, `CometChatMessageEvents.ccReplyToMessage` |
 
-- Display a scrollable list of sent and received messages in a user or group chat
-- Render different message types including text, media, stickers, reactions, and threaded replies
-- Show read receipts, date separators, and sticky date headers for message context
-- Support real-time message updates via `CometChatMessageEvents` (new messages, edits, deletes)
-- Customize message rendering with `CometChatMessageTemplate` for custom message bubbles
-- Control message fetching with `MessagesRequestBuilder` filters (search, limit, categories)
-- Enable threaded conversations with `onThreadRepliesClick` and `parentMessageId`
-- Provide custom header and footer views above and below the message list
+</Accordion>
 
-## Usage
+## Base Code and Stylesheet
 
-### Integration
-
-The following code snippet illustrates how you can directly incorporate the MessageList component into your Application.
+Renders a scrollable list of messages for a user or group conversation.
 
 <Tabs>
-<Tab title="TypeScript">
+<Tab title="MessageListDemo.tsx">
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -66,54 +49,137 @@ export function MessageListDemo() {
   ) : null;
 }
 ```
-
 </Tab>
+<Tab title="App.tsx">
+```tsx lines
+import { MessageListDemo } from "./MessageListDemo";
 
-<Tab title="JavaScript">
-```jsx lines
-import React, { useState, useEffect } from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = useState(null);
-  useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} />
+export default function App() {
+  return (
+    <div className="App">
+      <MessageListDemo />
     </div>
-  ) : null;
+  );
+}
+```
+</Tab>
+</Tabs>
+
+Root CSS class for style overrides:
+
+```css lines
+.cometchat-message-list {
+  /* overrides here */
 }
 ```
 
-</Tab>
+## Functionality
 
-</Tabs>
+Props that control component behavior, grouped by surface area.
 
-<Warning>
+### Data
 
-To fetch messages for a specific entity, you need to supplement it with `User` or `Group` Object.
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `user` | `CometChat.User` | `undefined` | Displays messages for a 1-on-1 conversation | Pass either `user` or `group`, not both |
+| `group` | `CometChat.Group` | `undefined` | Displays messages for a group conversation | Pass either `user` or `group`, not both |
+| `messagesRequestBuilder` | `CometChat.MessagesRequestBuilder` | SDK default | Controls which messages load and in what order | UID/GUID are always overridden internally |
+| `reactionsRequestBuilder` | `CometChat.ReactionsRequestBuilder` | SDK default | Controls how reactions are fetched for messages | — |
+| `parentMessageId` | `number` | `undefined` | Displays threaded conversation for the specified parent message | — |
+| `templates` | `CometChatMessageTemplate[]` | SDK defaults | Custom message bubble templates | Template `type`/`category` must match the message |
+| `goToMessageId` | `number` | `undefined` | Scrolls to the specified message on initial load | — |
 
-</Warning>
+### UI Visibility Toggles
 
-***
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `hideDateSeparator` | `boolean` | `false` | Hides date separator between message groups | — |
+| `hideStickyDate` | `boolean` | `false` | Hides the sticky date header | — |
+| `hideReceipts` | `boolean` | `false` | Hides read/delivery receipts | — |
+| `hideError` | `boolean` | `false` | Hides the default and custom error views | Also suppresses `errorView` if set |
+| `hideReplyInThreadOption` | `boolean` | `false` | Hides the "Reply in Thread" option | — |
+| `hideTranslateMessageOption` | `boolean` | `false` | Hides the translate message option | — |
+| `hideEditMessageOption` | `boolean` | `false` | Hides the edit message option | — |
+| `hideDeleteMessageOption` | `boolean` | `false` | Hides the delete message option | — |
+| `hideReactionOption` | `boolean` | `false` | Hides the reaction option | — |
+| `hideMessagePrivatelyOption` | `boolean` | `false` | Hides the "Message Privately" option | — |
+| `hideCopyMessageOption` | `boolean` | `false` | Hides the copy message option | — |
+| `hideMessageInfoOption` | `boolean` | `false` | Hides the message info option | — |
+| `hideReplyOption` | `boolean` | `false` | Hides the reply option | — |
+| `hideAvatar` | `boolean` | `false` | Hides avatars on messages | — |
+| `hideGroupActionMessages` | `boolean` | `false` | Hides group action messages (join, leave, etc.) | — |
+| `hideConversationStarters` | `boolean` | `false` | Hides AI conversation starters | — |
+| `hideSmartReplies` | `boolean` | `false` | Hides AI smart replies | — |
+| `hideModerationView` | `boolean` | `false` | Hides the moderation view below moderated messages | — |
+| `hideFlagMessageOption` | `boolean` | `false` | Hides the "Report Message" option | — |
+| `hideFlagRemarkField` | `boolean` | `false` | Hides the remark text area in the flag message dialog | — |
 
-### Actions
+### Behavior
 
-[Actions](/ui-kit/react/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `messageAlignment` | `MessageListAlignment` | `MessageListAlignment.standard` | Controls message alignment (left, right, standard) | — |
+| `scrollToBottomOnNewMessages` | `boolean` | `false` | Auto-scrolls to bottom when new messages arrive | — |
+| `quickOptionsCount` | `number` | `2` | Number of message options visible in the main menu | — |
+| `disableSoundForMessages` | `boolean` | `false` | Disables the sound effect for new messages | — |
+| `customSoundForMessages` | `string` | `undefined` | Custom sound file URL for new messages | — |
+| `startFromUnreadMessages` | `boolean` | `false` | Loads from the first unread message if available | Falls back to latest messages if no unreads |
+| `showMarkAsUnreadOption` | `boolean` | `false` | Shows "Mark Unread" option in message actions | Only appears for received messages |
 
-#### 1. onThreadRepliesClick
+### AI / Smart Replies
 
-`onThreadRepliesClick` is triggered when you click on the threaded message bubble. The `onThreadRepliesClick` action doesn't have a predefined behavior. You can override this action using the following code snippet.
+| Property | Type | Default | Effect | Pitfall |
+| --- | --- | --- | --- | --- |
+| `smartRepliesKeywords` | `string[]` | `undefined` | Keywords that trigger smart replies | — |
+| `smartRepliesDelayDuration` | `number` | `undefined` | Delay (ms) before smart replies appear | — |
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+### Date Formatting
+
+| Property | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `separatorDateTimeFormat` | `CalendarObject` | `today/yesterday/DD MMM, YYYY` | Customizes date separator timestamps |
+| `stickyDateTimeFormat` | `CalendarObject` | `today/yesterday/DD MMM, YYYY` | Customizes sticky date header timestamps |
+| `messageSentAtDateTimeFormat` | `CalendarObject` | `hh:mm A` | Customizes message sent-at timestamps |
+| `messageInfoDateTimeFormat` | `CalendarObject` | `DD MMM, hh:mm A` | Customizes message info timestamps |
+
+<Note>
+If a property is not passed in the CalendarObject, the component checks the [global configuration](/ui-kit/react/localize#customisation) first, then falls back to the component's default formatting.
+</Note>
+
+### Custom Views (Render Props)
+
+These replace sections of the default UI. See [Custom View Slots](#custom-view-slots) for full examples.
+
+| Property | Type | Effect |
+| --- | --- | --- |
+| `headerView` | `JSX.Element` | Shown above the message list |
+| `footerView` | `JSX.Element` | Shown below the message list |
+| `loadingView` | `JSX.Element` | Shown while messages are loading |
+| `emptyView` | `JSX.Element` | Shown when there are no messages |
+| `errorView` | `JSX.Element` | Shown when an error occurs |
+| `textFormatters` | `CometChatTextFormatter[]` | Custom text formatters for message content |
+
+## Actions
+
+[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
+
+### Predefined Actions
+
+The component handles message rendering, scrolling, and real-time updates internally. Thread replies, reactions, edits, and deletes are built-in.
+
+### User-Defined Actions
+
+#### onThreadRepliesClick
+
+Fires when the threaded message bubble is clicked.
+
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks on a threaded message reply count |
+| Payload type | `(message: CometChat.BaseMessage, view: () => void) => void` |
+| What devs typically do next | Open thread panel, navigate to thread view |
+
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageList } from "@cometchat/chat-uikit-react";
@@ -141,49 +207,17 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+#### onError
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+Fires when the component encounters an error.
 
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
+| Detail | Value |
+| --- | --- |
+| When it fires | Any internal error during data fetching or rendering |
+| Payload type | `(error: CometChat.CometChatException) => void` |
+| What devs typically do next | Log to error tracking service |
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const getOnThreadRepliesClick = () => {
-    //your custom actions
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        onThreadRepliesClick={getOnThreadRepliesClick}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-#### 2. onError
-
-This action doesn't change the behavior of the component but rather listens for any errors that occur in the MessageList component.
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageList } from "@cometchat/chat-uikit-react";
@@ -208,46 +242,17 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+#### onReactionClick
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+Fires when a reaction item on a message bubble is clicked.
 
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks a reaction on a message |
+| Payload type | `(reaction: CometChat.ReactionCount, message: CometChat.BaseMessage) => void` |
+| What devs typically do next | Toggle reaction, show reaction details |
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const handleError = (error) => {
-    throw new Error("your custom error action");
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} onError={handleError} />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-#### 3. onReactionClick
-
-`onReactionClick` is triggered when you click on the reaction item of the message bubble. The `onReactionClick` action doesn't have a predefined behavior. You can override this action using the following code snippet.
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageList } from "@cometchat/chat-uikit-react";
@@ -275,46 +280,17 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+#### onReactionListItemClick
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+Fires when a reaction list item is clicked (in the reaction detail view).
 
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
+| Detail | Value |
+| --- | --- |
+| When it fires | User clicks a specific reaction in the reaction list |
+| Payload type | `(reaction: CometChat.Reaction, message: CometChat.BaseMessage) => void` |
+| What devs typically do next | Show who reacted, navigate to user profile |
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const onReactionClick = (reaction, message) => {
-    //your custom action
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} onReactionClick={onReactionClick} />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-#### 4. onReactionListItemClick
-
-`onReactionListItemClick` is triggered when you click on the reaction list item of the reaction list. The `onReactionListItemClick` action doesn't have a predefined behavior. You can override this action using the following code snippet.
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageList } from "@cometchat/chat-uikit-react";
@@ -345,128 +321,47 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+## Filters
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+Control which messages appear using `MessagesRequestBuilder`. Pass the builder to the `messagesRequestBuilder` prop.
 
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const onReactionListItemClick = (reaction, message) => {
-    //your custom action
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        onReactionListItemClick={onReactionListItemClick}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-### Filters
-
-#### 1. Messages Request Builder
-
-You can adjust the `MessagesRequestBuilder` in the MessageList Component to customize your message list. Numerous options are available to alter the builder to meet your specific needs. For additional details on `MessagesRequestBuilder`, please visit [MessagesRequestBuilder](/sdk/javascript/additional-message-filtering).
-
-In the example below, we are applying a filter to the messages based on a search substring and for a specific user. This means that only messages that contain the search term and are associated with the specified user will be displayed
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        messagesRequestBuilder={new CometChat.MessagesRequestBuilder().setLimit(
-          5
-        )}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        messagesRequestBuilder={new CometChat.MessagesRequestBuilder().setLimit(
-          5
-        )}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
+Refer to [MessagesRequestBuilder](/sdk/javascript/additional-message-filtering) for the full API.
 
 <Note>
-
-The following parameters in messageRequestBuilder will always be altered inside the message list
-
-1. UID
-2. GUID
-
+The `UID` and `GUID` parameters in `messagesRequestBuilder` are always overridden internally by the component based on the `user` or `group` prop.
 </Note>
 
-#### 2. Reactions Request Builder
+### Messages Request Builder
 
-You can adjust the `ReactionsRequestBuilder` in the MessageList Component to customize and fetch the reactions for the messages. Numerous options are available to alter the builder to meet your specific needs.
+```tsx lines
+import React from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatMessageList } from "@cometchat/chat-uikit-react";
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+export function MessageListDemo() {
+  const [chatUser, setChatUser] = React.useState<CometChat.User>();
+  React.useEffect(() => {
+    CometChat.getUser("uid").then((user) => {
+      setChatUser(user);
+    });
+  }, []);
+
+  return chatUser ? (
+    <div>
+      <CometChatMessageList
+        user={chatUser}
+        messagesRequestBuilder={new CometChat.MessagesRequestBuilder().setLimit(
+          5
+        )}
+      />
+    </div>
+  ) : null;
+}
+```
+
+### Reactions Request Builder
+
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatMessageList } from "@cometchat/chat-uikit-react";
@@ -492,60 +387,24 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+## Events
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
+### UI Events
 
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
+Events emitted by the MessageList component:
 
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
+| Event | Source | When it fires |
+| --- | --- | --- |
+| `ccOpenChat` | `CometChatUIEvents` | User opens a user or group chat |
+| `ccMessageEdited` | `CometChatMessageEvents` | A message is edited (inProgress, success, error) |
+| `ccReplyToMessage` | `CometChatMessageEvents` | User replies to a message |
+| `ccMessageDeleted` | `CometChatMessageEvents` | A message is deleted |
+| `ccActiveChatChanged` | `CometChatUIEvents` | User navigates to a different chat |
+| `ccMessageRead` | `CometChatMessageEvents` | A message is read |
 
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        reactionsRequestBuilder={new CometChat.ReactionsRequestBuilder().setLimit(
-          5
-        )}
-      />
-    </div>
-  ) : null;
-}
-```
+#### Subscribe
 
-</Tab>
-
-</Tabs>
-
-### Events
-
-[Events](/ui-kit/react/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
-
-The list of events emitted by the Message List component is as follows.
-
-| Event                   | Description                                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **ccOpenChat**          | this event alerts the listeners if the logged-in user has opened a user or a group chat.                                                         |
-| **ccMessageEdited**     | Triggers whenever a loggedIn user edits any message from the list of messages .it will have three states such as: inProgress, success and error. |
-| **ccReplyToMessage**     | Triggers whenever a loggedIn user replies to any message from the list of messages .it will have three states such as: inProgress, success and error. |
-| **ccMessageDeleted**    | Triggers whenever a loggedIn user deletes any message from the list of messages.                                                                 |
-| **ccActiveChatChanged** | This event is triggered when the user navigates to a particular chat window.                                                                     |
-| **ccMessageRead**       | Triggers whenever a loggedIn user reads any message.                                                                                             |
-
-Adding `CometChatMessageEvents` Listener's
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
 import { CometChatMessageEvents, CometChatUIEvents } from "@cometchat/chat-uikit-react";
 
 const ccOpenChat = CometChatUIEvents.ccOpenChat.subscribe(() => {
@@ -573,223 +432,42 @@ const ccMessageRead = CometChatMessageEvents.ccMessageRead.subscribe(() => {
 });
 ```
 
-</Tab>
+#### Unsubscribe
 
-<Tab title="JavaScript">
-```js lines
-import { CometChatMessageEvents, CometChatUIEvents } from "@cometchat/chat-uikit-react";
-
-const ccOpenChat = CometChatUIEvents.ccOpenChat.subscribe(() => {
-  // Your Code
-});
-
-const ccMessageEdited = CometChatMessageEvents.ccMessageEdited.subscribe(() => {
-  // Your Code
-});
-
-const ccReplyToMessage = CometChatMessageEvents.ccReplyToMessage.subscribe(() => {
-  // Your Code
-});
-
-const ccMessageDeleted = CometChatMessageEvents.ccMessageDeleted.subscribe(() => {
-  // Your Code
-});
-
-const ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe(() => {
-  // Your Code
-});
-
-const ccMessageRead = CometChatMessageEvents.ccMessageRead.subscribe(() => {
-  // Your Code
-});
-```
-
-</Tab>
-
-</Tabs>
-
-Removing `CometChatMessageEvents` Listener's
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
+ccOpenChat?.unsubscribe();
 ccMessageEdited?.unsubscribe();
 ccReplyToMessage?.unsubscribe();
+ccMessageDeleted?.unsubscribe();
 ccActiveChatChanged?.unsubscribe();
+ccMessageRead?.unsubscribe();
 ```
 
-</Tab>
+### SDK Events (Real-Time)
 
-<Tab title="JavaScript">
-```js lines
-ccMessageEdited?.unsubscribe();
-ccReplyToMessage?.unsubscribe();
-ccActiveChatChanged?.unsubscribe();
-```
+The component automatically listens to SDK message events internally for real-time updates. No manual attachment needed unless additional side effects are required.
 
-</Tab>
+## Advanced: Custom View Slots
 
-</Tabs>
+Customization override points for the message list UI.
 
-***
+### Slot Catalog
 
-### Style
+| Slot | Params | What it replaces | Section |
+| --- | --- | --- | --- |
+| `headerView` | `JSX.Element` | Area above the message list | Whole section |
+| `footerView` | `JSX.Element` | Area below the message list | Whole section |
+| `loadingView` | `JSX.Element` | Loading spinner | Empty/loading/error |
+| `emptyView` | `JSX.Element` | Empty state | Empty/loading/error |
+| `errorView` | `JSX.Element` | Error state | Empty/loading/error |
+| `templates` | `CometChatMessageTemplate[]` | Message bubble rendering | Whole item |
+| `textFormatters` | `CometChatTextFormatter[]` | Text formatting in messages | Text content |
 
-You can set the css to the MessageList Component Component to customize the styling. The root CSS class for this component is `.cometchat-message-list`.
+### templates
 
-**Example**
+[CometChatMessageTemplate](/ui-kit/react/message-template) is a pre-defined structure for creating message views (message bubbles). Refer to [CometChatMessageTemplate](/ui-kit/react/message-template) for details.
 
-<Frame>
-  <img src="/images/65092657-message_list_style_web_screens-fa1b81ae84482464093b5aa134cec065.png" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-<CometChatMessageList user={chatUser} />;
-```
-
-</Tab>
-
-<Tab title="CSS">
-```css lines
-.cometchat-message-bubble__body
-  .cometchat-text-bubble.cometchat-text-bubble-incoming
-  .cometchat-text-bubble__body-text {
-  font-family: "SF Pro";
-}
-```
-
-</Tab>
-
-</Tabs>
-
-### Functionality
-
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        hideError={true}
-        hideReceipts={true}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList
-        user={chatUser}
-        hideError={true}
-        hideReceipts={true}
-      />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-Below is a list of customizations along with corresponding code snippets
-
-| Property                             | Description                                                                                 | Code                                           |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| **Hide Date Separator**              | Hides the visibility of the date separator in the message list.                             | `hideDateSeparator={true}`                     |
-| **Hide Sticky Date**                 | Hides the sticky date header in the message list.                                           | `hideStickyDate={true}`                        |
-| **Hide Receipts**                    | Hides the visibility of receipts in the message list.                                       | `hideReceipts={true}`                          |
-| **Hide Error**                       | Hides the default & custom error view passed in the `errorView` prop.                       | `hideError={true}`                             |
-| **Hide Reply In Thread Option**      | Hides the option to reply to messages in a thread.                                          | `hideReplyInThreadOption={true}`               |
-| **Hide Translate Message Option**    | Hides the option to translate messages.                                                     | `hideTranslateMessageOption={true}`            |
-| **Hide Edit Message Option**         | Hides the option to edit messages.                                                          | `hideEditMessageOption={true}`                 |
-| **Hide Delete Message Option**       | Hides the option to delete messages.                                                        | `hideDeleteMessageOption={true}`               |
-| **Hide Reaction Option**             | Hides the option to react to messages.                                                      | `hideReactionOption={true}`                    |
-| **Hide Message Privately Option**    | Hides the option to message a user privately.                                               | `hideMessagePrivatelyOption={true}`            |
-| **Hide Copy Message Option**         | Hides the option to copy messages.                                                          | `hideCopyMessageOption={true}`                 |
-| **Hide Message Info Option**         | Hides the option to view message information.                                               | `hideMessageInfoOption={true}`                 |
-| **Hide Reply Option**                | Hides the reply option for a message.                                                           | `hideReplyOption={true}`                       |
-| **Hide Avatar**                      | Hides avatars for messages.                                                                 | `hideAvatar={true}`                            |
-| **Hide Group Action Messages**       | Hides group action messages.                                                                | `hideGroupActionMessages={true}`               |
-| **Hide Conversation Starters**       | Hides the visibility of the conversation starters in the message list.                      | `hideConversationStarters={true}`              |
-| **Hide Smart Replies**               | Hides the visibility of the smart replies in the message list.                              | `hideSmartReplies={true}`                      |
-| **Hide Moderation View**             | Hides the moderation view shown below the message bubble in the bottom view when a message is   moderated.                             | `hideModerationView={true}`                      |
-| **Hide Flag Message Option**         | Hides the "Report Message" option from message actions menu.                                  | `hideFlagMessageOption={true}`                 |
-| **Hide Flag Remark Field**           | Hides the remark text area in the flag message dialog.                                             | `hideFlagRemarkField={true}`                   |
-| **Parent Message ID**                | Unique identifier of the parent message for displaying threaded conversations.              | `parentMessageId={1234}`                       |
-| **User**                             | A `CometChat.User` object representing the participant of the chat.                         | `user={chatUser}`                              |
-| **Group**                            | A `CometChat.Group` object representing the group whose chat messages are displayed.        | `group={chatGroup}`                            |
-| **Message Alignment**                | Specifies the alignment of messages in the list (e.g., left, right).                        | `messageAlignment={MessageListAlignment.left}` |
-| **Scroll To Bottom On New Messages** | Automatically scrolls the message list to the bottom when a new message arrives.            | `scrollToBottomOnNewMessages={true}`           |
-| **Quick Options Count**              | Specifies how many message options are visible in the main menu by default.                 | `quickOptionsCount={3}`                        |
-| **Disable Sound For Messages**       | Disables the sound effect when new messages arrive.                                         | `disableSoundForMessages={true}`               |
-| **Custom Sound For Messages**        | Specifies a custom sound file to play when new messages arrive.                             | `customSoundForMessages="sound.mp3"`           |
-| **Smart Replies Keywords**           | Sets the keywords on which the smart replies should be triggered in the message list.       | `smartRepliesKeywords={['why', 'how']}`        |
-| **Smart Replies Delay Duration**     | Sets the delay duration (in milliseconds) before smart replies are shown.                   | `smartRepliesDelayDuration={5000}`             |
-| **Start From Unread Messages**       | When set to true, the chat will load from the first unread message if unread messages exist, otherwise loads from the latest messages. Default is false. | `startFromUnreadMessages={true}`               |
-| **Show Mark Unread Option**       | When set to true, shows the "Mark Unread" option in the message actions menu. This option will only appear for received messages, not for the user's own messages. Default is false. | `showMarkAsUnreadOption={true}`                |
-| **Empty View**                       | Custom empty state view to display when there are no messages.                              | `emptyView={<EmptyState />}`                   |
-| **Error View**                       | A custom view displayed when there are no messages.                                         | `errorView={<ErrorComponent />}`               |
-| **Loading View**                     | A custom view displayed while messages are being fetched.                                   | `loadingView={<LoadingSpinner />}`             |
-| **Go To MessageId**                  | The ID of the message that the list should automatically scroll to when it is first loaded. | `goToMessageId={1}`                            |
-
-## Advanced Features
-
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
-
-### Custom View Slots
-
-#### Templates
-
-[CometChatMessageTemplate](/ui-kit/react/message-template) is a pre-defined structure for creating message views that can be used as a starting point or blueprint for creating message views often known as message bubbles. For more information, you can refer to [CometChatMessageTemplate](/ui-kit/react/message-template).
-
-You can set message Templates to MessageList by using the following code snippet.
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
@@ -847,294 +525,13 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+### headerView
 
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import {
-  CometChatMessageList,
-  ChatConfigurator,
-  CometChatActionsIcon,
-} from "@cometchat/chat-uikit-react";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const getCustomOptions = (loggedInUser, message, theme, group) => {
-    const defaultOptions = ChatConfigurator.getDataSource().getMessageOptions(
-      loggedInUser,
-      message,
-      group
-    );
-    const myView = new CometChatActionsIcon({
-      id: "custom id",
-      title: "your custom title for options",
-      iconURL: "your custom icon url for options",
-      onClick: () => console.log("custom action"),
-    });
-    defaultOptions.push(myView);
-    return defaultOptions;
-  };
-
-  const getTemplates = () => {
-    let templates = ChatConfigurator.getDataSource().getAllMessageTemplates();
-    templates.map((data) => {
-      data.options = (loggedInUser, message, group) =>
-        getCustomOptions(loggedInUser, message, group);
-    });
-    return templates;
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} templates={getTemplates()} />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### Separator DateTime Format
-
-The `separatorDateTimeFormat` property allows you to customize the **Date Separator** timestamp displayed in the Message List.
-
-Default Date Time Format:
-
-```javascript lines
-new CalendarObject({
-    today: "today" // Example: "today"
-    yesterday: "yesterday", // Example: "yesterday"
-    otherDays: `DD MMM, YYYY`, // Example: "25 Jan, 2025"
-});
-```
-
-The following example demonstrates how to modify the **Date Separator** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import {
-  CometChatMessageList,
-  CalendarObject,
-} from "@cometchat/chat-uikit-react";
-
-// Define a custom date format pattern
-function getDateFormat() {
-  const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
-  });
-  return dateFormat;
-}
-
-// Apply the custom format to the CometChatMessageList component
-<CometChatMessageList
-  user={chatUser}
-  separatorDateTimeFormat={getDateFormat()}
-/>;
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-
-**Fallback Mechanism**
-
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
-
-</Note>
-
-***
-
-#### Sticky DateTime Format
-
-The `stickyDateTimeFormat` property allows you to customize the **Sticky Date** timestamp displayed in the Message List.
-
-Default Date Time Format:
-
-```javascript lines
-new CalendarObject({
-    today: "today" // Example: "today"
-    yesterday: "yesterday", // Example: "yesterday"
-    otherDays: `DD MMM, YYYY`, // Example: "25 Jan, 2025"
-});
-```
-
-The following example demonstrates how to modify the **Sticky Date** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import {
-  CometChatMessageList,
-  CalendarObject,
-} from "@cometchat/chat-uikit-react";
-
-// Define a custom date format pattern
-function getDateFormat() {
-  const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
-  });
-  return dateFormat;
-}
-
-// Apply the custom format to the CometChatMessageList component
-<CometChatMessageList user={chatUser} stickyDateTimeFormat={getDateFormat()} />;
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-
-**Fallback Mechanism**
-
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
-
-</Note>
-
-***
-
-#### Message SentAt DateTime Format
-
-The `messageSentAtDateTimeFormat` property allows you to customize the **Message SentAt** timestamp displayed in the Message List.
-
-Default Date Time Format:
-
-```javascript lines
-new CalendarObject({
-    today: "hh:mm A" // Example: "12:00 PM"
-    yesterday: "hh:mm A", // Example: "01:00 AM"
-    otherDays: `hh:mm A`, // Example: "09:30 PM"
-});
-```
-
-The following example demonstrates how to modify the **Message SentAt** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import {
-  CometChatMessageList,
-  CalendarObject,
-} from "@cometchat/chat-uikit-react";
-
-// Define a custom date format pattern
-function getDateFormat() {
-  const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
-  });
-  return dateFormat;
-}
-
-// Apply the custom format to the CometChatMessageList component
-<CometChatMessageList
-  user={chatUser}
-  messageSentAtDateTimeFormat={getDateFormat()}
-/>;
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-
-**Fallback Mechanism**
-
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
-
-</Note>
-
-***
-
-#### Message Info DateTime Format
-
-The `messageInfoDateTimeFormat` property allows you to customize the **Message Info** timestamp displayed in the Message List.
-
-Default Date Time Format:
-
-```ruby lines
-new CalendarObject({
-  today: `DD MMM, hh:mm A`, // Example: "29 Jan, 04:34 AM"
-  yesterday: `DD MMM, hh:mm A`, // Example: "29 Jan, 04:34 AM"
-  otherDays: `DD MMM, hh:mm A`, // Example: "29 Jan, 04:34 AM"
-});
-```
-
-The following example demonstrates how to modify the **Message Info** timestamp format using a custom [`CalendarObject`](/ui-kit/react/localize#calendarobject).
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import {
-  CometChatMessageList,
-  CalendarObject,
-} from "@cometchat/chat-uikit-react";
-
-// Define a custom date format pattern
-function getDateFormat() {
-  const dateFormat = new CalendarObject({
-    today: `hh:mm A`, // Example: "10:30 AM"
-    yesterday: `[yesterday]`, // Example: "yesterday"
-    otherDays: `DD/MM/YYYY`, // Example: "25/05/2025"
-  });
-  return dateFormat;
-}
-
-// Apply the custom format to the CometChatMessageList component
-<CometChatMessageList
-  user={chatUser}
-  messageInfoDateTimeFormat={getDateFormat()}
-/>;
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-
-**Fallback Mechanism**
-
-* If you **do not** pass any property in the [**CalendarObject**](/ui-kit/react/localize#calendarobject), the component will first check the [**global configuration**](/ui-kit/react/localize#customisation). If the property is **also missing in the global configuration**, it will **fallback to the component's default formatting**.
-
-</Note>
-
-***
-
-#### Headerview
-
-You can set custom headerView to the Message List component using the following method.
-
-The customized chat interface is displayed below.
+Custom view above the message list.
 
 <Frame>
   <img src="/images/3096c772-message_list_headerview_web_screens-c088625ffa7a992eeac85df186c320ec.png" />
 </Frame>
-
-Use the following code to achieve the customization shown above.
 
 <Tabs>
 <Tab title="TypeScript">
@@ -1172,47 +569,7 @@ export function MessageListDemo() {
   ) : null;
 }
 ```
-
 </Tab>
-
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-import notesIcon from "../../assets/notesIcon.svg";
-import pinnedIcon from "../../assets/pinnedIcon.svg";
-import savedIcon from "../../assets/savedIcon.svg";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const getHeaderView = () => {
-    return (
-      <div className="header-view">
-        <CometChatButton iconURL={notesIcon} text="Notes" />
-        <CometChatButton iconURL={pinnedIcon} text="Pinned Message" />
-        <CometChatButton iconURL={savedIcon} text="Saved Links" />
-      </div>
-    );
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} headerView={getHeaderView()} />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
 <Tab title="CSS">
 ```css lines
 .header-view {
@@ -1248,24 +605,16 @@ export function MessageListDemo() {
   align-items: center;
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+### footerView
 
-#### FooterView
-
-You can set custom footerview to the Message List component using the following method.
-
-The customized chat interface is displayed below.
+Custom view below the message list.
 
 <Frame>
   <img src="/images/82f25a7d-message_list_footerview_web_screens-c277b86d74f0cdeb81c6ce7a7251383a.png" />
 </Frame>
-
-Use the following code to achieve the customization shown above.
 
 <Tabs>
 <Tab title="TypeScript">
@@ -1305,49 +654,7 @@ export function MessageListDemo() {
   ) : null;
 }
 ```
-
 </Tab>
-
-<Tab title="JavaScript">
-```js lines
-import React from "react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-import iceBreakersIcon from "../../assets/iceBreakersIcon.svg";
-import callIcon from "../../assets/callIcon.svg";
-import instagramIcon from "../../assets/instagramIcon.svg";
-import snapchatIcon from "../../assets/snapchatIcon.svg";
-
-export function MessageListDemo() {
-  const [chatUser, setChatUser] = React.useState(null);
-
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
-
-  const getFooterView = () => {
-    return (
-      <div className="footer-view">
-        <CometChatButton iconURL={iceBreakersIcon} text="Ice Breakers" />
-        <CometChatButton iconURL={callIcon} text="+1-212-456-7890" />
-        <CometChatButton iconURL={instagramIcon} text="+ Instagram" />
-        <CometChatButton iconURL={snapchatIcon} text="+ Snapchat" />
-      </div>
-    );
-  };
-
-  return chatUser ? (
-    <div>
-      <CometChatMessageList user={chatUser} footerView={getFooterView()} />
-    </div>
-  ) : null;
-}
-```
-
-</Tab>
-
 <Tab title="CSS">
 ```css lines
 .footer-view {
@@ -1383,201 +690,104 @@ export function MessageListDemo() {
   align-items: center;
 }
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+### Date Time Format Customization
 
-#### TextFormatters
+#### separatorDateTimeFormat
 
-Assigns the list of text formatters. If the provided list is not null, it sets the list. Otherwise, it assigns the default text formatters retrieved from the data source. To configure the existing Mentions look and feel check out [CometChatMentionsFormatter](/ui-kit/react/mentions-formatter-guide)
-
-<Tabs>
-<Tab title="ShortCutFormatter.ts">
 ```ts lines
-import { CometChatTextFormatter } from "@cometchat/chat-uikit-react";
-import DialogHelper from "./Dialog";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
+import {
+  CometChatMessageList,
+  CalendarObject,
+} from "@cometchat/chat-uikit-react";
 
-class ShortcutFormatter extends CometChatTextFormatter {
-  private shortcuts: { [key: string]: string } = {};
-  private dialogIsOpen: boolean = false;
-  private dialogHelper = new DialogHelper();
-  private currentShortcut: string | null = null; // Track the currently open shortcut
-
-  constructor() {
-    super();
-    this.setTrackingCharacter("!");
-    CometChat.callExtension("message-shortcuts", "GET", "v1/fetch", undefined)
-      .then((data: any) => {
-        if (data && data.shortcuts) {
-          this.shortcuts = data.shortcuts;
-        }
-      })
-      .catch((error) => console.log("error fetching shortcuts", error));
-  }
-
-  onKeyDown(event: KeyboardEvent) {
-    const caretPosition =
-      this.currentCaretPosition instanceof Selection
-        ? this.currentCaretPosition.anchorOffset
-        : 0;
-    const textBeforeCaret = this.getTextBeforeCaret(caretPosition);
-
-    const match = textBeforeCaret.match(/!([a-zA-Z]+)$/);
-    if (match) {
-      const shortcut = match[0];
-      const replacement = this.shortcuts[shortcut];
-      if (replacement) {
-        // Close the currently open dialog, if any
-        if (this.dialogIsOpen && this.currentShortcut !== shortcut) {
-          this.closeDialog();
-        }
-        this.openDialog(replacement, shortcut);
-      }
-    }
-  }
-
-  getCaretPosition() {
-    if (!this.currentCaretPosition?.rangeCount) return { x: 0, y: 0 };
-    const range = this.currentCaretPosition?.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    return {
-      x: rect.left,
-      y: rect.top,
-    };
-  }
-
-  openDialog(buttonText: string, shortcut: string) {
-    this.dialogHelper.createDialog(
-      () => this.handleButtonClick(buttonText),
-      buttonText
-    );
-    this.dialogIsOpen = true;
-    this.currentShortcut = shortcut;
-  }
-
-  closeDialog() {
-    this.dialogHelper.closeDialog(); // Use DialogHelper to close the dialog
-    this.dialogIsOpen = false;
-    this.currentShortcut = null;
-  }
-
-  handleButtonClick = (buttonText: string) => {
-    if (this.currentCaretPosition && this.currentRange) {
-      // Inserting the replacement text corresponding to the shortcut
-      const shortcut = Object.keys(this.shortcuts).find(
-        (key) => this.shortcuts[key] === buttonText
-      );
-      if (shortcut) {
-        const replacement = this.shortcuts[shortcut];
-        this.addAtCaretPosition(
-          replacement,
-          this.currentCaretPosition,
-          this.currentRange
-        );
-      }
-    }
-    if (this.dialogIsOpen) {
-      this.closeDialog();
-    }
-  };
-
-  getFormattedText(text: string): string {
-    return text;
-  }
-
-  private getTextBeforeCaret(caretPosition: number): string {
-    if (
-      this.currentRange &&
-      this.currentRange.startContainer &&
-      typeof this.currentRange.startContainer.textContent === "string"
-    ) {
-      const textContent = this.currentRange.startContainer.textContent;
-      if (textContent.length >= caretPosition) {
-        return textContent.substring(0, caretPosition);
-      }
-    }
-    return "";
-  }
+function getDateFormat() {
+  const dateFormat = new CalendarObject({
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
+  });
+  return dateFormat;
 }
 
-export default ShortcutFormatter;
+<CometChatMessageList
+  user={chatUser}
+  separatorDateTimeFormat={getDateFormat()}
+/>;
 ```
 
-</Tab>
+#### stickyDateTimeFormat
 
-<Tab title="Dialog.tsx">
-```tsx lines
-import React from "react";
-import ReactDOM from "react-dom";
+```ts lines
+import {
+  CometChatMessageList,
+  CalendarObject,
+} from "@cometchat/chat-uikit-react";
 
-interface DialogProps {
-  onClick: () => void;
-  buttonText: string;
+function getDateFormat() {
+  const dateFormat = new CalendarObject({
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
+  });
+  return dateFormat;
 }
 
-const Dialog: React.FC<DialogProps> = ({ onClick, buttonText }) => {
-  console.log("buttonText", buttonText);
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: "300px",
-        top: "664px",
-        width: "800px",
-        height: "45px",
-      }}
-    >
-      <button
-        style={{
-          width: "800px",
-          height: "100%",
-          cursor: "pointer",
-          backgroundColor: "#f2e6ff",
-          border: "2px solid #9b42f5",
-          borderRadius: "12px",
-          textAlign: "left",
-          paddingLeft: "20px",
-          font: "600 15px sans-serif, Inter",
-        }}
-        onClick={onClick}
-      >
-        {buttonText}
-      </button>
-    </div>
-  );
-};
-
-export default class DialogHelper {
-  private dialogContainer: HTMLDivElement | null = null;
-
-  createDialog(onClick: () => void, buttonText: string) {
-    this.dialogContainer = document.createElement("div");
-    document.body.appendChild(this.dialogContainer);
-
-    ReactDOM.render(
-      <Dialog onClick={onClick} buttonText={buttonText} />,
-      this.dialogContainer
-    );
-  }
-
-  closeDialog() {
-    if (this.dialogContainer) {
-      ReactDOM.unmountComponentAtNode(this.dialogContainer);
-      this.dialogContainer.remove();
-      this.dialogContainer = null;
-    }
-  }
-}
+<CometChatMessageList user={chatUser} stickyDateTimeFormat={getDateFormat()} />;
 ```
 
-</Tab>
+#### messageSentAtDateTimeFormat
 
-<Tab title="MessageListDemo.tsx">
+```ts lines
+import {
+  CometChatMessageList,
+  CalendarObject,
+} from "@cometchat/chat-uikit-react";
+
+function getDateFormat() {
+  const dateFormat = new CalendarObject({
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
+  });
+  return dateFormat;
+}
+
+<CometChatMessageList
+  user={chatUser}
+  messageSentAtDateTimeFormat={getDateFormat()}
+/>;
+```
+
+#### messageInfoDateTimeFormat
+
+```ts lines
+import {
+  CometChatMessageList,
+  CalendarObject,
+} from "@cometchat/chat-uikit-react";
+
+function getDateFormat() {
+  const dateFormat = new CalendarObject({
+    today: `hh:mm A`,
+    yesterday: `[yesterday]`,
+    otherDays: `DD/MM/YYYY`,
+  });
+  return dateFormat;
+}
+
+<CometChatMessageList
+  user={chatUser}
+  messageInfoDateTimeFormat={getDateFormat()}
+/>;
+```
+
+### textFormatters
+
+Custom text formatters for message content. To configure mentions, see [CometChatMentionsFormatter](/ui-kit/react/mentions-formatter-guide).
+
 ```tsx lines
 import React from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
@@ -1603,88 +813,22 @@ export function MessageListDemo() {
 }
 ```
 
-</Tab>
+## Theme and Styling
 
-</Tabs>
+Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-message-list`.
 
-### Customization Matrix
+<Frame>
+  <img src="/images/65092657-message_list_style_web_screens-fa1b81ae84482464093b5aa134cec065.png" />
+</Frame>
 
-| What you want to change | Where | Property/API | Example |
-| --- | --- | --- | --- |
-| Override behavior on user interaction | Component props | `on<Event>` callbacks | `onThreadRepliesClick={() => handleThread()}` |
-| Toggle visibility of UI elements | Component props | `hide<Feature>` boolean props | `hideReceipts={true}` |
-| Replace a section of the message list | Component props | `<slot>View` render props | `headerView={<CustomHeader />}` |
-| Customize message bubbles | Component props | `templates` prop | `templates={getTemplates()}` |
-| Control message fetching | Component props | `messagesRequestBuilder` | `messagesRequestBuilder={builder}` |
-| Change colors, fonts, spacing | Global CSS | Target `.cometchat-message-list` class | `.cometchat-message-list { background: #fff; }` |
+```tsx lines
+<CometChatMessageList user={chatUser} />
+```
 
-## Pagination, Batching, and Performance
-
-The MessageList component supports pagination through the `messagesRequestBuilder` prop. Use `CometChat.MessagesRequestBuilder().setLimit(n)` to control how many messages are fetched per page. The component handles infinite scroll automatically — as the user scrolls up, older messages are fetched in batches based on the configured limit. See the [Filters > Messages Request Builder](#1-messages-request-builder) section above for the code example.
-
-The `scrollToBottomOnNewMessages` prop controls whether the list auto-scrolls when new messages arrive. The `goToMessageId` prop allows jumping to a specific message on initial load. The `startFromUnreadMessages` prop loads from the first unread message when available.
-
-## Error Handling and Retries
-
-The MessageList component supports an `onError` callback prop that fires when an error occurs during rendering or data fetching. You can use this to log errors or display custom error UI. See the `onError` callback example in [Basic Usage > Actions](#2-onerror) for the implementation pattern.
-
-The `hideError` prop controls whether the default error view is shown. You can also provide a custom `errorView` prop to render your own error UI. The `onError` prop receives a `CometChat.CometChatException` object containing the error details.
-
-<AccordionGroup>
-<Accordion title="Common Failure Modes">
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
-| Component renders but shows no messages | User not logged in | Call `CometChatUIKit.login("UID")` after init |
-| Messages not updating in real-time | WebSocket connection issue | Check [Connection Status](/sdk/javascript/connection-status) |
-| Custom template not rendering | Template `type` or `category` doesn't match message | Verify template matches the message's `type` and `category` fields |
-| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
-
-</Accordion>
-</AccordionGroup>
-
-## Configuration and Environment
-
-The CometChatMessageList component requires `CometChatUIKit.init()` to be called with a valid `appId` and `region` before rendering. The user must be logged in via `CometChatUIKit.login()`. The component depends on the `@cometchat/chat-uikit-react` package, which includes `@cometchat/chat-sdk-javascript` as a peer dependency.
-
-React 18+ is supported. For Next.js, wrap the component in `useEffect` or use dynamic imports with `ssr: false` to avoid SSR hydration errors. See [Next.js Integration](/ui-kit/react/next-js-integration) and [React.js Integration](/ui-kit/react/react-js-integration) for setup details.
-
-## Files and Media
-
-The MessageList component renders media messages (images, videos, audio, files) inline within the message list. Media rendering is handled automatically by the component's built-in message templates. The component supports text messages, media messages (image, video, audio, file), stickers, reactions, and custom message types via the `templates` prop.
-
-You can control sound notifications for incoming messages using the `disableSoundForMessages` and `customSoundForMessages` props documented in the [Functionality](#functionality) table above.
-
-## Logging, Tracing, and Observability
-
-To troubleshoot issues with the MessageList component (such as messages not loading, real-time updates not appearing, or custom templates not rendering), enable CometChat SDK debug logging. Set the log level to `DEBUG` during `CometChat.init()` to see detailed SDK activity in the browser console. Refer to the CometChat SDK documentation for the full logging configuration API.
-
-## Versioning, Beta Features, and Breaking Changes
-
-### Current Version
-
-This documentation covers CometChat React UI Kit V6 (`@cometchat/chat-uikit-react@6.x`).
-
-### Upgrading from V5
-
-If you are migrating from V5, see the [Upgrading from V5](/ui-kit/react/upgrading-from-v5) guide for a complete list of breaking changes and migration steps.
-
----
-
-### Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Message Composer" icon="pen-to-square" href="/ui-kit/react/message-composer">
-    Compose and send messages
-  </Card>
-  <Card title="Message Header" icon="heading" href="/ui-kit/react/message-header">
-    Display user/group details in the toolbar
-  </Card>
-  <Card title="Message Template" icon="file-code" href="/ui-kit/react/message-template">
-    Customize message bubble rendering
-  </Card>
-  <Card title="Thread Header" icon="comments" href="/ui-kit/react/thread-header">
-    Display threaded message details
-  </Card>
-</CardGroup>
+```css lines
+.cometchat-message-bubble__body
+  .cometchat-text-bubble.cometchat-text-bubble-incoming
+  .cometchat-text-bubble__body-text {
+  font-family: "SF Pro";
+}
+```
