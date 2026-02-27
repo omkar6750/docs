@@ -91,6 +91,39 @@ Create `res/layout/activity_thread_message.xml`:
 Initialize UI & handle blocked-user flows:
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+class ThreadMessageActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_thread_message)
+        val header = findViewById<CometChatThreadHeader>(R.id.threadHeader)
+        val messageList = findViewById<CometChatMessageList>(R.id.threadMessageList)
+        val composer = findViewById<CometChatMessageComposer>(R.id.threadComposer)
+        val unblock = findViewById<View>(R.id.unblockLayout)
+
+        val rawMessage = intent.getStringExtra("raw_json")
+        val viewModel = ViewModelProvider(this)[ThreadMessageViewModel::class.java]
+        if (rawMessage != null) {
+            val parentMessage = BaseMessage.processMessage(JSONObject(rawMessage))
+            viewModel.setParentMessage(parentMessage)
+        }
+        viewModel.parentMessage.observe(this) { msg ->
+            header.setParentMessage(msg)
+            messageList.setParentMessage(msg.id)
+            composer.setParentMessageId(msg.id)
+        }
+
+        // Handle blocked user
+        if (isBlockedByMe) {
+            composer.visibility = View.GONE
+            unblock.visibility = View.VISIBLE
+        }
+    }
+}
+```
+</Tab>
+
 <Tab title="Java">
 ```java lines
 public class ThreadMessageActivity extends AppCompatActivity {
@@ -103,47 +136,24 @@ public class ThreadMessageActivity extends AppCompatActivity {
     CometChatMessageComposer composer = findViewById(R.id.threadComposer);
     View unblock = findViewById(R.id.unblockLayout);
 
-    String messageId = getIntent().getStringExtra("message_id");
-    viewModel = new ViewModelProvider(this).get(ThreadMessageViewModel.class);
-    viewModel.fetchParentMessage(messageId);
-    viewModel.getParentMessage().observe(this, msg -> header.setMessage(msg));
-    messageList.setParentMessage(messageId);
-    composer.setParentMessageId(messageId);
+    String rawMessage = getIntent().getStringExtra("raw_json");
+    ThreadMessageViewModel viewModel = new ViewModelProvider(this).get(ThreadMessageViewModel.class);
+    if (rawMessage != null) {
+      BaseMessage parentMessage = BaseMessage.processMessage(new JSONObject(rawMessage));
+      viewModel.setParentMessage(parentMessage);
+    }
+    viewModel.getParentMessage().observe(this, msg -> {
+      header.setParentMessage(msg);
+      messageList.setParentMessage(msg.getId());
+      composer.setParentMessageId(msg.getId());
+    });
 
     // Handle blocked user
-    if (viewModel.isBlocked()) {
+    if (isBlockedByMe) {
       composer.setVisibility(View.GONE);
       unblock.setVisibility(View.VISIBLE);
     }
   }
-}
-```
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-class ThreadMessageActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_thread_message)
-        val header = findViewById<CometChatThreadHeader>(R.id.threadHeader)
-        val messageList = findViewById<CometChatMessageList>(R.id.threadMessageList)
-        val composer = findViewById<CometChatMessageComposer>(R.id.threadComposer)
-        val unblock = findViewById<View>(R.id.unblockLayout)
-
-        val messageId = intent.getStringExtra("message_id")
-        viewModel = ViewModelProvider(this)[ThreadMessageViewModel::class.java]
-        viewModel.fetchParentMessage(messageId)
-        viewModel.parentMessage.observe(this) { msg -> header.setMessage(msg) }
-        messageList.setParentMessage(messageId)
-        composer.setParentMessageId(messageId)
-
-        // Handle blocked user
-        if (viewModel.isBlocked()) {
-            composer.visibility = View.GONE
-            unblock.visibility = View.VISIBLE
-        }
-    }
 }
 ```
 </Tab>
@@ -154,44 +164,44 @@ class ThreadMessageActivity : AppCompatActivity() {
 
 ### Step 3: Create ThreadMessageViewModel
 
-Fetch parent message and expose LiveData:
+Store parent message and expose LiveData:
 
 <Tabs>
-<Tab title="Java">
-```java lines
-public class ThreadMessageViewModel extends ViewModel {
-  private MutableLiveData<BaseMessage> parentMessage = new MutableLiveData<>();
-
-  public void fetchParentMessage(String id) {
-    CometChat.getMessage(id, new CometChat.CallbackListener<BaseMessage>() {
-      @Override
-      public void onSuccess(BaseMessage msg) {
-        parentMessage.postValue(msg);
-      }
-      @Override public void onError(CometChatException e) {}
-    });
-  }
-
-  public LiveData<BaseMessage> getParentMessage() {
-    return parentMessage;
-  }
-}
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 class ThreadMessageViewModel : ViewModel() {
     val parentMessage = MutableLiveData<BaseMessage>()
+    var id: Long = 0
+        private set
 
-    fun fetchParentMessage(id: String?) {
-        CometChat.getMessage(id, object : CometChat.CallbackListener<BaseMessage>() {
-            override fun onSuccess(msg: BaseMessage) {
-                parentMessage.postValue(msg)
-            }
-            override fun onError(e: CometChatException?) {}
-        })
+    fun setParentMessage(message: BaseMessage?) {
+        if (message != null) {
+            id = message.id
+            parentMessage.value = message
+        }
     }
+}
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+public class ThreadMessageViewModel extends ViewModel {
+  private MutableLiveData<BaseMessage> parentMessage = new MutableLiveData<>();
+  private long id;
+
+  public void setParentMessage(BaseMessage message) {
+    if (message != null) {
+      this.id = message.getId();
+      parentMessage.setValue(message);
+    }
+  }
+
+  public long getId() { return id; }
+
+  public LiveData<BaseMessage> getParentMessage() {
+    return parentMessage;
+  }
 }
 ```
 </Tab>
@@ -205,23 +215,25 @@ class ThreadMessageViewModel : ViewModel() {
 In your `MessagesActivity`, capture thread icon taps:
 
 <Tabs>
-<Tab title="Java">
-```java lines
-messageList.setOnThreadRepliesClick((context, baseMessage, template) -> {
-  Intent intent = new Intent(context, ThreadMessageActivity.class);
-  intent.putExtra("message_id", baseMessage.getId());
-  context.startActivity(intent);
-});
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 messageList.setOnThreadRepliesClick { context, baseMessage, template ->
     val intent = Intent(context, ThreadMessageActivity::class.java)
-    intent.putExtra("message_id", baseMessage.id)
+    intent.putExtra("raw_json", baseMessage.rawMessage.toString())
+    intent.putExtra("reply_count", baseMessage.replyCount)
     context.startActivity(intent)
 }
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+messageList.setOnThreadRepliesClick((context, baseMessage, template) -> {
+  Intent intent = new Intent(context, ThreadMessageActivity.class);
+  intent.putExtra("raw_json", baseMessage.getRawMessage().toString());
+  intent.putExtra("reply_count", baseMessage.getReplyCount());
+  context.startActivity(intent);
+});
 ```
 </Tab>
 </Tabs>
@@ -232,8 +244,8 @@ messageList.setOnThreadRepliesClick { context, baseMessage, template ->
 ## Implementation Flow
 
 1. User taps thread icon on a message.  
-2. `Intent` launches `ThreadMessageActivity` with `message_id`.  
-3. ViewModel fetches parent message details.  
+2. `Intent` launches `ThreadMessageActivity` with raw message JSON.  
+3. ViewModel stores parent message and exposes via LiveData.  
 4. Header & `MessageList` render parent + replies.  
 5. Composer sends new replies under the parent message.  
 6. Live updates flow automatically via UI Kit.
@@ -255,20 +267,20 @@ messageList.setOnThreadRepliesClick { context, baseMessage, template ->
 In `UserDetailActivity`, detect and toggle UI:
 
 <Tabs>
-<Tab title="Java">
-```java lines
-if (user.isBlockedByMe()) {
-  composer.setVisibility(View.GONE);
-  unblockLayout.setVisibility(View.VISIBLE);
-}
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 if (user.isBlockedByMe) {
     composer.visibility = View.GONE
     unblockLayout.visibility = View.VISIBLE
+}
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+if (user.isBlockedByMe()) {
+  composer.setVisibility(View.GONE);
+  unblockLayout.setVisibility(View.VISIBLE);
 }
 ```
 </Tab>
@@ -291,9 +303,9 @@ if (user.isBlockedByMe) {
 | Feature                   | Component / Method                                   |
 |---------------------------|------------------------------------------------------|
 | Show thread option        | `setOnThreadRepliesClick()`                          |
-| Display thread messages   | `messageList.setParentMessage(messageId)`            |
-| Show parent message       | `header.setMessage(parentMessage)`                   |
-| Compose reply             | `composer.setParentMessageId(messageId)`             |
+| Display thread messages   | `messageList.setParentMessage(parentMessage.getId())`|
+| Show parent message       | `header.setParentMessage(parentMessage)`             |
+| Compose reply             | `composer.setParentMessageId(parentMessage.getId())` |
 | Handle blocked users      | `isBlockedByMe()`, hide composer + show unblock UI  |
 
 ## Next Steps & Further Reading

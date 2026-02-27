@@ -27,8 +27,8 @@ Blocking a user stops them from sending messages to the blocker. The CometChat U
 |:-------------------------------------|:------------------------------------------------------------|
 | `UserDetailActivity.java`            | Displays user profile and provides block/unblock options.   |
 | `MessagesActivity.java`              | Hosts the chat screen and toggles UI based on block state.  |
-| `CometChatUIKit.blockUsers()`        | API to block one or more users by UID.                      |
-| `CometChatUIKit.unblockUsers()`      | API to unblock one or more users by UID.                    |
+| `CometChat.blockUsers()`             | SDK API to block one or more users by UID.                  |
+| `CometChat.unblockUsers()`           | SDK API to unblock one or more users by UID.                |
 | `User.isBlockedByMe()`               | Checks if the current user has blocked this user.           |
 | `unblockLayout` (View)              | Layout shown when a user is blocked, containing unblock.    |
 | `CometChatMessageComposer`           | Hidden when chatting with a blocked user.                   |
@@ -40,17 +40,6 @@ Blocking a user stops them from sending messages to the blocker. The CometChat U
 Update UI when block state changes.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-// In MessagesActivity.java
-private void updateUserBlockStatus(User user) {
-    boolean blocked = user.isBlockedByMe();
-    binding.messageComposer.setVisibility(blocked ? View.GONE : View.VISIBLE);
-    binding.unblockLayout.setVisibility(blocked ? View.VISIBLE : View.GONE);
-}
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 // In MessagesActivity.kt
@@ -58,6 +47,17 @@ private fun updateUserBlockStatus(user: User) {
     val blocked = user.isBlockedByMe
     binding.messageComposer.visibility = if (blocked) View.GONE else View.VISIBLE
     binding.unblockLayout.visibility = if (blocked) View.VISIBLE else View.GONE
+}
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+// In MessagesActivity.java
+private void updateUserBlockStatus(User user) {
+    boolean blocked = user.isBlockedByMe();
+    binding.messageComposer.setVisibility(blocked ? View.GONE : View.VISIBLE);
+    binding.unblockLayout.setVisibility(blocked ? View.VISIBLE : View.GONE);
 }
 ```
 </Tab>
@@ -105,27 +105,6 @@ Prepares the UI containers for dynamic show/hide operations.
 Call the unblock API and observe status updates.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-// In MessagesActivity.java
-binding.unblockBtn.setOnClickListener(v -> viewModel.unblockUser());
-
-// In MessagesViewModel.java
-public void unblockUser() {
-    CometChatUIKit.unblockUsers(Collections.singletonList(currentUser.getUid()), new CometChat.CallbackListener<List<String>>() {
-        @Override
-        public void onSuccess(List<String> uids) {
-            unblockButtonState.postValue(false);
-        }
-        @Override
-        public void onError(CometChatException e) {
-            // Handle error
-        }
-    });
-}
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 // In MessagesActivity.kt
@@ -133,14 +112,35 @@ binding.unblockBtn.setOnClickListener { viewModel.unblockUser() }
 
 // In MessagesViewModel.kt
 fun unblockUser() {
-    CometChatUIKit.unblockUsers(listOf(currentUser.uid), object : CometChat.CallbackListener<List<String>>() {
-        override fun onSuccess(uids: List<String>) {
+    CometChat.unblockUsers(listOf(currentUser.uid), object : CometChat.CallbackListener<HashMap<String, String>>() {
+        override fun onSuccess(resultMap: HashMap<String, String>) {
             unblockButtonState.postValue(false)
         }
         override fun onError(e: CometChatException?) {
             // Handle error
         }
     })
+}
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+// In MessagesActivity.java
+binding.unblockBtn.setOnClickListener(v -> viewModel.unblockUser());
+
+// In MessagesViewModel.java
+public void unblockUser() {
+    CometChat.unblockUsers(Collections.singletonList(currentUser.getUid()), new CometChat.CallbackListener<HashMap<String, String>>() {
+        @Override
+        public void onSuccess(HashMap<String, String> resultMap) {
+            unblockButtonState.postValue(false);
+        }
+        @Override
+        public void onError(CometChatException e) {
+            // Handle error
+        }
+    });
 }
 ```
 </Tab>
@@ -157,13 +157,29 @@ Executes unblock logic and updates LiveData to refresh UI.
 Allow blocking directly from a user’s profile.
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+// In UserDetailActivity.kt
+binding.blockMenuItem.setOnClickListener {
+    CometChat.blockUsers(listOf(user.uid), object : CometChat.CallbackListener<HashMap<String, String>>() {
+        override fun onSuccess(resultMap: HashMap<String, String>) {
+            viewModel.refreshUser()
+        }
+        override fun onError(e: CometChatException?) {
+            // Handle error
+        }
+    })
+}
+```
+</Tab>
+
 <Tab title="Java">
 ```java lines
 // In UserDetailActivity.java
 binding.blockMenuItem.setOnClickListener(v -> {
-    CometChatUIKit.blockUsers(Collections.singletonList(user.getUid()), new CometChat.CallbackListener<List<String>>() {
+    CometChat.blockUsers(Collections.singletonList(user.getUid()), new CometChat.CallbackListener<HashMap<String, String>>() {
         @Override
-        public void onSuccess(List<String> uids) {
+        public void onSuccess(HashMap<String, String> resultMap) {
             viewModel.refreshUser();
         }
         @Override
@@ -172,22 +188,6 @@ binding.blockMenuItem.setOnClickListener(v -> {
         }
     });
 });
-```
-</Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-// In UserDetailActivity.kt
-binding.blockMenuItem.setOnClickListener {
-    CometChatUIKit.blockUsers(listOf(user.uid), object : CometChat.CallbackListener<List<String>>() {
-        override fun onSuccess(uids: List<String>) {
-            viewModel.refreshUser()
-        }
-        override fun onError(e: CometChatException?) {
-            // Handle error
-        }
-    })
-}
 ```
 </Tab>
 </Tabs>
@@ -238,8 +238,8 @@ Integrates block action into the profile menu, triggering the UI toggle via Live
 | Feature            | Component / Method                        |
 |:-------------------|:------------------------------------------|
 | Check block state  | `User.isBlockedByMe()`                    |
-| Block user         | `CometChatUIKit.blockUsers()`             |
-| Unblock user       | `CometChatUIKit.unblockUsers()`           |
+| Block user         | `CometChat.blockUsers()`                  |
+| Unblock user       | `CometChat.unblockUsers()`                |
 | Update UI          | `updateUserBlockStatus()`                 |
 | Profile block menu | `UserDetailActivity.blockMenuItem`        |
 

@@ -41,17 +41,6 @@ Users tap **Message Privately** → launch `MessagesActivity` with the target us
 Navigate from `UserDetailsActivity` to `MessagesActivity` with the selected user.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-// In UserDetailsActivity.java
-binding.messagePrivatelyBtn.setOnClickListener(v -> {
-  Intent intent = new Intent(this, MessagesActivity.class);
-  intent.putExtra(getString(R.string.app_user), new Gson().toJson(user));
-  startActivity(intent);
-});
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 // In UserDetailsActivity.kt
@@ -60,6 +49,17 @@ binding.messagePrivatelyBtn.setOnClickListener {
     intent.putExtra(getString(R.string.app_user), Gson().toJson(user))
     startActivity(intent)
 }
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+// In UserDetailsActivity.java
+binding.messagePrivatelyBtn.setOnClickListener(v -> {
+  Intent intent = new Intent(this, MessagesActivity.class);
+  intent.putExtra(getString(R.string.app_user), new Gson().toJson(user));
+  startActivity(intent);
+});
 ```
 </Tab>
 </Tabs>
@@ -72,6 +72,24 @@ binding.messagePrivatelyBtn.setOnClickListener {
 Deserialize the `User` JSON extra and configure the chat UI.
 
 <Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+// In MessagesActivity.kt
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_messages)
+
+    val userJson = intent.getStringExtra(getString(R.string.app_user))
+    if (userJson != null) {
+        val user = Gson().fromJson(userJson, User::class.java)
+        messageHeader.setUser(user)
+        messageList.setUser(user)
+        composer.setUser(user)
+    }
+}
+```
+</Tab>
+
 <Tab title="Java">
 ```java lines
 // In MessagesActivity.java
@@ -90,24 +108,6 @@ protected void onCreate(Bundle savedInstanceState) {
 }
 ```
 </Tab>
-
-<Tab title="Kotlin">
-```kotlin lines
-// In MessagesActivity.kt
-override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_messages)
-
-    val userJson = intent.getStringExtra(getString(R.string.app_user))
-    if (userJson != null) {
-        val user = Gson().fromJson(userJson, User::class.java)
-        messageHeader.setUser(user)
-        messageList.setUser(user)
-        composer.setUser(user)
-    }
-}
-```
-</Tab>
 </Tabs>
 
 **File reference:**  
@@ -118,25 +118,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
 Send an initial greeting to ensure the chat appears in conversation lists.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-// In MainActivity.java
-txtMessage = new TextMessage(
-  "cometchat-uid-2",
-  "👋",
-  CometChatConstants.RECEIVER_TYPE_USER
-);
-CometChat.sendMessage(txtMessage, new CometChat.CallbackListener<BaseMessage>() {
-  @Override public void onSuccess(BaseMessage msg) {
-    Log.d("SendMsg", "Initial message sent.");
-  }
-  @Override public void onError(CometChatException e) {
-    Log.e("SendMsg", e.getMessage());
-  }
-});
-```
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 // In MainActivity.kt
@@ -153,6 +134,25 @@ CometChat.sendMessage(txtMessage, object : CometChat.CallbackListener<BaseMessag
         Log.e("SendMsg", e?.message ?: "Error sending message")
     }
 })
+```
+</Tab>
+
+<Tab title="Java">
+```java lines
+// In MainActivity.java
+txtMessage = new TextMessage(
+  "cometchat-uid-2",
+  "👋",
+  CometChatConstants.RECEIVER_TYPE_USER
+);
+CometChat.sendMessage(txtMessage, new CometChat.CallbackListener<BaseMessage>() {
+  @Override public void onSuccess(BaseMessage msg) {
+    Log.d("SendMsg", "Initial message sent.");
+  }
+  @Override public void onError(CometChatException e) {
+    Log.e("SendMsg", e.getMessage());
+  }
+});
 ```
 </Tab>
 </Tabs>
