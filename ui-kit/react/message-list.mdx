@@ -2,9 +2,113 @@
 title: "Message List"
 description: "Scrollable list of sent and received messages with text, media, reactions, read receipts, threaded replies, and AI features."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatMessageList",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatMessageList } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Scrollable list of sent and received messages with text, media, reactions, read receipts, threaded replies, and AI features.",
+  "cssRootClass": ".cometchat-message-list",
+  "primaryOutput": {
+    "prop": "onThreadRepliesClick",
+    "type": "(message: CometChat.BaseMessage) => void"
+  },
+  "props": {
+    "data": {
+      "user": { "type": "CometChat.User", "default": "undefined" },
+      "group": { "type": "CometChat.Group", "default": "undefined" },
+      "messagesRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default" },
+      "reactionsRequestBuilder": { "type": "CometChat.ReactionsRequestBuilder", "default": "undefined" },
+      "parentMessageId": { "type": "number", "default": "undefined" },
+      "templates": { "type": "CometChatMessageTemplate[]", "default": "SDK defaults" },
+      "goToMessageId": { "type": "string", "default": "undefined" }
+    },
+    "callbacks": {
+      "onThreadRepliesClick": "(message: CometChat.BaseMessage) => void",
+      "onReactionClick": "(reaction: CometChat.ReactionCount, message: CometChat.BaseMessage) => void",
+      "onReactionListItemClick": "(reaction: CometChat.Reaction, message: CometChat.BaseMessage) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "visibility": {
+      "hideDateSeparator": { "type": "boolean", "default": false },
+      "hideStickyDate": { "type": "boolean", "default": false },
+      "hideReceipts": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideReplyInThreadOption": { "type": "boolean", "default": false },
+      "hideReplyOption": { "type": "boolean", "default": false },
+      "hideTranslateMessageOption": { "type": "boolean", "default": false },
+      "hideEditMessageOption": { "type": "boolean", "default": false },
+      "hideDeleteMessageOption": { "type": "boolean", "default": false },
+      "hideReactionOption": { "type": "boolean", "default": false },
+      "hideMessagePrivatelyOption": { "type": "boolean", "default": false },
+      "hideCopyMessageOption": { "type": "boolean", "default": false },
+      "hideMessageInfoOption": { "type": "boolean", "default": false },
+      "hideAvatar": { "type": "boolean", "default": false },
+      "hideGroupActionMessages": { "type": "boolean", "default": false },
+      "hideModerationView": { "type": "boolean", "default": false },
+      "hideFlagMessageOption": { "type": "boolean", "default": false },
+      "hideFlagRemarkField": { "type": "boolean", "default": false },
+      "showConversationStarters": { "type": "boolean", "default": false },
+      "showSmartReplies": { "type": "boolean", "default": false },
+      "showMarkAsUnreadOption": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "behavior": {
+      "messageAlignment": { "type": "MessageListAlignment", "default": "MessageListAlignment.standard" },
+      "scrollToBottomOnNewMessages": { "type": "boolean", "default": false },
+      "quickOptionsCount": { "type": "number", "default": 3 },
+      "startFromUnreadMessages": { "type": "boolean", "default": false },
+      "isAgentChat": { "type": "boolean", "default": false },
+      "loadLastAgentConversation": { "type": "boolean", "default": false }
+    },
+    "sound": {
+      "disableSoundForMessages": { "type": "boolean", "default": true },
+      "customSoundForMessages": { "type": "string", "default": "undefined" }
+    },
+    "ai": {
+      "smartRepliesKeywords": { "type": "string[]", "default": "[\"what\",\"when\",\"why\",\"who\",\"where\",\"how\",\"?\"]" },
+      "smartRepliesDelayDuration": { "type": "number", "default": 10000 }
+    },
+    "dateFormatting": {
+      "separatorDateTimeFormat": "CalendarObject",
+      "stickyDateTimeFormat": "CalendarObject",
+      "messageSentAtDateTimeFormat": "CalendarObject",
+      "messageInfoDateTimeFormat": "CalendarObject"
+    },
+    "viewSlots": {
+      "headerView": "JSX.Element",
+      "footerView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element"
+    },
+    "formatting": {
+      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "default formatters" }
+    }
+  },
+  "events": [
+    { "name": "CometChatMessageEvents.ccMessageEdited", "payload": "IMessages" },
+    { "name": "CometChatMessageEvents.ccMessageDeleted", "payload": "CometChat.BaseMessage" },
+    { "name": "CometChatMessageEvents.ccMessageRead", "payload": "CometChat.BaseMessage" },
+    { "name": "CometChatMessageEvents.ccReplyToMessage", "payload": "IMessages" },
+    { "name": "CometChatUIEvents.ccOpenChat", "payload": "IOpenChat" },
+    { "name": "CometChatUIEvents.ccActiveChatChanged", "payload": "IActiveChatChanged" }
+  ],
+  "sdkListeners": [
+    "onTextMessageReceived", "onMediaMessageReceived", "onCustomMessageReceived",
+    "onMessageEdited", "onMessageDeleted", "onMessageModerated",
+    "onTypingStarted", "onTypingEnded",
+    "onMessagesDelivered", "onMessagesRead", "onMessagesDeliveredToAll", "onMessagesReadByAll"
+  ],
+  "types": {
+    "MessageListAlignment": { "left": 0, "standard": 1 },
+    "CalendarObject": { "today": "string", "yesterday": "string", "lastWeek": "string", "otherDays": "string" }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -558,8 +662,7 @@ Message bubbles are rendered as semantic elements. Date separators provide tempo
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -1188,115 +1291,3 @@ The user for 1-on-1 conversation messages.
 | Thread view replies | `.cometchat-message-bubble__thread-view-replies` |
 | Text bubble | `.cometchat-message-bubble .cometchat-text-bubble` |
 | Delete bubble | `.cometchat-message-bubble .cometchat-delete-bubble` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatMessageList",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatMessageList } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Scrollable list of sent and received messages with text, media, reactions, read receipts, threaded replies, and AI features.",
-  "cssRootClass": ".cometchat-message-list",
-  "primaryOutput": {
-    "prop": "onThreadRepliesClick",
-    "type": "(message: CometChat.BaseMessage) => void"
-  },
-  "props": {
-    "data": {
-      "user": { "type": "CometChat.User", "default": "undefined" },
-      "group": { "type": "CometChat.Group", "default": "undefined" },
-      "messagesRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default" },
-      "reactionsRequestBuilder": { "type": "CometChat.ReactionsRequestBuilder", "default": "undefined" },
-      "parentMessageId": { "type": "number", "default": "undefined" },
-      "templates": { "type": "CometChatMessageTemplate[]", "default": "SDK defaults" },
-      "goToMessageId": { "type": "string", "default": "undefined" }
-    },
-    "callbacks": {
-      "onThreadRepliesClick": "(message: CometChat.BaseMessage) => void",
-      "onReactionClick": "(reaction: CometChat.ReactionCount, message: CometChat.BaseMessage) => void",
-      "onReactionListItemClick": "(reaction: CometChat.Reaction, message: CometChat.BaseMessage) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "visibility": {
-      "hideDateSeparator": { "type": "boolean", "default": false },
-      "hideStickyDate": { "type": "boolean", "default": false },
-      "hideReceipts": { "type": "boolean", "default": false },
-      "hideError": { "type": "boolean", "default": false },
-      "hideReplyInThreadOption": { "type": "boolean", "default": false },
-      "hideReplyOption": { "type": "boolean", "default": false },
-      "hideTranslateMessageOption": { "type": "boolean", "default": false },
-      "hideEditMessageOption": { "type": "boolean", "default": false },
-      "hideDeleteMessageOption": { "type": "boolean", "default": false },
-      "hideReactionOption": { "type": "boolean", "default": false },
-      "hideMessagePrivatelyOption": { "type": "boolean", "default": false },
-      "hideCopyMessageOption": { "type": "boolean", "default": false },
-      "hideMessageInfoOption": { "type": "boolean", "default": false },
-      "hideAvatar": { "type": "boolean", "default": false },
-      "hideGroupActionMessages": { "type": "boolean", "default": false },
-      "hideModerationView": { "type": "boolean", "default": false },
-      "hideFlagMessageOption": { "type": "boolean", "default": false },
-      "hideFlagRemarkField": { "type": "boolean", "default": false },
-      "showConversationStarters": { "type": "boolean", "default": false },
-      "showSmartReplies": { "type": "boolean", "default": false },
-      "showMarkAsUnreadOption": { "type": "boolean", "default": false },
-      "showScrollbar": { "type": "boolean", "default": false }
-    },
-    "behavior": {
-      "messageAlignment": { "type": "MessageListAlignment", "default": "MessageListAlignment.standard" },
-      "scrollToBottomOnNewMessages": { "type": "boolean", "default": false },
-      "quickOptionsCount": { "type": "number", "default": 3 },
-      "startFromUnreadMessages": { "type": "boolean", "default": false },
-      "isAgentChat": { "type": "boolean", "default": false },
-      "loadLastAgentConversation": { "type": "boolean", "default": false }
-    },
-    "sound": {
-      "disableSoundForMessages": { "type": "boolean", "default": true },
-      "customSoundForMessages": { "type": "string", "default": "undefined" }
-    },
-    "ai": {
-      "smartRepliesKeywords": { "type": "string[]", "default": "[\"what\",\"when\",\"why\",\"who\",\"where\",\"how\",\"?\"]" },
-      "smartRepliesDelayDuration": { "type": "number", "default": 10000 }
-    },
-    "dateFormatting": {
-      "separatorDateTimeFormat": "CalendarObject",
-      "stickyDateTimeFormat": "CalendarObject",
-      "messageSentAtDateTimeFormat": "CalendarObject",
-      "messageInfoDateTimeFormat": "CalendarObject"
-    },
-    "viewSlots": {
-      "headerView": "JSX.Element",
-      "footerView": "JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element"
-    },
-    "formatting": {
-      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "default formatters" }
-    }
-  },
-  "events": [
-    { "name": "CometChatMessageEvents.ccMessageEdited", "payload": "IMessages" },
-    { "name": "CometChatMessageEvents.ccMessageDeleted", "payload": "CometChat.BaseMessage" },
-    { "name": "CometChatMessageEvents.ccMessageRead", "payload": "CometChat.BaseMessage" },
-    { "name": "CometChatMessageEvents.ccReplyToMessage", "payload": "IMessages" },
-    { "name": "CometChatUIEvents.ccOpenChat", "payload": "IOpenChat" },
-    { "name": "CometChatUIEvents.ccActiveChatChanged", "payload": "IActiveChatChanged" }
-  ],
-  "sdkListeners": [
-    "onTextMessageReceived", "onMediaMessageReceived", "onCustomMessageReceived",
-    "onMessageEdited", "onMessageDeleted", "onMessageModerated",
-    "onTypingStarted", "onTypingEnded",
-    "onMessagesDelivered", "onMessagesRead", "onMessagesDeliveredToAll", "onMessagesReadByAll"
-  ],
-  "types": {
-    "MessageListAlignment": { "left": 0, "standard": 1 },
-    "CalendarObject": { "today": "string", "yesterday": "string", "lastWeek": "string", "otherDays": "string" }
-  }
-}
-```
-
-</Tab>
-</Tabs>

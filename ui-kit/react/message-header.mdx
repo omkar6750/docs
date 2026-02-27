@@ -2,9 +2,75 @@
 title: "Message Header"
 description: "Toolbar displaying user/group avatar, name, status, typing indicator, back button, and call controls for a single conversation."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatMessageHeader",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatMessageHeader } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Toolbar displaying user/group avatar, name, status, typing indicator, back button, and call controls for a single conversation.",
+  "cssRootClass": ".cometchat-message-header",
+  "note": "View slots are JSX.Element (not functions) — unlike list components.",
+  "props": {
+    "data": {
+      "user": { "type": "CometChat.User", "default": "undefined" },
+      "group": { "type": "CometChat.Group", "default": "undefined" },
+      "lastActiveAtDateTimeFormat": { "type": "CalendarObject", "default": "component default" },
+      "summaryGenerationMessageCount": { "type": "number", "default": 1000 }
+    },
+    "callbacks": {
+      "onBack": "() => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null",
+      "onItemClick": "() => void",
+      "onSearchOptionClicked": "() => void"
+    },
+    "visibility": {
+      "showBackButton": { "type": "boolean", "default": false },
+      "hideVideoCallButton": { "type": "boolean", "default": false },
+      "hideVoiceCallButton": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "showConversationSummaryButton": { "type": "boolean", "default": false },
+      "showSearchOption": { "type": "boolean", "default": false },
+      "enableAutoSummaryGeneration": { "type": "boolean", "default": false }
+    },
+    "viewSlots": {
+      "itemView": "JSX.Element",
+      "leadingView": "JSX.Element",
+      "titleView": "JSX.Element",
+      "subtitleView": "JSX.Element",
+      "trailingView": "JSX.Element",
+      "auxiliaryButtonView": "JSX.Element"
+    }
+  },
+  "sdkListeners": [
+    "onUserOnline",
+    "onUserOffline",
+    "onTypingStarted",
+    "onTypingEnded",
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onMemberAddedToGroup"
+  ],
+  "types": {
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined",
+      "relativeTime": {
+        "minute": "string | undefined",
+        "minutes": "string | undefined",
+        "hour": "string | undefined",
+        "hours": "string | undefined"
+      }
+    }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -566,8 +632,7 @@ The component renders a toolbar with interactive elements. The back button, call
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -840,77 +905,3 @@ Pass either `user` or `group`, not both.
 | Summary button | `.cometchat-message-header__conversation-summary-button` |
 | Search button | `.cometchat-message-header__search-button` |
 | Menu | `.cometchat-message-header__menu` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatMessageHeader",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatMessageHeader } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Toolbar displaying user/group avatar, name, status, typing indicator, back button, and call controls for a single conversation.",
-  "cssRootClass": ".cometchat-message-header",
-  "note": "View slots are JSX.Element (not functions) — unlike list components.",
-  "props": {
-    "data": {
-      "user": { "type": "CometChat.User", "default": "undefined" },
-      "group": { "type": "CometChat.Group", "default": "undefined" },
-      "lastActiveAtDateTimeFormat": { "type": "CalendarObject", "default": "component default" },
-      "summaryGenerationMessageCount": { "type": "number", "default": 1000 }
-    },
-    "callbacks": {
-      "onBack": "() => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null",
-      "onItemClick": "() => void",
-      "onSearchOptionClicked": "() => void"
-    },
-    "visibility": {
-      "showBackButton": { "type": "boolean", "default": false },
-      "hideVideoCallButton": { "type": "boolean", "default": false },
-      "hideVoiceCallButton": { "type": "boolean", "default": false },
-      "hideUserStatus": { "type": "boolean", "default": false },
-      "showConversationSummaryButton": { "type": "boolean", "default": false },
-      "showSearchOption": { "type": "boolean", "default": false },
-      "enableAutoSummaryGeneration": { "type": "boolean", "default": false }
-    },
-    "viewSlots": {
-      "itemView": "JSX.Element",
-      "leadingView": "JSX.Element",
-      "titleView": "JSX.Element",
-      "subtitleView": "JSX.Element",
-      "trailingView": "JSX.Element",
-      "auxiliaryButtonView": "JSX.Element"
-    }
-  },
-  "sdkListeners": [
-    "onUserOnline",
-    "onUserOffline",
-    "onTypingStarted",
-    "onTypingEnded",
-    "onGroupMemberJoined",
-    "onGroupMemberLeft",
-    "onGroupMemberKicked",
-    "onGroupMemberBanned",
-    "onMemberAddedToGroup"
-  ],
-  "types": {
-    "CalendarObject": {
-      "today": "string | undefined",
-      "yesterday": "string | undefined",
-      "lastWeek": "string | undefined",
-      "otherDays": "string | undefined",
-      "relativeTime": {
-        "minute": "string | undefined",
-        "minutes": "string | undefined",
-        "hour": "string | undefined",
-        "hours": "string | undefined"
-      }
-    }
-  }
-}
-```
-
-</Tab>
-</Tabs>

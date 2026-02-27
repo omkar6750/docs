@@ -2,9 +2,116 @@
 title: "Search"
 description: "Dual-scope search across conversations and messages with filtering, scopes, and custom views."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatSearch",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatSearch } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Dual-scope search across conversations and messages with filtering, scopes, and custom views.",
+  "cssRootClass": ".cometchat-search",
+  "primaryOutput": {
+    "props": ["onConversationClicked", "onMessageClicked"],
+    "types": [
+      "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
+      "(message: CometChat.BaseMessage, searchKeyword?: string) => void"
+    ]
+  },
+  "props": {
+    "data": {
+      "uid": { "type": "string", "default": "undefined", "note": "Limits search to specific user" },
+      "guid": { "type": "string", "default": "undefined", "note": "Limits search to specific group" },
+      "conversationsRequestBuilder": { "type": "CometChat.ConversationsRequestBuilder", "default": "SDK default" },
+      "messagesRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default" },
+      "messageSentAtDateTimeFormat": { "type": "CalendarObject", "default": "Component default" }
+    },
+    "callbacks": {
+      "onConversationClicked": "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
+      "onMessageClicked": "(message: CometChat.BaseMessage, searchKeyword?: string) => void",
+      "onBack": "() => void",
+      "onError": "(error: CometChat.CometChatException) => void"
+    },
+    "visibility": {
+      "hideBackButton": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "hideReceipts": { "type": "boolean", "default": false }
+    },
+    "search": {
+      "searchFilters": {
+        "type": "CometChatSearchFilter[]",
+        "default": "All available filters"
+      },
+      "initialSearchFilter": {
+        "type": "CometChatSearchFilter",
+        "default": "undefined"
+      },
+      "searchIn": {
+        "type": "CometChatSearchScope[]",
+        "default": "[CometChatSearchScope.All]"
+      }
+    },
+    "viewSlots": {
+      "conversationItemView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationLeadingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationTitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationSubtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationTrailingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationOptions": "((conversation: CometChat.Conversation) => CometChatOption[]) | null",
+      "messageItemView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageLeadingView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageTitleView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageSubtitleView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageTrailingView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "initialView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element"
+    },
+    "formatting": {
+      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "[]" }
+    }
+  },
+  "events": [],
+  "sdkListeners": [],
+  "types": {
+    "CometChatSearchScope": {
+      "Conversations": "conversations",
+      "Messages": "messages"
+    },
+    "CometChatSearchFilter": {
+      "Messages": "messages",
+      "Conversations": "conversations",
+      "Unread": "unread",
+      "Groups": "groups",
+      "Photos": "photos",
+      "Videos": "videos",
+      "Links": "links",
+      "Documents": "files",
+      "Audio": "audio"
+    },
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined"
+    },
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    }
+  },
+  "compositionExample": {
+    "description": "Standalone search panel with navigation callbacks",
+    "components": ["CometChatSearch"],
+    "flow": "User types query -> results appear in conversations and messages sections -> onConversationClicked/onMessageClicked navigate to result"
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -732,8 +839,7 @@ The search input is auto-focused on mount. Filter chips are keyboard-navigable a
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -1154,118 +1260,3 @@ The `CometChatSearch` component does not emit any custom UI events.
 | Online status | `.cometchat-search__conversations-list-item-online .cometchat-list-item__status` |
 | Password group | `.cometchat-search__conversations-list-item-password .cometchat-list-item__status` |
 | Private group | `.cometchat-search__conversations-list-item-private .cometchat-list-item__status` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatSearch",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatSearch } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Dual-scope search across conversations and messages with filtering, scopes, and custom views.",
-  "cssRootClass": ".cometchat-search",
-  "primaryOutput": {
-    "props": ["onConversationClicked", "onMessageClicked"],
-    "types": [
-      "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
-      "(message: CometChat.BaseMessage, searchKeyword?: string) => void"
-    ]
-  },
-  "props": {
-    "data": {
-      "uid": { "type": "string", "default": "undefined", "note": "Limits search to specific user" },
-      "guid": { "type": "string", "default": "undefined", "note": "Limits search to specific group" },
-      "conversationsRequestBuilder": { "type": "CometChat.ConversationsRequestBuilder", "default": "SDK default" },
-      "messagesRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default" },
-      "messageSentAtDateTimeFormat": { "type": "CalendarObject", "default": "Component default" }
-    },
-    "callbacks": {
-      "onConversationClicked": "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
-      "onMessageClicked": "(message: CometChat.BaseMessage, searchKeyword?: string) => void",
-      "onBack": "() => void",
-      "onError": "(error: CometChat.CometChatException) => void"
-    },
-    "visibility": {
-      "hideBackButton": { "type": "boolean", "default": false },
-      "hideUserStatus": { "type": "boolean", "default": false },
-      "hideGroupType": { "type": "boolean", "default": false },
-      "hideReceipts": { "type": "boolean", "default": false }
-    },
-    "search": {
-      "searchFilters": {
-        "type": "CometChatSearchFilter[]",
-        "default": "All available filters"
-      },
-      "initialSearchFilter": {
-        "type": "CometChatSearchFilter",
-        "default": "undefined"
-      },
-      "searchIn": {
-        "type": "CometChatSearchScope[]",
-        "default": "[CometChatSearchScope.All]"
-      }
-    },
-    "viewSlots": {
-      "conversationItemView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "conversationLeadingView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "conversationTitleView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "conversationSubtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "conversationTrailingView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "conversationOptions": "((conversation: CometChat.Conversation) => CometChatOption[]) | null",
-      "messageItemView": "(message: CometChat.BaseMessage) => JSX.Element",
-      "messageLeadingView": "(message: CometChat.BaseMessage) => JSX.Element",
-      "messageTitleView": "(message: CometChat.BaseMessage) => JSX.Element",
-      "messageSubtitleView": "(message: CometChat.BaseMessage) => JSX.Element",
-      "messageTrailingView": "(message: CometChat.BaseMessage) => JSX.Element",
-      "initialView": "JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element"
-    },
-    "formatting": {
-      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "[]" }
-    }
-  },
-  "events": [],
-  "sdkListeners": [],
-  "types": {
-    "CometChatSearchScope": {
-      "Conversations": "conversations",
-      "Messages": "messages"
-    },
-    "CometChatSearchFilter": {
-      "Messages": "messages",
-      "Conversations": "conversations",
-      "Unread": "unread",
-      "Groups": "groups",
-      "Photos": "photos",
-      "Videos": "videos",
-      "Links": "links",
-      "Documents": "files",
-      "Audio": "audio"
-    },
-    "CalendarObject": {
-      "today": "string | undefined",
-      "yesterday": "string | undefined",
-      "lastWeek": "string | undefined",
-      "otherDays": "string | undefined"
-    },
-    "CometChatOption": {
-      "id": "string | undefined",
-      "title": "string | undefined",
-      "iconURL": "string | undefined",
-      "onClick": "(() => void) | undefined"
-    }
-  },
-  "compositionExample": {
-    "description": "Standalone search panel with navigation callbacks",
-    "components": ["CometChatSearch"],
-    "flow": "User types query -> results appear in conversations and messages sections -> onConversationClicked/onMessageClicked navigate to result"
-  }
-}
-```
-
-</Tab>
-</Tabs>

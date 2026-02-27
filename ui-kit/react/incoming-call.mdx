@@ -2,9 +2,45 @@
 title: "Incoming Call"
 description: "Visual notification for incoming voice/video calls with accept and decline controls."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatIncomingCall",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatIncomingCall } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Visual notification for incoming voice/video calls with accept and decline controls.",
+  "cssRootClass": ".cometchat-incoming-call",
+  "props": {
+    "data": {
+      "call": { "type": "any", "default": "auto-detected" },
+      "callSettingsBuilder": { "type": "(call: CometChat.Call) => CallSettingsBuilder", "default": "undefined" }
+    },
+    "callbacks": {
+      "onAccept": "(call: CometChat.Call) => void",
+      "onDecline": "(call: CometChat.Call) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "boolean", "default": false },
+      "customSoundForCalls": { "type": "string", "default": "undefined" }
+    },
+    "viewSlots": {
+      "itemView": "(call: CometChat.Call) => JSX.Element",
+      "leadingView": "(call: CometChat.Call) => JSX.Element",
+      "titleView": "(call: CometChat.Call) => JSX.Element",
+      "subtitleView": "(call: CometChat.Call) => JSX.Element",
+      "trailingView": "(call: CometChat.Call) => JSX.Element"
+    }
+  },
+  "events": [
+    { "name": "CometChatCallEvents.ccCallRejected", "payload": "CometChat.Call" },
+    { "name": "CometChatCallEvents.ccCallAccepted", "payload": "CometChat.Call" },
+    { "name": "CometChatCallEvents.ccCallEnded", "payload": "CometChat.Call" }
+  ]
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -300,8 +336,7 @@ The accept and decline buttons are keyboard-focusable and activate on Enter/Spac
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -463,47 +498,3 @@ Custom renderer for the right section.
 | Button group | `.cometchat-incoming-call__button-group` |
 | Decline button | `.cometchat-incoming-call__button-decline` |
 | Accept button | `.cometchat-incoming-call__button-accept` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatIncomingCall",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatIncomingCall } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Visual notification for incoming voice/video calls with accept and decline controls.",
-  "cssRootClass": ".cometchat-incoming-call",
-  "props": {
-    "data": {
-      "call": { "type": "any", "default": "auto-detected" },
-      "callSettingsBuilder": { "type": "(call: CometChat.Call) => CallSettingsBuilder", "default": "undefined" }
-    },
-    "callbacks": {
-      "onAccept": "(call: CometChat.Call) => void",
-      "onDecline": "(call: CometChat.Call) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "sound": {
-      "disableSoundForCalls": { "type": "boolean", "default": false },
-      "customSoundForCalls": { "type": "string", "default": "undefined" }
-    },
-    "viewSlots": {
-      "itemView": "(call: CometChat.Call) => JSX.Element",
-      "leadingView": "(call: CometChat.Call) => JSX.Element",
-      "titleView": "(call: CometChat.Call) => JSX.Element",
-      "subtitleView": "(call: CometChat.Call) => JSX.Element",
-      "trailingView": "(call: CometChat.Call) => JSX.Element"
-    }
-  },
-  "events": [
-    { "name": "CometChatCallEvents.ccCallRejected", "payload": "CometChat.Call" },
-    { "name": "CometChatCallEvents.ccCallAccepted", "payload": "CometChat.Call" },
-    { "name": "CometChatCallEvents.ccCallEnded", "payload": "CometChat.Call" }
-  ]
-}
-```
-
-</Tab>
-</Tabs>

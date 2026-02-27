@@ -2,9 +2,147 @@
 title: "Groups"
 description: "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatGroups",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatGroups } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator.",
+  "cssRootClass": ".cometchat-groups",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(group: CometChat.Group) => void"
+  },
+  "props": {
+    "data": {
+      "groupsRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "searchRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "undefined"
+      },
+      "activeGroup": {
+        "type": "CometChat.Group",
+        "default": "undefined"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(group: CometChat.Group) => void",
+      "onSelect": "(group: CometChat.Group, selected: boolean) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "visibility": {
+      "hideSearch": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
+        "default": "SelectionMode.none"
+      }
+    },
+    "viewSlots": {
+      "itemView": "(group: CometChat.Group) => JSX.Element",
+      "leadingView": "(group: CometChat.Group) => JSX.Element",
+      "titleView": "(group: CometChat.Group) => JSX.Element",
+      "subtitleView": "(group: CometChat.Group) => JSX.Element",
+      "trailingView": "(group: CometChat.Group) => JSX.Element",
+      "headerView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element",
+      "options": "(group: CometChat.Group) => CometChatOption[]"
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatGroupEvents.ccGroupCreated",
+      "payload": "CometChat.Group",
+      "description": "New group created"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupDeleted",
+      "payload": "CometChat.Group",
+      "description": "Group deleted"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberJoined",
+      "payload": "IGroupMemberJoined",
+      "description": "User joins a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupLeft",
+      "payload": "IGroupLeft",
+      "description": "User leaves a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberAdded",
+      "payload": "IGroupMemberAdded",
+      "description": "Members added to a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberScopeChanged",
+      "payload": "IGroupMemberScopeChanged",
+      "description": "Member scope changed"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberKicked",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Member kicked"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberBanned",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Member banned"
+    },
+    {
+      "name": "CometChatGroupEvents.ccOwnershipChanged",
+      "payload": "IOwnershipChanged",
+      "description": "Ownership transferred"
+    }
+  ],
+  "sdkListeners": [
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onMemberAddedToGroup",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onGroupMemberScopeChanged"
+  ],
+  "compositionExample": {
+    "description": "Group directory wired to message view",
+    "components": [
+      "CometChatGroups",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemClick emits CometChat.Group -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    },
+    "SelectionMode": {
+      "single": 0,
+      "multiple": 1,
+      "none": 2
+    }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -890,8 +1028,7 @@ The component renders a scrollable list of interactive items. Each group row is 
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -1204,150 +1341,3 @@ All events are RxJS `Subject` instances. Subscribe with `.subscribe()`, unsubscr
 | Shimmer avatar | `.cometchat-groups__shimmer-item-avatar` |
 | Shimmer title | `.cometchat-groups__shimmer-item-body-title` |
 | Shimmer subtitle | `.cometchat-groups__shimmer-item-body-subtitle` |
-
-</Tab>
-
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatGroups",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatGroups } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator.",
-  "cssRootClass": ".cometchat-groups",
-  "primaryOutput": {
-    "prop": "onItemClick",
-    "type": "(group: CometChat.Group) => void"
-  },
-  "props": {
-    "data": {
-      "groupsRequestBuilder": {
-        "type": "CometChat.GroupsRequestBuilder",
-        "default": "SDK default (30 per page)",
-        "note": "Pass the builder, not the result of .build()"
-      },
-      "searchRequestBuilder": {
-        "type": "CometChat.GroupsRequestBuilder",
-        "default": "undefined"
-      },
-      "activeGroup": {
-        "type": "CometChat.Group",
-        "default": "undefined"
-      }
-    },
-    "callbacks": {
-      "onItemClick": "(group: CometChat.Group) => void",
-      "onSelect": "(group: CometChat.Group, selected: boolean) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "visibility": {
-      "hideSearch": { "type": "boolean", "default": false },
-      "hideError": { "type": "boolean", "default": false },
-      "hideGroupType": { "type": "boolean", "default": false },
-      "showScrollbar": { "type": "boolean", "default": false }
-    },
-    "selection": {
-      "selectionMode": {
-        "type": "SelectionMode",
-        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
-        "default": "SelectionMode.none"
-      }
-    },
-    "viewSlots": {
-      "itemView": "(group: CometChat.Group) => JSX.Element",
-      "leadingView": "(group: CometChat.Group) => JSX.Element",
-      "titleView": "(group: CometChat.Group) => JSX.Element",
-      "subtitleView": "(group: CometChat.Group) => JSX.Element",
-      "trailingView": "(group: CometChat.Group) => JSX.Element",
-      "headerView": "JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element",
-      "options": "(group: CometChat.Group) => CometChatOption[]"
-    }
-  },
-  "events": [
-    {
-      "name": "CometChatGroupEvents.ccGroupCreated",
-      "payload": "CometChat.Group",
-      "description": "New group created"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupDeleted",
-      "payload": "CometChat.Group",
-      "description": "Group deleted"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupMemberJoined",
-      "payload": "IGroupMemberJoined",
-      "description": "User joins a group"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupLeft",
-      "payload": "IGroupLeft",
-      "description": "User leaves a group"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupMemberAdded",
-      "payload": "IGroupMemberAdded",
-      "description": "Members added to a group"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupMemberScopeChanged",
-      "payload": "IGroupMemberScopeChanged",
-      "description": "Member scope changed"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupMemberKicked",
-      "payload": "IGroupMemberKickedBanned",
-      "description": "Member kicked"
-    },
-    {
-      "name": "CometChatGroupEvents.ccGroupMemberBanned",
-      "payload": "IGroupMemberKickedBanned",
-      "description": "Member banned"
-    },
-    {
-      "name": "CometChatGroupEvents.ccOwnershipChanged",
-      "payload": "IOwnershipChanged",
-      "description": "Ownership transferred"
-    }
-  ],
-  "sdkListeners": [
-    "onGroupMemberJoined",
-    "onGroupMemberLeft",
-    "onMemberAddedToGroup",
-    "onGroupMemberKicked",
-    "onGroupMemberBanned",
-    "onGroupMemberScopeChanged"
-  ],
-  "compositionExample": {
-    "description": "Group directory wired to message view",
-    "components": [
-      "CometChatGroups",
-      "CometChatMessageHeader",
-      "CometChatMessageList",
-      "CometChatMessageComposer"
-    ],
-    "flow": "onItemClick emits CometChat.Group -> pass to MessageHeader, MessageList, MessageComposer"
-  },
-  "types": {
-    "CometChatOption": {
-      "id": "string | undefined",
-      "title": "string | undefined",
-      "iconURL": "string | undefined",
-      "onClick": "(() => void) | undefined"
-    },
-    "SelectionMode": {
-      "single": 0,
-      "multiple": 1,
-      "none": 2
-    }
-  }
-}
-```
-
-</Tab>
-</Tabs>

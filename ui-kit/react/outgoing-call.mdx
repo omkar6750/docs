@@ -2,9 +2,73 @@
 title: "Outgoing Call"
 description: "Overlay component displaying an outgoing voice/video call with recipient info and cancel control."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatOutgoingCall",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatOutgoingCall } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Overlay component displaying an outgoing voice/video call with recipient info and cancel control.",
+  "cssRootClass": ".cometchat-outgoing-call",
+  "primaryOutput": {
+    "prop": "onCallCanceled",
+    "type": "Function"
+  },
+  "props": {
+    "data": {
+      "call": {
+        "type": "CometChat.Call",
+        "default": "undefined",
+        "note": "Must come from CometChat.initiateCall()"
+      }
+    },
+    "callbacks": {
+      "onCallCanceled": "Function",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "boolean", "default": false },
+      "customSoundForCalls": { "type": "string", "default": "built-in" }
+    },
+    "viewSlots": {
+      "titleView": "JSX.Element",
+      "subtitleView": "JSX.Element",
+      "avatarView": "JSX.Element",
+      "cancelButtonView": "JSX.Element"
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatCallEvents.ccOutgoingCall",
+      "payload": "CometChat.Call",
+      "description": "Call initiated"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallAccepted",
+      "payload": "CometChat.Call",
+      "description": "Recipient accepts"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallRejected",
+      "payload": "CometChat.Call",
+      "description": "Recipient rejects"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallEnded",
+      "payload": "CometChat.Call",
+      "description": "Call session ends"
+    }
+  ],
+  "sdkListeners": [],
+  "compositionExample": {
+    "description": "App-level overlay rendered after CometChat.initiateCall()",
+    "components": ["CometChatOutgoingCall"],
+    "flow": "CometChat.initiateCall() returns CometChat.Call -> pass to call prop -> onCallCanceled ends session"
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -521,8 +585,7 @@ The component renders a modal-like overlay. The cancel button is keyboard-focusa
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -656,75 +719,3 @@ All events are `Subject<CometChat.Call>` from RxJS. Subscribe with `.subscribe()
 | Cancel button wrapper | `.cometchat-outgoing-call__button` |
 | Cancel button | `.cometchat-outgoing-call__button .cometchat-button` |
 | Cancel button icon | `.cometchat-outgoing-call__button .cometchat-button .cometchat-button__icon` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatOutgoingCall",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatOutgoingCall } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Overlay component displaying an outgoing voice/video call with recipient info and cancel control.",
-  "cssRootClass": ".cometchat-outgoing-call",
-  "primaryOutput": {
-    "prop": "onCallCanceled",
-    "type": "Function"
-  },
-  "props": {
-    "data": {
-      "call": {
-        "type": "CometChat.Call",
-        "default": "undefined",
-        "note": "Must come from CometChat.initiateCall()"
-      }
-    },
-    "callbacks": {
-      "onCallCanceled": "Function",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "sound": {
-      "disableSoundForCalls": { "type": "boolean", "default": false },
-      "customSoundForCalls": { "type": "string", "default": "built-in" }
-    },
-    "viewSlots": {
-      "titleView": "JSX.Element",
-      "subtitleView": "JSX.Element",
-      "avatarView": "JSX.Element",
-      "cancelButtonView": "JSX.Element"
-    }
-  },
-  "events": [
-    {
-      "name": "CometChatCallEvents.ccOutgoingCall",
-      "payload": "CometChat.Call",
-      "description": "Call initiated"
-    },
-    {
-      "name": "CometChatCallEvents.ccCallAccepted",
-      "payload": "CometChat.Call",
-      "description": "Recipient accepts"
-    },
-    {
-      "name": "CometChatCallEvents.ccCallRejected",
-      "payload": "CometChat.Call",
-      "description": "Recipient rejects"
-    },
-    {
-      "name": "CometChatCallEvents.ccCallEnded",
-      "payload": "CometChat.Call",
-      "description": "Call session ends"
-    }
-  ],
-  "sdkListeners": [],
-  "compositionExample": {
-    "description": "App-level overlay rendered after CometChat.initiateCall()",
-    "components": ["CometChatOutgoingCall"],
-    "flow": "CometChat.initiateCall() returns CometChat.Call -> pass to call prop -> onCallCanceled ends session"
-  }
-}
-```
-
-</Tab>
-</Tabs>

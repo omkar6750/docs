@@ -2,9 +2,83 @@
 title: "Message Composer"
 description: "Rich text input for composing and sending text, media, attachments, mentions, voice notes, and custom messages."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatMessageComposer",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatMessageComposer } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Rich text input for composing and sending text, media, attachments, mentions, voice notes, and custom messages.",
+  "cssRootClass": ".cometchat-message-composer",
+  "primaryOutput": {
+    "prop": "onSendButtonClick",
+    "type": "(message: CometChat.BaseMessage, previewMessageMode?: PreviewMessageMode) => void"
+  },
+  "props": {
+    "data": {
+      "user": { "type": "CometChat.User", "default": "undefined" },
+      "group": { "type": "CometChat.Group", "default": "undefined" },
+      "parentMessageId": { "type": "number", "default": "undefined" },
+      "initialComposerText": { "type": "string", "default": "\"\"" },
+      "placeholderText": { "type": "string", "default": "\"\"" }
+    },
+    "callbacks": {
+      "onSendButtonClick": "(message: CometChat.BaseMessage, previewMessageMode?: PreviewMessageMode) => void",
+      "onTextChange": "(text: string) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "visibility": {
+      "hideImageAttachmentOption": { "type": "boolean", "default": false },
+      "hideVideoAttachmentOption": { "type": "boolean", "default": false },
+      "hideAudioAttachmentOption": { "type": "boolean", "default": false },
+      "hideFileAttachmentOption": { "type": "boolean", "default": false },
+      "hidePollsOption": { "type": "boolean", "default": false },
+      "hideCollaborativeDocumentOption": { "type": "boolean", "default": false },
+      "hideCollaborativeWhiteboardOption": { "type": "boolean", "default": false },
+      "hideAttachmentButton": { "type": "boolean", "default": false },
+      "hideVoiceRecordingButton": { "type": "boolean", "default": false },
+      "hideEmojiKeyboardButton": { "type": "boolean", "default": false },
+      "hideStickersButton": { "type": "boolean", "default": false },
+      "hideSendButton": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "behavior": {
+      "disableTypingEvents": { "type": "boolean", "default": false },
+      "disableMentions": { "type": "boolean", "default": false },
+      "disableMentionAll": { "type": "boolean", "default": false },
+      "mentionAllLabel": { "type": "string", "default": "\"all\"" },
+      "enterKeyBehavior": { "type": "EnterKeyBehavior", "default": "EnterKeyBehavior.SendMessage" },
+      "disableSoundForMessage": { "type": "boolean", "default": false },
+      "customSoundForMessage": { "type": "string", "default": "undefined" }
+    },
+    "mentions": {
+      "mentionsUsersRequestBuilder": "CometChat.UsersRequestBuilder",
+      "mentionsGroupMembersRequestBuilder": "CometChat.GroupMembersRequestBuilder"
+    },
+    "viewSlots": {
+      "attachmentOptions": "CometChatMessageComposerAction[]",
+      "auxiliaryButtonView": "JSX.Element",
+      "sendButtonView": "JSX.Element",
+      "headerView": "JSX.Element"
+    },
+    "formatting": {
+      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "default formatters" }
+    }
+  },
+  "events": [
+    { "name": "CometChatMessageEvents.ccMessageSent", "payload": "IMessages" },
+    { "name": "CometChatMessageEvents.ccMessageEdited", "payload": "IMessages" },
+    { "name": "CometChatMessageEvents.ccReplyToMessage", "payload": "IMessages" }
+  ],
+  "sdkListeners": [],
+  "types": {
+    "EnterKeyBehavior": { "SendMessage": "sendMessage", "NewLine": "newLine", "None": "none" },
+    "PreviewMessageMode": { "edit": 0, "none": 1 }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -441,8 +515,7 @@ The text input is auto-focused and supports standard keyboard shortcuts. The sen
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -865,85 +938,3 @@ The recipient user for the composer.
 | Attachment popover | `.cometchat-message-composer__secondary-button-view-attachment-button .cometchat-popover__content` |
 | Voice recording popover | `.cometchat-message-composer__voice-recording-button .cometchat-popover__content` |
 | Header area | `.cometchat-message-composer__header` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatMessageComposer",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatMessageComposer } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Rich text input for composing and sending text, media, attachments, mentions, voice notes, and custom messages.",
-  "cssRootClass": ".cometchat-message-composer",
-  "primaryOutput": {
-    "prop": "onSendButtonClick",
-    "type": "(message: CometChat.BaseMessage, previewMessageMode?: PreviewMessageMode) => void"
-  },
-  "props": {
-    "data": {
-      "user": { "type": "CometChat.User", "default": "undefined" },
-      "group": { "type": "CometChat.Group", "default": "undefined" },
-      "parentMessageId": { "type": "number", "default": "undefined" },
-      "initialComposerText": { "type": "string", "default": "\"\"" },
-      "placeholderText": { "type": "string", "default": "\"\"" }
-    },
-    "callbacks": {
-      "onSendButtonClick": "(message: CometChat.BaseMessage, previewMessageMode?: PreviewMessageMode) => void",
-      "onTextChange": "(text: string) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "visibility": {
-      "hideImageAttachmentOption": { "type": "boolean", "default": false },
-      "hideVideoAttachmentOption": { "type": "boolean", "default": false },
-      "hideAudioAttachmentOption": { "type": "boolean", "default": false },
-      "hideFileAttachmentOption": { "type": "boolean", "default": false },
-      "hidePollsOption": { "type": "boolean", "default": false },
-      "hideCollaborativeDocumentOption": { "type": "boolean", "default": false },
-      "hideCollaborativeWhiteboardOption": { "type": "boolean", "default": false },
-      "hideAttachmentButton": { "type": "boolean", "default": false },
-      "hideVoiceRecordingButton": { "type": "boolean", "default": false },
-      "hideEmojiKeyboardButton": { "type": "boolean", "default": false },
-      "hideStickersButton": { "type": "boolean", "default": false },
-      "hideSendButton": { "type": "boolean", "default": false },
-      "showScrollbar": { "type": "boolean", "default": false }
-    },
-    "behavior": {
-      "disableTypingEvents": { "type": "boolean", "default": false },
-      "disableMentions": { "type": "boolean", "default": false },
-      "disableMentionAll": { "type": "boolean", "default": false },
-      "mentionAllLabel": { "type": "string", "default": "\"all\"" },
-      "enterKeyBehavior": { "type": "EnterKeyBehavior", "default": "EnterKeyBehavior.SendMessage" },
-      "disableSoundForMessage": { "type": "boolean", "default": false },
-      "customSoundForMessage": { "type": "string", "default": "undefined" }
-    },
-    "mentions": {
-      "mentionsUsersRequestBuilder": "CometChat.UsersRequestBuilder",
-      "mentionsGroupMembersRequestBuilder": "CometChat.GroupMembersRequestBuilder"
-    },
-    "viewSlots": {
-      "attachmentOptions": "CometChatMessageComposerAction[]",
-      "auxiliaryButtonView": "JSX.Element",
-      "sendButtonView": "JSX.Element",
-      "headerView": "JSX.Element"
-    },
-    "formatting": {
-      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "default formatters" }
-    }
-  },
-  "events": [
-    { "name": "CometChatMessageEvents.ccMessageSent", "payload": "IMessages" },
-    { "name": "CometChatMessageEvents.ccMessageEdited", "payload": "IMessages" },
-    { "name": "CometChatMessageEvents.ccReplyToMessage", "payload": "IMessages" }
-  ],
-  "sdkListeners": [],
-  "types": {
-    "EnterKeyBehavior": { "SendMessage": "sendMessage", "NewLine": "newLine", "None": "none" },
-    "PreviewMessageMode": { "edit": 0, "none": 1 }
-  }
-}
-```
-
-</Tab>
-</Tabs>

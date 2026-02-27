@@ -2,9 +2,155 @@
 title: "Conversations"
 description: "Scrollable list of recent one-on-one and group conversations for the logged-in user."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatConversations",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatConversations } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Scrollable list of recent one-on-one and group conversations for the logged-in user.",
+  "cssRootClass": ".cometchat-conversations",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(conversation: CometChat.Conversation) => void"
+  },
+  "props": {
+    "data": {
+      "conversationsRequestBuilder": {
+        "type": "CometChat.ConversationsRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "activeConversation": {
+        "type": "CometChat.Conversation",
+        "default": "undefined"
+      },
+      "lastMessageDateTimeFormat": {
+        "type": "CalendarObject",
+        "default": "Component default (hh:mm A today, [yesterday], DD/MM/YYYY other days)",
+        "note": "Falls back to global CometChatLocalize.calendarObject if not set"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(conversation: CometChat.Conversation) => void",
+      "onSelect": "(conversation: CometChat.Conversation, selected: boolean) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null",
+      "onSearchBarClicked": "() => void"
+    },
+    "visibility": {
+      "hideReceipts": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideDeleteConversation": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "showSearchBar": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "sound": {
+      "disableSoundForMessages": { "type": "boolean", "default": false },
+      "customSoundForMessages": { "type": "string", "default": "built-in" }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
+        "default": "SelectionMode.none"
+      }
+    },
+    "viewSlots": {
+      "itemView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "leadingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "titleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "subtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "trailingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "headerView": "JSX.Element",
+      "searchView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element",
+      "options": "((conversation: CometChat.Conversation) => CometChatOption[]) | null"
+    },
+    "formatting": {
+      "textFormatters": {
+        "type": "CometChatTextFormatter[]",
+        "default": "default formatters from data source"
+      }
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatConversationEvents.ccConversationDeleted",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation deleted from list"
+    },
+    {
+      "name": "CometChatConversationEvents.ccUpdateConversation",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation updated"
+    },
+    {
+      "name": "CometChatConversationEvents.ccMarkConversationAsRead",
+      "payload": "CometChat.Conversation",
+      "description": "Conversation marked as read"
+    }
+  ],
+  "sdkListeners": [
+    "onTextMessageReceived",
+    "onMediaMessageReceived",
+    "onCustomMessageReceived",
+    "onTypingStarted",
+    "onTypingEnded",
+    "onMessagesDelivered",
+    "onMessagesRead",
+    "onMessagesDeliveredToAll",
+    "onMessagesReadByAll",
+    "onUserOnline",
+    "onUserOffline",
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onMemberAddedToGroup"
+  ],
+  "compositionExample": {
+    "description": "Sidebar conversations wired to message view",
+    "components": [
+      "CometChatConversations",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemClick emits CometChat.Conversation -> extract User/Group via getConversationWith() -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined",
+      "relativeTime": {
+        "minute": "string | undefined",
+        "minutes": "string | undefined",
+        "hour": "string | undefined",
+        "hours": "string | undefined"
+      }
+    },
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    },
+    "SelectionMode": {
+      "single": 0,
+      "multiple": 1,
+      "none": 2
+    }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -1012,8 +1158,7 @@ For screen readers, the conversation list is rendered as a semantic list. Status
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -1428,157 +1573,3 @@ All events are `Subject<CometChat.Conversation>` from RxJS. Subscribe with `.sub
 | Context menu | `.cometchat-conversations__trailing-view-options` |
 | Mentions highlight | `.cometchat-conversations__subtitle-text .cometchat-mentions` |
 | @you mentions | `.cometchat-conversations__subtitle-text .cometchat-mentions-you` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatConversations",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatConversations } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Scrollable list of recent one-on-one and group conversations for the logged-in user.",
-  "cssRootClass": ".cometchat-conversations",
-  "primaryOutput": {
-    "prop": "onItemClick",
-    "type": "(conversation: CometChat.Conversation) => void"
-  },
-  "props": {
-    "data": {
-      "conversationsRequestBuilder": {
-        "type": "CometChat.ConversationsRequestBuilder",
-        "default": "SDK default (30 per page)",
-        "note": "Pass the builder, not the result of .build()"
-      },
-      "activeConversation": {
-        "type": "CometChat.Conversation",
-        "default": "undefined"
-      },
-      "lastMessageDateTimeFormat": {
-        "type": "CalendarObject",
-        "default": "Component default (hh:mm A today, [yesterday], DD/MM/YYYY other days)",
-        "note": "Falls back to global CometChatLocalize.calendarObject if not set"
-      }
-    },
-    "callbacks": {
-      "onItemClick": "(conversation: CometChat.Conversation) => void",
-      "onSelect": "(conversation: CometChat.Conversation, selected: boolean) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null",
-      "onSearchBarClicked": "() => void"
-    },
-    "visibility": {
-      "hideReceipts": { "type": "boolean", "default": false },
-      "hideError": { "type": "boolean", "default": false },
-      "hideDeleteConversation": { "type": "boolean", "default": false },
-      "hideUserStatus": { "type": "boolean", "default": false },
-      "hideGroupType": { "type": "boolean", "default": false },
-      "showSearchBar": { "type": "boolean", "default": false },
-      "showScrollbar": { "type": "boolean", "default": false }
-    },
-    "sound": {
-      "disableSoundForMessages": { "type": "boolean", "default": false },
-      "customSoundForMessages": { "type": "string", "default": "built-in" }
-    },
-    "selection": {
-      "selectionMode": {
-        "type": "SelectionMode",
-        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
-        "default": "SelectionMode.none"
-      }
-    },
-    "viewSlots": {
-      "itemView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "leadingView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "titleView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "subtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "trailingView": "(conversation: CometChat.Conversation) => JSX.Element",
-      "headerView": "JSX.Element",
-      "searchView": "JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element",
-      "options": "((conversation: CometChat.Conversation) => CometChatOption[]) | null"
-    },
-    "formatting": {
-      "textFormatters": {
-        "type": "CometChatTextFormatter[]",
-        "default": "default formatters from data source"
-      }
-    }
-  },
-  "events": [
-    {
-      "name": "CometChatConversationEvents.ccConversationDeleted",
-      "payload": "CometChat.Conversation",
-      "description": "Conversation deleted from list"
-    },
-    {
-      "name": "CometChatConversationEvents.ccUpdateConversation",
-      "payload": "CometChat.Conversation",
-      "description": "Conversation updated"
-    },
-    {
-      "name": "CometChatConversationEvents.ccMarkConversationAsRead",
-      "payload": "CometChat.Conversation",
-      "description": "Conversation marked as read"
-    }
-  ],
-  "sdkListeners": [
-    "onTextMessageReceived",
-    "onMediaMessageReceived",
-    "onCustomMessageReceived",
-    "onTypingStarted",
-    "onTypingEnded",
-    "onMessagesDelivered",
-    "onMessagesRead",
-    "onMessagesDeliveredToAll",
-    "onMessagesReadByAll",
-    "onUserOnline",
-    "onUserOffline",
-    "onGroupMemberJoined",
-    "onGroupMemberLeft",
-    "onGroupMemberKicked",
-    "onGroupMemberBanned",
-    "onMemberAddedToGroup"
-  ],
-  "compositionExample": {
-    "description": "Sidebar conversations wired to message view",
-    "components": [
-      "CometChatConversations",
-      "CometChatMessageHeader",
-      "CometChatMessageList",
-      "CometChatMessageComposer"
-    ],
-    "flow": "onItemClick emits CometChat.Conversation -> extract User/Group via getConversationWith() -> pass to MessageHeader, MessageList, MessageComposer"
-  },
-  "types": {
-    "CalendarObject": {
-      "today": "string | undefined",
-      "yesterday": "string | undefined",
-      "lastWeek": "string | undefined",
-      "otherDays": "string | undefined",
-      "relativeTime": {
-        "minute": "string | undefined",
-        "minutes": "string | undefined",
-        "hour": "string | undefined",
-        "hours": "string | undefined"
-      }
-    },
-    "CometChatOption": {
-      "id": "string | undefined",
-      "title": "string | undefined",
-      "iconURL": "string | undefined",
-      "onClick": "(() => void) | undefined"
-    },
-    "SelectionMode": {
-      "single": 0,
-      "multiple": 1,
-      "none": 2
-    }
-  }
-}
-```
-
-</Tab>
-</Tabs>

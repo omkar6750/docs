@@ -2,9 +2,71 @@
 title: "Call Logs"
 description: "Scrollable list of call history entries with filtering, call-back actions, and custom views."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatCallLogs",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatCallLogs } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Scrollable list of call history entries with filtering, call-back actions, and custom views.",
+  "cssRootClass": ".cometchat-call-logs",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(call: any) => void"
+  },
+  "props": {
+    "data": {
+      "callLogRequestBuilder": {
+        "type": "any (CallLogRequestBuilder)",
+        "default": "SDK default (30 per page)"
+      },
+      "activeCall": {
+        "type": "any",
+        "default": "undefined"
+      },
+      "callInitiatedDateTimeFormat": {
+        "type": "CalendarObject",
+        "default": "DD MMM, hh:mm A"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(call: any) => void",
+      "onCallButtonClicked": "(call: any) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "visibility": {
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "viewSlots": {
+      "itemView": "(call: any) => JSX.Element",
+      "leadingView": "(call: any) => JSX.Element",
+      "titleView": "(call: any) => JSX.Element",
+      "subtitleView": "(call: any) => JSX.Element",
+      "trailingView": "(call: any) => JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element"
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatMessageEvents.ccMessageSent",
+      "payload": "IMessages",
+      "description": "Call message sent"
+    }
+  ],
+  "types": {
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined"
+    }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -412,8 +474,7 @@ The component renders a scrollable list of interactive items. Each call log row 
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -614,74 +675,3 @@ Custom renderer for the right section.
 | Error state | `.cometchat-call-logs__error-state-view` |
 | Shimmer loading | `.cometchat-call-logs__shimmer` |
 | Outgoing call overlay | `.cometchat-call-logs__outgoing-call` |
-
-</Tab>
-
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatCallLogs",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatCallLogs } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Scrollable list of call history entries with filtering, call-back actions, and custom views.",
-  "cssRootClass": ".cometchat-call-logs",
-  "primaryOutput": {
-    "prop": "onItemClick",
-    "type": "(call: any) => void"
-  },
-  "props": {
-    "data": {
-      "callLogRequestBuilder": {
-        "type": "any (CallLogRequestBuilder)",
-        "default": "SDK default (30 per page)"
-      },
-      "activeCall": {
-        "type": "any",
-        "default": "undefined"
-      },
-      "callInitiatedDateTimeFormat": {
-        "type": "CalendarObject",
-        "default": "DD MMM, hh:mm A"
-      }
-    },
-    "callbacks": {
-      "onItemClick": "(call: any) => void",
-      "onCallButtonClicked": "(call: any) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null"
-    },
-    "visibility": {
-      "showScrollbar": { "type": "boolean", "default": false }
-    },
-    "viewSlots": {
-      "itemView": "(call: any) => JSX.Element",
-      "leadingView": "(call: any) => JSX.Element",
-      "titleView": "(call: any) => JSX.Element",
-      "subtitleView": "(call: any) => JSX.Element",
-      "trailingView": "(call: any) => JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element"
-    }
-  },
-  "events": [
-    {
-      "name": "CometChatMessageEvents.ccMessageSent",
-      "payload": "IMessages",
-      "description": "Call message sent"
-    }
-  ],
-  "types": {
-    "CalendarObject": {
-      "today": "string | undefined",
-      "yesterday": "string | undefined",
-      "lastWeek": "string | undefined",
-      "otherDays": "string | undefined"
-    }
-  }
-}
-```
-
-</Tab>
-</Tabs>

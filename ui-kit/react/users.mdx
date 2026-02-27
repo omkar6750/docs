@@ -2,9 +2,123 @@
 title: "Users"
 description: "Searchable, scrollable list of all available users with avatar, name, and online/offline status."
 ---
-
-<Tabs>
-<Tab title="Guide">
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatUsers",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatUsers } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Searchable, scrollable list of all available users with avatar, name, and online/offline status.",
+  "cssRootClass": ".cometchat-users",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(user: CometChat.User) => void"
+  },
+  "props": {
+    "data": {
+      "usersRequestBuilder": {
+        "type": "CometChat.UsersRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "searchRequestBuilder": {
+        "type": "CometChat.UsersRequestBuilder",
+        "default": "undefined"
+      },
+      "activeUser": {
+        "type": "CometChat.User",
+        "default": "undefined"
+      },
+      "searchKeyword": {
+        "type": "string",
+        "default": "\"\""
+      },
+      "sectionHeaderKey": {
+        "type": "keyof CometChat.User",
+        "default": "getName"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(user: CometChat.User) => void",
+      "onSelect": "(user: CometChat.User, selected: boolean) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null",
+      "onEmpty": "() => void"
+    },
+    "visibility": {
+      "hideSearch": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "showSectionHeader": { "type": "boolean", "default": true },
+      "showScrollbar": { "type": "boolean", "default": false },
+      "showSelectedUsersPreview": { "type": "boolean", "default": false }
+    },
+    "behavior": {
+      "disableLoadingState": { "type": "boolean", "default": false }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
+        "default": "SelectionMode.none"
+      }
+    },
+    "viewSlots": {
+      "itemView": "(user: CometChat.User) => JSX.Element",
+      "leadingView": "(user: CometChat.User) => JSX.Element",
+      "titleView": "(user: CometChat.User) => JSX.Element",
+      "subtitleView": "(user: CometChat.User) => JSX.Element",
+      "trailingView": "(user: CometChat.User) => JSX.Element",
+      "headerView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element",
+      "options": "(user: CometChat.User) => CometChatOption[]"
+    }
+  },
+  "events": [],
+  "subscribedEvents": [
+    {
+      "name": "CometChatUserEvents.ccUserBlocked",
+      "payload": "CometChat.User",
+      "description": "Updates blocked user in list"
+    },
+    {
+      "name": "CometChatUserEvents.ccUserUnblocked",
+      "payload": "CometChat.User",
+      "description": "Updates unblocked user in list"
+    }
+  ],
+  "sdkListeners": [
+    "onUserOnline",
+    "onUserOffline"
+  ],
+  "compositionExample": {
+    "description": "User list wired to message view",
+    "components": [
+      "CometChatUsers",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemClick emits CometChat.User -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    },
+    "SelectionMode": {
+      "single": 0,
+      "multiple": 1,
+      "none": 2
+    }
+  }
+}
+```
+</Accordion>
 
 ## Where It Fits
 
@@ -805,8 +919,7 @@ For screen readers, the user list is rendered as a semantic list. Status indicat
 
 ---
 
-</Tab>
-<Tab title="API Reference">
+---
 
 ## Props
 
@@ -1185,125 +1298,3 @@ Pass the builder instance, not the result of `.build()`.
 | Chip avatar | `.cometchat-users__selected-preview-chip .cometchat-avatar` |
 | Chip name | `.cometchat-users__selected-preview-chip-name` |
 | Chip close button | `.cometchat-users__selected-preview-chip-close-button` |
-
-</Tab>
-<Tab title="AI Agent Spec">
-
-```json
-{
-  "component": "CometChatUsers",
-  "package": "@cometchat/chat-uikit-react",
-  "import": "import { CometChatUsers } from \"@cometchat/chat-uikit-react\";",
-  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
-  "description": "Searchable, scrollable list of all available users with avatar, name, and online/offline status.",
-  "cssRootClass": ".cometchat-users",
-  "primaryOutput": {
-    "prop": "onItemClick",
-    "type": "(user: CometChat.User) => void"
-  },
-  "props": {
-    "data": {
-      "usersRequestBuilder": {
-        "type": "CometChat.UsersRequestBuilder",
-        "default": "SDK default (30 per page)",
-        "note": "Pass the builder, not the result of .build()"
-      },
-      "searchRequestBuilder": {
-        "type": "CometChat.UsersRequestBuilder",
-        "default": "undefined"
-      },
-      "activeUser": {
-        "type": "CometChat.User",
-        "default": "undefined"
-      },
-      "searchKeyword": {
-        "type": "string",
-        "default": "\"\""
-      },
-      "sectionHeaderKey": {
-        "type": "keyof CometChat.User",
-        "default": "getName"
-      }
-    },
-    "callbacks": {
-      "onItemClick": "(user: CometChat.User) => void",
-      "onSelect": "(user: CometChat.User, selected: boolean) => void",
-      "onError": "((error: CometChat.CometChatException) => void) | null",
-      "onEmpty": "() => void"
-    },
-    "visibility": {
-      "hideSearch": { "type": "boolean", "default": false },
-      "hideError": { "type": "boolean", "default": false },
-      "hideUserStatus": { "type": "boolean", "default": false },
-      "showSectionHeader": { "type": "boolean", "default": true },
-      "showScrollbar": { "type": "boolean", "default": false },
-      "showSelectedUsersPreview": { "type": "boolean", "default": false }
-    },
-    "behavior": {
-      "disableLoadingState": { "type": "boolean", "default": false }
-    },
-    "selection": {
-      "selectionMode": {
-        "type": "SelectionMode",
-        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
-        "default": "SelectionMode.none"
-      }
-    },
-    "viewSlots": {
-      "itemView": "(user: CometChat.User) => JSX.Element",
-      "leadingView": "(user: CometChat.User) => JSX.Element",
-      "titleView": "(user: CometChat.User) => JSX.Element",
-      "subtitleView": "(user: CometChat.User) => JSX.Element",
-      "trailingView": "(user: CometChat.User) => JSX.Element",
-      "headerView": "JSX.Element",
-      "loadingView": "JSX.Element",
-      "emptyView": "JSX.Element",
-      "errorView": "JSX.Element",
-      "options": "(user: CometChat.User) => CometChatOption[]"
-    }
-  },
-  "events": [],
-  "subscribedEvents": [
-    {
-      "name": "CometChatUserEvents.ccUserBlocked",
-      "payload": "CometChat.User",
-      "description": "Updates blocked user in list"
-    },
-    {
-      "name": "CometChatUserEvents.ccUserUnblocked",
-      "payload": "CometChat.User",
-      "description": "Updates unblocked user in list"
-    }
-  ],
-  "sdkListeners": [
-    "onUserOnline",
-    "onUserOffline"
-  ],
-  "compositionExample": {
-    "description": "User list wired to message view",
-    "components": [
-      "CometChatUsers",
-      "CometChatMessageHeader",
-      "CometChatMessageList",
-      "CometChatMessageComposer"
-    ],
-    "flow": "onItemClick emits CometChat.User -> pass to MessageHeader, MessageList, MessageComposer"
-  },
-  "types": {
-    "CometChatOption": {
-      "id": "string | undefined",
-      "title": "string | undefined",
-      "iconURL": "string | undefined",
-      "onClick": "(() => void) | undefined"
-    },
-    "SelectionMode": {
-      "single": 0,
-      "multiple": 1,
-      "none": 2
-    }
-  }
-}
-```
-
-</Tab>
-</Tabs>
