@@ -63,19 +63,24 @@ class AIAssistantChatActivity : AppCompatActivity() {
         val messageJson = intent.getStringExtra(getString(R.string.app_base_message))
         val userJson = intent.getStringExtra(getString(R.string.app_user))
 
-        if (userJson != null && !userJson.isEmpty())
-            val user = User.fromJson(userJson)
-        if (messageJson != null && !messageJson.isEmpty())
-            val parentMessage = BaseMessage.processMessage(JSONObject(messageJson))
+        var user: User? = null
+        var parentMessage: BaseMessage? = null
+
+        if (!userJson.isNullOrEmpty())
+            user = User.fromJson(userJson)
+        if (!messageJson.isNullOrEmpty())
+            parentMessage = BaseMessage.processMessage(JSONObject(messageJson))
 
         initializeComponents(user, parentMessage)
         initClickListeners()
     }
 
-    private fun initializeComponents(user: User, parentMessage: BaseMessage) {
-        binding.messageHeader.user = user // Set user for header
-        binding.messageList.user = user // Set user for message list
-        binding.messageComposer.user = user // Set user for composer
+    private fun initializeComponents(user: User?, parentMessage: BaseMessage?) {
+        user?.let {
+            binding.messageHeader.user = it // Set user for header
+            binding.messageList.user = it // Set user for message list
+            binding.messageComposer.user = it // Set user for composer
+        }
 
         if (parentMessage != null) {
             // Set message id of parent message to fetch messages with parent.
