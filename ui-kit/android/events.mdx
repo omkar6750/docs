@@ -217,6 +217,10 @@ CometChatConversationEvents.addListener("LISTENERS_TAG", object : CometChatConve
     override fun ccConversationDeleted(conversation: Conversation) {
         // Perform action when conversation is deleted
     }
+
+    override fun ccUpdateConversation(conversation: Conversation) {
+        // Perform action when conversation is updated
+    }
 })
 ```
 </Tab>
@@ -229,9 +233,9 @@ CometChatConversationEvents.addListener("LISTENERS_TAG", new CometChatConversati
     }
 
     @Override
-        public void ccUpdateConversation(Conversation conversation) {
-            // Perform action when conversation is updated
-        }
+    public void ccUpdateConversation(Conversation conversation) {
+        // Perform action when conversation is updated
+    }
 });
 ```
 </Tab>
@@ -343,6 +347,29 @@ CometChatMessageEvents.addListener("UNIQUE_ID", new CometChatMessageEvents() {
 
 **Listener registration:**
 
+<Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+CometChatCallEvents.addListener("ListenerID", object : CometChatCallEvents() {
+    override fun ccOutgoingCall(call: Call) {
+        // Perform action when outgoing call is initiated
+    }
+
+    override fun ccCallAccepted(call: Call) {
+        // Perform action when call is accepted
+    }
+
+    override fun ccCallRejected(call: Call) {
+        // Perform action when call is rejected
+    }
+
+    override fun ccCallEnded(call: Call) {
+        // Perform action when call is ended
+    }
+})
+```
+</Tab>
+<Tab title="Java">
 ```java lines
 CometChatCallEvents.addListener("ListenerID", new CometChatCallEvents() {
     @Override
@@ -366,6 +393,8 @@ CometChatCallEvents.addListener("ListenerID", new CometChatCallEvents() {
     }
 });
 ```
+</Tab>
+</Tabs>
 
 > **What this does:** Registers a listener on `CometChatCallEvents` using a unique `"ListenerID"`. The callbacks fire for each stage of the call lifecycle — initiating an outgoing call, accepting, rejecting, and ending a call.
 
@@ -386,6 +415,29 @@ CometChatCallEvents.addListener("ListenerID", new CometChatCallEvents() {
 
 **Listener registration:**
 
+<Tabs>
+<Tab title="Kotlin">
+```kotlin lines
+CometChatUIEvents.addListener("UNIQUE_ID", object : CometChatUIEvents() {
+    override fun showPanel(id: HashMap<String, String>, alignment: UIKitConstants.CustomUIPosition, view: Function1<Context, View>) {
+        // Perform action to show UI panel with custom elements
+    }
+
+    override fun hidePanel(id: HashMap<String, String>, alignment: UIKitConstants.CustomUIPosition) {
+        // Perform action to hide UI panel
+    }
+
+    override fun ccActiveChatChanged(id: HashMap<String, String>, message: BaseMessage, user: User, group: Group) {
+        // Perform action when active chat changes
+    }
+
+    override fun ccOpenChat(user: User, group: Group) {
+        // Perform action to open a chat with a specific user or group
+    }
+})
+```
+</Tab>
+<Tab title="Java">
 ```java lines
 CometChatUIEvents.addListener("UNIQUE_ID", new CometChatUIEvents() {
     @Override
@@ -409,6 +461,8 @@ CometChatUIEvents.addListener("UNIQUE_ID", new CometChatUIEvents() {
     }
 });
 ```
+</Tab>
+</Tabs>
 
 > **What this does:** Registers a listener on `CometChatUIEvents` using a unique ID string. The callbacks fire for UI-level actions — showing or hiding custom panels, reacting to active chat changes, and opening a chat with a specific user or group.
 
@@ -444,9 +498,6 @@ Yes. If you do not remove listeners in `onDestroy()` or `onDestroyView()`, the l
 
 **Can I register the same listener tag twice?**
 If you call `addListener` or `addUserListener`/`addGroupListener` with the same tag, the second registration replaces the first. Only the most recently registered listener for that tag receives callbacks.
-
-**Why does my conversation event listener only show `ccConversationDeleted` in Kotlin but both events in Java?**
-The Kotlin code sample in the original documentation demonstrates only the `ccConversationDeleted` override. The `ccUpdateConversation` callback is available in both languages. Override `ccUpdateConversation` in your Kotlin listener to receive conversation update events.
 
 ## Next steps
 
