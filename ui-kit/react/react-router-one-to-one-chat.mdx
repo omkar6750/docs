@@ -55,7 +55,7 @@ Single chat window without a conversation list. Supports both 1:1 and group mess
 
 #### Implementation
 
-Now we will create the `CometChatNoSSR.tsx` & `CometChatNoSSR.css` files. Here, we will initialize the CometChat UI Kit, log in a user, and build the messaging experience using `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` components.
+Create `CometChatNoSSR.tsx` and `CometChatNoSSR.css` files to initialize the UI Kit, log in a user, and render the messaging experience.
 
 ```
 src/
@@ -74,9 +74,9 @@ import { CometChat } from "@cometchat/chat-sdk-javascript";
 import "./CometChatNoSSR.css";
 
 const COMETCHAT_CONSTANTS = {
-  APP_ID: "",
-  REGION: "",
-  AUTH_KEY: "",
+  APP_ID: "",       // Replace with your App ID
+  REGION: "",       // Replace with your Region
+  AUTH_KEY: "",     // Replace with your Auth Key
 };
 
 const CometChatNoSSR: React.FC = () => {
@@ -95,17 +95,12 @@ const CometChatNoSSR: React.FC = () => {
 
     CometChatUIKit.init(UIKitSettings)
       ?.then(() => {
-        console.log("Initialization completed successfully");
         CometChatUIKit.getLoggedinUser().then((loggedInUser) => {
           if (!loggedInUser) {
-            CometChatUIKit.login("cometchat-uid-2") //TODO: Replace with dynamic UID
-              .then((user) => {
-                console.log("Login Successful", { user });
-                setUser(user);
-              })
+            CometChatUIKit.login("cometchat-uid-2") // Replace with dynamic UID
+              .then((user) => setUser(user))
               .catch((error) => console.error("Login failed", error));
           } else {
-            console.log("Already logged-in", { loggedInUser });
             setUser(loggedInUser);
           }
         });
@@ -115,9 +110,6 @@ const CometChatNoSSR: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      // Fetch user or group from CometChat SDK whose chat you want to load. 
-
-      /** Fetching User */
       const UID = "cometchat-uid-1";
       CometChat.getUser(UID).then(
         user => {
@@ -127,14 +119,11 @@ const CometChatNoSSR: React.FC = () => {
         }
       );
 
-      /** Fetching Group */
+      // To fetch a group instead:
       // const GUID = "GUID"
       // CometChat.getGroup(GUID).then(
-      //   group => {
-      //     setSelectedGroup(group);
-      //   }, error => {
-      //     console.log("User fetching failed with error:", error);
-      //   }
+      //   group => setSelectedGroup(group),
+      //   error => console.log("Group fetching failed:", error)
       // );
     }
   }, [user]);
@@ -227,7 +216,6 @@ Create a file CometChat.tsx inside the routes folder:
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import "@cometchat/chat-uikit-react/css-variables.css";
 
-// Lazy import to prevent SSR crash
 const CometChatNoSSR = lazy(() => import("../CometChatNoSSR/CometChatNoSSR"));
 
 export default function CometChatRoute() {
@@ -247,26 +235,24 @@ export default function CometChatRoute() {
 }
 ```
 
-Now, create a route for CometChat in your routes file:
+Create a route for CometChat in the routes file:
 
 ```typescript lines
 import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
-  route("chat", "routes/CometChat.tsx"), // Chat Route
+  route("chat", "routes/CometChat.tsx"),
 ] satisfies RouteConfig;
 ```
 
 <Note>
-
-Why disable SSR? CometChat UI Kit Builder relies on browser APIs such as window, document, and WebSockets. Since React Router renders on the server by default, disabling SSR for this component prevents runtime errors.
-
+CometChat UI Kit relies on browser APIs (window, document, WebSockets). Since React Router renders on the server by default, disabling SSR for this component prevents runtime errors.
 </Note>
 
 ### Step 5: Update App CSS
 
-Next, add the following styles to app.css to ensure CometChat UI Kit is properly styled.
+Add the following styles to `app.css`:
 
 ```css app.css lines
 :root {
@@ -281,7 +267,6 @@ Next, add the following styles to app.css to ensure CometChat UI Kit is properly
   }
 }
 
-/** Give your App a height of `100%`. Keep other CSS properties in the below selector as it is. */
 .root {
   height: 100%;
 }
@@ -323,9 +308,9 @@ a {
 }
 ```
 
-### Step 6: Run Your Application
+### Step 6: Run the Application
 
-1. **Start the development server**
+1. Start the development server:
 
    <Tabs>
    <Tab title="npm">
@@ -347,11 +332,11 @@ a {
    </Tab>
    </Tabs>
 
-2. **Verify the chat interface**
+2. Navigate to `/chat` (e.g., `http://localhost:3000/chat`) and verify the chat interface loads.
 
-* In your browser, navigate to the `/chat` route `(e.g., http://localhost:3000/chat)`.
-* Confirm that the chat experience loads as expected.
 ***
+
+For prop details and customization options, see the component reference pages: [CometChatConversations](/ui-kit/react/conversations), [CometChatMessageList](/ui-kit/react/message-list), [CometChatMessageComposer](/ui-kit/react/message-composer), [CometChatMessageHeader](/ui-kit/react/message-header).
 
 ## Next Steps
 

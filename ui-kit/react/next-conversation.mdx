@@ -12,11 +12,9 @@ description: "Build a two-panel conversation list + message view layout in Next.
 - **Parent guide:** [Next.js Integration](/ui-kit/react/next-js-integration)
 </Accordion>
 
-
 Two-panel chat layout: conversation list on the left, active chat on the right. Supports 1:1 and group conversations with real-time updates.
 
 [<img src="/images/30d34521-play-codesandbox.svg" />](https://link.cometchat.com/next-conversation-list-message)
-
 
 ***
 
@@ -65,42 +63,31 @@ import { Conversation, Group, User } from "@cometchat/chat-sdk-javascript";
 import { CometChatConversations, CometChatUIKitLoginListener } from "@cometchat/chat-uikit-react";
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import "./CometChatSelector.css";
-
-// Define props interface for component
 interface SelectorProps {
     onSelectorItemClicked?: (input: User | Group | Conversation, type: string) => void;
 }
-
-// CometChatSelector component definition
 export const CometChatSelector = (props: SelectorProps) => {
     const {
-        onSelectorItemClicked = () => { }, // Default function if no prop is provided
+        onSelectorItemClicked = () => { },
     } = props;
-
-    // State to store the currently logged-in user
     const [loggedInUser, setLoggedInUser] = useState<CometChat.User | null>();
-    
-    // State to track the currently selected item (conversation, user, group, or call)
     const [activeItem, setActiveItem] = useState<
         CometChat.Conversation | CometChat.User | CometChat.Group | CometChat.Call | undefined
     >();
 
     useEffect(() => {
-        // Retrieve the logged-in user from CometChat's login listener
         let loggedInUser = CometChatUIKitLoginListener.getLoggedInUser();
         setLoggedInUser(loggedInUser);
-    }, [CometChatUIKitLoginListener?.getLoggedInUser()]); // Dependency array to trigger effect when user changes
+    }, [CometChatUIKitLoginListener?.getLoggedInUser()]);
 
     return (
-        <>
-            {/* Render CometChatConversations only if a user is logged in */}
-            {loggedInUser && (
+        <>            {loggedInUser && (
                 <>
                     <CometChatConversations
                         activeConversation={activeItem instanceof CometChat.Conversation ? activeItem : undefined}
                         onItemClick={(e) => {
-                            setActiveItem(e); // Update the selected item state
-                            onSelectorItemClicked(e, "updateSelectedItem"); // Trigger callback with selected item
+                            setActiveItem(e);
+                            onSelectorItemClicked(e, "updateSelectedItem");
                         }}
                     />
                 </>
@@ -115,65 +102,53 @@ export const CometChatSelector = (props: SelectorProps) => {
 <Tab title="CSS">
 
 ```css CometChatSelector.css lines
-/* Style for the icon in the header menu of the conversation list */
 .selector-wrapper .cometchat-conversations .cometchat-list__header-menu .cometchat-button__icon {
     background: var(--cometchat-icon-color-primary);
 }
 
-/* Change background color of icon on hover */
 .cometchat-conversations .cometchat-list__header-menu .cometchat-button__icon:hover {
     background: var(--cometchat-icon-color-highlight);
 }
 
-/* Remove the right border from the search bar */
 .cometchat-list__header-search-bar {
     border-right: none;
 }
 
-/* Align submenu items to the left */
 .cometchat .cometchat-menu-list__sub-menu-list-item {
     text-align: left;
 }
 
-/* Set specific width and positioning for submenu list */
 .cometchat .cometchat-conversations .cometchat-menu-list__sub-menu-list {
     width: 212px;
     top: 40px !important;
     left: 172px !important;
 }
 
-/* Style the logged-in user section with a bottom border */
 #logged-in-user {
     border-bottom: 2px solid var(--cometchat-border-color-default, #E8E8E8);
 }
 
-/* Prevent cursor interaction on logged-in user menu items */
 #logged-in-user .cometchat-menu-list__sub-menu-item-title,
 #logged-in-user .cometchat-menu-list__sub-menu-list-item {
     cursor: default;
 }
 
-/* Style for logout icon with error color */
 .cometchat-menu-list__sub-menu-list-item-icon-log-out {
     background-color: var(--cometchat-error-color, #F44649);
 }
 
-/* Style for logout text with error color */
 .cometchat-menu-list__sub-menu-item-title-log-out {
     color: var(--cometchat-error-color, #F44649);
 }
 
-/* Allow pointer interaction on submenu items inside chat menu */
 .chat-menu .cometchat .cometchat-menu-list__sub-menu-item-title {
     cursor: pointer;
 }
 
-/* Remove shadow from submenu inside chat menu */
 .chat-menu .cometchat .cometchat-menu-list__sub-menu {
     box-shadow: none;
 }
 
-/* Style for submenu icons inside chat menu */
 .chat-menu .cometchat .cometchat-menu-list__sub-menu-icon {
     background-color: var(--cometchat-icon-color-primary, #141414);
     width: 24px;
@@ -211,8 +186,6 @@ import {
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSelector } from "../CometChatSelector/CometChatSelector";
 import "./CometChatNoSSR.css";
-
-// Constants for CometChat configuration
 const COMETCHAT_CONSTANTS = {
   APP_ID: "",
   REGION: "",
@@ -220,32 +193,23 @@ const COMETCHAT_CONSTANTS = {
 };
 
 const UID = "cometchat-uid-1"; // Replace with your actual UID
-
-// Functional Component
 const CometChatNoSSR: React.FC = () => {
-  // State to store the logged-in user
   const [user, setUser] = useState<CometChat.User | undefined>(undefined);
-  // State to store selected user or group
   const [selectedUser, setSelectedUser] = useState<CometChat.User | undefined>(undefined);
   const [selectedGroup, setSelectedGroup] = useState<CometChat.Group | undefined>(undefined);
 
   useEffect(() => {
-    // Initialize UIKit settings
     const UIKitSettings = new UIKitSettingsBuilder()
       .setAppId(COMETCHAT_CONSTANTS.APP_ID)
       .setRegion(COMETCHAT_CONSTANTS.REGION)
       .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
       .subscribePresenceForAllUsers()
       .build();
-
-    // Initialize CometChat UIKit
     CometChatUIKit.init(UIKitSettings)
       ?.then(() => {
         console.log("Initialization completed successfully");
-        // Check if user is already logged in
         CometChatUIKit.getLoggedinUser().then((loggedInUser) => {
           if (!loggedInUser) {
-            // Perform login if no user is logged in
             CometChatUIKit.login(UID)
               .then((user) => {
                 console.log("Login Successful", { user });
@@ -262,17 +226,13 @@ const CometChatNoSSR: React.FC = () => {
   }, []);
 
   return user ? (
-    <div className="conversations-with-messages">
-      {/* Sidebar with conversation list */}
-      <div className="conversations-wrapper">
+    <div className="conversations-with-messages">      <div className="conversations-wrapper">
         <CometChatSelector 
           onSelectorItemClicked={(activeItem) => {
             let item = activeItem;
-            // Extract the conversation participant
             if (activeItem instanceof CometChat.Conversation) {
               item = activeItem.getConversationWith();
             }
-            // Update states based on the type of selected item
             if (item instanceof CometChat.User) {
               setSelectedUser(item as CometChat.User);
               setSelectedGroup(undefined);
@@ -285,10 +245,7 @@ const CometChatNoSSR: React.FC = () => {
             }
           }} 
         />
-      </div>
-      
-      {/* Message view section */}
-      {selectedUser || selectedGroup ? (
+      </div>      {selectedUser || selectedGroup ? (
         <div className="messages-wrapper">
           <CometChatMessageHeader user={selectedUser} group={selectedGroup} />
           <CometChatMessageList user={selectedUser} group={selectedGroup} />
@@ -309,37 +266,32 @@ export default CometChatNoSSR;
 <Tab title="CSS">
 
 ```css CometChatNoSSR.css lines
-/* Layout for the main conversations and messages container */
 .conversations-with-messages {
     display: flex;
     height: 100%;
     width: 100%;
 }
 
-/* Sidebar wrapper for conversations */
 .conversations-wrapper {
     height: 100%;
-    width: 480px; /* Fixed width for conversation list */
+    width: 480px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     height: inherit;
 }
 
-/* Hide overflow for the conversation list */
 .conversations-wrapper > .cometchat {
     overflow: hidden;
 }
 
-/* Message section layout */
 .messages-wrapper {
-    width: calc(100% - 480px); /* Take remaining space */
+    width: calc(100% - 480px);
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* Display styling for when no conversation is selected */
 .empty-conversation {
     height: 100%;
     width: 100%;
@@ -351,7 +303,6 @@ export default CometChatNoSSR;
     font: var(--cometchat-font-body-regular, 400 14px Roboto);
 }
 
-/* Ensure message composer does not have rounded corners */
 .cometchat .cometchat-message-composer {
     border-radius: 0px;
 }
@@ -376,8 +327,6 @@ import dynamic from "next/dynamic";
 import '@cometchat/chat-uikit-react/css-variables.css';
 
 const inter = Inter({ subsets: ["latin"] });
-
-// Dynamically import CometChat component with SSR disabled
 const CometChatComponent = dynamic(() => import("../CometChatNoSSR/CometChatNoSSR"), {
   ssr: false,
 });
@@ -478,6 +427,8 @@ yarn dev
 </Tab>
 </Tabs>
 ***
+
+For prop details and customization options, see the component reference pages: [CometChatConversations](/ui-kit/react/conversations), [CometChatMessageList](/ui-kit/react/message-list), [CometChatMessageComposer](/ui-kit/react/message-composer), [CometChatMessageHeader](/ui-kit/react/message-header).
 
 ## Next Steps
 
