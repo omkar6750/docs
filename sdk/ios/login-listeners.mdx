@@ -100,46 +100,47 @@ This method is triggered when the user successfully logs into the CometChat SDK.
 <Accordion title="Sample Payloads">
 <Tabs>
 <Tab title="Request">
-```json
-{
-  "uid": "cometchat-uid-1",
-  "authKey": "AUTH_KEY"
-}
-```
+
+**Trigger:** `CometChat.login(UID:authKey:)` or `CometChat.login(authToken:)`
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| UID | `String` | `"cometchat-uid-1"` |
+| authKey | `String` | `"AUTH_KEY"` |
+
 </Tab>
 <Tab title="Success Response">
-```json
-{
-  "uid": "user_12345",
-  "name": "John Doe",
-  "avatar": "https://data-us.cometchat.io/avatars/user_12345.png",
-  "link": "https://example.com/profile/john",
-  "role": "default",
-  "metadata": {
-    "department": "Engineering",
-    "level": 5
-  },
-  "status": "online",
-  "statusMessage": "Available",
-  "lastActiveAt": 1708934400.0,
-  "hasBlockedMe": false,
-  "blockedByMe": false,
-  "tags": ["premium", "verified"],
-  "deactivatedAt": null,
-  "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "createdAt": 1700000000.0,
-  "updatedAt": 1708934400.0
-}
-```
+
+**Delegate Method:** `onLoginSuccess(user: User)`
+
+**Parameter Type:** `User`
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| uid | `String` | `"cometchat-uid-1"` |
+| name | `String` | `"John Doe"` |
+| avatar | `String` | `"https://data-us.cometchat.io/avatars/cometchat-uid-1.png"` |
+| link | `String?` | `"https://example.com/profile/john"` |
+| role | `String` | `"default"` |
+| metadata | `[String: Any]` | `["department": "Engineering", "level": 5]` |
+| status | `CometChat.UserStatus` | `0` (`.online`) |
+| statusMessage | `String?` | `"Available"` |
+| lastActiveAt | `Double` | `1708934400.0` |
+| hasBlockedMe | `Bool` | `false` |
+| blockedByMe | `Bool` | `false` |
+| tags | `[String]` | `["premium", "verified"]` |
+| deactivatedAt | `Double` | `0.0` |
+| authToken | `String?` | `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."` |
+| createdAt | `Double?` | `1700000000.0` |
+| updatedAt | `Double?` | `1708934400.0` |
+
 </Tab>
 <Tab title="Error Response">
-```json
-{
-  "errorCode": "ERR_UID_NOT_FOUND",
-  "errorDescription": "The UID 'invalid_user' does not exist.",
-  "details": "Verify the UID is registered in your CometChat app."
-}
-```
+
+**N/A** — This delegate method only fires on success.
+
+For login failures, see [onLoginFailed(error:)](#onloginfailederror-cometchatexception).
+
 </Tab>
 </Tabs>
 </Accordion>
@@ -153,26 +154,34 @@ This method is triggered when the user could not successfully log into the Comet
 <Accordion title="Sample Payloads">
 <Tabs>
 <Tab title="Request">
-```json
-{
-  "uid": "invalid_user",
-  "authKey": "AUTH_KEY"
-}
-```
+
+**Trigger:** `CometChat.login(UID:authKey:)` with invalid credentials
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| UID | `String` | `"invalid_user"` |
+| authKey | `String` | `"AUTH_KEY"` |
+
 </Tab>
 <Tab title="Success Response">
-```json
-// N/A - This callback only fires on failure
-```
+
+**N/A** — This delegate method only fires on failure.
+
+For login success, see [onLoginSuccess(user:)](#onloginsuccessuser-user).
+
 </Tab>
 <Tab title="Error Response">
-```json
-{
-  "errorCode": "ERR_UID_NOT_FOUND",
-  "errorDescription": "The UID 'invalid_user' does not exist.",
-  "details": "Verify the UID is registered in your CometChat app."
-}
-```
+
+**Delegate Method:** `onLoginFailed(error: CometChatException?)`
+
+**Parameter Type:** `CometChatException?`
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| errorCode | `String` | `"ERR_UID_NOT_FOUND"` |
+| errorDescription | `String` | `"The UID 'invalid_user' does not exist."` |
+| details | `String?` | `"Verify the UID is registered in your CometChat app."` |
+
 </Tab>
 </Tabs>
 </Accordion>
@@ -186,22 +195,33 @@ This method is called when the user successfully logs out from the CometChat SDK
 <Accordion title="Sample Payloads">
 <Tabs>
 <Tab title="Request">
-```json
-// No request parameters - logout uses current session
-{}
-```
+
+**Trigger:** `CometChat.logout()`
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| — | — | No request parameters |
+
 </Tab>
 <Tab title="Success Response">
-```json
-// No data returned - method has no return value
-// CometChat.getLoggedInUser() will return nil after successful logout
-{}
-```
+
+**Delegate Method:** `onLogoutSuccess()`
+
+**Return Type:** `Void` (no payload)
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| — | — | This delegate method receives no parameters |
+
+Success is indicated by the method being called. `CometChat.getLoggedInUser()` will return `nil` after successful logout.
+
 </Tab>
 <Tab title="Error Response">
-```json
-// N/A - This callback only fires on success
-```
+
+**N/A** — This delegate method only fires on success.
+
+For logout failures, see [onLogoutFailed(error:)](#onlogoutfailederror-cometchatexception).
+
 </Tab>
 </Tabs>
 </Accordion>
@@ -215,24 +235,33 @@ This method is triggered when the user could not successfully log out of the Com
 <Accordion title="Sample Payloads">
 <Tabs>
 <Tab title="Request">
-```json
-// No request parameters - logout uses current session
-{}
-```
+
+**Trigger:** `CometChat.logout()` when no user is logged in
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| — | — | No request parameters |
+
 </Tab>
 <Tab title="Success Response">
-```json
-// N/A - This callback only fires on failure
-```
+
+**N/A** — This delegate method only fires on failure.
+
+For logout success, see [onLogoutSuccess()](#onlogoutsuccess).
+
 </Tab>
 <Tab title="Error Response">
-```json
-{
-  "errorCode": "ERR_NOT_LOGGED_IN",
-  "errorDescription": "Cannot logout - no user is currently logged in.",
-  "details": null
-}
-```
+
+**Delegate Method:** `onLogoutFailed(error: CometChatException?)`
+
+**Parameter Type:** `CometChatException?`
+
+| Parameter | Type | Value |
+|-----------|------|-------|
+| errorCode | `String` | `"ERR_NOT_LOGGED_IN"` |
+| errorDescription | `String` | `"Cannot logout - no user is currently logged in."` |
+| details | `String?` | `nil` |
+
 </Tab>
 </Tabs>
 </Accordion>
