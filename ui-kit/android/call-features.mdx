@@ -39,53 +39,6 @@ To receive incoming calls globally in your app, you will need to add a `CallList
 When an incoming call is received, you can display the `CometChatIncomingCall` component using the current activity context.
 
 <Tabs>
-<Tab title="Java">
-```java lines
-public class BaseApplication extends Application {
-
-    private static final String LISTENER_ID = BaseApplication.class.getSimpleName() + System.currentTimeMillis();
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        
-        CometChat.addCallListener(LISTENER_ID, new CometChat.CallListener() {
-            @Override
-            public void onIncomingCallReceived(Call call) {
-                // Get the current activity context
-                Activity currentActivity = getCurrentActivity(); // Implement this method
-                
-                if (currentActivity != null) {
-                    // Create and display the incoming call component
-                    CometChatIncomingCall incomingCallView = new CometChatIncomingCall(currentActivity);
-                    incomingCallView.setCall(call);
-                    incomingCallView.setFitsSystemWindows(true);
-                    
-                    // Display the component (e.g., as dialog or snackbar)
-                }
-            }
-
-            @Override
-            public void onOutgoingCallAccepted(Call call) {
-                // Handle outgoing call acceptance
-            }
-
-            @Override
-            public void onOutgoingCallRejected(Call call) {
-                // Handle outgoing call rejection
-            }
-
-            @Override
-            public void onIncomingCallCancelled(Call call) {
-                // Handle incoming call cancellation
-            }
-        });
-    }
-}
-```
-
-</Tab>
-
 <Tab title="Kotlin">
 ```kotlin lines
 class BaseApplication : Application() {
@@ -127,6 +80,53 @@ class BaseApplication : Application() {
                 // Handle incoming call cancellation
             }
         })
+    }
+}
+```
+
+</Tab>
+
+<Tab title="Java">
+```java lines
+public class BaseApplication extends Application {
+
+    private static final String LISTENER_ID = BaseApplication.class.getSimpleName() + System.currentTimeMillis();
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        
+        CometChat.addCallListener(LISTENER_ID, new CometChat.CallListener() {
+            @Override
+            public void onIncomingCallReceived(Call call) {
+                // Get the current activity context
+                Activity currentActivity = getCurrentActivity(); // Implement this method
+                
+                if (currentActivity != null) {
+                    // Create and display the incoming call component
+                    CometChatIncomingCall incomingCallView = new CometChatIncomingCall(currentActivity);
+                    incomingCallView.setCall(call);
+                    incomingCallView.setFitsSystemWindows(true);
+                    
+                    // Display the component (e.g., as dialog or snackbar)
+                }
+            }
+
+            @Override
+            public void onOutgoingCallAccepted(Call call) {
+                // Handle outgoing call acceptance
+            }
+
+            @Override
+            public void onOutgoingCallRejected(Call call) {
+                // Handle outgoing call rejection
+            }
+
+            @Override
+            public void onIncomingCallCancelled(Call call) {
+                // Handle incoming call cancellation
+            }
+        });
     }
 }
 ```
