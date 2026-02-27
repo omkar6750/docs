@@ -6,6 +6,8 @@ title: "Conversations"
 
 ## AI Agent Component Spec
 
+<Accordion title="AI Agent Component Spec">
+
 ```json
 {
   "component": "CometChatConversations",
@@ -85,6 +87,18 @@ title: "Conversations"
         "default": "default formatters from data source"
       }
     },
+    "advanced": {
+      "selectConversation": "Conversation, SelectionMode — programmatic selection",
+      "clearSelection": "void — clears all selected conversations",
+      "getSelectedConversations": "List<Conversation> — returns selected items",
+      "getRecyclerView": "RecyclerView — internal RecyclerView access",
+      "getViewModel": "ConversationsViewModel — internal ViewModel access",
+      "getConversationsAdapter": "ConversationsAdapter — internal adapter access",
+      "setAdapter": "ConversationsAdapter — replace the default adapter",
+      "getBinding": "CometchatConversationsListViewBinding — root ViewBinding",
+      "hideReceipts": "boolean — hide/show read receipts at adapter level",
+      "setMentionAllLabelId": "String id, String label — mention-all label"
+    },
     "style": {
       "setStyle": {
         "type": "@StyleRes int",
@@ -129,6 +143,8 @@ title: "Conversations"
   }
 }
 ```
+
+</Accordion>
 
 ## Where It Fits
 
@@ -531,7 +547,31 @@ cometchatConversations.setOnEmpty{
 
 > **What this does:** Registers a callback that fires when the conversation list has no items. Use this to show a custom empty-state message or trigger other logic.
 
-- **Verify**: After setting an action callback, trigger the corresponding user interaction (tap, long-press, back, select) and confirm your custom logic executes instead of the default behavior.
+#### `setOnSearchClickListener`
+
+Fires when the user taps the search icon in the toolbar.
+
+<Tabs>
+<Tab title="Java">
+```java YourActivity.java lines
+cometchatConversations.setOnSearchClickListener(() -> {
+
+    });
+```
+</Tab>
+
+<Tab title="Kotlin">
+```kotlin YourActivity.kt lines
+cometchatConversations.setOnSearchClickListener {
+
+    }
+```
+</Tab>
+</Tabs>
+
+> **What this does:** Overrides the default search icon tap behavior. When the user taps the search icon, your custom logic runs instead.
+
+- **Verify**: After setting an action callback, trigger the corresponding user interaction (tap, long-press, back, select, search) and confirm your custom logic executes instead of the default behavior.
 
 ### Global UI Events
 
@@ -607,6 +647,8 @@ Small functional customizations such as toggling visibility of UI elements, sett
 | `setUserStatusVisibility` | Controls visibility of the online status indicator | `.setUserStatusVisibility(View.GONE);` |
 | `setGroupTypeVisibility` | Controls visibility of the group type indicator | `.setGroupTypeVisibility(View.GONE);` |
 | `setReceiptsVisibility` | Hides receipts shown in the subtitle without disabling read/delivered marking | `.setReceiptsVisibility(View.GONE);` |
+| `setSearchBoxVisibility` | Controls visibility of the search box in the toolbar | `.setSearchBoxVisibility(View.GONE);` |
+| `hideReceipts` | Hides read receipts in the conversation list (adapter-level) | `.hideReceipts(true);` |
 | `disableSoundForMessages` | Disables sound notifications for incoming messages | `.disableSoundForMessages(true);` |
 | `setCustomSoundForMessages` | Sets a custom sound file for incoming message notifications | `.setCustomSoundForMessages(com.cometchat.chatuikit.R.raw.cometchat_beep2);` |
 | `setSelectionMode` | Determines the selection mode (single or multiple) | `.setSelectionMode(UIKitConstants.SelectionMode.MULTIPLE);` |
@@ -1107,6 +1149,40 @@ cometchatConversations.setTrailingView(object : ConversationsViewHolderListener(
 
 Replace the name / title text. Inline user status example.
 
+Create a `custom_title_view.xml` layout:
+
+```xml custom_title_view.xml lines
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/cometchatTextAppearanceHeading4Bold"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:textAppearance="?attr/cometchatTextAppearanceCaption1Regular"
+        android:textColor="?attr/cometchatTextColorSecondary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:visibility="gone" />
+
+</LinearLayout>
+```
+
+> **What this does:** Defines a custom title layout with the conversation name and an inline user status message.
+
 <Tabs>
 <Tab title="Java">
 ```java lines
@@ -1170,6 +1246,8 @@ cometchatConversations.setTitleView(object : ConversationsViewHolderListener() {
 </Tab>
 </Tabs>
 
+> **What this does:** Registers a `ConversationsViewHolderListener` that provides a custom title view for each conversation item. The example inflates a layout with the conversation name and an inline user status message. For group conversations, the status is hidden.
+
 ### `setSubtitleView`
 
 Replace the last message preview text.
@@ -1227,6 +1305,8 @@ Replace the last message preview text.
 ```
 </Tab>
 </Tabs>
+
+> **What this does:** Registers a `ConversationsViewHolderListener` that provides a custom subtitle view for each conversation item. The example creates a `TextView` showing the last active timestamp formatted as "dd/MM/yyyy, HH:mm:ss".
 
 ### `setItemView`
 
@@ -1370,6 +1450,8 @@ Inflate the XML and bind:
 ```
 </Tab>
 </Tabs>
+
+> **What this does:** Registers a `ConversationsViewHolderListener` that replaces the entire list item row. The example inflates a compact layout with an avatar, name, and date — replacing the default multi-line conversation item.
 
 ### `setDateTimeFormatter`
 
@@ -2028,6 +2110,131 @@ cometChatConversations.setConversationsRequestBuilder(builder)
 </Tab>
 </Tabs>
 
+## Advanced Methods
+
+### Programmatic Selection
+
+#### `selectConversation`
+
+Programmatically selects or deselects a conversation. Works with both `SINGLE` and `MULTIPLE` selection modes.
+
+<Tabs>
+<Tab title="Java">
+```java lines
+// Select a conversation in single-select mode
+cometChatConversations.selectConversation(conversation, UIKitConstants.SelectionMode.SINGLE);
+
+// Select a conversation in multi-select mode
+cometChatConversations.selectConversation(conversation, UIKitConstants.SelectionMode.MULTIPLE);
+```
+</Tab>
+
+<Tab title="Kotlin">
+```kotlin lines
+// Select a conversation in single-select mode
+cometChatConversations.selectConversation(conversation, UIKitConstants.SelectionMode.SINGLE)
+
+// Select a conversation in multi-select mode
+cometChatConversations.selectConversation(conversation, UIKitConstants.SelectionMode.MULTIPLE)
+```
+</Tab>
+</Tabs>
+
+> In `SINGLE` mode, selecting a new conversation replaces the previous selection. In `MULTIPLE` mode, calling this on an already-selected conversation deselects it (toggle behavior).
+
+#### `clearSelection`
+
+Clears all selected conversations and resets the selection UI.
+
+<Tabs>
+<Tab title="Java">
+```java lines
+cometChatConversations.clearSelection();
+```
+</Tab>
+
+<Tab title="Kotlin">
+```kotlin lines
+cometChatConversations.clearSelection()
+```
+</Tab>
+</Tabs>
+
+#### `getSelectedConversations`
+
+Returns the list of currently selected `Conversation` objects.
+
+<Tabs>
+<Tab title="Java">
+```java lines
+List<Conversation> selected = cometChatConversations.getSelectedConversations();
+```
+</Tab>
+
+<Tab title="Kotlin">
+```kotlin lines
+val selected = cometChatConversations.selectedConversations
+```
+</Tab>
+</Tabs>
+
+### Selected Conversations List
+
+When using multi-select mode, a horizontal list of selected conversations can be shown above the main list.
+
+| Method | Type | Description |
+| --- | --- | --- |
+| `setSelectedConversationsListVisibility` | `int (View.VISIBLE / View.GONE)` | Show or hide the selected conversations strip |
+| `setSelectedConversationAvatarStyle` | `@StyleRes int` | Avatar style for selected conversation chips |
+| `setSelectedConversationItemTextColor` | `@ColorInt int` | Text color for selected conversation names |
+| `setSelectedConversationItemTextAppearance` | `@StyleRes int` | Text appearance for selected conversation names |
+| `setSelectedConversationItemRemoveIcon` | `Drawable` | Icon for the remove button on each chip |
+| `setSelectedConversationItemRemoveIconTint` | `@ColorInt int` | Tint color for the remove icon |
+
+### Search Input Customization
+
+The built-in search box can be customized programmatically:
+
+| Method | Type | Description |
+| --- | --- | --- |
+| `setSearchInputText` | `String` | Sets the search input text programmatically |
+| `setSearchPlaceholderText` | `String` | Sets the placeholder text for the search input |
+| `setSearchInputTextColor` | `@ColorInt int` | Text color of the search input |
+| `setSearchInputTextAppearance` | `@StyleRes int` | Text appearance of the search input |
+| `setSearchInputPlaceHolderTextColor` | `@ColorInt int` | Placeholder text color |
+| `setSearchInputPlaceHolderTextAppearance` | `@StyleRes int` | Placeholder text appearance |
+| `setSearchInputStartIcon` | `Drawable` | Leading icon in the search box |
+| `setSearchInputStartIconTint` | `@ColorInt int` | Tint for the leading icon |
+| `setSearchInputEndIcon` | `Drawable` | Trailing icon in the search box |
+| `setSearchInputEndIconTint` | `@ColorInt int` | Tint for the trailing icon |
+| `setSearchInputEndIconVisibility` | `int` | Visibility of the trailing icon |
+| `setSearchInputStrokeWidth` | `@Dimension int` | Stroke width of the search box border |
+| `setSearchInputStrokeColor` | `@ColorInt int` | Stroke color of the search box border |
+| `setSearchInputBackgroundColor` | `@ColorInt int` | Background color of the search box |
+| `setSearchInputCornerRadius` | `@Dimension int` | Corner radius of the search box |
+
+### Internal Access
+
+These methods provide direct access to internal components for advanced use cases.
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `getRecyclerView()` | `RecyclerView` | The underlying RecyclerView displaying conversations |
+| `getViewModel()` | `ConversationsViewModel` | The ViewModel managing conversation data and state |
+| `getConversationsAdapter()` | `ConversationsAdapter` | The adapter powering the RecyclerView |
+| `setAdapter(ConversationsAdapter)` | `void` | Replaces the default adapter with a custom one |
+| `getBinding()` | `CometchatConversationsListViewBinding` | The ViewBinding for the component's root layout |
+
+> Use these only when the standard API is insufficient. Directly manipulating the adapter or ViewModel may conflict with the component's internal state management.
+
+### Other Methods
+
+| Method | Type | Description |
+| --- | --- | --- |
+| `setMentionAllLabelId(String id, String mentionAllLabel)` | `void` | Sets the label used for "mention all" in conversation subtitles |
+| `setDateStyle(@StyleRes int)` | `void` | Sets the style for the date label in conversation items |
+| `setOptionListStyle(@StyleRes int)` | `void` | Sets the style for the long-press popup menu |
+
 ## Style
 
 The component uses XML theme styles. Define a custom style with parent `CometChatConversationsStyle` in `themes.xml`, then apply with `setStyle()`.
@@ -2069,6 +2276,66 @@ cometChatConversations.setStyle(R.style.CustomConversationsStyle)
 
 To know more such attributes, visit the [attributes file](https://github.com/cometchat/cometchat-uikit-android/blob/v5/chatuikit/src/main/res/values/attr_cometchat_conversations.xml).
 
+### Programmatic Style Properties
+
+In addition to XML theme styles, the component exposes programmatic setters for fine-grained control:
+
+| Method | Type | Description |
+| --- | --- | --- |
+| `setBackgroundColor` | `@ColorInt int` | Background color of the component |
+| `setBackIconTint` | `@ColorInt int` | Tint color for the back icon |
+| `setBackIcon` | `Drawable` | Custom back icon drawable |
+| `setTitleTextColor` | `@ColorInt int` | Title text color in the toolbar |
+| `setTitleTextAppearance` | `@StyleRes int` | Title text appearance in the toolbar |
+| `setItemTitleTextColor` | `@ColorInt int` | Text color for conversation item titles |
+| `setItemTitleTextAppearance` | `@StyleRes int` | Text appearance for conversation item titles |
+| `setItemSubtitleTextColor` | `@ColorInt int` | Text color for conversation item subtitles |
+| `setItemSubtitleTextAppearance` | `@StyleRes int` | Text appearance for conversation item subtitles |
+| `setItemMessageTypeIconTint` | `@ColorInt int` | Tint for message type icons in subtitles |
+| `setSeparatorColor` | `@ColorInt int` | Color of list item separators |
+| `setSeparatorHeight` | `@Dimension int` | Height of list item separators |
+| `setStrokeColor` | `@ColorInt int` | Stroke color of the component border |
+| `setStrokeWidth` | `@Dimension int` | Stroke width of the component border |
+| `setCornerRadius` | `@Dimension int` | Corner radius of the component |
+| `setEmptyStateTitleTextColor` | `@ColorInt int` | Title text color for the empty state |
+| `setEmptyStateSubtitleTextColor` | `@ColorInt int` | Subtitle text color for the empty state |
+| `setEmptyStateTextTitleAppearance` | `@StyleRes int` | Title text appearance for the empty state |
+| `setEmptyStateTextSubtitleAppearance` | `@StyleRes int` | Subtitle text appearance for the empty state |
+| `setErrorStateTitleTextColor` | `@ColorInt int` | Title text color for the error state |
+| `setErrorStateSubtitleTextColor` | `@ColorInt int` | Subtitle text color for the error state |
+| `setErrorStateTextTitleAppearance` | `@StyleRes int` | Title text appearance for the error state |
+| `setErrorStateTextSubtitleAppearance` | `@StyleRes int` | Subtitle text appearance for the error state |
+| `setDeleteOptionIcon` | `Drawable` | Icon for the delete option in the context menu |
+| `setDeleteOptionIconTint` | `int` | Tint for the delete option icon |
+| `setDeleteOptionTextColor` | `int` | Text color for the delete option |
+| `setDeleteOptionTextAppearance` | `int` | Text appearance for the delete option |
+| `setAvatarStyle` | `@StyleRes int` | Style for conversation avatars |
+| `setStatusIndicatorStyle` | `@StyleRes int` | Style for online/offline status indicators |
+| `setBadgeStyle` | `@StyleRes int` | Style for unread badge counts |
+| `setReceiptStyle` | `@StyleRes int` | Style for read/delivered receipt icons |
+| `setTypingIndicatorStyle` | `@StyleRes int` | Style for typing indicator text |
+| `setMentionsStyle` | `@StyleRes int` | Style for @mention text in subtitles |
+| `setItemBackgroundColor` | `@ColorInt int` | Background color for list items |
+| `setItemSelectedBackgroundColor` | `@ColorInt int` | Background color for selected list items |
+
+### Checkbox Style Properties (Selection Mode)
+
+When using `SINGLE` or `MULTIPLE` selection mode, checkboxes appear on each item:
+
+| Method | Type | Description |
+| --- | --- | --- |
+| `setCheckBoxStrokeWidth` | `@Dimension int` | Stroke width of the checkbox border |
+| `setCheckBoxCornerRadius` | `@Dimension int` | Corner radius of the checkbox |
+| `setCheckBoxStrokeColor` | `@ColorInt int` | Stroke color of the checkbox border |
+| `setCheckBoxBackgroundColor` | `@ColorInt int` | Background color of unchecked checkbox |
+| `setCheckBoxCheckedBackgroundColor` | `@ColorInt int` | Background color of checked checkbox |
+| `setCheckBoxSelectIcon` | `Drawable` | Icon shown when checkbox is checked |
+| `setCheckBoxSelectIconTint` | `@ColorInt int` | Tint for the checkbox select icon |
+| `setDiscardSelectionIcon` | `Drawable` | Icon for the discard selection button |
+| `setDiscardSelectionIconTint` | `@ColorInt int` | Tint for the discard selection icon |
+| `setSubmitSelectionIcon` | `Drawable` | Icon for the submit selection button |
+| `setSubmitSelectionIconTint` | `@ColorInt int` | Tint for the submit selection icon |
+
 ## Customization Matrix
 
 | What to change | Where | Property/API | Example |
@@ -2109,6 +2376,19 @@ To know more such attributes, visit the [attributes file](https://github.com/com
 | Text formatters (mentions) | Activity/Fragment | `setTextFormatters(List<CometChatTextFormatter>)` | See `setTextFormatters` code above |
 | Overflow menu | Activity/Fragment | `setOverflowMenu(View)` | `cometChatConversations.setOverflowMenu(view);` |
 | Filter conversations | Activity/Fragment | `setConversationsRequestBuilder(ConversationsRequestBuilder)` | See Filters code above |
+| Search box visibility | Activity/Fragment | `setSearchBoxVisibility(int)` | `.setSearchBoxVisibility(View.GONE);` |
+| Search input text | Activity/Fragment | `setSearchInputText(String)` | `.setSearchInputText("search term");` |
+| Search placeholder text | Activity/Fragment | `setSearchPlaceholderText(String)` | `.setSearchPlaceholderText("Search...");` |
+| Search input colors | Activity/Fragment | `setSearchInputTextColor`, `setSearchInputBackgroundColor` | `.setSearchInputTextColor(Color.BLACK);` |
+| Search input icons | Activity/Fragment | `setSearchInputStartIcon`, `setSearchInputEndIcon` | `.setSearchInputStartIcon(drawable);` |
+| Hide receipts (adapter) | Activity/Fragment | `hideReceipts(boolean)` | `.hideReceipts(true);` |
+| Programmatic selection | Activity/Fragment | `selectConversation(Conversation, SelectionMode)` | `.selectConversation(conv, SelectionMode.SINGLE);` |
+| Clear selection | Activity/Fragment | `clearSelection()` | `.clearSelection();` |
+| Selected conversations strip | Activity/Fragment | `setSelectedConversationsListVisibility(int)` | `.setSelectedConversationsListVisibility(View.VISIBLE);` |
+| Selected conversation avatar style | Activity/Fragment | `setSelectedConversationAvatarStyle(int)` | `.setSelectedConversationAvatarStyle(R.style.CustomAvatarStyle);` |
+| Internal adapter access | Activity/Fragment | `getConversationsAdapter()` / `setAdapter()` | Advanced use only |
+| Internal ViewModel access | Activity/Fragment | `getViewModel()` | Advanced use only |
+| Mention-all label | Activity/Fragment | `setMentionAllLabelId(String, String)` | `.setMentionAllLabelId("all", "Everyone");` |
 
 ## Accessibility
 
@@ -2149,9 +2429,3 @@ Group type indicators and online/offline status dots are visual-only by default.
 
 **Q: How do I add custom long-press options without removing the defaults?**
 **A:** Use `addOptions` instead of `setOptions`. `addOptions` appends your custom `MenuItem` objects to the existing default options.
-
-## Next Steps
-
-- [Users component](/ui-kit/android/users)
-- [Message list component](/ui-kit/android/message-list)
-- [Groups component](/ui-kit/android/groups)
