@@ -3,6 +3,34 @@ title: "Message Bubble Styling"
 description: "Configure and style incoming, outgoing, and specific message bubbles in your Android UI Kit."
 ---
 
+Configure and style incoming, outgoing, and specific message bubbles in your Android UI Kit.
+
+## When to use this
+- You want to customize the look of incoming and outgoing message bubbles.
+- You need different styles for text, image, audio, video, file, sticker, poll, or collaborative bubbles.
+- You want to style call action bubbles, delete bubbles, or AI assistant bubbles.
+- You need to customize quoted reply previews.
+- You prefer centralized styling through `res/values/themes.xml`.
+
+## Prerequisites
+- CometChat UI Kit for Android is installed and initialized.
+- Your app theme extends `CometChatTheme.DayNight`.
+- You can edit `res/values/themes.xml` in your Android module.
+- You rebuild or sync Gradle after updating styles.
+
+## Quick start
+<Steps>
+<Step title="Set up the global bubble hubs">
+Define `CustomIncomingMessageBubbleStyle` and `CustomOutgoingMessageBubbleStyle` in `res/values/themes.xml` and connect them to `AppTheme`.
+</Step>
+<Step title="Style a specific bubble type">
+Create a custom style for the bubble type (e.g., `CustomIncomingTextBubbleStyle`) and link it inside the hub style.
+</Step>
+<Step title="Build and verify">
+Run the app, open a conversation, and confirm the bubble styling.
+</Step>
+</Steps>
+
 ## Overview
 
 Message bubbles are the core visual element in chat applications. Customizing them allows you to create a consistent user experience that aligns with your app's theme.
@@ -47,6 +75,18 @@ Define this **once** in your `res/values/themes.xml`. All subsequent custom bubb
    <item name="cometchatOutgoingMessageBubbleStyle">@style/CustomOutgoingMessageBubbleStyle</item>
 </style>
 ```
+
+Customizing Incoming Message Bubble
+
+<Frame>
+  <img src="/images/68dfc288-incoming_bubble_styling-41b09e86811d02c5b9c62cd135e23188.png" />
+</Frame>
+
+Customizing Outgoing Message Bubble
+
+<Frame>
+  <img src="/images/40b99d2c-outgoing_bubble_styling-3762ae90255a5e762e4d5efad2465cf6.png" />
+</Frame>
 
 **Attribute references:**
 - [Message bubble attributes](https://github.com/cometchat/cometchat-uikit-android/blob/v5/chatuikit/src/main/res/values/attr_cometchat_message_bubble.xml)
@@ -588,3 +628,50 @@ Styles the preview block when a user replies to a specific message.
 ```
 **Attribute reference:**
 - [Message preview attributes](https://github.com/cometchat/cometchat-uikit-android/blob/v5/chatuikit/src/main/res/values/attr_cometchat_message_preview.xml)
+
+## Customization matrix
+
+| What you want to change | Where | Property/API | Example |
+| --- | --- | --- | --- |
+| Incoming bubble background | `res/values/themes.xml` | `cometchatMessageBubbleBackgroundColor` in `CometChatIncomingMessageBubbleStyle` | `<item name="cometchatMessageBubbleBackgroundColor">#FEEDE1</item>` |
+| Outgoing bubble background | `res/values/themes.xml` | `cometchatMessageBubbleBackgroundColor` in `CometChatOutgoingMessageBubbleStyle` | `<item name="cometchatMessageBubbleBackgroundColor">#F76808</item>` |
+| Text bubble background | `res/values/themes.xml` | `cometchatTextBubbleBackgroundColor` | `<item name="cometchatTextBubbleBackgroundColor">#FEEDE1</item>` |
+| Link preview background | `res/values/themes.xml` | `cometchatTextBubbleLinkPreviewBackgroundColor` | `<item name="cometchatTextBubbleLinkPreviewBackgroundColor">#FBAA75</item>` |
+| Image bubble background | `res/values/themes.xml` | `cometchatImageBubbleBackgroundColor` | `<item name="cometchatImageBubbleBackgroundColor">#FEEDE1</item>` |
+| Video bubble play icon tint | `res/values/themes.xml` | `cometchatVideoBubblePlayIconTint` | `<item name="cometchatVideoBubblePlayIconTint">#F76808</item>` |
+| Audio bubble wave color | `res/values/themes.xml` | `cometchatAudioBubbleAudioWaveColor` | `<item name="cometchatAudioBubbleAudioWaveColor">#F76808</item>` |
+| File bubble download icon tint | `res/values/themes.xml` | `cometchatFileBubbleFileDownloadIconTint` | `<item name="cometchatFileBubbleFileDownloadIconTint">#F76808</item>` |
+| Poll bubble progress background | `res/values/themes.xml` | `cometchatPollBubbleProgressBackgroundColor` | `<item name="cometchatPollBubbleProgressBackgroundColor">#FBAA75</item>` |
+| Collaborative bubble separator | `res/values/themes.xml` | `cometchatCollaborativeBubbleSeparatorColor` | `<item name="cometchatCollaborativeBubbleSeparatorColor">#FBAA75</item>` |
+| Meet call bubble icon tint | `res/values/themes.xml` | `cometchatMeetCallBubbleCallIconTint` | `<item name="cometchatMeetCallBubbleCallIconTint">#F76808</item>` |
+| Delete bubble background | `res/values/themes.xml` | `cometchatMessageBubbleBackgroundColor` in delete style | `<item name="cometchatMessageBubbleBackgroundColor">#FBAA75</item>` |
+| Call action bubble text color | `res/values/themes.xml` | `cometchatCallActionBubbleTextColor` | `<item name="cometchatCallActionBubbleTextColor">#F76808</item>` |
+| Action bubble text color | `res/values/themes.xml` | `cometchatActionBubbleTextColor` | `<item name="cometchatActionBubbleTextColor">#F76808</item>` |
+| AI assistant bubble background | `res/values/themes.xml` | `cometChatAIAssistantBubbleBackgroundColor` | `<item name="cometChatAIAssistantBubbleBackgroundColor">@color/cometchat_color_transparent</item>` |
+| Quoted reply preview background | `res/values/themes.xml` | `cometChatMessagePreviewBackgroundColor` | `<item name="cometChatMessagePreviewBackgroundColor">#ea6d71</item>` |
+| Bubble corner radius | `res/values/themes.xml` | `cometchatMessageBubbleCornerRadius` | `<item name="cometchatMessageBubbleCornerRadius">@dimen/cometchat_radius_3</item>` |
+
+## Common pitfalls and fixes
+- Bubble style not applying: Confirm the custom style is linked inside the correct hub (`CustomIncomingMessageBubbleStyle` or `CustomOutgoingMessageBubbleStyle`), and the hub is connected to `AppTheme`.
+- Only incoming or outgoing changes: You must define separate styles for incoming and outgoing bubbles. Changing one does not affect the other.
+- Specific bubble type unchanged: Ensure you link the specific bubble style (e.g., `cometchatTextBubbleStyle`) inside the hub, not directly in `AppTheme`.
+- Call action or action bubble unchanged: These are linked to `CometChatMessageListStyle`, not the incoming/outgoing hubs. Use `cometchatMessageListCallActionBubbleStyle` or `cometchatMessageListActionBubbleStyle`.
+- AI assistant bubble unchanged: This is linked to `CometChatIncomingMessageBubbleStyle` via `cometchatAIAssistantBubbleStyle`.
+- Changes not visible: Rebuild the app after editing `themes.xml`.
+- Dark mode not matching: Update both `values/themes.xml` and `values-night/themes.xml`.
+
+## FAQ
+**Q**: Do I need to define both incoming and outgoing styles?
+**A**: Only if you want different styles for each direction. If you only customize one, the other uses the default.
+
+**Q**: Can I style a specific bubble type without changing the base bubble?
+**A**: Yes. Define a custom style for the specific type (e.g., `CustomIncomingTextBubbleStyle`) and link it inside the hub. The base bubble background remains unchanged.
+
+**Q**: Where do I find all available attributes for a bubble type?
+**A**: Use the Attribute reference links under each bubble section above.
+
+**Q**: How do I style call action bubbles differently from message bubbles?
+**A**: Call action and action bubbles are linked to `CometChatMessageListStyle`, not the incoming/outgoing hubs. See the Call Action Bubble and Action Bubble sections.
+
+**Q**: Can I change the bubble corner radius?
+**A**: Yes. Set `cometchatMessageBubbleCornerRadius` in your incoming or outgoing hub style.
