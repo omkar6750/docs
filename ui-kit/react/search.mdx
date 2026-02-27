@@ -1,273 +1,282 @@
 ---
 title: "Search"
-description: "Search across conversations and messages in real time with filtering, scopes, and custom views using the CometChatSearch component."
+description: "Dual-scope search across conversations and messages with filtering, scopes, and custom views."
 ---
 
-<Frame>
-  <img src="/images/react-uikit-search-update.png" />
-</Frame>
-
-<Accordion title="AI Agent Component Spec">
-
-| Field | Value |
-| --- | --- |
-| Purpose | Real-time search across conversations and messages with filtering, scopes, and custom views |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatSearch } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Conversation list search, message header search, standalone full-screen search |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | Conversation click (from `onConversationClicked`), message click (from `onMessageClicked`) |
-| Primary hook points | `onConversationClicked`, `onMessageClicked`, `onBack`, `onError`, `conversationsRequestBuilder`, `messagesRequestBuilder`, view slots (`conversationItemView`, `messageItemView`, `messageLeadingView`, `messageTitleView`, `messageSubtitleView`, `messageTrailingView`) |
-| CSS root class | `.cometchat-search` |
-| Real-time events | None emitted |
-
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders a search interface for conversations and messages.
-
 <Tabs>
-<Tab title="SearchDemo.tsx">
-```tsx lines
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatSearch` is a standalone search panel that searches across conversations and messages simultaneously. It renders filter chips, conversation results, and message results in a unified interface. Wire `onConversationClicked` and `onMessageClicked` to navigate to the selected result.
+
+```tsx
+import { useState } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
 function SearchDemo() {
+  const handleConversationClicked = (
+    conversation: CometChat.Conversation,
+    searchKeyword?: string
+  ) => {
+    console.log("Conversation:", conversation.getConversationId(), searchKeyword);
+  };
+
+  const handleMessageClicked = (
+    message: CometChat.BaseMessage,
+    searchKeyword?: string
+  ) => {
+    console.log("Message:", message.getId(), searchKeyword);
+  };
+
   return (
-    <div className="conversations" style={{ width: "100%", height: "100%" }}>
-      <CometChatSearch />
+    <div style={{ width: "100%", height: "100%" }}>
+      <CometChatSearch
+        onConversationClicked={handleConversationClicked}
+        onMessageClicked={handleMessageClicked}
+      />
     </div>
   );
 }
 
 export default SearchDemo;
 ```
-</Tab>
-</Tabs>
 
-Root CSS class for style overrides:
+<Frame>
+  <img src="/images/react-uikit-search-update.png" />
+</Frame>
 
-```css lines
-.cometchat-search {
-  /* overrides here */
+---
+
+## Minimal Render
+
+```tsx
+import { CometChatSearch } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function SearchMinimal() {
+  return (
+    <div style={{ width: "100%", height: "100%" }}>
+      <CometChatSearch />
+    </div>
+  );
 }
 ```
 
-## Functionality
+Root CSS class: `.cometchat-search`
 
-Props that control component behavior, grouped by surface area.
+---
 
-### Data
+## Filtering Search Results
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `user` | `CometChat.User` | `undefined` | Scopes search to a specific user's conversation | — |
-| `group` | `CometChat.Group` | `undefined` | Scopes search to a specific group's conversation | — |
+### Search Scope
 
-### UI Visibility Toggles
+Control which entities are searched using `searchIn` with `CometChatSearchScope`.
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `hideBackButton` | `boolean` | `false` | Hides the back button | — |
-| `hideUserStatus` | `boolean` | `false` | Hides the user's online/offline status indicator | — |
-| `hideGroupType` | `boolean` | `false` | Hides the group type icon in conversation leading view | — |
-| `hideReceipts` | `boolean` | `false` | Disables the display of message read receipts in conversation results | — |
+```tsx
+import {
+  CometChatSearch,
+  CometChatSearchScope,
+} from "@cometchat/chat-uikit-react";
 
-### Data Scoping
+function MessagesOnlySearch() {
+  return (
+    <CometChatSearch
+      searchIn={[CometChatSearchScope.Messages]}
+    />
+  );
+}
+```
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `uid` | `string` | `undefined` | Limits search to messages with a specific user | — |
-| `guid` | `string` | `undefined` | Limits search to messages in a specific group | — |
+```ts
+enum CometChatSearchScope {
+  Conversations = "conversations",
+  Messages = "messages",
+}
+```
 
-### Search Configuration
+### Search Filters
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `searchFilters` | `CometChatSearchFilter[]` | All filters | Filters rendered in the search UI (Messages, Photos, Audio, Documents) | — |
-| `initialSearchFilter` | `CometChatSearchFilter` | `undefined` | The filter active by default on load | — |
-| `searchIn` | `CometChatSearchScope[]` | All scopes | Entities in which search is performed (Conversations, Messages) | — |
+Control which filter chips appear using `searchFilters` with `CometChatSearchFilter`.
 
-### Custom Views (Render Props)
+```tsx
+import {
+  CometChatSearch,
+  CometChatSearchFilter,
+} from "@cometchat/chat-uikit-react";
 
-| Property | Type | Effect |
-| --- | --- | --- |
-| `initialView` | `JSX.Element` | Shown when no search is performed yet |
-| `loadingView` | `JSX.Element` | Shown while search results are loading |
-| `emptyView` | `JSX.Element` | Shown when no results are found |
-| `errorView` | `JSX.Element` | Shown when an error occurs |
+function FilteredSearch() {
+  return (
+    <CometChatSearch
+      searchFilters={[
+        CometChatSearchFilter.Messages,
+        CometChatSearchFilter.Photos,
+        CometChatSearchFilter.Videos,
+      ]}
+      initialSearchFilter={CometChatSearchFilter.Messages}
+    />
+  );
+}
+```
 
-### Date Formatting
+```ts
+enum CometChatSearchFilter {
+  Messages = "messages",
+  Conversations = "conversations",
+  Unread = "unread",
+  Groups = "groups",
+  Photos = "photos",
+  Videos = "videos",
+  Links = "links",
+  Documents = "files",
+  Audio = "audio",
+}
+```
 
-| Property | Type | Default | Effect |
-| --- | --- | --- | --- |
-| `messageSentAtDateTimeFormat` | `CalendarObject` | `DD MMM, YYYY` | Customizes the message sent-at timestamp |
+### Request Builders
 
-### Text Formatting
+Pass `ConversationsRequestBuilder` and `MessagesRequestBuilder` to customize the underlying SDK queries.
 
-| Property | Type | Default | Effect |
-| --- | --- | --- | --- |
-| `textFormatters` | `CometChatTextFormatter[]` | `[]` | Custom text formatters for message content (e.g., emoji, links, mentions) |
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-<Note>
-If a property is not passed in the CalendarObject, the component checks the [global configuration](/ui-kit/react/localize#customisation) first, then falls back to the component's default formatting.
-</Note>
+function CustomBuilderSearch() {
+  return (
+    <CometChatSearch
+      conversationsRequestBuilder={
+        new CometChat.ConversationsRequestBuilder().setLimit(5)
+      }
+      messagesRequestBuilder={
+        new CometChat.MessagesRequestBuilder().setLimit(5)
+      }
+    />
+  );
+}
+```
 
-## Actions
+### Scoped Search (User or Group)
 
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
+Limit search to a specific user or group conversation using `uid` or `guid`.
 
-### Predefined Actions
+```tsx
+import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-The component handles search execution, result rendering, and pagination internally.
+function UserScopedSearch() {
+  return <CometChatSearch uid="uid" />;
+}
+```
 
-### User-Defined Actions
+---
+
+## Actions and Events
+
+### Callback Props
 
 #### onConversationClicked
 
-Fires when a conversation is clicked from the search results.
+Fires when a conversation is clicked in search results.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks a conversation in search results |
-| Payload type | `(conversation: CometChat.Conversation, searchKeyword?: string) => void` |
-| What devs typically do next | Navigate to the conversation, open chat view |
-
-```ts lines
+```tsx
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const openConversation = (conversation: CometChat.Conversation) => {
-  console.log("Conversation Selected:", conversation);
-};
-
-<CometChatSearch onConversationClicked={openConversation} />;
+function SearchWithConversationClick() {
+  return (
+    <CometChatSearch
+      onConversationClicked={(conversation: CometChat.Conversation, keyword?: string) => {
+        console.log("Selected:", conversation.getConversationId(), keyword);
+      }}
+    />
+  );
+}
 ```
 
 #### onMessageClicked
 
-Fires when a message is clicked from the search results.
+Fires when a message is clicked in search results.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks a message in search results |
-| Payload type | `(message: CometChat.BaseMessage, searchKeyword?: string) => void` |
-| What devs typically do next | Navigate to the message in context, scroll to message |
-
-```ts lines
+```tsx
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const goToMessage = (message: CometChat.BaseMessage) => {
-  console.log("Message Selected:", message);
-};
-
-<CometChatSearch onMessageClicked={goToMessage} />;
+function SearchWithMessageClick() {
+  return (
+    <CometChatSearch
+      onMessageClicked={(message: CometChat.BaseMessage, keyword?: string) => {
+        console.log("Message:", message.getId(), keyword);
+      }}
+    />
+  );
+}
 ```
 
 #### onBack
 
 Fires when the back button is clicked.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the back button |
-| Payload type | `() => void` |
-| What devs typically do next | Navigate back to previous view |
-
-```ts lines
+```tsx
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const onBack = () => {
-  console.log("Back button pressed");
-};
-
-<CometChatSearch onBack={onBack} />;
+function SearchWithBack() {
+  return <CometChatSearch onBack={() => console.log("Back")} />;
+}
 ```
 
 #### onError
 
-Fires when the component encounters an error.
+Fires on internal errors during search.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error during search or rendering |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service |
-
-```ts lines
-import { CometChatSearch } from "@cometchat/chat-uikit-react";
-
-const handleOnError = (error: CometChat.CometChatException) => {
-  // Your exception handling code
-};
-
-<CometChatSearch onError={handleOnError} />;
-```
-
-## Filters
-
-Control which results appear using `ConversationsRequestBuilder` and `MessagesRequestBuilder`.
-
-### ConversationsRequestBuilder
-
-Filter conversation search results. Refer to [ConversationsRequestBuilder](/sdk/javascript/retrieve-conversations) for the full API.
-
-```ts lines
+```tsx
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-<CometChatSearch
-  conversationsRequestBuilder={new CometChat.ConversationsRequestBuilder().setLimit(
-    5
-  )}
-/>;
+function SearchWithError() {
+  return (
+    <CometChatSearch
+      onError={(error: CometChat.CometChatException) => {
+        console.error("Search error:", error);
+      }}
+    />
+  );
+}
 ```
 
-### MessagesRequestBuilder
+### Global UI Events
 
-Filter message search results. Refer to [MessagesRequestBuilder](/sdk/javascript/additional-message-filtering) for the full API.
+The `CometChatSearch` component does not emit any custom UI events.
 
-```ts lines
-import { CometChatSearch } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-<CometChatSearch
-  messagesRequestBuilder={new CometChat.MessagesRequestBuilder().setLimit(5)}
-/>;
-```
-
-## Events
-
-### UI Events
-
-The `CometChatSearch` component does not emit any UI events.
-
-### SDK Events (Real-Time)
+### SDK Events (Real-Time, Automatic)
 
 The component does not attach SDK listeners. Search is on-demand, not real-time.
 
-## Advanced: Custom View Slots
+---
 
-Customization override points for the search UI. The component exposes separate slots for conversation results and message results.
+## Custom View Slots
 
-### Slot Catalog
+The component exposes separate view slots for conversation results and message results. All per-item slots receive their respective data object.
 
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `conversationItemView` | `(conversation: CometChat.Conversation) => JSX.Element` | Entire conversation list item | Conversation results |
-| `conversationLeadingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation avatar / left section | Conversation results |
-| `conversationTitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation title text | Conversation results |
-| `conversationSubtitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation subtitle text | Conversation results |
-| `conversationTrailingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation right section | Conversation results |
-| `conversationOptions` | `(conversation: CometChat.Conversation) => CometChatActionsIcon[]` | Hover actions on conversation item | Conversation results |
-| `messageItemView` | `(message: CometChat.BaseMessage) => JSX.Element` | Entire message list item | Message results |
-| `messageLeadingView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message avatar / left section | Message results |
-| `messageTitleView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message title text | Message results |
-| `messageSubtitleView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message subtitle text | Message results |
-| `messageTrailingView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message right section | Message results |
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `conversationItemView` | `(conversation: CometChat.Conversation) => JSX.Element` | Entire conversation list item |
+| `conversationLeadingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation avatar |
+| `conversationTitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation title |
+| `conversationSubtitleView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation subtitle |
+| `conversationTrailingView` | `(conversation: CometChat.Conversation) => JSX.Element` | Conversation trailing section |
+| `conversationOptions` | `(conversation: CometChat.Conversation) => CometChatOption[]` | Conversation context menu |
+| `messageItemView` | `(message: CometChat.BaseMessage) => JSX.Element` | Entire message list item |
+| `messageLeadingView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message avatar |
+| `messageTitleView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message title |
+| `messageSubtitleView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message subtitle |
+| `messageTrailingView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message trailing section |
+| `initialView` | `JSX.Element` | Initial state before search |
+| `loadingView` | `JSX.Element` | Loading state |
+| `emptyView` | `JSX.Element` | Empty results state |
+| `errorView` | `JSX.Element` | Error state |
 
-### Conversation View Slots
-
-The conversation view slots (`conversationItemView`, `conversationLeadingView`, `conversationTitleView`, `conversationSubtitleView`, `conversationTrailingView`, `conversationOptions`) follow the same pattern as the [CometChatConversations](/ui-kit/react/conversations) component. Refer to the Conversations component documentation for detailed examples.
+Conversation view slots follow the same pattern as [CometChatConversations](/ui-kit/react/conversations). Refer to that component for detailed examples.
 
 ### messageItemView
 
@@ -279,28 +288,30 @@ Replace the entire message list item in search results.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const getMessageItemView = (message: CometChat.BaseMessage) => {
-  return (
+function SearchCustomMessageItem() {
+  const getMessageItemView = (message: CometChat.BaseMessage) => (
     <div className="cometchat-search__message-list-item">
       <div className="cometchat-search__message-list-item-sender">
         {message.getSender()?.getName()}:
       </div>
       <div className="cometchat-search__message-list-item-text">
-        {message instanceof CometChat.TextMessage ? (message as CometChat.TextMessage).getText() : message.getType()}
+        {message instanceof CometChat.TextMessage
+          ? (message as CometChat.TextMessage).getText()
+          : message.getType()}
       </div>
     </div>
   );
-};
 
-<CometChatSearch messageItemView={getMessageItemView} />;
+  return <CometChatSearch messageItemView={getMessageItemView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-search__message-list-item {
   background: var(--cometchat-extended-primary-color-100);
   border-bottom: 1px solid var(--cometchat-border-color-highlight);
@@ -310,12 +321,12 @@ const getMessageItemView = (message: CometChat.BaseMessage) => {
   gap: var(--cometchat-padding-2);
 }
 
-.cometchat-search__message-list-item .cometchat-search__message-list-item-sender {
+.cometchat-search__message-list-item-sender {
   color: var(--cometchat-text-color-highlight);
   font: var(--cometchat-font-body-regular);
 }
 
-.cometchat-search__message-list-item .cometchat-search__message-list-item-text {
+.cometchat-search__message-list-item-text {
   color: var(--cometchat-text-color-secondary);
   font: var(--cometchat-font-body-regular);
 }
@@ -325,7 +336,7 @@ const getMessageItemView = (message: CometChat.BaseMessage) => {
 
 ### messageLeadingView
 
-Replace the message avatar / left section in search results.
+Replace the message avatar / left section.
 
 <Frame>
   <img src="/images/8ec51714-search_message_leading_view_custom_web_screens-af08d61c02454c807100907c1156d46d.png" />
@@ -333,23 +344,23 @@ Replace the message avatar / left section in search results.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const getMessageLeadingView = (message: CometChat.BaseMessage) => {
-  return (
+function SearchCustomMessageLeading() {
+  const getMessageLeadingView = (message: CometChat.BaseMessage) => (
     <div className="cometchat-search__message-list-item-leading-view">
-      <img src={ICON_URL}></img>
+      <img src={ICON_URL} />
     </div>
   );
-};
 
-<CometChatSearch messageLeadingView={getMessageLeadingView} />;
+  return <CometChatSearch messageLeadingView={getMessageLeadingView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-search__message-list-item-leading-view {
   height: 48px;
   width: 48px;
@@ -370,7 +381,7 @@ const getMessageLeadingView = (message: CometChat.BaseMessage) => {
 
 ### messageTitleView
 
-Replace the message title text in search results.
+Replace the message title text.
 
 <Frame>
   <img src="/images/0b1cf07c-search_message_title_view_custom_web_screens-df6cb1c0e91a105d4f708e47c62de992.png" />
@@ -378,12 +389,12 @@ Replace the message title text in search results.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const getMessageTitleView = (message: CometChat.BaseMessage) => {
-  return (
+function SearchCustomMessageTitle() {
+  const getMessageTitleView = (message: CometChat.BaseMessage) => (
     <div className="cometchat-search__message-list-item-title">
       <div className="cometchat-search__message-list-item-title-text">
         {message.getSender()?.getName()}
@@ -394,28 +405,27 @@ const getMessageTitleView = (message: CometChat.BaseMessage) => {
       </div>
     </div>
   );
-};
 
-<CometChatSearch messageTitleView={getMessageTitleView} />;
+  return <CometChatSearch messageTitleView={getMessageTitleView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-search__message-list-item-title {
   display: flex;
   align-items: center;
   gap: var(--cometchat-spacing-1);
 }
 
-.cometchat-search__message-list-item-title .cometchat-search__message-list-item-title-text {
+.cometchat-search__message-list-item-title-text {
   font: var(--cometchat-font-heading4-medium);
   color: var(--cometchat-text-color-secondary);
 }
 
-.cometchat-search__message-list-item-title .cometchat-search__message-list-item-title-role {
+.cometchat-search__message-list-item-title-role {
   font: var(--cometchat-font-heading4-medium);
   color: var(--cometchat-text-color-highlight);
-  text-decoration-color: var(--cometchat-border-color-highlight);
   text-decoration: underline;
 }
 ```
@@ -424,7 +434,7 @@ const getMessageTitleView = (message: CometChat.BaseMessage) => {
 
 ### messageSubtitleView
 
-Replace the message subtitle text in search results.
+Replace the message subtitle text.
 
 <Frame>
   <img src="/images/67721bd7-search_message_subtitle_view_custom_web_screens-96e7a678fc3920eb12db00b43c4f6860.png" />
@@ -432,28 +442,30 @@ Replace the message subtitle text in search results.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const getMessageSubtitleView = (message: CometChat.BaseMessage) => {
-  return (
+function SearchCustomMessageSubtitle() {
+  const getMessageSubtitleView = (message: CometChat.BaseMessage) => (
     <div className="cometchat-search__message-list-item-subtitle">
       <div className="cometchat-search__message-list-item-subtitle-sender">
         {message.getSender()?.getName()}:
       </div>
       <div className="cometchat-search__message-list-item-subtitle-text">
-        {message instanceof CometChat.TextMessage ? (message as CometChat.TextMessage).getText() : message.getType()}
+        {message instanceof CometChat.TextMessage
+          ? (message as CometChat.TextMessage).getText()
+          : message.getType()}
       </div>
     </div>
   );
-};
 
-<CometChatSearch messageSubtitleView={getMessageSubtitleView} />;
+  return <CometChatSearch messageSubtitleView={getMessageSubtitleView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-search__message-list-item-subtitle {
   background: var(--cometchat-extended-primary-color-100);
   padding: var(--cometchat-padding-1);
@@ -463,12 +475,12 @@ const getMessageSubtitleView = (message: CometChat.BaseMessage) => {
   width: 100%;
 }
 
-.cometchat-search__message-list-item-subtitle .cometchat-search__message-list-item-subtitle-sender {
+.cometchat-search__message-list-item-subtitle-sender {
   color: var(--cometchat-text-color-highlight);
   font: var(--cometchat-font-body-regular);
 }
 
-.cometchat-search__message-list-item-subtitle .cometchat-search__message-list-item-subtitle-text {
+.cometchat-search__message-list-item-subtitle-text {
   color: var(--cometchat-text-color-secondary);
   font: var(--cometchat-font-body-regular);
 }
@@ -478,7 +490,7 @@ const getMessageSubtitleView = (message: CometChat.BaseMessage) => {
 
 ### messageTrailingView
 
-Replace the message right section in search results.
+Replace the message right section.
 
 <Frame>
   <img src="/images/1c199c35-search_message_trailing_view_custom_web_screens-75c38143a2439190b3198dd93923c6fd.png" />
@@ -486,49 +498,53 @@ Replace the message right section in search results.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSearch } from "@cometchat/chat-uikit-react";
 
-const getMessageTrailingView = (message: CometChat.BaseMessage) => {
-  const timestamp = message.getSentAt() * 1000;
-  const now = new Date();
-  const time = new Date(timestamp);
-      
-  const diffInMs = now.getTime() - time.getTime();
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-      
-  let backgroundColorClass = "cometchat-search__message-trailing-view-min";
-  let topLabel = `${diffInMinutes}`;
-  let bottomLabel = `${diffInMinutes === 1 ? "Min ago" : "Mins ago"}`;
-      
-  if (diffInHours >= 1 && diffInHours <= 10) {
-    backgroundColorClass = "cometchat-search__message-trailing-view-hour";
-    topLabel = `${diffInHours}`;
-    bottomLabel = `${diffInHours === 1 ? "Hour ago" : "Hours ago"}`;
-  } else if (diffInHours > 10) {
-    backgroundColorClass = "cometchat-search__message-trailing-view-date";
-    topLabel = time.toLocaleDateString("en-US", { day: "numeric" });
-    bottomLabel = time.toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-  }
+function SearchCustomMessageTrailing() {
+  const getMessageTrailingView = (message: CometChat.BaseMessage) => {
+    const timestamp = message.getSentAt() * 1000;
+    const now = Date.now();
+    const diffInMinutes = Math.floor((now - timestamp) / (1000 * 60));
+    const diffInHours = Math.floor((now - timestamp) / (1000 * 60 * 60));
 
-  return (
-    <div className={`cometchat-search__message-trailing-view ${backgroundColorClass}`}>
-      <span className="cometchat-search__message-trailing-view-time">{topLabel}</span>
-      <span className="cometchat-search__message-trailing-view-status">{bottomLabel}</span>
-    </div>
-  );
-};
+    let className = "cometchat-search__message-trailing-view-min";
+    let topLabel = `${diffInMinutes}`;
+    let bottomLabel = diffInMinutes === 1 ? "Min ago" : "Mins ago";
 
-<CometChatSearch messageTrailingView={getMessageTrailingView} />;
+    if (diffInHours >= 1 && diffInHours <= 10) {
+      className = "cometchat-search__message-trailing-view-hour";
+      topLabel = `${diffInHours}`;
+      bottomLabel = diffInHours === 1 ? "Hour ago" : "Hours ago";
+    } else if (diffInHours > 10) {
+      className = "cometchat-search__message-trailing-view-date";
+      const time = new Date(timestamp);
+      topLabel = time.toLocaleDateString("en-US", { day: "numeric" });
+      bottomLabel = time.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+    }
+
+    return (
+      <div className={`cometchat-search__message-trailing-view ${className}`}>
+        <span className="cometchat-search__message-trailing-view-time">
+          {topLabel}
+        </span>
+        <span className="cometchat-search__message-trailing-view-status">
+          {bottomLabel}
+        </span>
+      </div>
+    );
+  };
+
+  return <CometChatSearch messageTrailingView={getMessageTrailingView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-search__message-trailing-view {
   display: flex;
   flex-direction: column;
@@ -538,27 +554,16 @@ const getMessageTrailingView = (message: CometChat.BaseMessage) => {
   height: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
 }
 
-.cometchat-search__message-trailing-view-min {
-  background-color: #e0d4f7;
-}
-
-.cometchat-search__message-trailing-view-hour {
-  background-color: #fff3cd;
-}
-
-.cometchat-search__message-trailing-view-date {
-  background-color: #f8d7da;
-}
+.cometchat-search__message-trailing-view-min { background-color: #e0d4f7; }
+.cometchat-search__message-trailing-view-hour { background-color: #fff3cd; }
+.cometchat-search__message-trailing-view-date { background-color: #f8d7da; }
 
 .cometchat-search__message-trailing-view-time {
-  font-size: 20px;
-  font-weight: bold;
+  font: 600 18px Roboto;
   color: #4a3f99;
   margin-bottom: 4px;
-  font: 600 18px Roboto;
 }
 
 .cometchat-search__message-trailing-view-status {
@@ -571,45 +576,113 @@ const getMessageTrailingView = (message: CometChat.BaseMessage) => {
 
 ### messageSentAtDateTimeFormat
 
-Customize the message sent-at timestamp format using a `CalendarObject`.
+Customize the message timestamp format using a `CalendarObject`.
 
-```ts lines
+```tsx
 import {
   CometChatSearch,
-  CalendarObject
+  CalendarObject,
 } from "@cometchat/chat-uikit-react";
 
-function getDateFormat() {
+function SearchCustomDate() {
   const dateFormat = new CalendarObject({
-    today: `DD MMM, hh:mm A`,
-    yesterday: `DD MMM, hh:mm A`,
-    otherDays: `DD MMM, hh:mm A`,
+    today: "DD MMM, hh:mm A",
+    yesterday: "DD MMM, hh:mm A",
+    otherDays: "DD MMM, hh:mm A",
   });
-  return dateFormat;
+
+  return <CometChatSearch messageSentAtDateTimeFormat={dateFormat} />;
 }
-
-<CometChatSearch messageSentAtDateTimeFormat={getDateFormat()} />;
 ```
 
-<Note>
-If a property is not passed in the CalendarObject, the component checks the [global configuration](/ui-kit/react/localize#customisation) first, then falls back to the component's default formatting.
-</Note>
+---
 
-## Theme and Styling
+## Common Patterns
 
-Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-search`.
+### Messages-only search
 
-<Frame>
-  <img src="/images/react-uikit-search-update.png" />
-</Frame>
+```tsx
+import {
+  CometChatSearch,
+  CometChatSearchScope,
+} from "@cometchat/chat-uikit-react";
 
-```tsx lines
-<CometChatSearch />
+function MessagesOnlySearch() {
+  return (
+    <CometChatSearch searchIn={[CometChatSearchScope.Messages]} />
+  );
+}
 ```
 
-```css lines
+### Photos and videos filter only
+
+```tsx
+import {
+  CometChatSearch,
+  CometChatSearchFilter,
+} from "@cometchat/chat-uikit-react";
+
+function MediaSearch() {
+  return (
+    <CometChatSearch
+      searchFilters={[
+        CometChatSearchFilter.Photos,
+        CometChatSearchFilter.Videos,
+      ]}
+    />
+  );
+}
+```
+
+### Search within a specific group
+
+```tsx
+import { CometChatSearch } from "@cometchat/chat-uikit-react";
+
+function GroupScopedSearch() {
+  return <CometChatSearch guid="group_id" />;
+}
+```
+
+---
+
+## CSS Architecture
+
+The component uses CSS custom properties (design tokens) defined in `@cometchat/chat-uikit-react/css-variables.css`. The cascade:
+
+1. Global tokens set on the `.cometchat` root wrapper.
+2. Component CSS (`.cometchat-search`) consumes these tokens via `var()`.
+3. Overrides target `.cometchat-search` descendant selectors.
+
+### Key Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-search` |
+| Header | `.cometchat-search__header` |
+| Search input | `.cometchat-search__input` |
+| Back button | `.cometchat-search__back-button` |
+| Clear button | `.cometchat-search__input-clear-button` |
+| Filter bar | `.cometchat-search__body-filters` |
+| Filter chip | `.cometchat-search__body-filter` |
+| Active filter chip | `.cometchat-search__body-filter-active` |
+| Results container | `.cometchat-search__results` |
+| Conversations section | `.cometchat-search__conversations` |
+| Messages section | `.cometchat-search__messages` |
+| Message list item | `.cometchat-search-messages__list-item` |
+| Initial view | `.cometchat-search__initial-view` |
+| Empty view | `.cometchat-search__empty-view` |
+| Error view | `.cometchat-search__error-view` |
+| Shimmer loading | `.cometchat-search__shimmer` |
+| See more button (conversations) | `.cometchat-search-conversations__see-more` |
+| See more button (messages) | `.cometchat-search-messages__see-more` |
+| Text highlight | `.cometchat-search .cometchat-text-highlight` |
+
+### Example: Themed search
+
+```css
 .cometchat-search * {
-  font-family: 'Times New Roman', Times !important;
+  font-family: "Times New Roman", Times;
 }
 
 .cometchat-search {
@@ -629,49 +702,570 @@ Using CSS, customize the look and feel of the component. The root CSS class is `
   background-color: var(--cometchat-primary-color);
 }
 
-.cometchat-search-conversations__see-more .cometchat-button,
-.cometchat-search-messages__see-more .cometchat-button {
-  text-decoration: underline;
-  text-decoration-color: var(--cometchat-primary-color);
-  text-underline-offset: 2px;
-}
-
-.cometchat-search-conversations__see-more .cometchat-button .cometchat-button__text,
-.cometchat-search-messages__see-more .cometchat-button .cometchat-button__text {
-  font-weight: 300;
-}
-
 .cometchat-search__conversations {
   padding-top: var(--cometchat-padding-3);
-  background-color: var(--cometchat-extended-primary-color-100);
-}
-
-.cometchat-search__messages {
-  margin-top: var(--cometchat-margin-4);
-}
-
-.cometchat-search__conversations .cometchat-list__header {
-  background-color: var(--cometchat-extended-primary-color-100);
-}
-
-.cometchat-search__conversations .cometchat-list__header-title {
-  background-color: var(--cometchat-extended-primary-color-100);
-}
-
-.cometchat-search__conversations .cometchat-list-item {
   background-color: var(--cometchat-extended-primary-color-100);
 }
 
 .cometchat-search-messages__date-separator {
   display: none;
 }
+```
 
-.cometchat-search__body-filter .cometchat-button__text {
-  color: var(--cometchat-text-color-secondary);
-}
+### Customization Matrix
 
-.cometchat-search .cometchat-list__header-title {
-  color: var(--cometchat-text-color-primary);
-  font-weight: 700;
+| What to change | Where | Property/API | Example |
+| --- | --- | --- | --- |
+| Handle result clicks | Component props | `onConversationClicked` / `onMessageClicked` | `onMessageClicked={(msg) => navigate(msg)}` |
+| Control search scope | Component props | `searchIn` | `searchIn={[CometChatSearchScope.Messages]}` |
+| Control filter chips | Component props | `searchFilters` / `initialSearchFilter` | `searchFilters={[CometChatSearchFilter.Photos]}` |
+| Scope to user/group | Component props | `uid` / `guid` | `uid="user_id"` |
+| Customize SDK queries | Component props | `conversationsRequestBuilder` / `messagesRequestBuilder` | `conversationsRequestBuilder={builder}` |
+| Replace result items | Component props | View slot props | `messageItemView={(msg) => <div>...</div>}` |
+| Change colors, fonts, spacing | Global CSS | Target `.cometchat-search` class | `.cometchat-search__header { background: red; }` |
+
+---
+
+## Accessibility
+
+The search input is auto-focused on mount. Filter chips are keyboard-navigable and activate on Enter/Space. Search results are rendered as interactive list items, each keyboard-focusable. The back button and clear button are accessible via keyboard. The initial, empty, and error states render descriptive text content for screen readers.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional. Sorted alphabetically.
+
+### conversationItemView
+
+Custom renderer for the entire conversation list item in search results.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in list item |
+
+---
+
+### conversationLeadingView
+
+Custom renderer for the conversation avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in avatar |
+
+---
+
+### conversationOptions
+
+Custom context menu actions for conversation items.
+
+| | |
+| --- | --- |
+| Type | `((conversation: CometChat.Conversation) => CometChatOption[]) \| null` |
+| Default | `undefined` |
+
+---
+
+### conversationsRequestBuilder
+
+Controls which conversations appear in search results.
+
+| | |
+| --- | --- |
+| Type | `CometChat.ConversationsRequestBuilder` |
+| Default | SDK default with search keyword |
+
+---
+
+### conversationSubtitleView
+
+Custom renderer for the conversation subtitle.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### conversationTitleView
+
+Custom renderer for the conversation title.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in title |
+
+---
+
+### conversationTrailingView
+
+Custom renderer for the conversation trailing section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in trailing view |
+
+---
+
+### emptyView
+
+Custom component displayed when no search results are found.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in empty state |
+
+---
+
+### errorView
+
+Custom component displayed when an error occurs.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in error state |
+
+---
+
+### guid
+
+Limits search to messages in a specific group.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `undefined` |
+
+---
+
+### hideBackButton
+
+Hides the back button.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideGroupType
+
+Hides the group type icon in conversation results.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideReceipts
+
+Hides message read/delivery receipt indicators.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideUserStatus
+
+Hides the online/offline status indicator.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### initialSearchFilter
+
+The filter active by default on load.
+
+| | |
+| --- | --- |
+| Type | `CometChatSearchFilter` |
+| Default | `undefined` |
+
+---
+
+### initialView
+
+Custom component displayed before the user enters a search query.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in initial state |
+
+---
+
+### loadingView
+
+Custom component displayed during search loading.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in shimmer |
+
+---
+
+### messageItemView
+
+Custom renderer for the entire message list item in search results.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => JSX.Element` |
+| Default | Built-in list item |
+
+---
+
+### messageLeadingView
+
+Custom renderer for the message avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => JSX.Element` |
+| Default | Built-in leading view |
+
+---
+
+### messageSentAtDateTimeFormat
+
+Format for message timestamps.
+
+| | |
+| --- | --- |
+| Type | `CalendarObject` |
+| Default | Component default |
+
+Falls back to [global calendar configuration](/ui-kit/react/localize#customisation) if not set.
+
+---
+
+### messagesRequestBuilder
+
+Controls which messages appear in search results.
+
+| | |
+| --- | --- |
+| Type | `CometChat.MessagesRequestBuilder` |
+| Default | SDK default with search keyword |
+
+---
+
+### messageSubtitleView
+
+Custom renderer for the message subtitle.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### messageTitleView
+
+Custom renderer for the message title.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => JSX.Element` |
+| Default | Built-in title |
+
+---
+
+### messageTrailingView
+
+Custom renderer for the message trailing section.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => JSX.Element` |
+| Default | Built-in trailing view |
+
+---
+
+### onBack
+
+Callback fired when the back button is clicked.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `() => {}` |
+
+---
+
+### onConversationClicked
+
+Callback fired when a conversation is clicked in search results.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation, searchKeyword?: string) => void` |
+| Default | `undefined` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `(error: CometChat.CometChatException) => void` |
+| Default | `undefined` |
+
+---
+
+### onMessageClicked
+
+Callback fired when a message is clicked in search results.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage, searchKeyword?: string) => void` |
+| Default | `undefined` |
+
+---
+
+### searchFilters
+
+Filters rendered in the search filter bar.
+
+| | |
+| --- | --- |
+| Type | `CometChatSearchFilter[]` |
+| Default | All available filters |
+
+```ts
+enum CometChatSearchFilter {
+  Messages = "messages",
+  Conversations = "conversations",
+  Unread = "unread",
+  Groups = "groups",
+  Photos = "photos",
+  Videos = "videos",
+  Links = "links",
+  Documents = "files",
+  Audio = "audio",
 }
 ```
+
+---
+
+### searchIn
+
+Scopes to search in.
+
+| | |
+| --- | --- |
+| Type | `CometChatSearchScope[]` |
+| Default | `[CometChatSearchScope.All]` |
+
+```ts
+enum CometChatSearchScope {
+  Conversations = "conversations",
+  Messages = "messages",
+}
+```
+
+---
+
+### textFormatters
+
+Custom text formatters for message content.
+
+| | |
+| --- | --- |
+| Type | `CometChatTextFormatter[]` |
+| Default | `[]` |
+
+---
+
+### uid
+
+Limits search to messages with a specific user.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `undefined` |
+
+---
+
+## Events
+
+The `CometChatSearch` component does not emit any custom UI events.
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-search` |
+| Header | `.cometchat-search__header` |
+| Search input | `.cometchat-search__input` |
+| Back button | `.cometchat-search__back-button` |
+| Clear button | `.cometchat-search__input-clear-button` |
+| Filter bar | `.cometchat-search__body-filters` |
+| Filter chip | `.cometchat-search__body-filter` |
+| Active filter chip | `.cometchat-search__body-filter-active` |
+| Results container | `.cometchat-search__results` |
+| Conversations section | `.cometchat-search__conversations` |
+| Conversation list item | `.cometchat-search__conversations-list-item` |
+| Active conversation item | `.cometchat-search__conversations-list-item-active .cometchat-list-item` |
+| Conversation subtitle | `.cometchat-search__conversations-subtitle` |
+| Conversation trailing view | `.cometchat-search__conversations-trailing-view` |
+| Conversation badge count | `.cometchat-search__conversations-trailing-view-badge-count` |
+| Messages section | `.cometchat-search__messages` |
+| Message list item | `.cometchat-search-messages__list-item` |
+| Message subtitle | `.cometchat-search-messages__subtitle-text` |
+| Message trailing view | `.cometchat-search-messages__trailing-view` |
+| Date separator | `.cometchat-search-messages__date-separator` |
+| See more (conversations) | `.cometchat-search-conversations__see-more` |
+| See more (messages) | `.cometchat-search-messages__see-more` |
+| Text highlight | `.cometchat-search .cometchat-text-highlight` |
+| Initial view | `.cometchat-search__initial-view` |
+| Empty view | `.cometchat-search__empty-view` |
+| Error view | `.cometchat-search__error-view` |
+| Shimmer loading | `.cometchat-search__shimmer` |
+| Online status | `.cometchat-search__conversations-list-item-online .cometchat-list-item__status` |
+| Password group | `.cometchat-search__conversations-list-item-password .cometchat-list-item__status` |
+| Private group | `.cometchat-search__conversations-list-item-private .cometchat-list-item__status` |
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatSearch",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatSearch } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Dual-scope search across conversations and messages with filtering, scopes, and custom views.",
+  "cssRootClass": ".cometchat-search",
+  "primaryOutput": {
+    "props": ["onConversationClicked", "onMessageClicked"],
+    "types": [
+      "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
+      "(message: CometChat.BaseMessage, searchKeyword?: string) => void"
+    ]
+  },
+  "props": {
+    "data": {
+      "uid": { "type": "string", "default": "undefined", "note": "Limits search to specific user" },
+      "guid": { "type": "string", "default": "undefined", "note": "Limits search to specific group" },
+      "conversationsRequestBuilder": { "type": "CometChat.ConversationsRequestBuilder", "default": "SDK default" },
+      "messagesRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default" },
+      "messageSentAtDateTimeFormat": { "type": "CalendarObject", "default": "Component default" }
+    },
+    "callbacks": {
+      "onConversationClicked": "(conversation: CometChat.Conversation, searchKeyword?: string) => void",
+      "onMessageClicked": "(message: CometChat.BaseMessage, searchKeyword?: string) => void",
+      "onBack": "() => void",
+      "onError": "(error: CometChat.CometChatException) => void"
+    },
+    "visibility": {
+      "hideBackButton": { "type": "boolean", "default": false },
+      "hideUserStatus": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "hideReceipts": { "type": "boolean", "default": false }
+    },
+    "search": {
+      "searchFilters": {
+        "type": "CometChatSearchFilter[]",
+        "default": "All available filters"
+      },
+      "initialSearchFilter": {
+        "type": "CometChatSearchFilter",
+        "default": "undefined"
+      },
+      "searchIn": {
+        "type": "CometChatSearchScope[]",
+        "default": "[CometChatSearchScope.All]"
+      }
+    },
+    "viewSlots": {
+      "conversationItemView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationLeadingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationTitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationSubtitleView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationTrailingView": "(conversation: CometChat.Conversation) => JSX.Element",
+      "conversationOptions": "((conversation: CometChat.Conversation) => CometChatOption[]) | null",
+      "messageItemView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageLeadingView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageTitleView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageSubtitleView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "messageTrailingView": "(message: CometChat.BaseMessage) => JSX.Element",
+      "initialView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element"
+    },
+    "formatting": {
+      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "[]" }
+    }
+  },
+  "events": [],
+  "sdkListeners": [],
+  "types": {
+    "CometChatSearchScope": {
+      "Conversations": "conversations",
+      "Messages": "messages"
+    },
+    "CometChatSearchFilter": {
+      "Messages": "messages",
+      "Conversations": "conversations",
+      "Unread": "unread",
+      "Groups": "groups",
+      "Photos": "photos",
+      "Videos": "videos",
+      "Links": "links",
+      "Documents": "files",
+      "Audio": "audio"
+    },
+    "CalendarObject": {
+      "today": "string | undefined",
+      "yesterday": "string | undefined",
+      "lastWeek": "string | undefined",
+      "otherDays": "string | undefined"
+    },
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    }
+  },
+  "compositionExample": {
+    "description": "Standalone search panel with navigation callbacks",
+    "components": ["CometChatSearch"],
+    "flow": "User types query -> results appear in conversations and messages sections -> onConversationClicked/onMessageClicked navigate to result"
+  }
+}
+```
+
+</Tab>
+</Tabs>

@@ -1,188 +1,105 @@
 ---
 title: "Message Template"
-description: "CometChatMessageTemplate provides a structure for defining custom message types and their rendering in the message list. Use templates to customize how different message categories and types are displayed."
+description: "Data structure defining how message bubbles render in CometChatMessageList — controls header, content, footer, bottom, status info, reply, and bubble views per message type and category."
 ---
 
-<Frame>
-  <img src="/images/6a9f68f4-message_template_overview_web_screens-6d58ee79c51030bf40fe253c8053fad5.png" />
-</Frame>
+<Tabs>
+<Tab title="Guide">
 
-<Accordion title="AI Agent Component Spec">
+## What It Is
 
-| Field | Value |
-| --- | --- |
-| Purpose | Data structure defining how message bubbles render in the message list — controls header, content, footer, bottom, status info, reply, and bubble views per message type/category |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatMessageTemplate } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Passed to `CometChatMessageList` via the `templates` prop |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | Custom message bubble rendering |
-| Primary hook points | `headerView`, `contentView`, `footerView`, `bottomView`, `bubbleView`, `statusInfoView`, `replyView`, `options` |
-| CSS root class | N/A (renders inside `.cometchat-message-bubble`) |
-| Real-time events | None (rendering blueprint only) |
+`CometChatMessageTemplate` is a model class, not a rendered component. Each instance maps a message `type` + `category` pair to a set of view functions that control how that message renders inside `CometChatMessageList`. Pass an array of templates to the `templates` prop on `CometChatMessageList`.
 
-</Accordion>
-
-## Base Code and Stylesheet
-
-MessageTemplate is a data structure, not a standalone rendered component. It defines how message bubbles appear inside `CometChatMessageList`.
-
-### Structure
-
-The message bubble structure breaks down into these views:
-
-1. **Leading view** — Sender's avatar
-2. **Header view** — Sender's name (useful in group chats)
-3. **Reply view** — Preview of the replied message
-4. **Content view** — Core message content (text, images, videos, etc.)
-5. **Bottom view** — Link previews or "load more" button for long messages
-6. **Thread view** — Thread reply icon and reply counts
-7. **Footer view** — Reactions display
-8. **Status Info view** — Timestamp and delivery/read status
-
-### Properties
-
-| Property | Type | Description |
-| --- | --- | --- |
-| `type` | `string` | Maps the template to a CometChat message type |
-| `category` | `string` | Maps the template to a CometChat message category |
-| `headerView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom header (default: sender name) |
-| `contentView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom content (default: text/image/video/audio/file bubble) |
-| `footerView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom footer (default: reactions) |
-| `bottomView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom bottom section (default: link previews) |
-| `bubbleView` | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => JSX.Element` | Replaces the entire bubble |
-| `statusInfoView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom status info (default: receipt + timestamp) |
-| `replyView` | `(message: CometChat.BaseMessage) => JSX.Element` | Custom reply preview |
-| `options` | `(loggedInUser: CometChat.User, message: CometChat.BaseMessage, group?: CometChat.Group) => CometChatActionsIcon[]` | Custom action sheet options |
-
-### Fetching Existing Templates
-
-```ts lines
-import {
-  CometChatUIKit,
-  CometChatUIKitConstants,
-} from "@cometchat/chat-uikit-react";
-
-let allTemplates: CometChatMessageTemplate[] =
-  CometChatUIKit.getDataSource().getAllMessageTemplates();
-for (let i = 0; i < allTemplates.length; i++) {
-  if (allTemplates[i].type === CometChatUIKitConstants.MessageTypes.text) {
-    //customize allTemplates[i]
-  }
-}
-```
-
-### Passing Templates to MessageList
-
-```ts lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-
-<CometChatMessageList user={chatUser} templates={templates} />;
-```
-
-## Functionality
-
-MessageTemplate is a configuration object, not a rendered component. It does not accept props directly — instead, its properties are set when constructing or modifying template instances. See the [Properties](#properties) table above for the full API.
-
-## Actions
-
-MessageTemplate does not expose callback props. Message interactions (thread replies, reactions, edits, deletes) are handled by the [Message List](/ui-kit/react/message-list) component. The `options` property controls the action sheet items for long-press on a message bubble.
-
-## Filters
-
-MessageTemplate does not have filters. To control which messages appear, use `messagesRequestBuilder` on the [Message List](/ui-kit/react/message-list) component.
-
-## Events
-
-MessageTemplate does not emit events. It is a rendering blueprint. For message-related events, see the [Message List](/ui-kit/react/message-list) component.
-
-## Advanced: Custom View Slots
-
-Each view slot on a MessageTemplate can be overridden to customize how message bubbles render.
-
-### Slot Catalog
-
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `headerView` | `(message: CometChat.BaseMessage) => JSX.Element` | Sender name area | Header |
-| `contentView` | `(message: CometChat.BaseMessage) => JSX.Element` | Message content (text/image/video/audio/file bubble) | Content |
-| `footerView` | `(message: CometChat.BaseMessage) => JSX.Element` | Reactions area | Footer |
-| `bottomView` | `(message: CometChat.BaseMessage) => JSX.Element` | Link previews / load more | Bottom |
-| `bubbleView` | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => JSX.Element` | Entire message bubble | Whole item |
-| `statusInfoView` | `(message: CometChat.BaseMessage) => JSX.Element` | Timestamp + receipt | Status info |
-| `replyView` | `(message: CometChat.BaseMessage) => JSX.Element` | Reply preview | Reply |
-| `options` | `(loggedInUser, message, group?) => CometChatActionsIcon[]` | Long-press action sheet | Options |
-
-### headerView
-
-Custom header for message bubbles. Default displays sender name.
-
-<Frame>
-  <img src="/images/99068f5d-message_template_header_view_custom_web_screens-93fe3690136f32d0e0de4ac84189b13e.png" />
-</Frame>
-
-```ts lines
-import React, { useEffect } from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
+  CometChatMessageTemplate,
   CometChatUIKit,
   CometChatUIKitConstants,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
+function CustomTemplateDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
   useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
 
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
+    const allTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const modified = allTemplates.map((t) => {
       if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
+        t.type === CometChatUIKitConstants.MessageTypes.text &&
+        t.category === CometChatUIKitConstants.MessageCategory.message
       ) {
-        templates.headerView = (message: CometChat.BaseMessage) =>
-          getHeaderView(message);
-        return templates;
+        t.headerView = (message: CometChat.BaseMessage) => (
+          <>{message.getSender().getName()} • 🗓️ In meeting</>
+        );
       }
-      return templates;
+      return t;
     });
-    setTemplates(template);
+    setTemplates(modified);
   }, []);
 
-  const getHeaderView = (message: CometChat.BaseMessage) => {
-    return <> {message.getSender().getName()} • 🗓️ In meeting</>;
-  };
+  if (!chatGroup) return null;
 
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
+  return <CometChatMessageList group={chatGroup} templates={templates} />;
+}
 ```
 
-### contentView
+---
 
-Custom content for message bubbles. Default displays text/image/video/audio/file bubble depending on message type.
+## Template Structure
+
+A message bubble is composed of these view slots, each overridable per template:
+
+| View | Default rendering | Signature |
+| --- | --- | --- |
+| `headerView` | Sender name | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment, textFormatters?: CometChatTextFormatter[]) => JSX.Element \| null` |
+| `contentView` | Text / image / video / audio / file bubble | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment, textFormatters?: CometChatTextFormatter[]) => JSX.Element \| null` |
+| `footerView` | Reactions | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => JSX.Element \| null` |
+| `bottomView` | Link previews, "load more" | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => JSX.Element \| null` |
+| `statusInfoView` | Receipt + timestamp | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment, hideReceipts?: boolean, messageSentAtDateTimeFormat?: CalendarObject, showError?: boolean) => JSX.Element \| null` |
+| `replyView` | Reply preview | `(message: CometChat.BaseMessage, alignment?: MessageBubbleAlignment, onReplyViewClicked?: (msg: CometChat.BaseMessage) => void, textFormatters?: CometChatTextFormatter[]) => JSX.Element \| null` |
+| `bubbleView` | Entire bubble (overrides all above) | `(message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => JSX.Element \| null` |
+| `options` | Long-press action sheet | `(loggedInUser: CometChat.User, message: CometChat.BaseMessage, group?: CometChat.Group) => CometChatMessageOption[]` |
+
+---
+
+## Fetching Existing Templates
+
+Retrieve the built-in templates and modify specific ones:
+
+```tsx
+import {
+  CometChatUIKit,
+  CometChatUIKitConstants,
+  CometChatMessageTemplate,
+} from "@cometchat/chat-uikit-react";
+
+const allTemplates: CometChatMessageTemplate[] =
+  CometChatUIKit.getDataSource().getAllMessageTemplates();
+
+for (let i = 0; i < allTemplates.length; i++) {
+  if (allTemplates[i].type === CometChatUIKitConstants.MessageTypes.text) {
+    // customize allTemplates[i]
+  }
+}
+```
+
+---
+
+## Common Patterns
+
+### Custom header with status badge
 
 <Frame>
-  <img src="/images/876ac67e-message_template_content_view_custom_web_screens-eddc842a74bf136fd6c899256b8c7c4d.png" />
+  <img src="/images/99068f5d-message_template_header_view_custom_web_screens-93fe3690136f32d0e0de4ac84189b13e.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
   CometChatUIKit,
@@ -190,59 +107,89 @@ import {
   CometChatMessageTemplate,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import bannerImage from "../../assets/banner.svg";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
+function HeaderViewDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
-  React.useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
+  useEffect(() => {
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
+
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const modified = definedTemplates.map((t) => {
+      if (
+        t.type === CometChatUIKitConstants.MessageTypes.text &&
+        t.category === CometChatUIKitConstants.MessageCategory.message
+      ) {
+        t.headerView = (message: CometChat.BaseMessage) => (
+          <>{message.getSender().getName()} • 🗓️ In meeting</>
+        );
+      }
+      return t;
     });
-
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const CUSTOM_MESSAGE_TYPE = "customType";
-    let customMessageTemplate = new CometChatMessageTemplate({
-      type: CUSTOM_MESSAGE_TYPE,
-      category: CometChatUIKitConstants.MessageCategory.custom,
-      contentView: (message: CometChat.BaseMessage) => getContentView(message),
-    });
-    definedTemplates.push(customMessageTemplate);
-    setTemplates(definedTemplates);
+    setTemplates(modified);
   }, []);
 
-  const getContentView = (message: CometChat.BaseMessage) => {
-    return (
-      <div className="content-view">
-        <div className="content-view__header">
-          <img className="content-view__header-banner" src={bannerImage} alt="" />
-        </div>
-        <div className="content-view__body">
-          <div>
+  if (!chatGroup) return null;
+
+  return <CometChatMessageList group={chatGroup} templates={templates} />;
+}
+```
+
+### Custom content view for a custom message type
+
+<Frame>
+  <img src="/images/876ac67e-message_template_content_view_custom_web_screens-eddc842a74bf136fd6c899256b8c7c4d.png" />
+</Frame>
+
+<Tabs>
+<Tab title="TypeScript">
+```tsx
+import { useState, useEffect } from "react";
+import {
+  CometChatMessageList,
+  CometChatUIKit,
+  CometChatUIKitConstants,
+  CometChatMessageTemplate,
+} from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function ContentViewDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
+
+  useEffect(() => {
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
+
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const CUSTOM_MESSAGE_TYPE = "customType";
+    const customTemplate = new CometChatMessageTemplate({
+      type: CUSTOM_MESSAGE_TYPE,
+      category: CometChatUIKitConstants.MessageCategory.custom,
+      contentView: (message: CometChat.BaseMessage) => (
+        <div className="content-view">
+          <div className="content-view__body">
             <div className="content-view__body-title">Blazer Casual</div>
             <div className="content-view__body-description">
               Men's Tailored Regular Fit Blazer
             </div>
-          </div>
-          <div>
             <div className="content-view__body-price">
               $37.99 <span className="content-view__body-price-old">$74.00</span>
             </div>
-            <div className="content-view__body-delivery-type">Free Delivery</div>
           </div>
+          <div className="content-footer">Buy now</div>
         </div>
-        <div className="content-footer">Buy now</div>
-      </div>
-    );
-  };
+      ),
+    });
+    definedTemplates.push(customTemplate);
+    setTemplates(definedTemplates);
+  }, []);
 
   const getMessageRequestBuilder = () => {
     const CUSTOM_MESSAGE_TYPE = "customType";
-    let categories = CometChatUIKit.getDataSource().getAllMessageCategories();
+    const categories = CometChatUIKit.getDataSource().getAllMessageCategories();
     categories.push(CometChatUIKitConstants.MessageCategory.custom);
-    let types = CometChatUIKit.getDataSource().getAllMessageTypes();
+    const types = CometChatUIKit.getDataSource().getAllMessageTypes();
     types.push(CUSTOM_MESSAGE_TYPE);
     return new CometChat.MessagesRequestBuilder()
       .setCategories(categories)
@@ -251,28 +198,20 @@ const CustomMessageTemplate = () => {
       .setLimit(30);
   };
 
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList
-          group={chatGroup}
-          templates={templates}
-          messagesRequestBuilder={getMessageRequestBuilder()}
-        />
-      )}
-    </div>
-  );
-};
+  if (!chatGroup) return null;
 
-export { CustomMessageTemplate };
+  return (
+    <CometChatMessageList
+      group={chatGroup}
+      templates={templates}
+      messagesRequestBuilder={getMessageRequestBuilder()}
+    />
+  );
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
-.content-view__header-banner {
-  border-radius: 12px;
-}
-
+```css
 .content-view__body {
   height: 105px;
   display: flex;
@@ -280,7 +219,6 @@ export { CustomMessageTemplate };
   flex-direction: column;
   text-align: left;
   gap: 16px;
-  align-self: stretch;
 }
 
 .content-view__body-title {
@@ -304,19 +242,12 @@ export { CustomMessageTemplate };
   text-decoration: line-through;
 }
 
-.content-view__body-delivery-type {
-  color: #727272;
-  font: 400 14px/1.2 Roboto;
-}
-
 .content-footer {
   display: flex;
   height: 40px;
   padding: 8px 20px;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  align-self: stretch;
   border-top: 1px solid #dcdcdc;
   color: #6852d6;
   font: 500 14px/1.2 Roboto;
@@ -325,9 +256,7 @@ export { CustomMessageTemplate };
 </Tab>
 </Tabs>
 
-### bottomView
-
-Custom bottom section for message bubbles. Default displays link previews or "load more" for long messages.
+### Custom bottom view with warning
 
 <Frame>
   <img src="/images/aac6b2ed-message_template_bottom_view_custom_web_screens-2988018c35e631d0222f78849c3b4946.png" />
@@ -335,63 +264,48 @@ Custom bottom section for message bubbles. Default displays link previews or "lo
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
   CometChatUIKit,
   CometChatUIKitConstants,
+  CometChatMessageTemplate,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
+function BottomViewDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
   useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
 
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const modified = definedTemplates.map((t) => {
       if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
+        t.type === CometChatUIKitConstants.MessageTypes.text &&
+        t.category === CometChatUIKitConstants.MessageCategory.message
       ) {
-        templates.bottomView = (message: CometChat.BaseMessage) =>
-          getBottomView(message);
-        return templates;
+        t.bottomView = (message: CometChat.BaseMessage) => (
+          <div className="bottom-view">
+            <span className="error-icon"> </span> According to guidelines you cannot share contact
+          </div>
+        );
       }
-      return templates;
+      return t;
     });
-    setTemplates(template);
+    setTemplates(modified);
   }, []);
 
-  const getBottomView = (message: CometChat.BaseMessage) => {
-    return (
-      <div className="bottom-view">
-        <span className="error-icon"> </span> According to guidelines you cannot
-        share contact
-      </div>
-    );
-  };
+  if (!chatGroup) return null;
 
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
+  return <CometChatMessageList group={chatGroup} templates={templates} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat .cometchat-message-bubble__body {
   border-radius: 12px 12px 0px 0px;
 }
@@ -408,119 +322,15 @@ export { CustomMessageTemplate };
       0deg,
       rgba(244, 70, 73, 0.2) 0%,
       rgba(244, 70, 73, 0.2) 100%
-    ), #fff;
+    ),
+    #fff;
   padding: 0px 8px 0px 5px;
 }
-
-.error-icon {
-  display: flex;
-  width: 12px;
-  height: 12px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  -webkit-mask: url("../assets/infoIcon.svg") center center no-repeat;
-  mask: url("../assets/infoIcon.svg") center center no-repeat;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  background-color: #f44649;
-}
 ```
 </Tab>
 </Tabs>
 
-### footerView
-
-Custom footer for message bubbles. Default displays reactions.
-
-<Frame>
-  <img src="/images/28fd764b-message_template_footer_view_custom_web_screens-5450512fc767cedba1f613ff07f52498.png" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
-import {
-  CometChatMessageList,
-  CometChatUIKit,
-  CometChatUIKitConstants,
-} from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
-
-  useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
-
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
-      if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
-      ) {
-        templates.footerView = (message: CometChat.BaseMessage) =>
-          getFooterView(message);
-        return templates;
-      }
-      return templates;
-    });
-    setTemplates(template);
-  }, []);
-
-  const getFooterView = (message: CometChat.BaseMessage) => {
-    if (message.getReactions().length > 0) {
-      return (
-        <>
-          <CometChatReactions messageObject={message} />
-        </>
-      );
-    } else {
-      return null;
-    }
-  };
-
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.cometchat .cometchat-message-bubble__body-footer-view {
-  display: flex;
-  align-items: center;
-  border-top: 1px solid #dcdcdc;
-  border-radius: 0px 0px 12px 12px;
-  background: #e8e8e8;
-  padding: 8px;
-}
-
-.cometchat-message-bubble__body-wrapper:has(
-    .cometchat-message-bubble__body-footer-view
-  )
-  .cometchat-message-bubble__body {
-  border-radius: 12px 12px 0px 0px;
-}
-```
-</Tab>
-</Tabs>
-
-### bubbleView
-
-Replace the entire message bubble layout.
+### Replace entire bubble
 
 <Frame>
   <img src="/images/592e9d71-T29n553rx5WwZu8P8BHoqMKp4hNo8AAAAASUVORK5CYII.png" />
@@ -528,118 +338,68 @@ Replace the entire message bubble layout.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
   CometChatUIKit,
   CometChatUIKitConstants,
   CometChatMessageTemplate,
-  Receipts,
   MessageBubbleAlignment,
   CometChatUIKitLoginListener,
   MessageReceiptUtils,
+  Receipts,
   isMessageSentByMe,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import readIcon from "../../assets/message-read.svg";
-import sentIcon from "../../assets/message-sent.svg";
-import deliveredIcon from "../../assets/message-delivered.svg";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
+function BubbleViewDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
   useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
 
-    let definedTemplates =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const modified = definedTemplates.map((t) => {
       if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
+        t.type === CometChatUIKitConstants.MessageTypes.text &&
+        t.category === CometChatUIKitConstants.MessageCategory.message
       ) {
-        templates.bubbleView = (
+        t.bubbleView = (
           message: CometChat.BaseMessage,
           alignment: MessageBubbleAlignment
-        ) => getBubbleView(message, alignment);
-        return templates;
+        ) => {
+          const isSentByMe = isMessageSentByMe(
+            message,
+            CometChatUIKitLoginListener.getLoggedInUser()!
+          );
+          let textMessage = "";
+          if (message instanceof CometChat.TextMessage) {
+            textMessage = message.getText();
+          }
+          return (
+            <div className={`bubble-view ${isSentByMe ? "bubble-view__outgoing" : "bubble-view__incoming"}`}>
+              <div className="bubble-view__content">
+                <div className="bubble-view__content__text">{textMessage}</div>
+              </div>
+            </div>
+          );
+        };
       }
-      return templates;
+      return t;
     });
-    setTemplates(template);
+    setTemplates(modified);
   }, []);
 
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-    return `${formattedHours}:${formattedMinutes} ${period}`;
-  };
+  if (!chatGroup) return null;
 
-  const getBubbleView = (
-    message: CometChat.BaseMessage,
-    alignment: MessageBubbleAlignment
-  ) => {
-    const isSentByMe = isMessageSentByMe(
-      message,
-      CometChatUIKitLoginListener.getLoggedInUser()!
-    );
-
-    let textMessage = "";
-    if (message instanceof CometChat.TextMessage) {
-      textMessage = message.getText();
-    }
-
-    const receipt = MessageReceiptUtils.getReceiptStatus(message);
-    let status = sentIcon;
-
-    if (receipt === Receipts.delivered) {
-      status = deliveredIcon;
-    } else if (receipt === Receipts.read) {
-      status = readIcon;
-    } else {
-      status = sentIcon;
-    }
-
-    return (
-      <div
-        className={`bubble-view ${
-          isSentByMe ? "bubble-view__outgoing" : "bubble-view__incoming"
-        } `}
-      >
-        <div className="bubble-view__content">
-          <div className="bubble-view__content__text">{textMessage}</div>
-          <div className="triangle"></div>
-        </div>
-        <div className="bubble-view__content__time">
-          {formatTime(message.getSentAt())}
-          {isSentByMe && <img src={status} alt="" width="16px" height="16px" />}
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
+  return <CometChatMessageList group={chatGroup} templates={templates} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .bubble-view {
   display: flex;
   flex-direction: column;
@@ -661,15 +421,11 @@ export { CustomMessageTemplate };
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  position: relative;
 }
 
 .bubble-view__content__text {
   width: fit-content;
-  display: flex;
   padding: 4px;
-  flex-direction: column;
-  align-items: flex-end;
   border-radius: 2px 2px 0px 2px;
   background: #6852d6;
   color: white;
@@ -679,211 +435,18 @@ export { CustomMessageTemplate };
   background-color: #e8e8e8;
   color: #141414;
 }
-
-.bubble-view__content__time {
-  width: fit-content;
-  display: flex;
-  border-radius: 2px 2px 0px 2px;
-  color: #727272;
-  gap: 4px;
-  text-align: right;
-  font: 400 10/14 Roboto;
-}
-
-.bubble-view__outgoing .triangle {
-  position: absolute;
-  bottom: -10px;
-  right: 0px;
-  width: 0;
-  height: 9px;
-  border-left: 18px solid transparent;
-  border-top: 10px solid #5a4fcf;
-}
-
-.bubble-view__incoming .triangle {
-  position: absolute;
-  bottom: -10px;
-  left: 0px;
-  width: 0;
-  height: 9px;
-  border-right: 18px solid transparent;
-  border-top: 10px solid #e8e8e8;
-}
 ```
 </Tab>
 </Tabs>
 
-### statusInfoView
-
-Custom status info for message bubbles. Default displays receipt and timestamp.
-
-<Frame>
-  <img src="/images/3bcc4b59-wEy7hI74xIqgAAAAABJRU5ErkJggg.png" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
-import {
-  CometChatMessageList,
-  CometChatUIKit,
-  CometChatUIKitConstants,
-} from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
-
-  useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
-
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
-      if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
-      ) {
-        templates.statusInfoView = (message: CometChat.BaseMessage) =>
-          getStatusInfo(message);
-        return templates;
-      }
-      return templates;
-    });
-    setTemplates(template);
-  }, []);
-
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-    return `${formattedHours}:${formattedMinutes} ${period}`;
-  };
-
-  const getStatusInfo = (message: CometChat.BaseMessage) => {
-    if (message instanceof CometChat.TextMessage) {
-      const timestamp = message.getSentAt();
-      const formattedTime = formatTime(timestamp);
-      return <div className="status-info">{formattedTime}</div>;
-    } else {
-      return null;
-    }
-  };
-
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.status-info {
-  display: flex;
-  width: 57px;
-  height: 24px;
-  justify-content: flex-end;
-  align-items: center;
-  border-radius: 1000px;
-  color: #727272;
-  text-align: right;
-  font: 400 10px/120% Roboto;
-}
-
-.cometchat .cometchat-message-bubble__body {
-  background: none;
-}
-
-.cometchat .cometchat-message-bubble .cometchat-text-bubble {
-  padding: 8px;
-}
-```
-</Tab>
-</Tabs>
-
-### replyView
-
-Custom reply preview for message bubbles.
-
-<Frame>
-  <img src="/images/react-uikit-default-reply-view.png" alt="Default Reply View" />
-</Frame>
-
-<Frame>
-  <img src="/images/react-uikit-custom-reply-view.png" alt="Custom Reply View" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
-import { CometChatMessageList } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const CustomMessageTemplate = () => {
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
-
-  useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
-  }, []);
-
-  return (
-    <div>
-      {chatGroup && <CometChatMessageList group={chatGroup} />}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.cometchat
-  .cometchat-message-bubble-outgoing
-  .cometchat-message-bubble__body {
-  --cometchat-primary-color: #f76808;
-  --cometchat-extended-primary-color-700: rgba(251, 251, 251, 0.192);
-}
-
-.cometchat .cometchat-message-bubble-incoming .bubble-view {
-  --cometchat-primary-color: #f76808;
-}
-
-.cometchat-message-composer__header .composer-view {
-  --cometchat-primary-color: #f76808;
-}
-```
-</Tab>
-</Tabs>
-
-### options
-
-Custom action sheet options for long-press on message bubbles.
+### Custom action sheet options
 
 <Frame>
   <img src="/images/83fea471-message_template_options_web_screens-d29342818123fb8738cec024208016fe.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React, { useEffect, useState } from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
   CometChatUIKit,
@@ -893,194 +456,88 @@ import {
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
+function OptionsDemo() {
   const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
   useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
 
-    let definedTemplates: CometChatMessageTemplate[] =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
-    const template = definedTemplates.map((templates) => {
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const modified = definedTemplates.map((t) => {
       if (
-        templates.type === CometChatUIKitConstants.MessageTypes.text &&
-        templates.category === CometChatUIKitConstants.MessageCategory.message
+        t.type === CometChatUIKitConstants.MessageTypes.text &&
+        t.category === CometChatUIKitConstants.MessageCategory.message
       ) {
-        templates.options = (
+        t.options = (
           loggedInUser: CometChat.User,
           message: CometChat.BaseMessage,
           group?: CometChat.Group
-        ) => getCustomOptions(loggedInUser, message, chatGroup);
-        return templates;
+        ) => {
+          const defaultOptions: any =
+            CometChatUIKit.getDataSource().getMessageOptions(loggedInUser, message, group);
+          const myView: any = new CometChatActionsIcon({
+            id: "refresh",
+            title: "Refresh",
+            iconURL: "",
+            onClick: () => { /* custom logic */ },
+          });
+          defaultOptions.splice(1, 0, myView);
+          return defaultOptions;
+        };
       }
-      return templates;
+      return t;
     });
-    setTemplates(template);
+    setTemplates(modified);
   }, []);
 
-  const getCustomOptions = (
-    loggedInUser: CometChat.User,
-    message: CometChat.BaseMessage,
-    group?: CometChat.Group
-  ) => {
-    const defaultOptions: any =
-      CometChatUIKit.getDataSource().getMessageOptions(
-        loggedInUser,
-        message,
-        chatGroup
-      );
-    const myView: any = new CometChatActionsIcon({
-      id: "refresh",
-      title: "Refresh",
-      iconURL: "",
-      onClick: () => {
-        /** custom logic */
-      },
-    });
-    defaultOptions.splice(1, 0, myView);
-    return defaultOptions;
-  };
+  if (!chatGroup) return null;
 
-  return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList group={chatGroup} templates={templates} />
-      )}
-    </div>
-  );
-};
-
-export { CustomMessageTemplate };
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-#refresh.cometchat-menu-list__menu .cometchat-menu-list__sub-menu-item-title {
-  overflow: hidden;
-  color: #6852d6;
-  font: 400 14px/16.8px Roboto;
-  font-style: italic;
-}
-
-#refresh.cometchat-menu-list__menu
-  .cometchat-menu-list__sub-menu-list-item-icon {
-  background-color: #6852d6;
+  return <CometChatMessageList group={chatGroup} templates={templates} />;
 }
 ```
-</Tab>
-</Tabs>
 
-### New Templates
-
-Create entirely new templates for custom message types.
+### New template for a custom message type
 
 <Frame>
   <img src="/images/92e8ec15-message_template_new_template_web_screens-d68718c22425cd73f6330942deea8cc0.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import React, { useEffect } from "react";
+```tsx
+import { useState, useEffect } from "react";
 import {
   CometChatMessageList,
   CometChatUIKit,
   CometChatUIKitConstants,
   CometChatMessageTemplate,
-  MessageReceiptUtils,
-  isMessageSentByMe,
-  Receipts,
-  CometChatUIKitLoginListener,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import readIcon from "../../assets/message-read.svg";
-import sentIcon from "../../assets/message-sent.svg";
-import deliveredIcon from "../../assets/message-delivered.svg";
 
-const CustomMessageTemplate = () => {
-  const [templates, setTemplates] = React.useState<CometChatMessageTemplate[]>([]);
-  const [chatGroup, setChatGroup] = React.useState<CometChat.Group>();
+function NewTemplateDemo() {
+  const [chatGroup, setChatGroup] = useState<CometChat.Group>();
+  const [templates, setTemplates] = useState<CometChatMessageTemplate[]>([]);
 
   useEffect(() => {
-    CometChat.getGroup("guid").then((group) => {
-      setChatGroup(group);
-    });
+    CometChat.getGroup("guid").then((group) => setChatGroup(group));
 
-    let definedTemplates =
-      CometChatUIKit.getDataSource().getAllMessageTemplates();
+    const definedTemplates = CometChatUIKit.getDataSource().getAllMessageTemplates();
     const CUSTOM_MESSAGE_TYPE = "customType";
-    let customMessageTemplate = new CometChatMessageTemplate({
+    const customTemplate = new CometChatMessageTemplate({
       type: CUSTOM_MESSAGE_TYPE,
       category: CometChatUIKitConstants.MessageCategory.custom,
-      contentView: (message: CometChat.BaseMessage) => getContentView(message),
+      contentView: (message: CometChat.BaseMessage) => (
+        <div style={{ padding: 8 }}>Custom: {JSON.stringify(message.getData())}</div>
+      ),
     });
-    definedTemplates.push(customMessageTemplate);
+    definedTemplates.push(customTemplate);
     setTemplates(definedTemplates);
   }, []);
 
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-    return `${formattedHours}:${formattedMinutes} ${period}`;
-  };
-
-  const getContentView = (message: CometChat.BaseMessage) => {
-    const isSentByMe = isMessageSentByMe(
-      message,
-      CometChatUIKitLoginListener.getLoggedInUser()!
-    );
-
-    const receipt = MessageReceiptUtils.getReceiptStatus(message);
-    let status = sentIcon;
-
-    if (receipt === Receipts.delivered) {
-      status = deliveredIcon;
-    } else if (receipt === Receipts.read) {
-      status = readIcon;
-    } else {
-      status = sentIcon;
-    }
-
-    return (
-      <div
-        className={`content-view ${
-          isSentByMe
-            ? "cometchat-message-bubble-outgoing "
-            : "cometchat-message-bubble-incoming"
-        } `}
-      >
-        <div className="content-view__header">
-          <CometChatListItem
-            title={message.getSender().getName()}
-            avatarURL={message.getSender().getAvatar()}
-          />
-          <div className="content-view__header-time">
-            {formatTime(message.getSentAt())}
-            {isSentByMe && (
-              <img src={status} alt="" height="16px" width="16px" />
-            )}
-          </div>
-        </div>
-        <div className="content-view__footer">
-          <div className="content-view__footer-add-contact">Add Contact</div>
-          <div className="content-view__footer-message">Message</div>
-        </div>
-      </div>
-    );
-  };
-
   const getMessageRequestBuilder = () => {
     const CUSTOM_MESSAGE_TYPE = "customType";
-    let categories = CometChatUIKit.getDataSource().getAllMessageCategories();
+    const categories = CometChatUIKit.getDataSource().getAllMessageCategories();
     categories.push(CometChatUIKitConstants.MessageCategory.custom);
-    let types = CometChatUIKit.getDataSource().getAllMessageTypes();
+    const types = CometChatUIKit.getDataSource().getAllMessageTypes();
     types.push(CUSTOM_MESSAGE_TYPE);
     return new CometChat.MessagesRequestBuilder()
       .setCategories(categories)
@@ -1089,103 +546,25 @@ const CustomMessageTemplate = () => {
       .setLimit(30);
   };
 
+  if (!chatGroup) return null;
+
   return (
-    <div>
-      {chatGroup && (
-        <CometChatMessageList
-          group={chatGroup}
-          templates={templates}
-          messagesRequestBuilder={getMessageRequestBuilder()}
-        />
-      )}
-    </div>
+    <CometChatMessageList
+      group={chatGroup}
+      templates={templates}
+      messagesRequestBuilder={getMessageRequestBuilder()}
+    />
   );
-};
-
-export { CustomMessageTemplate };
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.content-view {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.content-view .cometchat-list-item {
-  background: none;
-}
-
-.content-view .cometchat-list-item__body-title {
-  overflow: hidden;
-  color: #f9f8fd;
-  text-overflow: ellipsis;
-  font: 500 14px/16.8px roboto;
-}
-
-.cometchat-message-bubble-incoming .cometchat-list-item__body-title,
-.cometchat-message-bubble-incoming .content-view__header-time,
-.cometchat-message-bubble-incoming .content-view__footer-message,
-.cometchat-message-bubble-incoming .content-view__footer-add-contact {
-  color: #141414;
-}
-
-.cometchat-message-bubble-incoming .content-view__footer {
-  border-top: 1px solid #dcdcdc;
-}
-
-.cometchat-message-bubble-incoming .content-view__footer-add-contact {
-  border-right: 1px solid #dcdcdc;
-}
-
-.content-view__header-time {
-  display: flex;
-  justify-content: end;
-  gap: 4px;
-  color: #f9f8fd;
-  text-align: right;
-  font: 400 10px/12px roboto;
-}
-
-.content-view__footer {
-  border-top: 1px solid #7965db;
-  display: flex;
-  height: 40px;
-  justify-content: center;
-  align-items: center;
-  align-self: stretch;
-}
-
-.content-view__footer-add-contact {
-  width: 50%;
-  height: 100%;
-  border-right: 1px solid #7965db;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f9f8fd;
-  font: 500 14px/16.8px roboto;
-}
-
-.content-view__footer-message {
-  width: 50%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f9f8fd;
-  font: 500 14px/16.8px roboto;
 }
 ```
-</Tab>
-</Tabs>
 
-## Theme and Styling
+---
 
-MessageTemplate renders inside `.cometchat-message-bubble`. Style individual bubble sections using CSS.
+## Styling
 
-```css lines
+`CometChatMessageTemplate` renders inside `.cometchat-message-bubble`. Style individual bubble sections using CSS:
+
+```css
 .cometchat .cometchat-message-bubble__body {
   /* content area overrides */
 }
@@ -1198,3 +577,158 @@ MessageTemplate renders inside `.cometchat-message-bubble`. Style individual bub
   /* header area overrides */
 }
 ```
+
+---
+
+## Accessibility
+
+Message templates render inside `CometChatMessageList`, which handles keyboard navigation and focus management. Custom views returned from template functions inherit the bubble's focus and ARIA context. Ensure custom content includes appropriate `aria-label` attributes when visual-only indicators are used.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Properties
+
+### bubbleView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Replaces the entire message bubble. When set, `headerView`, `contentView`, `footerView`, `bottomView`, `statusInfoView`, and `replyView` are ignored for that template.
+
+---
+
+### bottomView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom bottom section below the content area. Default renders link previews or "load more" for long messages.
+
+---
+
+### category
+
+| Key | Value |
+| --- | --- |
+| Type | `string` |
+| Default | `""` |
+
+Maps the template to a CometChat message category (e.g., `CometChatUIKitConstants.MessageCategory.message`, `CometChatUIKitConstants.MessageCategory.custom`).
+
+---
+
+### contentView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment, textFormatters?: CometChatTextFormatter[]) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom content area. Default renders text, image, video, audio, or file bubble based on message type.
+
+---
+
+### footerView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom footer below the content area. Default renders reactions.
+
+---
+
+### headerView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom header above the content area. Default renders sender name.
+
+---
+
+### options
+
+| Key | Value |
+| --- | --- |
+| Type | `(loggedInUser: CometChat.User, message: CometChat.BaseMessage, group?: CometChat.Group) => CometChatMessageOption[]` |
+| Default | SDK default options |
+
+Returns the list of action sheet items for long-press on a message bubble.
+
+---
+
+### replyView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment?: MessageBubbleAlignment, onReplyViewClicked?: (msg: CometChat.BaseMessage) => void, textFormatters?: CometChatTextFormatter[]) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom reply preview above the content area.
+
+---
+
+### statusInfoView
+
+| Key | Value |
+| --- | --- |
+| Type | `((message: CometChat.BaseMessage, alignment: MessageBubbleAlignment, hideReceipts?: boolean, messageSentAtDateTimeFormat?: CalendarObject, showError?: boolean) => Element \| JSX.Element \| null) \| null` |
+| Default | `null` |
+
+Custom status info area. Default renders receipt icon and timestamp.
+
+---
+
+### type
+
+| Key | Value |
+| --- | --- |
+| Type | `string` |
+| Default | — (required) |
+
+Maps the template to a CometChat message type (e.g., `CometChatUIKitConstants.MessageTypes.text`, `CometChatUIKitConstants.MessageTypes.image`).
+
+---
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatMessageTemplate",
+  "kind": "model-class",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatMessageTemplate } from \"@cometchat/chat-uikit-react\";",
+  "description": "Data structure defining how message bubbles render in CometChatMessageList. Each template maps a type+category pair to view functions.",
+  "usage": "Pass an array of CometChatMessageTemplate instances to CometChatMessageList via the templates prop.",
+  "properties": {
+    "type": { "type": "string", "required": true, "description": "CometChat message type" },
+    "category": { "type": "string", "default": "\"\"", "description": "CometChat message category" },
+    "headerView": { "type": "function | null", "default": "null", "description": "Custom header view function" },
+    "contentView": { "type": "function | null", "default": "null", "description": "Custom content view function" },
+    "footerView": { "type": "function | null", "default": "null", "description": "Custom footer view function" },
+    "bottomView": { "type": "function | null", "default": "null", "description": "Custom bottom view function" },
+    "bubbleView": { "type": "function | null", "default": "null", "description": "Replaces entire bubble" },
+    "statusInfoView": { "type": "function | null", "default": "null", "description": "Custom status info view function" },
+    "replyView": { "type": "function | null", "default": "null", "description": "Custom reply preview function" },
+    "options": { "type": "function", "description": "Returns action sheet items for long-press" }
+  },
+  "relatedComponents": ["CometChatMessageList"],
+  "cssRootClass": null,
+  "events": null
+}
+```
+
+</Tab>
+</Tabs>

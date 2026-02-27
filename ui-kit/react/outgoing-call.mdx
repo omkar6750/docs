@@ -1,46 +1,28 @@
 ---
 title: "Outgoing Call"
-description: "Display and manage outgoing voice and video calls with cancel controls using the CometChatOutgoingCall component."
+description: "Overlay component displaying an outgoing voice/video call with recipient info and cancel control."
 ---
 
-<Frame>
-  <img src="/images/6a32d947-outgoing_calls_overview_web_screens-9d829a6dda52d748e0dd1eaee44e6884.png" />
-</Frame>
-
-<Accordion title="AI Agent Component Spec">
-
-| Field | Value |
-| --- | --- |
-| Purpose | Visual representation of a user-initiated outgoing voice/video call with cancel control and recipient info |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Outgoing call screen, call initiation overlay |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | Call cancellation via `onCallCanceled` |
-| Primary hook points | `onCallCanceled`, `onError`, view slots (`titleView`, `subtitleView`, `avatarView`, `cancelButtonView`) |
-| CSS root class | `.cometchat-outgoing-call` |
-| Real-time events | None emitted directly |
-
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders an outgoing call screen with recipient info and a cancel button. Requires a `CometChat.Call` object from `CometChat.initiateCall()`.
-
 <Tabs>
-<Tab title="OutgoingCallDemo.tsx">
-```tsx lines
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatOutgoingCall` is an overlay component that displays the outgoing call screen with the recipient's name, avatar, and a cancel button. It plays a ringtone while the call is pending. Typically rendered at the app root level after initiating a call via `CometChat.initiateCall()`.
+
+```tsx
+import { useState, useEffect } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import {
   CometChatOutgoingCall,
   CometChatUIKitConstants,
 } from "@cometchat/chat-uikit-react";
-import React from "react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
-const OutgoingCallDemo = () => {
-  const [call, setCall] = React.useState<CometChat.Call>();
+function OutgoingCallDemo() {
+  const [call, setCall] = useState<CometChat.Call>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const uid = "uid";
     const callObject = new CometChat.Call(
       uid,
@@ -53,115 +35,153 @@ const OutgoingCallDemo = () => {
   }, []);
 
   return call ? <CometChatOutgoingCall call={call} /> : null;
-};
+}
 
 export default OutgoingCallDemo;
 ```
-</Tab>
-</Tabs>
 
-Root CSS class for style overrides:
+<Frame>
+  <img src="/images/6a32d947-outgoing_calls_overview_web_screens-9d829a6dda52d748e0dd1eaee44e6884.png" />
+</Frame>
 
-```css lines
-.cometchat-outgoing-call {
-  /* overrides here */
+---
+
+## Minimal Render
+
+```tsx
+import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function OutgoingCallMinimal() {
+  // `call` must be a CometChat.Call object from CometChat.initiateCall()
+  return call ? <CometChatOutgoingCall call={call} /> : null;
 }
 ```
 
-## Functionality
+Root CSS class: `.cometchat-outgoing-call`
 
-Props that control component behavior, grouped by surface area.
+---
 
-### Data
+## Actions and Events
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `call` | `CometChat.Call` | — (required) | Sets the outgoing call object | Must come from `CometChat.initiateCall()` |
-
-### Sound
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `disableSoundForCalls` | `boolean` | `false` | Disables the outgoing call ringtone | — |
-| `customSoundForCalls` | `string` | `undefined` | Custom sound file URL for outgoing calls | — |
-
-## Actions
-
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
-
-### Predefined Actions
-
-The cancel button has no default behavior. Override it with `onCallCanceled`.
-
-### User-Defined Actions
+### Callback Props
 
 #### onCallCanceled
 
-Fires when the cancel button is clicked.
+Fires when the cancel button is clicked. Pauses the ringtone internally before invoking the callback.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the cancel button |
-| Payload type | `() => void` |
-| What devs typically do next | End the call session, hide the outgoing call UI |
-
-```ts lines
+```tsx
+import { useState, useEffect } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatOutgoingCall, CometChatUIKitConstants } from "@cometchat/chat-uikit-react";
+import {
+  CometChatOutgoingCall,
+  CometChatUIKitConstants,
+} from "@cometchat/chat-uikit-react";
 
-const OutgoingCallDemo = () => {
-  const [call, setCall] = React.useState<CometChat.Call>();
+function OutgoingCallWithCancel() {
+  const [call, setCall] = useState<CometChat.Call>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const uid = "uid";
-    const callObject = new CometChat.Call(uid, CometChatUIKitConstants.MessageTypes.audio, CometChatUIKitConstants.MessageReceiverType.user);
-    CometChat.initiateCall(callObject).then((c) => setCall(c)).catch(console.log);
+    const callObject = new CometChat.Call(
+      uid,
+      CometChatUIKitConstants.MessageTypes.audio,
+      CometChatUIKitConstants.MessageReceiverType.user
+    );
+    CometChat.initiateCall(callObject)
+      .then((c) => setCall(c))
+      .catch(console.log);
   }, []);
 
   const cancelCall = () => {
     CometChat.endCall(call!.getSessionId()).then(() => setCall(undefined));
   };
 
-  return call ? <CometChatOutgoingCall call={call} onCallCanceled={cancelCall} /> : null;
-};
+  return call ? (
+    <CometChatOutgoingCall call={call} onCallCanceled={cancelCall} />
+  ) : null;
+}
 ```
 
 #### onError
 
-Fires when the component encounters an error.
+Fires on internal errors.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service |
+```tsx
+import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-## Filters
+function OutgoingCallWithError() {
+  return (
+    <CometChatOutgoingCall
+      call={call}
+      onError={(error: CometChat.CometChatException) => {
+        console.error("OutgoingCall error:", error);
+      }}
+    />
+  );
+}
+```
 
-The OutgoingCall component does not have any exposed filters.
+### Global UI Events
 
-## Events
+`CometChatCallEvents` emits call lifecycle events subscribable from anywhere. Subscribe in a `useEffect` and unsubscribe on cleanup.
 
-### UI Events
+| Event | Fires when | Payload |
+| --- | --- | --- |
+| `ccOutgoingCall` | A call is initiated | `CometChat.Call` |
+| `ccCallAccepted` | The recipient accepts the call | `CometChat.Call` |
+| `ccCallRejected` | The recipient rejects the call | `CometChat.Call` |
+| `ccCallEnded` | The call session ends | `CometChat.Call` |
 
-The OutgoingCall component does not emit any custom UI events.
+```tsx
+import { useEffect } from "react";
+import { CometChatCallEvents } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-### SDK Events (Real-Time)
+function useCallEvents() {
+  useEffect(() => {
+    const acceptedSub = CometChatCallEvents.ccCallAccepted.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Call accepted:", call.getSessionId());
+      }
+    );
+    const rejectedSub = CometChatCallEvents.ccCallRejected.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Call rejected:", call.getSessionId());
+      }
+    );
+    const endedSub = CometChatCallEvents.ccCallEnded.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Call ended:", call.getSessionId());
+      }
+    );
 
-The component internally listens to SDK call events for real-time call status updates. No manual attachment needed.
+    return () => {
+      acceptedSub?.unsubscribe();
+      rejectedSub?.unsubscribe();
+      endedSub?.unsubscribe();
+    };
+  }, []);
+}
+```
 
-## Advanced: Custom View Slots
+### SDK Events (Real-Time, Automatic)
 
-Customization override points for the outgoing call UI.
+The component internally manages call sound playback. It plays the outgoing call ringtone on mount (unless `disableSoundForCalls={true}`) and pauses it on unmount or cancel. No SDK call listeners are attached by the component itself — call status updates are handled by the parent application.
 
-### Slot Catalog
+---
 
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `titleView` | `JSX.Element` | Recipient name | Sub-section (title) |
-| `subtitleView` | `JSX.Element` | "Calling..." text | Sub-section (subtitle) |
-| `avatarView` | `JSX.Element` | Recipient avatar | Sub-section (avatar) |
-| `cancelButtonView` | `JSX.Element` | Cancel call button | Sub-section (cancel) |
+## Custom View Slots
+
+All view slots on `CometChatOutgoingCall` are `JSX.Element` (not functions). They do not receive parameters — pass call data via closure if needed.
+
+| Slot | Type | Replaces |
+| --- | --- | --- |
+| `titleView` | `JSX.Element` | Recipient name |
+| `subtitleView` | `JSX.Element` | "Calling..." text |
+| `avatarView` | `JSX.Element` | Recipient avatar |
+| `cancelButtonView` | `JSX.Element` | Cancel call button |
 
 ### titleView
 
@@ -173,33 +193,30 @@ Replace the recipient name.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatOutgoingCall, CometChatUIKitConstants } from "@cometchat/chat-uikit-react";
+import {
+  CometChatOutgoingCall,
+  CometChatUIKitConstants,
+} from "@cometchat/chat-uikit-react";
 
-const OutgoingCallDemo = () => {
-  const [call, setCall] = React.useState<CometChat.Call>();
+function OutgoingCallCustomTitle() {
+  // assume `call` is a CometChat.Call from CometChat.initiateCall()
+  const getTitleView = (call: CometChat.Call) => (
+    <div className="outgoing-call__title">
+      {call.getCallInitiator().getName()} {" <> "}{" "}
+      {call.getCallReceiver().getName()}
+    </div>
+  );
 
-  React.useEffect(() => {
-    const uid = "uid";
-    const callObject = new CometChat.Call(uid, CometChatUIKitConstants.MessageTypes.audio, CometChatUIKitConstants.MessageReceiverType.user);
-    CometChat.initiateCall(callObject).then((c) => setCall(c)).catch(console.log);
-  }, []);
-
-  const getTitleView = (call: CometChat.Call) => {
-    return (
-      <div className="outgoing-call__title">
-        {call.getCallInitiator().getName()} {" <> "} {call.getCallReceiver().getName()}
-      </div>
-    );
-  };
-
-  return call ? <CometChatOutgoingCall call={call} titleView={getTitleView(call)} /> : null;
-};
+  return call ? (
+    <CometChatOutgoingCall call={call} titleView={getTitleView(call)} />
+  ) : null;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .outgoing-call__title {
   color: #141414;
   text-align: center;
@@ -219,21 +236,19 @@ Replace the "Calling..." text.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-const getSubtitleView = (call: CometChat.Call) => {
-  return (
-    <div className="outgoing-call__subtitle">
-      <div className="outgoing-call__subtitle-icon" />
-      {"Calling..."}
-    </div>
-  );
-};
+```tsx
+const getSubtitleView = (call: CometChat.Call) => (
+  <div className="outgoing-call__subtitle">
+    <div className="outgoing-call__subtitle-icon" />
+    {"Calling..."}
+  </div>
+);
 
 <CometChatOutgoingCall call={call} subtitleView={getSubtitleView(call)} />;
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .outgoing-call__subtitle {
   display: flex;
   justify-content: center;
@@ -246,7 +261,7 @@ const getSubtitleView = (call: CometChat.Call) => {
 
 .outgoing-call__subtitle-icon {
   -webkit-mask: url("<relative path to your icon svg>") center center no-repeat;
-  background: #A1A1A1;
+  background: #a1a1a1;
   height: 24px;
   width: 24px;
 }
@@ -264,11 +279,15 @@ Replace the recipient avatar.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import { CometChatAvatar, CometChatOutgoingCall } from "@cometchat/chat-uikit-react";
+```tsx
+import {
+  CometChatAvatar,
+  CometChatOutgoingCall,
+} from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const getAvatarView = (call: CometChat.Call) => {
-  return (
+function OutgoingCallCustomAvatar() {
+  const getAvatarView = (call: CometChat.Call) => (
     <div className="outgoing-call__avatar">
       <CometChatAvatar
         name={call?.getCallReceiver()?.getName()}
@@ -277,13 +296,15 @@ const getAvatarView = (call: CometChat.Call) => {
       <div className="outgoing-call__avatar-status" />
     </div>
   );
-};
 
-<CometChatOutgoingCall call={call} avatarView={getAvatarView(call)} />;
+  return call ? (
+    <CometChatOutgoingCall call={call} avatarView={getAvatarView(call)} />
+  ) : null;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .outgoing-call__avatar .cometchat-avatar,
 .outgoing-call__avatar .cometchat-avatar__image {
   width: 160px;
@@ -314,9 +335,9 @@ Replace the cancel call button.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-const getCancelButtonView = (call: CometChat.Call) => {
-  return (
+```tsx
+function OutgoingCallCustomCancel() {
+  const getCancelButtonView = (call: CometChat.Call) => (
     <div className="outgoing-call__cancel-button-wrapper">
       <div className="outgoing-call__cancel-button">
         <div className="outgoing-call__cancel-button-icon" />
@@ -324,13 +345,18 @@ const getCancelButtonView = (call: CometChat.Call) => {
       </div>
     </div>
   );
-};
 
-<CometChatOutgoingCall call={call} cancelButtonView={getCancelButtonView(call)} />;
+  return call ? (
+    <CometChatOutgoingCall
+      call={call}
+      cancelButtonView={getCancelButtonView(call)}
+    />
+  ) : null;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .outgoing-call__cancel-button-wrapper {
   height: 64px;
   display: flex;
@@ -346,14 +372,14 @@ const getCancelButtonView = (call: CometChat.Call) => {
   align-items: center;
   gap: 12px;
   border-radius: 12px;
-  background-color: #F44649;
-  color: #FFF;
+  background-color: #f44649;
+  color: #fff;
   font: 500 20px Roboto;
 }
 
 .outgoing-call__cancel-button-icon {
   -webkit-mask: url("<relative path to your icon svg>") center center no-repeat;
-  background: #E8E8E8;
+  background: #e8e8e8;
   height: 32px;
   width: 32px;
 }
@@ -361,25 +387,112 @@ const getCancelButtonView = (call: CometChat.Call) => {
 </Tab>
 </Tabs>
 
-## Theme and Styling
+---
 
-Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-outgoing-call`.
+## Common Patterns
+
+### Cancel and end the call session
+
+```tsx
+import { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import {
+  CometChatOutgoingCall,
+  CometChatUIKitConstants,
+} from "@cometchat/chat-uikit-react";
+
+function OutgoingCallWithEndSession() {
+  const [call, setCall] = useState<CometChat.Call>();
+
+  useEffect(() => {
+    const uid = "uid";
+    const callObject = new CometChat.Call(
+      uid,
+      CometChatUIKitConstants.MessageTypes.audio,
+      CometChatUIKitConstants.MessageReceiverType.user
+    );
+    CometChat.initiateCall(callObject)
+      .then((c) => setCall(c))
+      .catch(console.log);
+  }, []);
+
+  const handleCancel = () => {
+    if (call) {
+      CometChat.endCall(call.getSessionId()).then(() => setCall(undefined));
+    }
+  };
+
+  return call ? (
+    <CometChatOutgoingCall call={call} onCallCanceled={handleCancel} />
+  ) : null;
+}
+```
+
+### Custom ringtone
+
+```tsx
+import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";
+
+function OutgoingCallCustomSound() {
+  return (
+    <CometChatOutgoingCall
+      call={call}
+      customSoundForCalls="/sounds/custom-ringtone.mp3"
+    />
+  );
+}
+```
+
+### Silent outgoing call (no ringtone)
+
+```tsx
+import { CometChatOutgoingCall } from "@cometchat/chat-uikit-react";
+
+function SilentOutgoingCall() {
+  return (
+    <CometChatOutgoingCall call={call} disableSoundForCalls={true} />
+  );
+}
+```
+
+---
+
+## CSS Architecture
+
+The component uses CSS custom properties (design tokens) defined in `@cometchat/chat-uikit-react/css-variables.css`. The cascade:
+
+1. Global tokens (e.g., `--cometchat-primary-color`, `--cometchat-error-color`) set on the `.cometchat` root wrapper.
+2. Component CSS (`.cometchat-outgoing-call`) consumes these tokens via `var()` with fallback values.
+3. Overrides target `.cometchat-outgoing-call` descendant selectors in a global stylesheet.
+
+### Key Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-outgoing-call` |
+| Title container | `.cometchat-outgoing-call__title-container` |
+| Title text | `.cometchat-outgoing-call__title` |
+| Subtitle text | `.cometchat-outgoing-call__subtitle` |
+| Avatar container | `.cometchat-outgoing-call__avatar` |
+| Avatar image | `.cometchat-outgoing-call__avatar .cometchat-avatar` |
+| Avatar text | `.cometchat-outgoing-call__avatar .cometchat-avatar__text` |
+| Cancel button wrapper | `.cometchat-outgoing-call__button` |
+| Cancel button | `.cometchat-outgoing-call__button .cometchat-button` |
+| Cancel button icon | `.cometchat-outgoing-call__button .cometchat-button .cometchat-button__icon` |
+
+### Example: Themed outgoing call
 
 <Frame>
   <img src="/images/9ad3f928-outgoing_calls_style_web_screens-ed46fc9b93c86be7a2f4d300db54631f.png" />
 </Frame>
 
-```tsx lines
-<CometChatOutgoingCall call={call} />
-```
-
-```css lines
+```css
 .cometchat-outgoing-call__avatar .cometchat-avatar {
   border-radius: 16px;
   background: #fbaa75;
 }
 
-.cometchat-outgoing-call__button {
+.cometchat-outgoing-call__button .cometchat-button {
   border-radius: 8px;
   background: #f44649;
 }
@@ -389,3 +502,229 @@ Using CSS, customize the look and feel of the component. The root CSS class is `
   font: 400 32px/38px "Times New Roman";
 }
 ```
+
+### Customization Matrix
+
+| What to change | Where | Property/API | Example |
+| --- | --- | --- | --- |
+| Handle cancel action | Component props | `onCallCanceled` | `onCallCanceled={() => endCall()}` |
+| Disable ringtone | Component props | `disableSoundForCalls` | `disableSoundForCalls={true}` |
+| Custom ringtone | Component props | `customSoundForCalls` | `customSoundForCalls="/sounds/ring.mp3"` |
+| Replace UI sections | Component props | View slot props | `titleView={<div>Custom</div>}` |
+| Change colors, fonts, spacing | Global CSS | Target `.cometchat-outgoing-call` class | `.cometchat-outgoing-call__title { color: red; }` |
+
+---
+
+## Accessibility
+
+The component renders a modal-like overlay. The cancel button is keyboard-focusable and activates on Enter/Space. The recipient name and "Calling..." subtitle are rendered as text content accessible to screen readers. The avatar includes the recipient name as alt text via `CometChatAvatar`.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional unless noted. Sorted alphabetically.
+
+### avatarView
+
+Custom JSX replacing the recipient avatar.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in avatar |
+
+---
+
+### call
+
+The outgoing call object from `CometChat.initiateCall()`.
+
+| | |
+| --- | --- |
+| Type | `CometChat.Call` |
+| Default | `undefined` |
+
+Component renders nothing when `call` is not provided.
+
+---
+
+### cancelButtonView
+
+Custom JSX replacing the cancel call button.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in cancel button |
+
+---
+
+### customSoundForCalls
+
+URL to a custom audio file for the outgoing call ringtone.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | Built-in ringtone |
+
+---
+
+### disableSoundForCalls
+
+Disables the outgoing call ringtone.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### onCallCanceled
+
+Callback fired when the cancel button is clicked.
+
+| | |
+| --- | --- |
+| Type | `Function` |
+| Default | `undefined` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `((error: CometChat.CometChatException) => void) \| null` |
+| Default | `undefined` |
+
+---
+
+### subtitleView
+
+Custom JSX replacing the "Calling..." subtitle text.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### titleView
+
+Custom JSX replacing the recipient name.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in title |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
+| --- | --- | --- |
+| `CometChatCallEvents.ccOutgoingCall` | `CometChat.Call` | Call initiated |
+| `CometChatCallEvents.ccCallAccepted` | `CometChat.Call` | Recipient accepts |
+| `CometChatCallEvents.ccCallRejected` | `CometChat.Call` | Recipient rejects |
+| `CometChatCallEvents.ccCallEnded` | `CometChat.Call` | Call session ends |
+
+All events are `Subject<CometChat.Call>` from RxJS. Subscribe with `.subscribe()`, unsubscribe with the returned subscription's `.unsubscribe()`.
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-outgoing-call` |
+| Title container | `.cometchat-outgoing-call__title-container` |
+| Title text | `.cometchat-outgoing-call__title` |
+| Subtitle text | `.cometchat-outgoing-call__subtitle` |
+| Avatar container | `.cometchat-outgoing-call__avatar` |
+| Avatar image | `.cometchat-outgoing-call__avatar .cometchat-avatar` |
+| Avatar text | `.cometchat-outgoing-call__avatar .cometchat-avatar__text` |
+| Cancel button wrapper | `.cometchat-outgoing-call__button` |
+| Cancel button | `.cometchat-outgoing-call__button .cometchat-button` |
+| Cancel button icon | `.cometchat-outgoing-call__button .cometchat-button .cometchat-button__icon` |
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatOutgoingCall",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatOutgoingCall } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Overlay component displaying an outgoing voice/video call with recipient info and cancel control.",
+  "cssRootClass": ".cometchat-outgoing-call",
+  "primaryOutput": {
+    "prop": "onCallCanceled",
+    "type": "Function"
+  },
+  "props": {
+    "data": {
+      "call": {
+        "type": "CometChat.Call",
+        "default": "undefined",
+        "note": "Must come from CometChat.initiateCall()"
+      }
+    },
+    "callbacks": {
+      "onCallCanceled": "Function",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "boolean", "default": false },
+      "customSoundForCalls": { "type": "string", "default": "built-in" }
+    },
+    "viewSlots": {
+      "titleView": "JSX.Element",
+      "subtitleView": "JSX.Element",
+      "avatarView": "JSX.Element",
+      "cancelButtonView": "JSX.Element"
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatCallEvents.ccOutgoingCall",
+      "payload": "CometChat.Call",
+      "description": "Call initiated"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallAccepted",
+      "payload": "CometChat.Call",
+      "description": "Recipient accepts"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallRejected",
+      "payload": "CometChat.Call",
+      "description": "Recipient rejects"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallEnded",
+      "payload": "CometChat.Call",
+      "description": "Call session ends"
+    }
+  ],
+  "sdkListeners": [],
+  "compositionExample": {
+    "description": "App-level overlay rendered after CometChat.initiateCall()",
+    "components": ["CometChatOutgoingCall"],
+    "flow": "CometChat.initiateCall() returns CometChat.Call -> pass to call prop -> onCallCanceled ends session"
+  }
+}
+```
+
+</Tab>
+</Tabs>

@@ -1,484 +1,282 @@
 ---
 title: "Incoming Call"
-description: "Display and manage incoming voice and video calls with accept/decline controls using the CometChatIncomingCall component."
+description: "Visual notification for incoming voice/video calls with accept and decline controls."
 ---
+
+<Tabs>
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatIncomingCall` is an overlay component that auto-detects incoming calls and renders a notification with accept/decline buttons. Place it at the app root level so it appears above all other content.
+
+```tsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function App() {
+  return (
+    <div style={{ position: "relative", height: "100vh" }}>
+      <CometChatIncomingCall />
+      {/* rest of app */}
+    </div>
+  );
+}
+```
 
 <Frame>
   <img src="/images/e63dbd67-incoming_calls_overview_web_screens-d0434dd2b66b78fe0bff43bdd34435d3.png" />
 </Frame>
 
-<Accordion title="AI Agent Component Spec">
+---
 
-| Field | Value |
-| --- | --- |
-| Purpose | Visual notification for incoming voice/video calls with accept and decline controls |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Call notification overlay, incoming call screen |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | Call acceptance/rejection via `onAccept`, `onDecline` |
-| Primary hook points | `onAccept`, `onDecline`, `onError`, `callSettingsBuilder`, view slots (`subtitleView`, `leadingView`, `trailingView`, `titleView`, `itemView`) |
-| CSS root class | `.cometchat-incoming-call` |
-| Real-time events | `CometChatCallEvents.ccCallRejected`, `CometChatCallEvents.ccCallAccepted`, `CometChatCallEvents.ccCallEnded` |
+## Minimal Render
 
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders an incoming call notification with accept/decline buttons. The component auto-detects incoming calls.
-
-<Tabs>
-<Tab title="IncomingCallDemo.tsx">
-```tsx lines
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
-import React from "react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
-const IncomingCallsDemo = () => {
+function IncomingCallDemo() {
   return <CometChatIncomingCall />;
-};
-
-export default IncomingCallsDemo;
-```
-</Tab>
-<Tab title="App.tsx">
-```tsx lines
-import IncomingCallsDemo from "./IncomingCallsDemo";
-
-export default function App() {
-  return (
-    <div className="App">
-      <IncomingCallsDemo />
-    </div>
-  );
 }
-```
-</Tab>
-</Tabs>
 
-Root CSS class for style overrides:
-
-```css lines
-.cometchat-incoming-call {
-  /* overrides here */
-}
+export default IncomingCallDemo;
 ```
 
-## Functionality
+Root CSS class: `.cometchat-incoming-call`
 
-Props that control component behavior, grouped by surface area.
+---
 
-### Data
+## Actions and Events
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `call` | `CometChat.Call` | Auto-detected | Sets a specific call object for the incoming call display | Component auto-detects incoming calls if not provided |
-
-### Sound
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `disableSoundForCalls` | `boolean` | `false` | Disables the incoming call ringtone | — |
-| `customSoundForCalls` | `string` | `undefined` | Custom sound file URL for incoming calls | — |
-
-## Actions
-
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
-
-### Predefined Actions
-
-The accept button starts the call session. The decline button rejects the call. Both can be overridden.
-
-### User-Defined Actions
+### Callback Props
 
 #### onAccept
 
 Fires when the accept button is clicked.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the accept button |
-| Payload type | `(call: CometChat.Call) => void` |
-| What devs typically do next | Custom call acceptance logic |
-
-```ts lines
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const IncomingCallsDemo = () => {
-  const handleOnAccept = () => {
-    console.log("custom on accept action");
-  };
-
-  return <CometChatIncomingCall onAccept={handleOnAccept} />;
-};
+function IncomingCallWithAccept() {
+  return (
+    <CometChatIncomingCall
+      onAccept={(call: CometChat.Call) => {
+        console.log("Call accepted:", call);
+      }}
+    />
+  );
+}
 ```
 
 #### onDecline
 
 Fires when the decline button is clicked.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the decline button |
-| Payload type | `(call: CometChat.Call) => void` |
-| What devs typically do next | Custom call rejection logic |
-
-```ts lines
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const IncomingCallsDemo = () => {
-  const handleOnDecline = () => {
-    console.log("your custom on decline action");
-  };
-
-  return <CometChatIncomingCall onDecline={handleOnDecline} />;
-};
+function IncomingCallWithDecline() {
+  return (
+    <CometChatIncomingCall
+      onDecline={(call: CometChat.Call) => {
+        console.log("Call declined:", call);
+      }}
+    />
+  );
+}
 ```
 
 #### onError
 
-Fires when the component encounters an error.
+Fires on internal errors.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service |
-
-```ts lines
+```tsx
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const IncomingCallsDemo = () => {
-  const handleOnError = (error: CometChat.CometChatException) => {
-    console.log("your custom on error action", error);
-  };
-
-  return <CometChatIncomingCall onError={handleOnError} />;
-};
+function IncomingCallWithError() {
+  return (
+    <CometChatIncomingCall
+      onError={(error: CometChat.CometChatException) => {
+        console.error("IncomingCall error:", error);
+      }}
+    />
+  );
+}
 ```
 
-## Filters
+### Global UI Events
 
-Set `CallSettingsBuilder` to customize the calling experience. Refer to [CallSettingsBuilder](/sdk/javascript/direct-call#settings).
+`CometChatCallEvents` emits events subscribable from anywhere in the application.
 
-```ts lines
-import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
-
-const IncomingCallsDemo = () => {
-  const getCallSettingsBuilder = (call: CometChat.Call) => {
-    return new CometChatCalls.CallSettingsBuilder()
-      .setIsAudioOnlyCall(
-        call?.getType() === CometChatUIKitConstants.MessageTypes.audio
-      )
-      .build();
-  };
-
-  return <CometChatIncomingCall callSettingsBuilder={getCallSettingsBuilder} />;
-};
-```
-
-## Events
-
-### UI Events
-
-Events emitted by the IncomingCall component:
-
-| Event | Source | When it fires |
+| Event | Fires when | Payload |
 | --- | --- | --- |
-| `ccCallRejected` | `CometChatCallEvents` | Incoming call is rejected |
-| `ccCallAccepted` | `CometChatCallEvents` | Incoming call is accepted |
-| `ccCallEnded` | `CometChatCallEvents` | Call ends |
+| `ccCallRejected` | Incoming call is rejected | `CometChat.Call` |
+| `ccCallAccepted` | Incoming call is accepted | `CometChat.Call` |
+| `ccCallEnded` | Call ends | `CometChat.Call` |
 
-#### Subscribe
+```tsx
+import { useEffect } from "react";
+import { CometChatCallEvents } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-```tsx lines
-const ccCallRejected = CometChatCallEvents.ccCallRejected.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
-);
+function useCallEvents() {
+  useEffect(() => {
+    const acceptedSub = CometChatCallEvents.ccCallAccepted.subscribe(
+      (call: CometChat.Call) => console.log("Accepted:", call)
+    );
+    const rejectedSub = CometChatCallEvents.ccCallRejected.subscribe(
+      (call: CometChat.Call) => console.log("Rejected:", call)
+    );
 
-const ccCallAccepted = CometChatCallEvents.ccCallAccepted.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
-);
-
-const ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
-  (call: CometChat.Call) => {
-    //Your Code
-  }
-);
+    return () => {
+      acceptedSub?.unsubscribe();
+      rejectedSub?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
-#### Unsubscribe
+### SDK Events (Real-Time, Automatic)
 
-```tsx lines
-ccCallRejected?.unsubscribe();
-ccCallAccepted?.unsubscribe();
-ccCallEnded?.unsubscribe();
-```
+The component listens to SDK call events internally for real-time incoming call detection. No manual attachment needed.
 
-### SDK Events (Real-Time)
+---
 
-The component internally listens to SDK call events for real-time incoming call detection. No manual attachment needed.
+## Custom View Slots
 
-## Advanced: Custom View Slots
+View slots for `CometChatIncomingCall` are functions that receive the `CometChat.Call` object.
 
-Customization override points for the incoming call UI.
-
-### Slot Catalog
-
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `subtitleView` | `(call: CometChat.Call) => JSX.Element` | Subtitle text | Sub-section (subtitle) |
-| `leadingView` | `(call: CometChat.Call) => JSX.Element` | Avatar / left section | Sub-section (leading) |
-| `trailingView` | `(call: CometChat.Call) => JSX.Element` | Right section | Sub-section (trailing) |
-| `titleView` | `(call: CometChat.Call) => JSX.Element` | Name / title text | Sub-section (title) |
-| `itemView` | `(call: CometChat.Call) => JSX.Element` | Entire list item | Whole item |
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `itemView` | `(call: CometChat.Call) => JSX.Element` | Entire list item |
+| `leadingView` | `(call: CometChat.Call) => JSX.Element` | Avatar / left section |
+| `titleView` | `(call: CometChat.Call) => JSX.Element` | Name / title text |
+| `subtitleView` | `(call: CometChat.Call) => JSX.Element` | Subtitle text |
+| `trailingView` | `(call: CometChat.Call) => JSX.Element` | Right section |
 
 ### leadingView
-
-Replace the avatar / left section.
 
 <Frame>
   <img src="/images/c3e4060d-incoming_call_leading_view_custom_web_screens-75333fe402b7588c590288cd6f825a99.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatAvatar, CometChatIncomingCall } from "@cometchat/chat-uikit-react";
 
-const IncomingCallsDemo = () => {
-  const getLeadingView = (call: CometChat.Call) => {
-    return (
-      <div>
-        <CometChatAvatar name={call?.getCallInitiator()?.getName()} image={call?.getCallInitiator()?.getAvatar()} />
-      </div>
-    );
-  };
-
-  return <CometChatIncomingCall leadingView={getLeadingView} />;
-};
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.cometchat-incoming-call__avatar {
-  display: none;
+function CustomLeadingIncoming() {
+  return (
+    <CometChatIncomingCall
+      leadingView={(call: CometChat.Call) => (
+        <CometChatAvatar
+          name={call.getCallInitiator()?.getName()}
+          image={call.getCallInitiator()?.getAvatar()}
+        />
+      )}
+    />
+  );
 }
 ```
-</Tab>
-</Tabs>
 
 ### titleView
-
-Replace the name / title text.
 
 <Frame>
   <img src="/images/8d3bfa9b-incoming_call_title_view_custom_web_screens-67b55f5b6fc1ede3f9f55d840ebaa290.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
 
-const IncomingCallsDemo = () => {
-  const getTitleView = (call: CometChat.Call) => {
-    return (
-      <div className="incoming-call__title-wrapper">
-        {call?.getCallInitiator()?.getName()}
-        <div className="incoming-call__tag">
-          <div className="incoming-call__tag-icon" />
-          {call.getCallInitiator()?.getRole()}
-        </div>
-      </div>
-    );
-  };
-
-  return <CometChatIncomingCall titleView={getTitleView} />;
-};
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.incoming-call__title-wrapper {
-  display: flex;
-  width: 370px;
-  height: 37px;
-  padding: 2px 10px;
-  align-items: center;
-  gap: 10px;
-  color: #141414;
-  font: 700 24px Roboto;
-}
-
-.incoming-call__tag {
-  display: flex;
-  height: 30.036px;
-  padding: 2.002px 6.007px;
-  justify-content: center;
-  align-items: center;
-  gap: 6.007px;
-  border-radius: 14.017px;
-  background: #09C26F;
-  color: #FFF;
-  font: 600 12px Roboto;
-}
-
-.incoming-call__tag-icon {
-  background-image: url("<relative path to your icon>");
-  background-size: contain;
-  height: 20px;
-  width: 20px;
+function CustomTitleIncoming() {
+  return (
+    <CometChatIncomingCall
+      titleView={(call: CometChat.Call) => (
+        <div>{call.getCallInitiator()?.getName()}</div>
+      )}
+    />
+  );
 }
 ```
-</Tab>
-</Tabs>
-
-### trailingView
-
-Replace the right section.
-
-<Frame>
-  <img src="/images/5ed15e01-incoming_call_trailing_view_custom_web_screens-bc98263b9efb963e620064f970c4413b.png" />
-</Frame>
-
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
-
-const IncomingCallsDemo = () => {
-  const getTrailingView = (call: CometChat.Call) => {
-    return (
-      <div className="incoming-call__avatar">
-        <div className="incoming-call__avatar-icon" />
-        {call.getCallInitiator()?.getRole()}
-      </div>
-    );
-  };
-
-  return <CometChatIncomingCall trailingView={getTrailingView} />;
-};
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.incoming-call__avatar {
-  display: flex;
-  height: 62px;
-  padding: 1px 3px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 3px;
-  border-radius: 7px;
-  background: #AA9EE8;
-  color: #FFF;
-  font: 600 10px Roboto;
-}
-
-.incoming-call__avatar-icon {
-  background-image: url("<relative path to your icon");
-  height: 28px;
-  width: 28px;
-  background-size: contain;
-}
-```
-</Tab>
-</Tabs>
 
 ### itemView
-
-Replace the entire list item.
 
 <Frame>
   <img src="/images/40f39b71-incoming_call_item_view_custom_web_screens-f8cd3984730f17f99313f1d988439d41.png" />
 </Frame>
 
-<Tabs>
-<Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatAvatar, CometChatIncomingCall } from "@cometchat/chat-uikit-react";
 
-const IncomingCallsDemo = () => {
-  const getItemView = (call: CometChat.Call) => {
-    return (
-      <div className="incoming-call__itemview">
-        <CometChatAvatar name={call?.getCallInitiator()?.getName()} image={call?.getCallInitiator()?.getAvatar()} />
-        <div>
-          <div className="incoming-call__itemview-title">
-            {call?.getCallInitiator()?.getName()}
-          </div>
-          <div className="incoming-call__itemview-subtitle">
-            {"Incoming " + call.getType() + " call"}
-          </div>
+function CustomItemViewIncoming() {
+  return (
+    <CometChatIncomingCall
+      itemView={(call: CometChat.Call) => (
+        <div className="incoming-call__itemview">
+          <CometChatAvatar
+            name={call.getCallInitiator()?.getName()}
+            image={call.getCallInitiator()?.getAvatar()}
+          />
+          <div>{call.getCallInitiator()?.getName()}</div>
+          <div>{"Incoming " + call.getType() + " call"}</div>
         </div>
-      </div>
-    );
-  };
-
-  return <CometChatIncomingCall itemView={getItemView} />;
-};
-```
-</Tab>
-<Tab title="CSS">
-```css lines
-.incoming-call__itemview {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  align-self: stretch;
-}
-
-.incoming-call__itemview .cometchat-avatar,
-.incoming-call__itemview .cometchat-avatar__image {
-  height: 90px;
-  width: 90px;
-  border-radius: 24px;
-}
-
-.incoming-call__itemview .cometchat-avatar__text {
-  color: #FFF;
-  text-align: center;
-  font: 700 32px Roboto;
-}
-
-.incoming-call__itemview-title {
-  color: #141414;
-  text-align: center;
-  font: 700 24px Roboto;
-}
-
-.incoming-call__itemview-subtitle {
-  color: var(--Color-Text-Color-Text-Secondary, #727272);
-  font: 400 16px Roboto;
+      )}
+    />
+  );
 }
 ```
-</Tab>
-</Tabs>
 
-## Theme and Styling
+---
 
-Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-incoming-call`.
+## Common Patterns
+
+### Disable ringtone
+
+```tsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+
+function SilentIncoming() {
+  return <CometChatIncomingCall disableSoundForCalls={true} />;
+}
+```
+
+### Custom ringtone
+
+```tsx
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-react";
+
+function CustomSoundIncoming() {
+  return <CometChatIncomingCall customSoundForCalls="/sounds/ringtone.mp3" />;
+}
+```
+
+---
+
+## CSS Architecture
+
+### Key Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-incoming-call` |
+| List item | `.cometchat-incoming-call .cometchat-list-item` |
+| Body title | `.cometchat-incoming-call .cometchat-list-item__body-title` |
+| Button group | `.cometchat-incoming-call__button-group` |
+| Decline button | `.cometchat-incoming-call__button-decline` |
+| Accept button | `.cometchat-incoming-call__button-accept` |
+
+### Example: Brand-themed incoming call
 
 <Frame>
   <img src="/images/0256ea4e-incoming_calls_style_web_screens-9d869ffb8755959f5607e9e63d255cdd.png" />
 </Frame>
 
-```tsx lines
-<CometChatIncomingCall />
-```
-
-```css lines
+```css
 .cometchat-incoming-call {
   border-radius: 18.5px;
   border: 1.542px solid #aa9ee8;
@@ -492,8 +290,220 @@ Using CSS, customize the look and feel of the component. The root CSS class is `
 .cometchat-incoming-call__button-accept .cometchat-button {
   background-color: #6852d6;
 }
+```
 
-.cometchat-incoming-call__button-accept .cometchat-button__text {
-  color: #fff;
+---
+
+## Accessibility
+
+The accept and decline buttons are keyboard-focusable and activate on Enter/Space. The caller name and call type are exposed as text content. The component renders as an absolutely positioned overlay.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional.
+
+---
+
+### call
+
+Sets a specific call object for the incoming call display.
+
+| | |
+| --- | --- |
+| Type | `any` |
+| Default | Auto-detected |
+
+---
+
+### callSettingsBuilder
+
+Custom call settings builder for the call session.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => typeof CometChatUIKitCalls.CallSettingsBuilder` |
+| Default | `undefined` |
+
+---
+
+### customSoundForCalls
+
+Custom sound file URL for incoming calls.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `undefined` |
+
+---
+
+### disableSoundForCalls
+
+Disables the incoming call ringtone.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### itemView
+
+Custom renderer for the entire list item.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### leadingView
+
+Custom renderer for the avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### onAccept
+
+Callback fired when the accept button is clicked.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => void` |
+| Default | `undefined` |
+
+---
+
+### onDecline
+
+Callback fired when the decline button is clicked.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => void` |
+| Default | `undefined` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `((error: CometChat.CometChatException) => void) \| null` |
+| Default | `undefined` |
+
+---
+
+### subtitleView
+
+Custom renderer for the subtitle text.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### titleView
+
+Custom renderer for the name / title text.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### trailingView
+
+Custom renderer for the right section.
+
+| | |
+| --- | --- |
+| Type | `(call: CometChat.Call) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
+| --- | --- | --- |
+| `CometChatCallEvents.ccCallRejected` | `CometChat.Call` | Call rejected |
+| `CometChatCallEvents.ccCallAccepted` | `CometChat.Call` | Call accepted |
+| `CometChatCallEvents.ccCallEnded` | `CometChat.Call` | Call ended |
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-incoming-call` |
+| List item | `.cometchat-incoming-call .cometchat-list-item` |
+| Body title | `.cometchat-incoming-call .cometchat-list-item__body-title` |
+| Title container | `.cometchat-incoming-call .cometchat-list-item__title-container` |
+| Trailing view | `.cometchat-incoming-call .cometchat-list-item__trailing-view` |
+| Button group | `.cometchat-incoming-call__button-group` |
+| Decline button | `.cometchat-incoming-call__button-decline` |
+| Accept button | `.cometchat-incoming-call__button-accept` |
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatIncomingCall",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatIncomingCall } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Visual notification for incoming voice/video calls with accept and decline controls.",
+  "cssRootClass": ".cometchat-incoming-call",
+  "props": {
+    "data": {
+      "call": { "type": "any", "default": "auto-detected" },
+      "callSettingsBuilder": { "type": "(call: CometChat.Call) => CallSettingsBuilder", "default": "undefined" }
+    },
+    "callbacks": {
+      "onAccept": "(call: CometChat.Call) => void",
+      "onDecline": "(call: CometChat.Call) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "boolean", "default": false },
+      "customSoundForCalls": { "type": "string", "default": "undefined" }
+    },
+    "viewSlots": {
+      "itemView": "(call: CometChat.Call) => JSX.Element",
+      "leadingView": "(call: CometChat.Call) => JSX.Element",
+      "titleView": "(call: CometChat.Call) => JSX.Element",
+      "subtitleView": "(call: CometChat.Call) => JSX.Element",
+      "trailingView": "(call: CometChat.Call) => JSX.Element"
+    }
+  },
+  "events": [
+    { "name": "CometChatCallEvents.ccCallRejected", "payload": "CometChat.Call" },
+    { "name": "CometChatCallEvents.ccCallAccepted", "payload": "CometChat.Call" },
+    { "name": "CometChatCallEvents.ccCallEnded", "payload": "CometChat.Call" }
+  ]
 }
 ```
+
+</Tab>
+</Tabs>

@@ -1,40 +1,67 @@
 ---
 title: "Groups"
-description: "Display and manage the list of all available groups with icons, names, member counts, and group type indicators using the CometChatGroups component in the React UI Kit."
+description: "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator."
 ---
+
+<Tabs>
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatGroups` is a directory list component. It renders available groups and emits the selected `CometChat.Group` via `onItemClick`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a group chat layout.
+
+```tsx
+import { useState } from "react";
+import {
+  CometChatGroups,
+  CometChatMessageHeader,
+  CometChatMessageList,
+  CometChatMessageComposer,
+} from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function GroupChatApp() {
+  const [selectedGroup, setSelectedGroup] = useState<CometChat.Group>();
+
+  return (
+    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+      <div style={{ width: 480, height: "100%" }}>
+        <CometChatGroups
+          onItemClick={(group: CometChat.Group) => setSelectedGroup(group)}
+        />
+      </div>
+      {selectedGroup ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <CometChatMessageHeader group={selectedGroup} />
+          <CometChatMessageList group={selectedGroup} />
+          <CometChatMessageComposer group={selectedGroup} />
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: "grid", placeItems: "center", background: "#F5F5F5", color: "#727272" }}>
+          Select a group
+        </div>
+      )}
+    </div>
+  );
+}
+```
 
 <Frame>
   <img src="/images/e06ce245-groups_overview_web_screens-76f09cda3f72c774c46829a547f37f3d.png" />
 </Frame>
 
-<Accordion title="AI Agent Component Spec">
+---
 
-| Field | Value |
-| --- | --- |
-| Purpose | Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatGroups } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Group directory, group discovery, tab-based chat, group management |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | `CometChat.Group` object (from `onItemClick`) |
-| Primary hook points | `onItemClick`, `onSelect`, `onError`, `groupsRequestBuilder`, view slots (`itemView`, `subtitleView`, `trailingView`, `leadingView`, `headerView`, `titleView`) |
-| CSS root class | `.cometchat-groups` |
-| Real-time events | `CometChatGroupEvents.ccGroupCreated`, `CometChatGroupEvents.ccGroupDeleted`, `CometChatGroupEvents.ccGroupMemberJoined`, `CometChatGroupEvents.ccGroupMemberAdded`, `CometChatGroupEvents.ccGroupLeft`, `CometChatGroupEvents.ccGroupMemberKicked`, `CometChatGroupEvents.ccGroupMemberBanned`, `CometChatGroupEvents.ccOwnershipChanged` |
+## Minimal Render
 
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders a searchable, scrollable list of all available groups.
-
-<Tabs>
-<Tab title="GroupsDemo.tsx">
-```tsx lines
+```tsx
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
 function GroupsDemo() {
   return (
-    <div className="groups" style={{ width: "100%", height: "100%" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <CometChatGroups />
     </div>
   );
@@ -42,151 +69,31 @@ function GroupsDemo() {
 
 export default GroupsDemo;
 ```
-</Tab>
-<Tab title="App.tsx">
-```tsx lines
-import GroupsDemo from "./GroupsDemo";
 
-export default function App() {
+Root CSS class: `.cometchat-groups`
+
+---
+
+## Filtering Groups
+
+Pass a `CometChat.GroupsRequestBuilder` to `groupsRequestBuilder`. Pass the builder instance — not the result of `.build()`.
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function FilteredGroups() {
   return (
-    <div className="App">
-      <GroupsDemo />
-    </div>
+    <CometChatGroups
+      groupsRequestBuilder={
+        new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
+          .setLimit(10)
+      }
+    />
   );
 }
 ```
-</Tab>
-</Tabs>
-
-Root CSS class for style overrides:
-
-```css lines
-.cometchat-groups {
-  /* overrides here */
-}
-```
-
-## Functionality
-
-Props that control component behavior, grouped by surface area.
-
-### Data and Loading
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `groupsRequestBuilder` | `CometChat.GroupsRequestBuilder` | SDK default (30 per page) | Controls which groups load and in what order | Pass the builder, not a built request |
-| `searchRequestBuilder` | `CometChat.GroupsRequestBuilder` | Same as `groupsRequestBuilder` | Controls filtering when the search bar is active | Keeps search results consistent with the main list filters |
-| `activeGroup` | `CometChat.Group` | `undefined` | Highlights the specified group in the list | Must be a reference-equal object from the SDK |
-
-### Selection Behavior
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `selectionMode` | `SelectionMode` | `SelectionMode.none` | Enables single or multi-select checkboxes on list items | Must pair with `onSelect` to capture selections |
-
-### UI Visibility Toggles
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `hideSearch` | `boolean` | `false` | Hides the default search bar | — |
-| `hideError` | `boolean` | `false` | Hides the default and custom error views | Also suppresses `errorView` if set |
-| `hideGroupType` | `boolean` | `false` | Hides the group type icon (public/private/password) | — |
-| `showScrollbar` | `boolean` | `false` | Shows the scrollbar in the group list | — |
-
-### Custom Views (Render Props)
-
-These replace sections of the default UI. See [Custom View Slots](#custom-view-slots) for full examples.
-
-| Property | Type | Effect |
-| --- | --- | --- |
-| `loadingView` | `JSX.Element` | Shown while groups are loading |
-| `emptyView` | `JSX.Element` | Shown when there are no groups |
-| `errorView` | `JSX.Element` | Shown when an error occurs |
-
-## Actions
-
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
-
-### Predefined Actions
-
-The component has no built-in navigation behavior. All interaction handling is delegated to callbacks.
-
-### User-Defined Actions
-
-#### onItemClick
-
-Fires when a user taps a group row. Primary navigation hook.
-
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks/taps a group list item |
-| Payload type | `(group: CometChat.Group) => void` |
-| What devs typically do next | Set active group in state, navigate to group chat view |
-
-```tsx lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatGroups } from "@cometchat/chat-uikit-react";
-
-const handleOnItemClick = (group: CometChat.Group) => {
-  console.log("Selected group:", group);
-  // Your custom action here
-};
-
-<CometChatGroups onItemClick={handleOnItemClick} />;
-```
-
-#### onSelect
-
-Fires when a group is selected or deselected in multi-select mode. Requires `selectionMode` to be set.
-
-| Detail | Value |
-| --- | --- |
-| When it fires | User checks/unchecks a group in selection mode |
-| Payload type | `(group: CometChat.Group, selected: boolean) => void` |
-| What devs typically do next | Track selected groups for batch operations (join, delete) |
-
-```tsx lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatGroups, SelectionMode } from "@cometchat/chat-uikit-react";
-
-const handleOnSelect = (group: CometChat.Group, selected: boolean) => {
-  console.log("Group selected:", group.getName(), selected);
-  // Your custom action on select
-};
-
-<CometChatGroups
-  selectionMode={SelectionMode.multiple}
-  onSelect={handleOnSelect}
-/>;
-```
-
-#### onError
-
-Fires when the component encounters an error (network failure, auth issue, etc.).
-
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error during data fetching or rendering |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service, show custom toast |
-
-```tsx lines
-import { CometChatGroups } from "@cometchat/chat-uikit-react";
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-
-const handleOnError = (error: CometChat.CometChatException) => {
-  console.error("Groups error:", error);
-  // Your exception handling code
-};
-
-<CometChatGroups onError={handleOnError} />;
-```
-
-## Filters
-
-Control which groups appear using `GroupsRequestBuilder`. Pass the builder (not a built request) to the `groupsRequestBuilder` prop.
-
-Refer to [GroupsRequestBuilder](/sdk/javascript/retrieve-groups) for the full API.
 
 ### Filter Recipes
 
@@ -198,105 +105,164 @@ Refer to [GroupsRequestBuilder](/sdk/javascript/retrieve-groups) for the full AP
 | Filter by tags | `new CometChat.GroupsRequestBuilder().setTags(["vip"])` |
 | With tags data | `new CometChat.GroupsRequestBuilder().withTags(true)` |
 
-### Example
+Default page size is 30. The component uses infinite scroll — the next page loads as the user scrolls to the bottom.
 
-```tsx lines
+The `searchRequestBuilder` prop accepts a separate `GroupsRequestBuilder` for filtering when the search bar is active.
+
+```tsx
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-<CometChatGroups
-  groupsRequestBuilder={new CometChat.GroupsRequestBuilder()
-    .setLimit(2)
-    .joinedOnly(true)}
-/>;
+function SearchFilteredGroups() {
+  return (
+    <CometChatGroups
+      searchRequestBuilder={
+        new CometChat.GroupsRequestBuilder()
+          .setLimit(5)
+          .setSearchKeyword("team")
+      }
+    />
+  );
+}
 ```
 
-### Search Request Builder
+Refer to [GroupsRequestBuilder](/sdk/javascript/retrieve-groups) for the full builder API.
 
-The `searchRequestBuilder` uses `GroupsRequestBuilder` to filter the search list independently, keeping uniformity between the displayed group list and searched results.
+---
 
-```tsx lines
+## Actions and Events
+
+### Callback Props
+
+#### onItemClick
+
+Fires when a group row is tapped. Primary navigation hook — set the active group and render the message view.
+
+```tsx
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-<CometChatGroups
-  searchRequestBuilder={new CometChat.GroupsRequestBuilder()
-    .setLimit(2)
-    .setSearchKeyword("your keyword")}
-/>;
+function GroupsWithClick() {
+  const handleItemClick = (group: CometChat.Group) => {
+    console.log("Selected:", group.getGuid());
+  };
+
+  return <CometChatGroups onItemClick={handleItemClick} />;
+}
 ```
 
-### Performance Note
+#### onSelect
 
-The default page size is 30. Reducing it with `setLimit` can improve initial load time on slower connections. The component uses infinite scroll — the next page loads automatically as the user scrolls to the bottom.
+Fires when a group is checked/unchecked in multi-select mode. Requires `selectionMode` to be set.
 
-## Events
+```tsx
+import { useState } from "react";
+import {
+  CometChatGroups,
+  SelectionMode,
+} from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-### UI Events
+function BatchSelectGroups() {
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
-The CometChatGroups component does not emit any custom UI events directly.
+  const handleSelect = (group: CometChat.Group, isSelected: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const id = group.getGuid();
+      isSelected ? next.add(id) : next.delete(id);
+      return next;
+    });
+  };
 
-The component internally subscribes to group lifecycle events via `CometChatGroupEvents`:
+  return (
+    <CometChatGroups
+      selectionMode={SelectionMode.multiple}
+      onSelect={handleSelect}
+    />
+  );
+}
+```
 
-| Event | When it fires | What it does inside the component |
+#### onError
+
+Fires on internal errors (network failure, auth issue, SDK exception).
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function GroupsWithErrorHandler() {
+  return (
+    <CometChatGroups
+      onError={(error: CometChat.CometChatException) => {
+        console.error("CometChatGroups error:", error);
+      }}
+    />
+  );
+}
+```
+
+### Global UI Events
+
+`CometChatGroupEvents` emits events subscribable from anywhere in the application. Subscribe in a `useEffect` and unsubscribe on cleanup.
+
+| Event | Fires when | Payload |
 | --- | --- | --- |
-| `CometChatGroupEvents.ccGroupCreated` | A new group is created | Prepends the group to the list |
-| `CometChatGroupEvents.ccGroupDeleted` | A group is deleted | Removes the group from the list |
-| `CometChatGroupEvents.ccGroupMemberJoined` | A user joins a group | Updates the group in the list |
-| `CometChatGroupEvents.ccGroupMemberKicked` | A member is kicked from a group | Updates the group in the list |
-| `CometChatGroupEvents.ccGroupLeft` | A user leaves a group | Removes (private) or updates (public/password) the group |
-| `CometChatGroupEvents.ccGroupMemberBanned` | A member is banned from a group | Updates the group in the list |
-| `CometChatGroupEvents.ccGroupMemberAdded` | Members are added to a group | Updates the group in the list |
-| `CometChatGroupEvents.ccOwnershipChanged` | Group ownership is transferred | Updates the group in the list |
+| `ccGroupCreated` | A new group is created | `CometChat.Group` |
+| `ccGroupDeleted` | A group is deleted | `CometChat.Group` |
+| `ccGroupMemberJoined` | A user joins a group | `IGroupMemberJoined` |
+| `ccGroupLeft` | A user leaves a group | `IGroupLeft` |
+| `ccGroupMemberAdded` | Members are added to a group | `IGroupMemberAdded` |
+| `ccGroupMemberScopeChanged` | A member's scope changes | `IGroupMemberScopeChanged` |
+| `ccGroupMemberKicked` | A member is kicked | `IGroupMemberKickedBanned` |
+| `ccGroupMemberBanned` | A member is banned | `IGroupMemberKickedBanned` |
+| `ccGroupMemberUnbanned` | A member is unbanned | `IGroupMemberUnBanned` |
+| `ccOwnershipChanged` | Group ownership is transferred | `IOwnershipChanged` |
 
-These events are subscribable from anywhere in the application.
-
-#### Subscribe
-
-```tsx lines
+```tsx
+import { useEffect } from "react";
 import { CometChatGroupEvents } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const createdSub = CometChatGroupEvents.ccGroupCreated.subscribe(
-  (group: CometChat.Group) => {
-    console.log("Group created:", group.getName());
-  }
-);
+function useGroupEvents() {
+  useEffect(() => {
+    const createdSub = CometChatGroupEvents.ccGroupCreated.subscribe(
+      (group: CometChat.Group) => {
+        console.log("Group created:", group.getName());
+      }
+    );
+    const deletedSub = CometChatGroupEvents.ccGroupDeleted.subscribe(
+      (group: CometChat.Group) => {
+        console.log("Group deleted:", group.getName());
+      }
+    );
+    const memberAddedSub = CometChatGroupEvents.ccGroupMemberAdded.subscribe(
+      (item) => {
+        console.log("Members added to:", item.userAddedIn.getName());
+      }
+    );
+    const leftSub = CometChatGroupEvents.ccGroupLeft.subscribe(
+      (item) => {
+        console.log("User left group:", item.leftGroup.getName());
+      }
+    );
 
-const deletedSub = CometChatGroupEvents.ccGroupDeleted.subscribe(
-  (group: CometChat.Group) => {
-    console.log("Group deleted:", group.getName());
-  }
-);
-
-const memberAddedSub = CometChatGroupEvents.ccGroupMemberAdded.subscribe(
-  (item: { messages: CometChat.Action[]; usersAdded: CometChat.User[]; userAddedIn: CometChat.Group; userAddedBy: CometChat.User }) => {
-    console.log("Members added to:", item.userAddedIn.getName());
-  }
-);
-
-const leftSub = CometChatGroupEvents.ccGroupLeft.subscribe(
-  (item: { userLeft: CometChat.User; leftGroup: CometChat.Group; message: CometChat.Action }) => {
-    console.log("User left group:", item.leftGroup.getName());
-  }
-);
+    return () => {
+      createdSub?.unsubscribe();
+      deletedSub?.unsubscribe();
+      memberAddedSub?.unsubscribe();
+      leftSub?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
-#### Unsubscribe
+### SDK Events (Real-Time, Automatic)
 
-```tsx lines
-// In useEffect cleanup or component unmount
-createdSub?.unsubscribe();
-deletedSub?.unsubscribe();
-memberAddedSub?.unsubscribe();
-leftSub?.unsubscribe();
-```
+The component listens to these SDK events internally. No manual attachment needed unless additional side effects are required.
 
-### SDK Events (Real-Time)
-
-The component automatically listens to SDK group events internally for real-time updates. No manual attachment needed unless additional side effects are required.
-
-| SDK Listener | What it does inside the component |
+| SDK Listener | Internal behavior |
 | --- | --- |
 | `onGroupMemberJoined` | Updates member count, sets `hasJoined` if current user joined |
 | `onGroupMemberLeft` | Updates member count, sets `hasJoined(false)` if current user left |
@@ -305,28 +271,26 @@ The component automatically listens to SDK group events internally for real-time
 | `onGroupMemberBanned` | Removes group if current user was banned, otherwise updates member count |
 | `onGroupMemberScopeChanged` | Updates scope if current user's scope changed, updates member count |
 
-#### React StrictMode Note
+**React StrictMode note:** In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
 
-In React 18 StrictMode, `useEffect` runs twice on mount in development. SDK listeners may be registered twice. The component handles cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
+---
 
-## Advanced: Custom View Slots
+## Custom View Slots
 
-Customization override points for the group list UI. Each slot receives the group object and returns JSX.
+Each slot replaces a section of the default UI. Slots that accept a group parameter receive the `CometChat.Group` object for that row.
 
-### Slot Catalog
-
-| Slot | Params | What it replaces | Section |
-| --- | --- | --- | --- |
-| `itemView` | `(group: CometChat.Group) => JSX.Element` | Entire list item row | Whole item |
-| `leadingView` | `(group: CometChat.Group) => JSX.Element` | Avatar / left section | Sub-section (leading) |
-| `trailingView` | `(group: CometChat.Group) => JSX.Element` | Right section | Sub-section (trailing) |
-| `titleView` | `(group: CometChat.Group) => JSX.Element` | Name / title text | Sub-section (title) |
-| `subtitleView` | `(group: CometChat.Group) => JSX.Element` | Subtitle text (member count) | Sub-section (subtitle) |
-| `headerView` | `JSX.Element` | Entire header bar | Whole section |
-| `loadingView` | `JSX.Element` | Loading spinner | Empty/loading/error |
-| `emptyView` | `JSX.Element` | Empty state | Empty/loading/error |
-| `errorView` | `JSX.Element` | Error state | Empty/loading/error |
-| `options` | `(group: CometChat.Group) => CometChatOption[]` | Context menu / hover actions | Whole item |
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `itemView` | `(group: CometChat.Group) => JSX.Element` | Entire list item row |
+| `leadingView` | `(group: CometChat.Group) => JSX.Element` | Avatar / left section |
+| `titleView` | `(group: CometChat.Group) => JSX.Element` | Name / title text |
+| `subtitleView` | `(group: CometChat.Group) => JSX.Element` | Member count subtitle |
+| `trailingView` | `(group: CometChat.Group) => JSX.Element` | Right section |
+| `headerView` | `JSX.Element` | Entire header bar |
+| `loadingView` | `JSX.Element` | Loading spinner |
+| `emptyView` | `JSX.Element` | Empty state |
+| `errorView` | `JSX.Element` | Error state |
+| `options` | `(group: CometChat.Group) => CometChatOption[]` | Context menu / hover actions |
 
 ### itemView
 
@@ -346,29 +310,31 @@ Customized:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 
-const getItemView = (group: CometChat.Group) => {
-  return (
-    <div className="group-list-item">
-      <div className="group-list-item__title-wrapper">
-        <div className="group-list-item__title">{group.getName()}</div>
-        <div className="group-list-item__tail">JOIN</div>
+function CustomItemViewGroups() {
+  const getItemView = (group: CometChat.Group) => {
+    return (
+      <div className="group-list-item">
+        <div className="group-list-item__title-wrapper">
+          <div className="group-list-item__title">{group.getName()}</div>
+          <div className="group-list-item__tail">JOIN</div>
+        </div>
+        <div className="group-list-item__subtitle">
+          {group.getMembersCount()} Members • {group.getDescription()}
+        </div>
       </div>
-      <div className="group-list-item__subtitle">
-        {group.getMembersCount()} Members • {group.getDescription()}
-      </div>
-    </div>
-  );
-};
+    );
+  };
 
-<CometChatGroups itemView={getItemView} />;
+  return <CometChatGroups itemView={getItemView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .group-list-item {
   display: flex;
   flex-direction: column;
@@ -396,11 +362,7 @@ const getItemView = (group: CometChat.Group) => {
   overflow: hidden;
   color: #141414;
   text-overflow: ellipsis;
-  font-family: Roboto;
-  font-size: var(--Size-H4, 16px);
-  font-style: normal;
-  font-weight: 500;
-  line-height: 19.2px;
+  font: 500 16px Roboto;
 }
 
 .group-list-item__tail {
@@ -408,17 +370,12 @@ const getItemView = (group: CometChat.Group) => {
   padding: 4px 12px;
   justify-content: center;
   align-items: center;
-  gap: 20px;
   border-radius: 1000px;
   background: #edeafa;
   overflow: hidden;
   color: #6852d6;
   text-overflow: ellipsis;
-  font-family: Roboto;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 14.4px;
+  font: 700 12px Roboto;
 }
 
 .group-list-item__subtitle {
@@ -426,11 +383,7 @@ const getItemView = (group: CometChat.Group) => {
   color: #727272;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: Roboto;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 16.8px;
+  font: 400 14px Roboto;
 }
 ```
 </Tab>
@@ -446,27 +399,26 @@ Replace the name / title text. Group type badge inline example.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 
-const customTitleView = (group: CometChat.Group) => {
-  return (
-    <div className={`groups__title-view groups__title-view-${group.getType()}`}>
-      <span className="groups__title-view-name">{group.getName()}</span>
-      <span className="groups__title-view-type">
-        <img src={"ICON_HERE"} />
-        {group.getType()}
-      </span>
-    </div>
-  );
-};
+function GroupTypeTitleGroups() {
+  const getTitleView = (group: CometChat.Group) => {
+    return (
+      <div className={`groups__title-view groups__title-view-${group.getType()}`}>
+        <span className="groups__title-view-name">{group.getName()}</span>
+        <span className="groups__title-view-type">{group.getType()}</span>
+      </div>
+    );
+  };
 
-<CometChatGroups titleView={customTitleView} />;
+  return <CometChatGroups titleView={getTitleView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .groups__title-view {
   display: flex;
   align-items: center;
@@ -497,13 +449,6 @@ const customTitleView = (group: CometChat.Group) => {
 .groups__title-view-public .groups__title-view-type {
   background: #0b7bea;
 }
-
-.groups__title-view-type img {
-  background: #fff;
-  border-radius: 4px;
-  height: 12px;
-  width: 12px;
-}
 ```
 </Tab>
 </Tabs>
@@ -526,36 +471,31 @@ Customized:
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 
-const getSubtitleView = (group: CometChat.Group): JSX.Element => {
-  if (!(group instanceof CometChat.Group)) {
-    return <></>;
-  }
+function SubtitleGroups() {
+  const getSubtitleView = (group: CometChat.Group) => {
+    return (
+      <div className="group-subtitle">
+        {group.getMembersCount()} Members • {group.getDescription()}
+      </div>
+    );
+  };
 
-  return (
-    <div className="group-subtitle">
-      {group.getMembersCount()} Members • {group.getDescription()}
-    </div>
-  );
-};
-
-<CometChatGroups subtitleView={getSubtitleView} />;
+  return <CometChatGroups subtitleView={getSubtitleView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat .cometchat-groups .group-subtitle {
   overflow: hidden;
   color: #727272;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 120%;
+  font: 400 14px Roboto;
 }
 ```
 </Tab>
@@ -571,33 +511,35 @@ Replace the avatar / left section. Joined status badge example.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatGroups, CometChatAvatar } from "@cometchat/chat-uikit-react";
 
-const customLeadingView = (group: CometChat.Group) => {
-  return (
-    <>
-      {group.getHasJoined() ? (
-        <div className="groups__leading-view groups__leading-view-joined">
-          <CometChatAvatar image={group?.getIcon()} name={group?.getName()} />
-          <span className="groups__leading-view-info">Joined</span>
-        </div>
-      ) : (
-        <div className="groups__leading-view">
-          <CometChatAvatar image={group?.getIcon()} name={group?.getName()} />
-          <span className="groups__leading-view-info">Join</span>
-        </div>
-      )}
-    </>
-  );
-};
+function LeadingViewGroups() {
+  const getLeadingView = (group: CometChat.Group) => {
+    return (
+      <>
+        {group.getHasJoined() ? (
+          <div className="groups__leading-view groups__leading-view-joined">
+            <CometChatAvatar image={group?.getIcon()} name={group?.getName()} />
+            <span className="groups__leading-view-info">Joined</span>
+          </div>
+        ) : (
+          <div className="groups__leading-view">
+            <CometChatAvatar image={group?.getIcon()} name={group?.getName()} />
+            <span className="groups__leading-view-info">Join</span>
+          </div>
+        )}
+      </>
+    );
+  };
 
-<CometChatGroups leadingView={customLeadingView} />;
+  return <CometChatGroups leadingView={getLeadingView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat-groups .cometchat-list-item .groups__leading-view .cometchat-avatar__image,
 .cometchat-groups .cometchat-list-item .groups__leading-view .cometchat-avatar {
   border-radius: 8px;
@@ -640,23 +582,25 @@ Replace the right section. Join status button example.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatGroups } from "@cometchat/chat-uikit-react";
 
-const customTrailingButtonView = (group: CometChat.Group) => {
-  return (
-    <div className="groups__trailing-view">
-      {group.getHasJoined() ? "JOINED" : "+ JOIN"}
-    </div>
-  );
-};
+function TrailingViewGroups() {
+  const getTrailingView = (group: CometChat.Group) => {
+    return (
+      <div className="groups__trailing-view">
+        {group.getHasJoined() ? "JOINED" : "+ JOIN"}
+      </div>
+    );
+  };
 
-<CometChatGroups trailingView={customTrailingButtonView} />;
+  return <CometChatGroups trailingView={getTrailingView} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .groups__trailing-view {
   display: flex;
   padding: 4px 12px;
@@ -688,32 +632,59 @@ Replace the entire header bar.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
-import { CometChatGroups } from "@cometchat/chat-uikit-react";
+```tsx
+import {
+  CometChatButton,
+  CometChatGroups,
+  getLocalizedString,
+} from "@cometchat/chat-uikit-react";
 
-const getHeaderView = () => {
-  return <div className="group-header-view" />;
-};
-
-<CometChatGroups headerView={getHeaderView()} />;
+function CustomHeaderGroups() {
+  return (
+    <CometChatGroups
+      headerView={
+        <div className="groups__header">
+          <div className="groups__header__title">
+            {getLocalizedString("GROUPS")}
+          </div>
+          <CometChatButton onClick={() => { /* handle click */ }} />
+        </div>
+      }
+    />
+  );
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
-.group-header-view {
-  height: 24px;
-  width: 24px;
+```css
+.groups__header {
   display: flex;
+  width: 100%;
+  padding: 8px 16px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
+  background: #edeafa;
+}
+
+.groups__header__title {
+  overflow: hidden;
+  color: #141414;
+  text-overflow: ellipsis;
+  font: 700 24px Roboto;
+}
+
+.groups__header .cometchat-button .cometchat-button__icon {
+  background: #141414;
+}
+
+.groups__header .cometchat-button {
+  width: 24px;
   border: none;
-  align-self: center;
-  background: #6852d6;
-  flex-shrink: 0;
-  -webkit-mask: url("../assets/create-group.svg") center center no-repeat;
-  mask: url("../assets/create-group.svg") center center no-repeat;
-  -webkit-mask-size: contain;
-  mask-size: contain;
+  background: transparent;
+  border-radius: 0;
 }
 ```
 </Tab>
@@ -729,125 +700,654 @@ Replace the context menu / hover actions on each group item.
 
 <Tabs>
 <Tab title="TypeScript">
-```ts lines
+```tsx
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatGroups, CometChatOption } from "@cometchat/chat-uikit-react";
+import {
+  CometChatOption,
+  CometChatGroups,
+} from "@cometchat/chat-uikit-react";
 
-const getOptions = (group: CometChat.Group): CometChatOption[] => {
-  return [
+function CustomOptionsGroups() {
+  const getOptions = (group: CometChat.Group) => [
     new CometChatOption({
+      title: "Delete",
       id: "delete",
-      title: "delete",
-      onClick: () => {
-        console.log("Custom option clicked for group:", group);
-      },
+      onClick: () => { /* delete logic */ },
     }),
   ];
-};
 
-<CometChatGroups options={getOptions} />;
+  return <CometChatGroups options={getOptions} />;
+}
 ```
 </Tab>
 <Tab title="CSS">
-```css lines
+```css
 .cometchat .cometchat-groups .cometchat-menu-list__menu {
   background: none;
 }
 
 .cometchat .cometchat-groups .cometchat-menu-list__main-menu-item-icon {
-  height: 24px;
-  width: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  align-self: center;
   background: #f44649;
-  flex-shrink: 0;
-  -webkit-mask: url("../assets/delete.svg") center center no-repeat;
-  mask: url("../assets/delete.svg") center center no-repeat;
-  -webkit-mask-size: contain;
-  mask-size: contain;
 }
 ```
 </Tab>
 </Tabs>
 
-#### Structure of CometChatOption
+```ts
+// CometChatOption interface
+interface CometChatOption {
+  id?: string;       // Unique identifier
+  title?: string;    // Display text
+  iconURL?: string;  // Icon asset URL
+  onClick?: () => void; // Click handler
+}
+```
 
-| Name | Description |
+---
+
+## Common Patterns
+
+### Custom empty state with CTA
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+
+function EmptyStateGroups() {
+  return (
+    <CometChatGroups
+      emptyView={
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <p>No groups available</p>
+          <button onClick={() => { /* navigate to create group */ }}>
+            Create a group
+          </button>
+        </div>
+      }
+    />
+  );
+}
+```
+
+### Hide all chrome — minimal list
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+
+function MinimalGroups() {
+  return (
+    <CometChatGroups
+      hideSearch={true}
+      hideGroupType={true}
+    />
+  );
+}
+```
+
+### Joined groups only
+
+```tsx
+import { CometChatGroups } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+function JoinedGroups() {
+  return (
+    <CometChatGroups
+      groupsRequestBuilder={
+        new CometChat.GroupsRequestBuilder().joinedOnly(true)
+      }
+    />
+  );
+}
+```
+
+---
+
+## CSS Architecture
+
+The component uses CSS custom properties (design tokens) defined in `@cometchat/chat-uikit-react/css-variables.css`. The cascade:
+
+1. Global tokens (e.g., `--cometchat-primary-color`, `--cometchat-background-color-01`) are set on the `.cometchat` root wrapper.
+2. Component CSS (`.cometchat-groups`) consumes these tokens via `var()` with fallback values.
+3. Overrides target `.cometchat-groups` descendant selectors in a global stylesheet.
+
+To scope overrides to a single instance when multiple `CometChatGroups` exist on the same page, wrap the component in a container and scope selectors:
+
+```css
+.sidebar-left .cometchat-groups .cometchat-avatar {
+  border-radius: 8px;
+}
+```
+
+### Key Selectors
+
+| Target | Selector |
 | --- | --- |
-| `id` | Unique identifier for each option |
-| `title` | Heading text for each option |
-| `iconURL` | Asset URL of the icon for each option |
-| `onClick` | Method invoked when user clicks the option |
+| Root | `.cometchat-groups` |
+| Header title | `.cometchat-groups .cometchat-list__header-title` |
+| Search bar input | `.cometchat-groups .cometchat-search-bar__input` |
+| List item | `.cometchat-groups .cometchat-list-item` |
+| Body title | `.cometchat-groups .cometchat-list-item__body-title` |
+| Avatar | `.cometchat-groups__list-item .cometchat-avatar` |
+| Subtitle | `.cometchat-groups__subtitle` |
+| Active item | `.cometchat-groups__list-item-active .cometchat-list-item` |
+| Password group icon | `.cometchat-groups__list-item-password .cometchat-list-item__status` |
+| Private group icon | `.cometchat-groups__list-item-private .cometchat-list-item__status` |
+| Empty state | `.cometchat-groups__empty-state-view` |
+| Error state | `.cometchat-groups__error-state-view` |
+| Shimmer loading | `.cometchat-groups__shimmer` |
 
-## Theme and Styling
-
-Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-groups`.
+### Example: Brand-themed groups
 
 <Frame>
   <img src="/images/88288ec7-groups_style-8e467325ba53688633816b7190aa3f95.png" />
 </Frame>
 
-```tsx lines
-<CometChatGroups />
-```
-
-```css lines
-.cometchat .cometchat-groups .cometchat-list__header-title {
+```css
+.cometchat-groups .cometchat-list__header-title {
   background-color: #edeafa;
   color: #6852d6;
   border-width: 0px 1px 1px 0px;
   border-style: solid;
   border-color: #6852d6;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-family: "Times New Roman";
   font-size: 24px;
-  font-style: normal;
   font-weight: 700;
-  line-height: 28.8px;
 }
 
-.cometchat .cometchat-groups .cometchat-search-bar__input::placeholder {
-  font-family: "Times New Roman";
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 19.2px;
-}
-
-.cometchat .cometchat-groups .cometchat-list-item {
-  background: #fff;
-  border-right: 1px solid #f5f5f5;
-}
-
-.cometchat .cometchat-groups__list-item .cometchat-avatar {
+.cometchat-groups__list-item .cometchat-avatar {
   background-color: #aa9ee8;
   border-radius: 6.67px;
 }
 
-.cometchat .cometchat-groups .cometchat-list-item__body-title {
-  overflow: hidden;
-  color: #141414;
-  text-overflow: ellipsis;
+.cometchat-groups .cometchat-list-item__body-title {
   font-family: "Times New Roman";
   font-size: 16px;
-  font-style: normal;
   font-weight: 400;
-  line-height: 19.2px;
 }
 
-.cometchat .cometchat-groups .cometchat-groups__subtitle {
-  overflow: hidden;
-  color: #727272;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.cometchat-groups .cometchat-groups__subtitle {
   font-family: "Times New Roman";
   font-size: 14px;
-  font-style: normal;
   font-weight: 400;
-  line-height: 16.8px;
 }
 ```
+
+### Customization Matrix
+
+| What to change | Where | Property/API | Example |
+| --- | --- | --- | --- |
+| Override behavior on user interaction | Component props | `on<Event>` callbacks | `onItemClick={(g) => setActive(g)}` |
+| Filter which groups appear | Component props | `groupsRequestBuilder` | `groupsRequestBuilder={new CometChat.GroupsRequestBuilder().joinedOnly(true)}` |
+| Toggle visibility of UI elements | Component props | `hide<Feature>` boolean props | `hideGroupType={true}` |
+| Replace a section of the list item | Component props | `<slot>View` render props | `itemView={(group) => <div>...</div>}` |
+| Change colors, fonts, spacing | Global CSS | Target `.cometchat-groups` class | `.cometchat-groups .cometchat-avatar { border-radius: 8px; }` |
+
+---
+
+## Accessibility
+
+The component renders a scrollable list of interactive items. Each group row is keyboard-focusable and activates on Enter/Space. The context menu (options) is accessible via keyboard. Avatar images include the group name as alt text. Group type indicators (public/private/password) use CSS mask images — add `aria-label` attributes via `itemView` if screen reader descriptions are needed for these visual indicators.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional unless noted otherwise.
+
+---
+
+### activeGroup
+
+Highlights the specified group in the list.
+
+| | |
+| --- | --- |
+| Type | `CometChat.Group` |
+| Default | `undefined` |
+
+Must be a reference-equal object from the SDK; a manually constructed object will not match.
+
+---
+
+### emptyView
+
+Custom component displayed when there are no groups.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in empty state |
+
+---
+
+### errorView
+
+Custom component displayed when an error occurs.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in error state |
+
+Hidden when `hideError={true}`.
+
+---
+
+### groupsRequestBuilder
+
+Controls which groups load and in what order.
+
+| | |
+| --- | --- |
+| Type | `CometChat.GroupsRequestBuilder` |
+| Default | SDK default (30 per page) |
+
+Pass the builder instance, not the result of `.build()`.
+
+---
+
+### headerView
+
+Custom component rendered as the entire header bar.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in header with title |
+
+---
+
+### hideError
+
+Hides the default and custom error views.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+Also suppresses `errorView` if set.
+
+---
+
+### hideGroupType
+
+Hides the group type icon (public/private/password).
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideSearch
+
+Hides the default search bar.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### itemView
+
+Custom renderer for the entire list item row.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => JSX.Element` |
+| Default | Built-in list item |
+
+---
+
+### leadingView
+
+Custom renderer for the avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => JSX.Element` |
+| Default | Built-in avatar |
+
+---
+
+### loadingView
+
+Custom component displayed during the loading state.
+
+| | |
+| --- | --- |
+| Type | `JSX.Element` |
+| Default | Built-in shimmer |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `((error: CometChat.CometChatException) => void) \| null` |
+| Default | `undefined` |
+
+---
+
+### onItemClick
+
+Callback fired when a group row is clicked.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => void` |
+| Default | `undefined` |
+
+---
+
+### onSelect
+
+Callback fired when a group is selected/deselected. Requires `selectionMode` to be set.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group, selected: boolean) => void` |
+| Default | `undefined` |
+
+---
+
+### options
+
+Custom context menu / hover actions for each group item.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => CometChatOption[]` |
+| Default | `undefined` |
+
+```ts
+class CometChatOption {
+  id?: string;
+  title?: string;
+  iconURL?: string;
+  onClick?: () => void;
+}
+```
+
+---
+
+### searchRequestBuilder
+
+Controls filtering when the search bar is active.
+
+| | |
+| --- | --- |
+| Type | `CometChat.GroupsRequestBuilder` |
+| Default | `undefined` |
+
+---
+
+### selectionMode
+
+Enables single or multi-select checkboxes on list items.
+
+| | |
+| --- | --- |
+| Type | `SelectionMode` |
+| Default | `SelectionMode.none` |
+
+```ts
+enum SelectionMode {
+  single,    // 0
+  multiple,  // 1
+  none,      // 2
+}
+```
+
+Must pair with `onSelect` to capture selections.
+
+---
+
+### showScrollbar
+
+Shows the scrollbar in the group list.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### subtitleView
+
+Custom renderer for the member count subtitle text.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### titleView
+
+Custom renderer for the name / title text.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => JSX.Element` |
+| Default | Built-in title |
+
+---
+
+### trailingView
+
+Custom renderer for the right section.
+
+| | |
+| --- | --- |
+| Type | `(group: CometChat.Group) => JSX.Element` |
+| Default | Built-in trailing view |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
+| --- | --- | --- |
+| `CometChatGroupEvents.ccGroupCreated` | `CometChat.Group` | New group created |
+| `CometChatGroupEvents.ccGroupDeleted` | `CometChat.Group` | Group deleted |
+| `CometChatGroupEvents.ccGroupMemberJoined` | `IGroupMemberJoined` | User joins a group |
+| `CometChatGroupEvents.ccGroupLeft` | `IGroupLeft` | User leaves a group |
+| `CometChatGroupEvents.ccGroupMemberAdded` | `IGroupMemberAdded` | Members added to a group |
+| `CometChatGroupEvents.ccGroupMemberScopeChanged` | `IGroupMemberScopeChanged` | Member scope changed |
+| `CometChatGroupEvents.ccGroupMemberKicked` | `IGroupMemberKickedBanned` | Member kicked |
+| `CometChatGroupEvents.ccGroupMemberBanned` | `IGroupMemberKickedBanned` | Member banned |
+| `CometChatGroupEvents.ccGroupMemberUnbanned` | `IGroupMemberUnBanned` | Member unbanned |
+| `CometChatGroupEvents.ccOwnershipChanged` | `IOwnershipChanged` | Ownership transferred |
+
+All events are RxJS `Subject` instances. Subscribe with `.subscribe()`, unsubscribe with the returned subscription's `.unsubscribe()`.
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-groups` |
+| Header title | `.cometchat-groups .cometchat-list__header-title` |
+| Search bar input | `.cometchat-groups .cometchat-search-bar__input` |
+| List item | `.cometchat-groups .cometchat-list-item` |
+| Body title | `.cometchat-groups .cometchat-list-item__body-title` |
+| Avatar | `.cometchat-groups__list-item .cometchat-avatar` |
+| Leading view | `.cometchat-groups__list-item .cometchat-list-item__leading-view` |
+| Subtitle | `.cometchat-groups__subtitle` |
+| Active item | `.cometchat-groups__list-item-active .cometchat-list-item` |
+| Password group icon | `.cometchat-groups__list-item-password .cometchat-list-item__status` |
+| Password group status icon | `.cometchat-groups__list-item-password .cometchat-list-item__status-icon` |
+| Private group icon | `.cometchat-groups__list-item-private .cometchat-list-item__status` |
+| Private group status icon | `.cometchat-groups__list-item-private .cometchat-list-item__status-icon` |
+| Empty state | `.cometchat-groups__empty-state-view` |
+| Empty state title | `.cometchat-groups__empty-state-view-body-title` |
+| Empty state description | `.cometchat-groups__empty-state-view-body-description` |
+| Error state | `.cometchat-groups__error-state-view` |
+| Error state title | `.cometchat-groups__error-state-view-body-title` |
+| Error state description | `.cometchat-groups__error-state-view-body-description` |
+| Shimmer loading | `.cometchat-groups__shimmer` |
+| Shimmer item | `.cometchat-groups__shimmer-item` |
+| Shimmer avatar | `.cometchat-groups__shimmer-item-avatar` |
+| Shimmer title | `.cometchat-groups__shimmer-item-body-title` |
+| Shimmer subtitle | `.cometchat-groups__shimmer-item-body-subtitle` |
+
+</Tab>
+
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatGroups",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatGroups } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator.",
+  "cssRootClass": ".cometchat-groups",
+  "primaryOutput": {
+    "prop": "onItemClick",
+    "type": "(group: CometChat.Group) => void"
+  },
+  "props": {
+    "data": {
+      "groupsRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "searchRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "undefined"
+      },
+      "activeGroup": {
+        "type": "CometChat.Group",
+        "default": "undefined"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(group: CometChat.Group) => void",
+      "onSelect": "(group: CometChat.Group, selected: boolean) => void",
+      "onError": "((error: CometChat.CometChatException) => void) | null"
+    },
+    "visibility": {
+      "hideSearch": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideGroupType": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["SelectionMode.single (0)", "SelectionMode.multiple (1)", "SelectionMode.none (2)"],
+        "default": "SelectionMode.none"
+      }
+    },
+    "viewSlots": {
+      "itemView": "(group: CometChat.Group) => JSX.Element",
+      "leadingView": "(group: CometChat.Group) => JSX.Element",
+      "titleView": "(group: CometChat.Group) => JSX.Element",
+      "subtitleView": "(group: CometChat.Group) => JSX.Element",
+      "trailingView": "(group: CometChat.Group) => JSX.Element",
+      "headerView": "JSX.Element",
+      "loadingView": "JSX.Element",
+      "emptyView": "JSX.Element",
+      "errorView": "JSX.Element",
+      "options": "(group: CometChat.Group) => CometChatOption[]"
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatGroupEvents.ccGroupCreated",
+      "payload": "CometChat.Group",
+      "description": "New group created"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupDeleted",
+      "payload": "CometChat.Group",
+      "description": "Group deleted"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberJoined",
+      "payload": "IGroupMemberJoined",
+      "description": "User joins a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupLeft",
+      "payload": "IGroupLeft",
+      "description": "User leaves a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberAdded",
+      "payload": "IGroupMemberAdded",
+      "description": "Members added to a group"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberScopeChanged",
+      "payload": "IGroupMemberScopeChanged",
+      "description": "Member scope changed"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberKicked",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Member kicked"
+    },
+    {
+      "name": "CometChatGroupEvents.ccGroupMemberBanned",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Member banned"
+    },
+    {
+      "name": "CometChatGroupEvents.ccOwnershipChanged",
+      "payload": "IOwnershipChanged",
+      "description": "Ownership transferred"
+    }
+  ],
+  "sdkListeners": [
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onMemberAddedToGroup",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onGroupMemberScopeChanged"
+  ],
+  "compositionExample": {
+    "description": "Group directory wired to message view",
+    "components": [
+      "CometChatGroups",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemClick emits CometChat.Group -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "CometChatOption": {
+      "id": "string | undefined",
+      "title": "string | undefined",
+      "iconURL": "string | undefined",
+      "onClick": "(() => void) | undefined"
+    },
+    "SelectionMode": {
+      "single": 0,
+      "multiple": 1,
+      "none": 2
+    }
+  }
+}
+```
+
+</Tab>
+</Tabs>

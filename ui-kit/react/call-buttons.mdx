@@ -1,283 +1,309 @@
 ---
 title: "Call Buttons"
-description: "Add voice and video call buttons to initiate calls using the CometChatCallButtons component."
+description: "Voice and video call initiation buttons for user or group conversations."
 ---
+
+<Tabs>
+<Tab title="Guide">
+
+## Where It Fits
+
+`CometChatCallButtons` renders voice and video call buttons. Pass a `user` for 1-on-1 calls or a `group` for group calls. Typically embedded in `CometChatMessageHeader`'s auxiliary view or used standalone. The component handles call initiation, renders `CometChatOutgoingCall` internally, and manages the full call lifecycle.
+
+```tsx
+import { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+import "@cometchat/chat-uikit-react/css-variables.css";
+
+function CallButtonsDemo() {
+  const [chatUser, setChatUser] = useState<CometChat.User>();
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => setChatUser(user));
+  }, []);
+
+  return chatUser ? <CometChatCallButtons user={chatUser} /> : null;
+}
+
+export default CallButtonsDemo;
+```
 
 <Frame>
   <img src="/images/daaefbc1-55et9fX2XqpdHqxA4UAAAAACAXvO2Cn8xyPfrx48ffz527Nhvf3zg3wuUlUDn3abJAAAAAElFTkSuQmCC.png" />
 </Frame>
 
-<Accordion title="AI Agent Component Spec">
+---
 
-| Field | Value |
-| --- | --- |
-| Purpose | Voice and video call initiation buttons for user or group conversations |
-| Package | `@cometchat/chat-uikit-react` |
-| Import | `import { CometChatCallButtons } from "@cometchat/chat-uikit-react";` |
-| Used in experiences | Chat header, user profile, conversation toolbar |
-| Copy-paste base | See [Base Code](#base-code--stylesheet) below |
-| Primary output | Call initiation, call lifecycle events |
-| Primary hook points | `onError`, `callSettingsBuilder`, `OutgoingCallConfiguration` |
-| CSS root class | `.cometchat-call-button` |
-| Real-time events | `CometChatCallEvents.ccCallRejected`, `CometChatCallEvents.ccCallEnded`, `CometChatCallEvents.ccOutgoingCall`, `CometChatMessageEvents.ccMessageSent` |
+## Minimal Render
 
-</Accordion>
-
-## Base Code and Stylesheet
-
-Renders voice and video call buttons for a user or group conversation.
-
-<Tabs>
-<Tab title="CallButtonDemo.tsx">
-```tsx lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
+```tsx
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-import React from "react";
+import "@cometchat/chat-uikit-react/css-variables.css";
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => {
-      setChatUser(user);
-    });
-  }, []);
+function CallButtonsMinimal() {
   return <CometChatCallButtons user={chatUser} />;
-};
-
-export default CallButtonDemo;
-```
-</Tab>
-</Tabs>
-
-Root CSS class for style overrides:
-
-```css lines
-.cometchat-call-button {
-  /* overrides here */
 }
 ```
 
-## Functionality
+Root CSS class: `.cometchat-call-button`
 
-Props that control component behavior, grouped by surface area.
+---
 
-### Data
+## Actions and Events
 
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `user` | `CometChat.User` | `undefined` | Sets the user for 1-on-1 call buttons | Pass either `user` or `group`, not both |
-| `group` | `CometChat.Group` | `undefined` | Sets the group for group call buttons | Pass either `user` or `group`, not both |
-
-### UI Visibility Toggles
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `hideVideoCallButton` | `boolean` | `false` | Hides the video call button | — |
-| `hideVoiceCallButton` | `boolean` | `false` | Hides the voice call button | — |
-
-### Callbacks
-
-| Property | Type | Default | Effect | Pitfall |
-| --- | --- | --- | --- | --- |
-| `onVoiceCallClick` | `(user?: CometChat.User, group?: CometChat.Group) => void` | `undefined` | Overrides the default voice call initiation behavior | — |
-| `onVideoCallClick` | `(user?: CometChat.User, group?: CometChat.Group) => void` | `undefined` | Overrides the default video call initiation behavior | — |
-
-## Actions
-
-[Actions](/ui-kit/react/components-overview#actions) split into predefined (built-in triggers) and user-defined (callbacks).
-
-### Predefined Actions
-
-Clicking a call button initiates a call via the SDK. The component renders `CometChatOutgoingCall` internally.
-
-### User-Defined Actions
-
-#### onError
-
-Fires when the component encounters an error.
-
-| Detail | Value |
-| --- | --- |
-| When it fires | Any internal error during call initiation |
-| Payload type | `(error: CometChat.CometChatException) => void` |
-| What devs typically do next | Log to error tracking service |
-
-```ts lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
-import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
-
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => setChatUser(user));
-  }, []);
-
-  const handleOnError = (error: CometChat.CometChatException) => {
-    console.log("Your Custom on error actions", error);
-  };
-
-  return <CometChatCallButtons user={chatUser} onError={handleOnError} />;
-};
-```
+### Callback Props
 
 #### onVoiceCallClick
 
-Fires when the voice call button is clicked. Overrides the default voice call initiation.
+Overrides the default voice call initiation behavior. When set, clicking the voice button invokes this callback instead of initiating a call via the SDK.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the voice call button |
-| Payload type | `(user?: CometChat.User, group?: CometChat.Group) => void` |
-| What devs typically do next | Custom call initiation logic, pre-call checks |
-
-```ts lines
+```tsx
+import { useState, useEffect } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
+function CallButtonsVoiceOverride() {
+  const [chatUser, setChatUser] = useState<CometChat.User>();
+
+  useEffect(() => {
     CometChat.getUser("uid").then((user) => setChatUser(user));
   }, []);
 
-  const handleVoiceCallClick = (user?: CometChat.User, group?: CometChat.Group) => {
-    console.log("Voice call clicked", user, group);
-  };
-
-  return <CometChatCallButtons user={chatUser} onVoiceCallClick={handleVoiceCallClick} />;
-};
+  return (
+    <CometChatCallButtons
+      user={chatUser}
+      onVoiceCallClick={() => {
+        console.log("Custom voice call logic");
+      }}
+    />
+  );
+}
 ```
 
 #### onVideoCallClick
 
-Fires when the video call button is clicked. Overrides the default video call initiation.
+Overrides the default video call initiation behavior.
 
-| Detail | Value |
-| --- | --- |
-| When it fires | User clicks the video call button |
-| Payload type | `(user?: CometChat.User, group?: CometChat.Group) => void` |
-| What devs typically do next | Custom call initiation logic, pre-call checks |
-
-```ts lines
+```tsx
+import { useState, useEffect } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
+function CallButtonsVideoOverride() {
+  const [chatUser, setChatUser] = useState<CometChat.User>();
+
+  useEffect(() => {
     CometChat.getUser("uid").then((user) => setChatUser(user));
   }, []);
 
-  const handleVideoCallClick = (user?: CometChat.User, group?: CometChat.Group) => {
-    console.log("Video call clicked", user, group);
-  };
-
-  return <CometChatCallButtons user={chatUser} onVideoCallClick={handleVideoCallClick} />;
-};
+  return (
+    <CometChatCallButtons
+      user={chatUser}
+      onVideoCallClick={() => {
+        console.log("Custom video call logic");
+      }}
+    />
+  );
+}
 ```
 
-## Filters
+#### onError
 
-Set `CallSettingsBuilder` to customize the calling experience. Refer to [CallSettingsBuilder](/sdk/javascript/direct-call#settings).
+Fires on internal errors during call initiation.
 
-```ts lines
-import { CometChat } from "@cometchat/chat-sdk-javascript";
+```tsx
 import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-const CallButtonDemo = () => {
-  const [chatUser, setChatUser] = React.useState<CometChat.User>();
-  React.useEffect(() => {
-    CometChat.getUser("uid").then((user) => setChatUser(user));
-  }, []);
-
-  const getCallSettingsBuilder = (isAudioOnlyCall: boolean, user?: CometChat.User, group?: CometChat.Group) => {
-    return new CometChatCalls.CallSettingsBuilder()
-      .setIsAudioOnlyCall(isAudioOnlyCall)
-      .build();
-  };
-
-  return <CometChatCallButtons user={chatUser} callSettingsBuilder={getCallSettingsBuilder} />;
-};
+function CallButtonsWithError() {
+  return (
+    <CometChatCallButtons
+      user={chatUser}
+      onError={(error: CometChat.CometChatException) => {
+        console.error("CallButtons error:", error);
+      }}
+    />
+  );
+}
 ```
 
-## Events
+### Global UI Events
 
-### UI Events
+`CometChatCallEvents` emits call lifecycle events subscribable from anywhere.
 
-Events emitted by the CallButtons component:
-
-| Event | Source | When it fires |
+| Event | Fires when | Payload |
 | --- | --- | --- |
-| `ccCallRejected` | `CometChatCallEvents` | Initiated call is rejected |
-| `ccCallEnded` | `CometChatCallEvents` | Call ends |
-| `ccOutgoingCall` | `CometChatCallEvents` | User initiates a voice/video call |
-| `ccMessageSent` | `CometChatMessageEvents` | Call message is sent |
+| `ccOutgoingCall` | User initiates a voice/video call | `CometChat.Call` |
+| `ccCallRejected` | Initiated call is rejected/cancelled | `CometChat.Call` |
+| `ccCallEnded` | Call session ends | `CometChat.Call` |
 
-#### Subscribe
+```tsx
+import { useEffect } from "react";
+import { CometChatCallEvents } from "@cometchat/chat-uikit-react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
 
-```tsx lines
-const ccCallRejected = CometChatCallEvents.ccCallRejected.subscribe(
-  (call: CometChat.Call) => { /* Your Code */ }
-);
+function useCallButtonEvents() {
+  useEffect(() => {
+    const outgoingSub = CometChatCallEvents.ccOutgoingCall.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Outgoing call:", call.getSessionId());
+      }
+    );
+    const rejectedSub = CometChatCallEvents.ccCallRejected.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Call rejected:", call.getSessionId());
+      }
+    );
+    const endedSub = CometChatCallEvents.ccCallEnded.subscribe(
+      (call: CometChat.Call) => {
+        console.log("Call ended:", call.getSessionId());
+      }
+    );
 
-const ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
-  (call: CometChat.Call) => { /* Your Code */ }
-);
-
-const ccOutgoingCall = CometChatCallEvents.ccOutgoingCall.subscribe(
-  (call: CometChat.Call) => { /* Your Code */ }
-);
-
-const ccMessageSent = CometChatMessageEvents.ccMessageSent.subscribe(() => {
-  /* Your Code */
-});
+    return () => {
+      outgoingSub?.unsubscribe();
+      rejectedSub?.unsubscribe();
+      endedSub?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
-#### Unsubscribe
+### SDK Events (Real-Time, Automatic)
 
-```tsx lines
-ccCallRejected?.unsubscribe();
-ccCallEnded?.unsubscribe();
-ccOutgoingCall?.unsubscribe();
-ccMessageSent?.unsubscribe();
+The component attaches SDK call listeners internally:
+
+| SDK Listener | Internal behavior |
+| --- | --- |
+| `onIncomingCallReceived` | Disables call buttons to prevent concurrent calls |
+| `onIncomingCallCancelled` | Re-enables call buttons |
+| `onOutgoingCallRejected` | Hides outgoing call screen, re-enables buttons |
+| `onOutgoingCallAccepted` | Transitions to ongoing call screen |
+
+---
+
+## Configuring the Outgoing Call Sub-Component
+
+`CometChatCallButtons` renders `CometChatOutgoingCall` internally. Customize it via `outgoingCallConfiguration`.
+
+```tsx
+import { CometChatCallButtons, OutgoingCallConfiguration } from "@cometchat/chat-uikit-react";
+
+function CallButtonsCustomOutgoing() {
+  return (
+    <CometChatCallButtons
+      user={chatUser}
+      outgoingCallConfiguration={
+        new OutgoingCallConfiguration({
+          disableSoundForCalls: true,
+          titleView: (call) => <div>{call.getCallReceiver().getName()}</div>,
+        })
+      }
+    />
+  );
+}
 ```
 
-### SDK Events (Real-Time)
-
-The component internally listens to SDK call events for real-time updates. No manual attachment needed.
-
-## Advanced: Custom View Slots
-
-The CallButtons component renders [CometChatOutgoingCall](/ui-kit/react/outgoing-call) internally. Customize the outgoing call sub-component using `OutgoingCallConfiguration`.
-
-### OutgoingCallConfiguration
+`OutgoingCallConfiguration` properties:
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `customSoundForCalls` | `string` | Custom sound for outgoing calls |
-| `disableSoundForCalls` | `boolean` | Disables outgoing call sound |
+| `disableSoundForCalls` | `boolean` | Disables outgoing call ringtone |
+| `customSoundForCalls` | `string` | Custom ringtone URL |
 | `onError` | `(error: CometChat.CometChatException) => void` | Error callback |
-| `onCloseClicked` | `() => void` | Cancel button callback |
-| `titleView` | `JSX.Element` | Custom title view |
-| `subtitleView` | `JSX.Element` | Custom subtitle view |
-| `avatarView` | `JSX.Element` | Custom avatar view |
-| `cancelButtonView` | `JSX.Element` | Custom cancel button view |
+| `onCallCanceled` | `Function` | Cancel button callback |
+| `titleView` | `(call: CometChat.Call) => JSX.Element` | Custom title |
+| `subtitleView` | `(call: CometChat.Call) => JSX.Element` | Custom subtitle |
+| `avatarView` | `(call: CometChat.Call) => JSX.Element` | Custom avatar |
+| `cancelButtonView` | `(call: CometChat.Call) => JSX.Element` | Custom cancel button |
 
-Refer to [CometChatOutgoingCall](/ui-kit/react/outgoing-call) for details on each property.
+Refer to [CometChatOutgoingCall](/ui-kit/react/outgoing-call) for details on each view slot.
 
-## Theme and Styling
+---
 
-Using CSS, customize the look and feel of the component. The root CSS class is `.cometchat-call-button`.
+## Call Settings
+
+Customize the calling experience via `callSettingsBuilder`.
+
+```tsx
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatCallButtons, CometChatUIKitCalls } from "@cometchat/chat-uikit-react";
+
+function CallButtonsCustomSettings() {
+  return (
+    <CometChatCallButtons
+      user={chatUser}
+      callSettingsBuilder={(isAudioOnlyCall, user, group) =>
+        new CometChatUIKitCalls.CallSettingsBuilder()
+          .enableDefaultLayout(true)
+          .setIsAudioOnlyCall(isAudioOnlyCall)
+      }
+    />
+  );
+}
+```
+
+---
+
+## Common Patterns
+
+### Voice-only call button
+
+```tsx
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+
+function VoiceOnlyCallButtons() {
+  return <CometChatCallButtons user={chatUser} hideVideoCallButton={true} />;
+}
+```
+
+### Group call buttons
+
+```tsx
+import { useState, useEffect } from "react";
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { CometChatCallButtons } from "@cometchat/chat-uikit-react";
+
+function GroupCallButtons() {
+  const [group, setGroup] = useState<CometChat.Group>();
+
+  useEffect(() => {
+    CometChat.getGroup("guid").then((g) => setGroup(g));
+  }, []);
+
+  return group ? <CometChatCallButtons group={group} /> : null;
+}
+```
+
+---
+
+## CSS Architecture
+
+The component uses CSS custom properties (design tokens) defined in `@cometchat/chat-uikit-react/css-variables.css`. The cascade:
+
+1. Global tokens set on the `.cometchat` root wrapper.
+2. Component CSS (`.cometchat-call-button`) consumes these tokens via `var()`.
+3. Overrides target `.cometchat-call-button` descendant selectors.
+
+### Key Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-call-button` |
+| Voice button wrapper | `.cometchat-call-button__voice` |
+| Video button wrapper | `.cometchat-call-button__video` |
+| Button element | `.cometchat-call-button .cometchat-button` |
+| Button icon | `.cometchat-call-button .cometchat-button__icon` |
+| Outgoing call backdrop | `.cometchat-outgoing-call__backdrop` |
+
+### Example: Themed call buttons
 
 <Frame>
   <img src="/images/3b154ea9-wPyMSRehgR7CgAAAAAElFTkSuQmCC.png" />
 </Frame>
 
-```tsx lines
-<CometChatCallButtons user={chatUser} />
-```
-
-```css lines
+```css
 .cometchat-call-button {
   display: flex;
   padding: 8px 16px;
@@ -297,3 +323,224 @@ Using CSS, customize the look and feel of the component. The root CSS class is `
   background-color: #6852d6;
 }
 ```
+
+### Customization Matrix
+
+| What to change | Where | Property/API | Example |
+| --- | --- | --- | --- |
+| Override call initiation | Component props | `onVoiceCallClick` / `onVideoCallClick` | `onVoiceCallClick={() => customCall()}` |
+| Hide a call button | Component props | `hideVoiceCallButton` / `hideVideoCallButton` | `hideVideoCallButton={true}` |
+| Customize outgoing call UI | Component props | `outgoingCallConfiguration` | `outgoingCallConfiguration={new OutgoingCallConfiguration({...})}` |
+| Customize call settings | Component props | `callSettingsBuilder` | `callSettingsBuilder={(audio) => builder}` |
+| Change colors, fonts, spacing | Global CSS | Target `.cometchat-call-button` class | `.cometchat-call-button .cometchat-button__icon { background: red; }` |
+
+---
+
+## Accessibility
+
+The voice and video call buttons are keyboard-focusable and activate on Enter/Space. Each button includes hover text ("Voice Call" / "Video Call") for tooltip display. Buttons are disabled during active calls to prevent concurrent call initiation.
+
+---
+
+</Tab>
+<Tab title="API Reference">
+
+## Props
+
+All props are optional. Sorted alphabetically.
+
+### callSettingsBuilder
+
+Builder function for customizing call settings.
+
+| | |
+| --- | --- |
+| Type | `(isAudioOnlyCall: boolean, user?: CometChat.User, group?: CometChat.Group) => typeof CometChatUIKitCalls.CallSettingsBuilder` |
+| Default | `undefined` |
+
+---
+
+### group
+
+The group for group call buttons. Pass either `user` or `group`, not both.
+
+| | |
+| --- | --- |
+| Type | `CometChat.Group` |
+| Default | `undefined` |
+
+---
+
+### hideVideoCallButton
+
+Hides the video call button.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideVoiceCallButton
+
+Hides the voice call button.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `((error: CometChat.CometChatException) => void) \| null` |
+| Default | `undefined` |
+
+---
+
+### outgoingCallConfiguration
+
+Configuration object for the internal `CometChatOutgoingCall` sub-component.
+
+| | |
+| --- | --- |
+| Type | `OutgoingCallConfiguration` |
+| Default | `new OutgoingCallConfiguration({})` |
+
+See [Configuring the Outgoing Call Sub-Component](#configuring-the-outgoing-call-sub-component) for properties.
+
+---
+
+### user
+
+The user for 1-on-1 call buttons. Pass either `user` or `group`, not both.
+
+| | |
+| --- | --- |
+| Type | `CometChat.User` |
+| Default | `undefined` |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
+| --- | --- | --- |
+| `CometChatCallEvents.ccOutgoingCall` | `CometChat.Call` | Call initiated |
+| `CometChatCallEvents.ccCallRejected` | `CometChat.Call` | Call rejected/cancelled |
+| `CometChatCallEvents.ccCallEnded` | `CometChat.Call` | Call session ends |
+| `CometChatMessageEvents.ccMessageSent` | `IMessages` | Group call message sent |
+
+All call events are `Subject<CometChat.Call>` from RxJS. Subscribe with `.subscribe()`, unsubscribe with the returned subscription's `.unsubscribe()`.
+
+---
+
+## CSS Selectors
+
+| Target | Selector |
+| --- | --- |
+| Root | `.cometchat-call-button` |
+| Voice button wrapper | `.cometchat-call-button__voice` |
+| Video button wrapper | `.cometchat-call-button__video` |
+| Button element | `.cometchat-call-button .cometchat-button` |
+| Button icon | `.cometchat-call-button .cometchat-button__icon` |
+| Outgoing call backdrop | `.cometchat-outgoing-call__backdrop` |
+
+</Tab>
+<Tab title="AI Agent Spec">
+
+```json
+{
+  "component": "CometChatCallButtons",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatCallButtons } from \"@cometchat/chat-uikit-react\";",
+  "cssImport": "import \"@cometchat/chat-uikit-react/css-variables.css\";",
+  "description": "Voice and video call initiation buttons for user or group conversations.",
+  "cssRootClass": ".cometchat-call-button",
+  "primaryOutput": {
+    "description": "Initiates calls via SDK, emits CometChatCallEvents"
+  },
+  "props": {
+    "data": {
+      "user": {
+        "type": "CometChat.User",
+        "default": "undefined",
+        "note": "Pass either user or group, not both"
+      },
+      "group": {
+        "type": "CometChat.Group",
+        "default": "undefined",
+        "note": "Pass either user or group, not both"
+      }
+    },
+    "callbacks": {
+      "onError": "((error: CometChat.CometChatException) => void) | null",
+      "onVoiceCallClick": "(user?: CometChat.User, group?: CometChat.Group) => void",
+      "onVideoCallClick": "(user?: CometChat.User, group?: CometChat.Group) => void"
+    },
+    "visibility": {
+      "hideVoiceCallButton": { "type": "boolean", "default": false },
+      "hideVideoCallButton": { "type": "boolean", "default": false }
+    },
+    "configuration": {
+      "callSettingsBuilder": "(isAudioOnlyCall: boolean, user?: CometChat.User, group?: CometChat.Group) => typeof CometChatUIKitCalls.CallSettingsBuilder",
+      "outgoingCallConfiguration": {
+        "type": "OutgoingCallConfiguration",
+        "default": "new OutgoingCallConfiguration({})",
+        "properties": {
+          "disableSoundForCalls": "boolean",
+          "customSoundForCalls": "string",
+          "onError": "(error: CometChat.CometChatException) => void",
+          "onCallCanceled": "Function",
+          "titleView": "(call: CometChat.Call) => JSX.Element",
+          "subtitleView": "(call: CometChat.Call) => JSX.Element",
+          "avatarView": "(call: CometChat.Call) => JSX.Element",
+          "cancelButtonView": "(call: CometChat.Call) => JSX.Element"
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "name": "CometChatCallEvents.ccOutgoingCall",
+      "payload": "CometChat.Call",
+      "description": "Call initiated"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallRejected",
+      "payload": "CometChat.Call",
+      "description": "Call rejected/cancelled"
+    },
+    {
+      "name": "CometChatCallEvents.ccCallEnded",
+      "payload": "CometChat.Call",
+      "description": "Call session ends"
+    },
+    {
+      "name": "CometChatMessageEvents.ccMessageSent",
+      "payload": "IMessages",
+      "description": "Group call message sent"
+    }
+  ],
+  "sdkListeners": [
+    "onIncomingCallReceived",
+    "onIncomingCallCancelled",
+    "onOutgoingCallRejected",
+    "onOutgoingCallAccepted"
+  ],
+  "compositionExample": {
+    "description": "Standalone call buttons or embedded in MessageHeader auxiliary view",
+    "components": ["CometChatCallButtons", "CometChatOutgoingCall", "CometChatOngoingCall"],
+    "flow": "user/group prop -> click button -> SDK initiateCall -> CometChatOutgoingCall overlay -> onOutgoingCallAccepted -> CometChatOngoingCall"
+  }
+}
+```
+
+</Tab>
+</Tabs>
