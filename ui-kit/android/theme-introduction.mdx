@@ -1,6 +1,22 @@
 ---
 title: "Introduction"
+description: "Create and apply a global CometChat UI Kit theme to match your brand across light and dark modes."
 ---
+
+<Accordion title="AI Agent Component Spec">
+
+| Field | Value |
+| --- | --- |
+| Goal | Customize UI Kit appearance (colors, fonts, dark mode) via Android XML theme attributes |
+| Where | `app/src/main/res/values/themes.xml` (global) — applied via `android:theme` in `AndroidManifest.xml` |
+| Step 1 | Create an app theme extending `CometChatTheme.DayNight` |
+| Step 2 | Override theme attributes (`cometchatPrimaryColor`, `cometchatBackgroundColor1`, etc.) in your theme |
+| Step 3 (dark mode) | Create `app/src/main/res/values-night/themes.xml` and override attributes for dark mode |
+| Key attributes | `cometchatPrimaryColor`, `cometchatBackgroundColor1`, `cometchatBackgroundColor2`, `cometchatTextColorPrimary`, `cometchatTextColorSecondary`, `cometchatStrokeColorDefault` |
+| Constraints | Must extend `CometChatTheme.DayNight` as parent theme; activity-level overrides beat application-level |
+| Full attribute list | [Theme attributes on GitHub](https://github.com/cometchat/cometchat-uikit-android/blob/v5/chatuikit/src/main/res/values/attr_cometchat_theme.xml) |
+
+</Accordion>
 
 Create and apply a global CometChat UI Kit theme that matches your brand across light and dark modes.
 
@@ -42,6 +58,30 @@ Run the app and confirm UI Kit screens use your colors in light and dark mode.
 - `CometChatTheme.DayNight`: Base UI Kit theme built on `Theme.MaterialComponents.DayNight.NoActionBar`.
 - Theme attributes: `cometchatPrimaryColor`, `cometchatBackgroundColor1`, `cometchatTextColorPrimary`, and others.
 - `values-night`: Android resource folder for dark mode overrides.
+
+---
+
+## Theming Contract
+
+**Inputs**
+- Base theme: `CometChatTheme.DayNight` as the parent of your app theme
+- Global theme attributes in `app/src/main/res/values/themes.xml`
+- Activity-scoped theme via `android:theme` on a specific `<activity>` in `AndroidManifest.xml`
+- Optional dark mode overrides in `app/src/main/res/values-night/themes.xml`
+
+**Precedence**
+1. Activity-level theme (most specific)
+2. Application-level theme (`android:theme` on `<application>`)
+3. `CometChatTheme.DayNight` defaults (least specific)
+
+**Outputs**
+- `cometchatPrimaryColor` changes buttons, highlights, and interactive elements
+- `cometchatBackgroundColor1` / `cometchatBackgroundColor2` change panel and surface backgrounds
+- `cometchatTextColorPrimary` / `cometchatTextColorSecondary` change text across the UI
+- `cometchatStrokeColorDefault` changes borders and dividers
+- Dark mode values from `values-night` apply automatically when the system uses night mode
+
+---
 
 ## Implementation
 

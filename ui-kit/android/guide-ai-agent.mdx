@@ -1,7 +1,19 @@
 ---
 title: "AI Agent Integration"
 sidebarTitle: "AI Agent Integration"
+description: "Enable AI-powered conversational assistance with chat history, contextual responses, and seamless handoffs."
 ---
+
+<Accordion title="AI Agent Component Spec">
+
+| Field | Value |
+| --- | --- |
+| Package | `com.cometchat:chat-uikit-android` |
+| Key components | `CometChatAIAssistantChatHistory`, `CometChatMessageList`, `CometChatMessageComposer`, `CometChatMessageHeader` |
+| Purpose | Enable AI-powered conversational assistance with chat history, contextual responses, and seamless handoffs. |
+| Related | [AI Assistant Chat History](/ui-kit/android/ai-assistant-chat-history), [AI Features](/ui-kit/android/ai-features), [All Guides](/ui-kit/android/guide-overview) |
+
+</Accordion>
 
 Enable intelligent conversational AI capabilities in your Android app using CometChat UIKit v5 with AI Agent integration:
 
@@ -51,6 +63,8 @@ The AI Agent chat interface provides a familiar messaging experience enhanced wi
 
 Create the AI Assistant chat activity with proper theme and layout configuration.
 
+<Tabs>
+<Tab title="Kotlin">
 ```kotlin lines
 class AIAssistantChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAiAssistantChatBinding
@@ -95,6 +109,56 @@ class AIAssistantChatActivity : AppCompatActivity() {
     }
 }
 ```
+</Tab>
+
+<Tab title="Java">
+```java lines
+public class AIAssistantChatActivity extends AppCompatActivity {
+    private ActivityAiAssistantChatBinding binding;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityAiAssistantChatBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        String messageJson = getIntent().getStringExtra(getString(R.string.app_base_message));
+        String userJson = getIntent().getStringExtra(getString(R.string.app_user));
+
+        User user = null;
+        BaseMessage parentMessage = null;
+
+        if (userJson != null && !userJson.isEmpty())
+            user = User.fromJson(userJson);
+        if (messageJson != null && !messageJson.isEmpty())
+            parentMessage = BaseMessage.processMessage(new JSONObject(messageJson));
+
+        initializeComponents(user, parentMessage);
+        initClickListeners();
+    }
+
+    private void initializeComponents(User user, BaseMessage parentMessage) {
+        if (user != null) {
+            binding.messageHeader.setUser(user); // Set user for header
+            binding.messageList.setUser(user); // Set user for message list
+            binding.messageComposer.setUser(user); // Set user for composer
+        }
+
+        if (parentMessage != null) {
+            // Set message id of parent message to fetch messages with parent.
+            // Here we are setting parent message id to message list to fetch messages and message composer to send reply to that message.
+            // Here this is being used for AIAssistantChatHistory
+            binding.messageList.setParentMessage(parentMessage.getId());
+            binding.messageComposer.setParentMessageId(parentMessage.getId());
+        }
+
+        binding.messageList.setStyle(R.style.CustomCometChatMessageListStyle); // Custom style for AI chat
+        binding.messageComposer.setStyle(R.style.CustomMessageComposerStyle); // Custom style for AI chat
+    }
+}
+```
+</Tab>
+</Tabs>
 
 **File reference:**
 [`AIAssistantChatActivity.kt`](https://github.com/cometchat/cometchat-uikit-android/blob/v5/ai-sample-app/src/main/java/com/cometchat/ai/sampleapp/ui/activity/AIAssistantChatActivity.kt)
@@ -181,8 +245,9 @@ Define custom styles for the message list and composer to differentiate AI agent
 
 Initialize click listeners of message header to handle new chat creation and chat history access.
 
+<Tabs>
+<Tab title="Kotlin">
 ```kotlin lines
-
 private fun initClickListeners() {
 
     // New chat creation
@@ -201,13 +266,39 @@ private fun initClickListeners() {
         startActivity(intent)
     }
 }
-
 ```
+</Tab>
+
+<Tab title="Java">
+```java lines
+private void initClickListeners() {
+
+    // New chat creation
+    binding.messageHeader.setNewChatButtonClick(() -> {
+        Utils.hideKeyBoard(AIAssistantChatActivity.this, binding.getRoot());
+        Intent intent = new Intent(AIAssistantChatActivity.this, AIAssistantChatActivity.class);
+        intent.putExtra(getString(R.string.app_user), user.toJson().toString()); // Pass user to create new chat
+        startActivity(intent);
+        finish();
+    });
+
+    // Chat history access
+    binding.messageHeader.setChatHistoryButtonClick(() -> {
+        Intent intent = new Intent(AIAssistantChatActivity.this, AIAssistantChatHistoryActivity.class);
+        intent.putExtra(getString(R.string.app_user), user.toJson().toString()); // Pass user to fetch chat history
+        startActivity(intent);
+    });
+}
+```
+</Tab>
+</Tabs>
 
 ### Step 5 - Create an activity for AIAssistantChatHistory component.
 
 Create a new activity to host `CometChatAIAssistantChatHistory` component and handle its interactions.
 
+<Tabs>
+<Tab title="Kotlin">
 ```kotlin lines
 class AIAssistantChatHistoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAiAssistantChatHistoryBinding
@@ -267,6 +358,71 @@ class AIAssistantChatHistoryActivity : AppCompatActivity() {
         }
 }
 ```
+</Tab>
+
+<Tab title="Java">
+```java lines
+public class AIAssistantChatHistoryActivity extends AppCompatActivity {
+    private ActivityAiAssistantChatHistoryBinding binding;
+    private User user;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityAiAssistantChatHistoryBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        String userJson = getIntent().getStringExtra(getString(R.string.app_user));
+
+        if (userJson != null && !userJson.isEmpty()) {
+            user = User.fromJson(userJson);
+
+            // Set user to fetch chat history
+            binding.cometchatAiAssistantChatHistory.setUser(user);
+        }
+
+        // Use setStyle() method of the component to apply custom styles if needed
+        // binding.cometchatAiAssistantChatHistory.setStyle(R.style.CustomCometChatAIAssistantChatHistoryStyle);
+        // See docs of CometChatAIAssistantChatHistory for available style attributes
+
+        // init click listeners
+        initClickListeners();
+    }
+
+    private void initClickListeners() {
+        // History item click
+        binding.cometchatAiAssistantChatHistory.setOnItemClickListener((view, position, message) -> {
+            AppEntity appEntity = message.getReceiver();
+            if (appEntity instanceof User) {
+                user = (User) appEntity;
+                Intent intent = new Intent(AIAssistantChatHistoryActivity.this, AIAssistantChatActivity.class);
+                intent.putExtra(getString(R.string.app_user), ((User) appEntity).toJson().toString());
+                intent.putExtra(
+                    getString(R.string.app_base_message),
+                    message.getRawMessage().toString()
+                );
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        // New chat creation from history screen
+        binding.cometchatAiAssistantChatHistory.setOnNewChatClickListener(() -> {
+            Intent intent = new Intent(AIAssistantChatHistoryActivity.this, AIAssistantChatActivity.class);
+            intent.putExtra(getString(R.string.app_user), user.toJson().toString()); // Pass user to create new chat
+            startActivity(intent);
+            finish();
+        });
+
+        // Close history screen
+        binding.cometchatAiAssistantChatHistory.setOnCloseClickListener(() -> {
+            // finish the activity
+        });
+    }
+}
+```
+</Tab>
+</Tabs>
 
 ### Step 6 - AIAssistantChatActivity layout:
 
@@ -291,6 +447,8 @@ Add `CometChatAIAssistantChatHistory` to your layout to enable access to AI chat
 
 Create intent and start AI Assistant chat from your main application.
 
+<Tabs>
+<Tab title="Kotlin">
 ```kotlin lines
 // In your main activity or chat list
 fun launchAIAssistantChat(aiUser: User, parentMessage: BaseMessage? = null) {
@@ -299,6 +457,19 @@ fun launchAIAssistantChat(aiUser: User, parentMessage: BaseMessage? = null) {
     startActivity(intent)
 }
 ```
+</Tab>
+
+<Tab title="Java">
+```java lines
+// In your main activity or chat list
+public void launchAIAssistantChat(User aiUser, BaseMessage parentMessage) {
+    Intent intent = new Intent(this, AIAssistantChatActivity.class);
+    intent.putExtra(getString(R.string.app_user), aiUser.toJson().toString());
+    startActivity(intent);
+}
+```
+</Tab>
+</Tabs>
 
 ## Implementation Flow Summary
 
