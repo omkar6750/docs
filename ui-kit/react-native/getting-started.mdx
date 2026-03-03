@@ -1,8 +1,39 @@
 ---
 title: "Getting Started"
+description: "Set up CometChat UI Kit for React Native and send your first message with prebuilt chat components."
 ---
 
-## Start your first conversation
+<Info>
+**Quick Reference for AI Agents & Developers**
+
+```bash
+# Install the UI Kit and core dependencies
+npm i @cometchat/chat-uikit-react-native
+npm i @cometchat/chat-sdk-react-native
+```
+
+```tsx
+import { CometChatUIKit, UIKitSettings } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+// 1. Initialize
+const uiKitSettings: UIKitSettings = {
+  appId: "APP_ID",
+  authKey: "AUTH_KEY",
+  region: "us",
+  subscriptionType: CometChat.AppSettings.SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings["subscriptionType"],
+};
+await CometChatUIKit.init(uiKitSettings);
+
+// 2. Login
+const user = await CometChatUIKit.login({ uid: "cometchat-uid-1" });
+```
+
+- **Components** → [Components Overview](/ui-kit/react-native/components-overview)
+- **Methods** → [Methods Reference](/ui-kit/react-native/methods)
+</Info>
+
+## Start Your First Conversation
 
 CometChat UI Kit for React Native is a collection of prebuilt UI components designed to simplify the development of an in-app chat with all the essential messaging features. Our UI Kit offers light and dark themes, various fonts, colors, and additional customization options.
 
@@ -14,16 +45,16 @@ CometChat UI Kit supports both one-to-one and group conversations. Follow the gu
 
 ## Prerequisites
 
-Before installing **UI Kit for React Native**, you need to create a CometChat application on the CometChat Dashboard, which comprises everything required in a chat service including users, groups, calls & messages. You will need the `App ID` , `AuthKey`, `Region` of your CometChat application when initialising the SDK.
+Before installing **UI Kit for React Native**, you need to create a CometChat application on the [CometChat Dashboard](https://app.cometchat.com/login), which includes everything required for a chat service: users, groups, calls, and messages. You will need the `App ID`, `AuthKey`, and `Region` of your CometChat application when initializing the SDK.
 
 **i. Register on CometChat**
 
-* To install **UI Kit for React Native**, you need to first register on **CometChat Dashboard**. [Click here to sign up](https://app.cometchat.com/login).
+* To install **UI Kit for React Native**, you need to first register on the **CometChat Dashboard**. [Click here to sign up](https://app.cometchat.com/login).
 
 **ii. Get Your Application Keys**
 
-* Create a **new app**
-* Head over to the **QuickStart** or **API & Auth Keys section** and note the **App ID**, **Auth Key**, and **Region**.
+* Create a **new app**.
+* Head over to the **QuickStart** or **API & Auth Keys** section and note the **App ID**, **Auth Key**, and **Region**.
 
 <Tip>
 
@@ -35,15 +66,15 @@ Each CometChat application can be integrated with a single client app. Within th
 
 ## Getting Started
 
-You can quickly start building a modern messaging experience into your app by installing the new UI Kit, an add-on for the CometChat React Native SDK.
+You can quickly start building a modern messaging experience in your app by installing the UI Kit, an add-on for the CometChat React Native SDK.
 
 ***
 
 Step 1
 
-### Create a project
+### Create a Project
 
-To get started, open `terminal` and create a new project using below command.
+To get started, open your terminal and create a new project using the command below.
 
 <Tabs>
 <Tab title="Bash">
@@ -67,7 +98,7 @@ Step 2
 
 ### Add Dependency
 
-You can install **UI Kit for React Native** through using below command.
+Install the **UI Kit for React Native** using the command below.
 
 <Tabs>
 <Tab title="Bash">
@@ -95,7 +126,7 @@ npm i dayjs
 npm i @react-native-async-storage/async-storage
 npm i react-native-gesture-handler
 npm i react-native-localize
-
+npm i react-native-safe-area-context
 ```
 
 </Tab>
@@ -104,9 +135,35 @@ npm i react-native-localize
 
 ***
 
-#### Add Permissions for android
+#### Android: Add Local Maven Repository for Async Storage
 
-Open `AndroidManifest.xml` file from `android/app/src/main` location and add below permissions
+<Warning>
+**Android only:** `@react-native-async-storage/async-storage` v3 ships a local Maven artifact. Add this to your `android/build.gradle` or the Android build will fail.
+</Warning>
+
+<Tabs>
+<Tab title="Gradle">
+```gradle
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri(project(":react-native-async-storage_async-storage").file("local_repo"))
+        }
+    }
+}
+```
+
+</Tab>
+
+</Tabs>
+
+***
+
+#### Add Permissions for Android
+
+Open the `AndroidManifest.xml` file from the `android/app/src/main` directory and add the permissions below.
 
 <Tabs>
 <Tab title="XML">
@@ -125,7 +182,7 @@ Open `AndroidManifest.xml` file from `android/app/src/main` location and add bel
 
 <Note>
 
-Please make sure Android SDK path is set in the `ANDROID_HOME` environment variable or in `local.properties` via the field `sdk.dir`.
+Make sure the Android SDK path is set in the `ANDROID_HOME` environment variable or in `local.properties` via the `sdk.dir` field.
 
 </Note>
 
@@ -139,7 +196,7 @@ React Native UI Kit supports Calls SDK V3 or higher.
 
 </Warning>
 
-1. You can install `@cometchat/calls-sdk-react-native` Calling SDK for React Native using below command.
+1. Install the `@cometchat/calls-sdk-react-native` Calling SDK for React Native using the command below.
 
    <Tabs>
    <Tab title="Bash">
@@ -151,7 +208,7 @@ React Native UI Kit supports Calls SDK V3 or higher.
 
    </Tabs>
 
-2. Install dependancies required for call SDK to work
+2. Install the dependencies required for the Calls SDK to work.
 
    <Tabs>
    <Tab title="Bash">
@@ -168,7 +225,7 @@ React Native UI Kit supports Calls SDK V3 or higher.
 
    </Tabs>
 
-3. Add permissions
+3. Add permissions.
 
    **Android:**
 
@@ -205,15 +262,19 @@ React Native UI Kit supports Calls SDK V3 or higher.
 
 Step 3
 
-## Initialise CometChatUIKit
+## Initialize CometChatUIKit
 
-To integrate and run CometChat UI Kit in your app, you need to initialize it beforehand.
+To integrate and run CometChat UI Kit in your app, you need to initialize it first.
 
-The Init method initializes the settings required for CometChat. Please ensure to call this method before invoking any other methods from CometChat UI Kit or CometChat SDK.
+The `init` method sets up the configuration required for CometChat. Make sure to call this method before invoking any other methods from CometChat UI Kit or CometChat SDK.
+
+<Warning>
+You must call `CometChatUIKit.init(UIKitSettings)` before rendering any UI Kit components or calling any SDK methods. Initialization must complete before login.
+</Warning>
 
 <Note>
 
-The Auth Key is an optional property of the `UIKitSettings` Class. It is intended for use primarily during proof-of-concept (POC) development or in the early stages of application development. You can use the [Auth Token](/ui-kit/react-native/methods#how-to-login-a-user-with-auth-token) method to log in securely.
+The Auth Key is an optional property of the `UIKitSettings` class. It is intended for use primarily during proof-of-concept (POC) development or in the early stages of application development. You can use the [Auth Token](/ui-kit/react-native/methods#how-to-login-a-user-with-auth-token) method to log in securely.
 
 </Note>
 
@@ -254,13 +315,17 @@ Step 4
 
 ## Login User
 
-For login, you require a UID. You can create your own users on the CometChat Dashboard or via API. We have pre-generated test users: cometchat-uid-1, cometchat-uid-2, cometchat-uid-3, cometchat-uid-4, cometchat-uid-5.
+To log in, you need a UID. You can create your own users on the [CometChat Dashboard](https://app.cometchat.com) or via the [REST API](/rest-api/users). CometChat provides pre-generated test users: `cometchat-uid-1`, `cometchat-uid-2`, `cometchat-uid-3`, `cometchat-uid-4`, `cometchat-uid-5`.
 
-The Login method returns the User object containing all the information of the logged-in user.
+The `login` method returns the `User` object containing all the information of the logged-in user.
+
+<Warning>
+**Auth Key** is for development/testing only. In production, generate **Auth Tokens** on your server using the REST API and pass them to the client. Never expose Auth Keys in production client code.
+</Warning>
 
 <Note>
 
-This straightforward authentication method is ideal for proof-of-concept (POC) development or during the early stages of application development. For production environments, however, we strongly recommend using an [Auth Token](/ui-kit/react-native/methods#how-to-login-a-user-with-auth-token) instead of an Auth Key to ensure enhanced security.
+This straightforward authentication method is ideal for proof-of-concept (POC) development or during the early stages of application development. For production environments, we strongly recommend using an [Auth Token](/ui-kit/react-native/methods#how-to-login-a-user-with-auth-token) instead of an Auth Key to ensure enhanced security.
 
 </Note>
 
@@ -302,7 +367,8 @@ Step 5
 <Tab title="App.tsx">
 ```tsx
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, ViewStyle } from "react-native";
+import { ViewStyle } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   CometChatConversations,
   CometChatUIKit,
@@ -376,6 +442,7 @@ const App = (): React.ReactElement => {
   /* ------------------------------------------------------------------ */
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
       <CometChatI18nProvider>
         <SafeAreaView style={styles.fullScreen}>
           <CometChatThemeProvider>
@@ -421,6 +488,7 @@ const App = (): React.ReactElement => {
           </CometChatThemeProvider>
         </SafeAreaView>
       </CometChatI18nProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 };
@@ -442,10 +510,10 @@ export default App;
 #### Loading the Messages Component
 
 <Frame>
-  <img src="/images/c9f210d3-messaegs-0ec2890a7a60ae5ea8e3991d83508474.png" />
+  <img src="/images/c9f210d3-messaegs-0ec2890a7a60ae5ea8e3991d83508474.png" width="200" />
 </Frame>
 
-* The Messages component allows users to view and send messages in both one-on-one and group conversations.
+The Messages component allows users to view and send messages in both one-on-one and group conversations.
 
 <Tabs>
 <Tab title="Messages.tsx">
@@ -469,7 +537,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
  * -----
  * • `user`  – (CometChat.User, optional) Target user for a 1-to-1 conversation.
  * • `group` – (CometChat.Group, optional) Target group for a group conversation.
- * • `onBack`— () ⇒ void Callback fired when the back button in the header is pressed.
+ * • `onBack`— () ⇒ void Callback fired when the back button in the header is pressed.
  *
  */
 const Messages = ({
@@ -513,3 +581,22 @@ export default Messages;
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Core Features" icon="comments" href="/ui-kit/react-native/core-features">
+    Explore messaging, groups, and user management features
+  </Card>
+  <Card title="Components Overview" icon="puzzle-piece" href="/ui-kit/react-native/components-overview">
+    Browse all available prebuilt UI components
+  </Card>
+  <Card title="Theming" icon="palette" href="/ui-kit/react-native/theme">
+    Customize colors, fonts, and appearance
+  </Card>
+  <Card title="Methods Reference" icon="code" href="/ui-kit/react-native/methods">
+    Explore init, login, logout, and other UI Kit methods
+  </Card>
+</CardGroup>
