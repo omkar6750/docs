@@ -82,22 +82,37 @@ description: "Scrollable list of recent one-on-one and group conversations for t
       "name": "CometChatConversationEvents.ccConversationDeleted",
       "payload": "Conversation",
       "description": "Conversation deleted from list"
+    },
+    {
+      "name": "CometChatConversationEvents.ccUpdateConversation",
+      "payload": "Conversation",
+      "description": "Conversation updated"
     }
   ],
   "sdkListeners": [
     "onTextMessageReceived",
     "onMediaMessageReceived",
     "onCustomMessageReceived",
+    "onFormMessageReceived",
+    "onCardMessageReceived",
+    "onCustomInteractiveMessageReceived",
+    "onSchedulerMessageReceived",
     "onTypingStarted",
     "onTypingEnded",
     "onMessagesDelivered",
     "onMessagesRead",
+    "onMessagesDeliveredToAll",
+    "onMessagesReadByAll",
+    "onMessageEdited",
+    "onMessageDeleted",
     "onUserOnline",
     "onUserOffline",
     "onGroupMemberJoined",
     "onGroupMemberLeft",
     "onGroupMemberKicked",
     "onGroupMemberBanned",
+    "onGroupMemberUnbanned",
+    "onGroupMemberScopeChanged",
     "onMemberAddedToGroup"
   ],
   "compositionExample": {
@@ -264,8 +279,26 @@ CometChatConversations(
 | Limit to 10 per page | `ConversationsRequestBuilder()..limit = 10` |
 | With specific tags | `ConversationsRequestBuilder()..tags = ["vip"]` |
 | With user and group tags | `ConversationsRequestBuilder()..withUserAndGroupTags = true` |
+| Include blocked users | `ConversationsRequestBuilder()..includeBlockedUsers = true` |
+| Search conversations | `ConversationsRequestBuilder()..searchKeyword = "hello"` |
+| Unread only | `ConversationsRequestBuilder()..unread = true` |
 
 Default page size is 30. The component uses infinite scroll — the next page loads as the user scrolls to the bottom.
+
+### ConversationsRequestBuilder Properties
+
+| Property | Description | Code |
+| --- | --- | --- |
+| `limit` | Number of conversations to fetch per request. Maximum 50. | `..limit = 30` |
+| `conversationType` | Filter by conversation type: `"user"` or `"group"`. If not set, returns both. | `..conversationType = "user"` |
+| `withTags` | Include tags associated with conversations. Default `false`. | `..withTags = true` |
+| `tags` | Filter conversations by specific tags. | `..tags = ["archived", "vip"]` |
+| `withUserAndGroupTags` | Include user/group tags in the Conversation object. Default `false`. | `..withUserAndGroupTags = true` |
+| `includeBlockedUsers` | Include conversations with blocked users. Default `false`. | `..includeBlockedUsers = true` |
+| `withBlockedInfo` | Include blocked info in the ConversationWith object. Default `false`. | `..withBlockedInfo = true` |
+| `searchKeyword` | Search conversations by user or group name. Requires Advanced plan. | `..searchKeyword = "John"` |
+| `unread` | Fetch only unread conversations. Requires Advanced plan. | `..unread = true` |
+| `build()` | Builds and returns a `ConversationsRequest` object. | `.build()` |
 
 Refer to [ConversationsRequestBuilder](/sdk/flutter/retrieve-conversations) for the full builder API.
 
@@ -493,6 +526,81 @@ CometChatConversations(
 </Tab>
 </Tabs>
 
+For a more complete custom list item with status indicator and date:
+
+<Tabs>
+<Tab title="Dart">
+```dart
+Widget getCustomListItem(Conversation conversation, BuildContext context) {
+  User? conversationWithUser;
+  Group? conversationWithGroup;
+  
+  if (conversation.conversationWith is User) {
+    conversationWithUser = conversation.conversationWith as User;
+  } else {
+    conversationWithGroup = conversation.conversationWith as Group;
+  }
+
+  // Get status indicator
+  StatusIndicatorUtils statusIndicatorUtils = StatusIndicatorUtils.getStatusIndicatorFromParams(
+    context: context,
+    user: conversationWithUser,
+    group: conversationWithGroup,
+    onlineStatusIndicatorColor: Color(0xFF09C26F),
+  );
+
+  // Build tail view with date
+  final lastMessageTime = conversation.lastMessage?.sentAt ?? DateTime.now();
+  Widget tail = CometChatDate(
+    date: lastMessageTime,
+    padding: EdgeInsets.zero,
+    style: CometChatDateStyle(
+      backgroundColor: Colors.transparent,
+      textStyle: TextStyle(color: Color(0xFF727272), fontSize: 12),
+      border: Border.all(width: 0, color: Colors.transparent),
+    ),
+    pattern: DateTimePattern.dayDateTimeFormat,
+  );
+
+  return CometChatListItem(
+    avatarHeight: 48,
+    avatarWidth: 48,
+    id: conversation.conversationId,
+    avatarName: conversationWithUser?.name ?? conversationWithGroup?.name,
+    avatarURL: conversationWithUser?.avatar ?? conversationWithGroup?.icon,
+    avatarStyle: CometChatAvatarStyle(
+      borderRadius: BorderRadius.circular(8),
+      backgroundColor: Color(0xFFAA9EE8),
+    ),
+    title: conversationWithUser?.name ?? conversationWithGroup?.name,
+    tailView: tail,
+    statusIndicatorColor: statusIndicatorUtils.statusIndicatorColor,
+    statusIndicatorIcon: statusIndicatorUtils.icon,
+    statusIndicatorStyle: CometChatStatusIndicatorStyle(
+      border: Border.all(width: 2, color: Colors.white),
+    ),
+    hideSeparator: true,
+    style: ListItemStyle(
+      background: Colors.transparent,
+      titleStyle: TextStyle(
+        overflow: TextOverflow.ellipsis,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFF141414),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+  );
+}
+
+// Usage:
+CometChatConversations(
+  listItemView: (conversation) => getCustomListItem(conversation, context),
+)
+```
+</Tab>
+</Tabs>
+
 ### leadingView
 
 Replace the avatar / left section. Typing-aware avatar example.
@@ -504,25 +612,67 @@ Replace the avatar / left section. Typing-aware avatar example.
 <Tabs>
 <Tab title="Dart">
 ```dart
-Map<String, TypingIndicator> typingMap = {};
+// In your StatefulWidget, use the MessageListener mixin:
+class _ConversationsScreenState extends State<ConversationsScreen> with MessageListener {
+  Map<String, TypingIndicator> typingMap = {};
 
-CometChatConversations(
-  leadingView: (context, conversation) {
-    final entity = conversation.conversationWith;
-    final id = entity is User ? entity.uid : (entity as Group).guid;
+  @override
+  void initState() {
+    super.initState();
+    CometChat.addMessageListener("typing_listener", this);
+  }
+
+  @override
+  void dispose() {
+    CometChat.removeMessageListener("typing_listener");
+    super.dispose();
+  }
+
+  @override
+  void onTypingStarted(TypingIndicator typingIndicator) {
+    setTypingIndicator(typingIndicator, true);
+  }
+
+  @override
+  void onTypingEnded(TypingIndicator typingIndicator) {
+    setTypingIndicator(typingIndicator, false);
+  }
+
+  void setTypingIndicator(TypingIndicator typingIndicator, bool isTypingStarted) {
+    final id = typingIndicator.receiverType == ReceiverTypeConstants.user
+        ? typingIndicator.sender.uid
+        : typingIndicator.receiverId;
     
-    if (typingMap.containsKey(id)) {
-      return Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFFF76808), width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Image.asset("assets/typing_icon.png", height: 40, width: 40),
-      );
-    }
-    return null; // Use default avatar
-  },
-)
+    setState(() {
+      if (isTypingStarted) {
+        typingMap[id] = typingIndicator;
+      } else {
+        typingMap.remove(id);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CometChatConversations(
+      leadingView: (context, conversation) {
+        final entity = conversation.conversationWith;
+        final id = entity is User ? entity.uid : (entity as Group).guid;
+        
+        if (typingMap.containsKey(id)) {
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Color(0xFFF76808), width: 2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Image.asset("assets/typing_icon.png", height: 40, width: 40),
+          );
+        }
+        return null; // Use default avatar
+      },
+    );
+  }
+}
 ```
 </Tab>
 </Tabs>
@@ -704,6 +854,14 @@ CometChatConversations(
           // Pin conversation
         },
       ),
+      CometChatOption(
+        id: "mark_unread",
+        title: "Mark as unread",
+        iconWidget: Icon(Icons.mark_chat_unread_outlined),
+        onClick: () {
+          // Mark conversation as unread
+        },
+      ),
     ];
   },
 )
@@ -739,6 +897,106 @@ CometChatConversations(
       },
     ),
   ],
+)
+```
+</Tab>
+</Tabs>
+
+For a more complete popup menu with styling:
+
+<Tabs>
+<Tab title="Dart">
+```dart
+CometChatConversations(
+  showBackButton: false,
+  appBarOptions: [
+    PopupMenuButton(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Color(0xFFF5F5F5), width: 1),
+      ),
+      color: Colors.white,
+      elevation: 4,
+      menuPadding: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      icon: Padding(
+        padding: EdgeInsets.only(left: 12, right: 16),
+        child: CometChatAvatar(
+          width: 40,
+          height: 40,
+          image: CometChatUIKit.loggedInUser?.avatar,
+          name: CometChatUIKit.loggedInUser?.name,
+        ),
+      ),
+      onSelected: (value) {
+        switch (value) {
+          case '/create':
+            // Navigate to create conversation
+            break;
+          case '/logout':
+            CometChatUIKit.logout();
+            break;
+        }
+      },
+      position: PopupMenuPosition.under,
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            height: 44,
+            padding: EdgeInsets.all(16),
+            value: '/create',
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.add_comment_outlined, color: Color(0xFFA1A1A1), size: 24),
+                ),
+                Text("Create Conversation", style: TextStyle(fontSize: 14, color: Color(0xFF141414))),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            height: 44,
+            padding: EdgeInsets.all(16),
+            value: '/name',
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.account_circle_outlined, color: Color(0xFFA1A1A1), size: 24),
+                ),
+                Text(CometChatUIKit.loggedInUser?.name ?? "", style: TextStyle(fontSize: 14, color: Color(0xFF141414))),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            height: 44,
+            padding: EdgeInsets.all(16),
+            value: '/logout',
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.logout, color: Colors.red, size: 24),
+                ),
+                Text("Logout", style: TextStyle(fontSize: 14, color: Colors.red)),
+              ],
+            ),
+          ),
+        ];
+      },
+    ),
+  ],
+  onItemTap: (conversation) {
+    User? user;
+    Group? group;
+    if (conversation.conversationWith is User) {
+      user = conversation.conversationWith as User;
+    } else {
+      group = conversation.conversationWith as Group;
+    }
+    // Navigate to messages
+  },
 )
 ```
 </Tab>
@@ -937,6 +1195,17 @@ CometChatConversations(
 ---
 
 
+## Accessibility
+
+The component renders a scrollable list of interactive items. Each conversation row is tappable and responds to both tap and long-press gestures. The context menu (options) is accessible via long-press. The unread badge count is exposed as text content. Avatar images include the conversation name for accessibility.
+
+For screen readers, the conversation list is rendered as a semantic list using Flutter's built-in accessibility features. Status indicators (online/offline, group type icons) use visual icons — consider providing custom `Semantics` widgets via `leadingView` if screen reader descriptions are needed for these visual indicators.
+
+When using selection mode, checkboxes are rendered with proper accessibility labels. The component respects system accessibility settings including text scaling and high contrast modes.
+
+---
+
+
 ## Props
 
 All props are optional. Sorted alphabetically.
@@ -997,6 +1266,19 @@ Controls which conversations load and in what order.
 | Default | SDK default (30 per page) |
 
 Pass the builder instance, not the result of `.build()`.
+
+---
+
+### conversationsProtocol
+
+Custom protocol for fetching conversations.
+
+| | |
+| --- | --- |
+| Type | `ConversationsBuilderProtocol` |
+| Default | `null` |
+
+Use this for advanced customization of how conversations are fetched.
 
 ---
 
@@ -1349,6 +1631,28 @@ Custom prefix icon for the search box.
 | --- | --- |
 | Type | `Widget` |
 | Default | Built-in search icon |
+
+---
+
+### searchContentPadding
+
+Padding for search box content.
+
+| | |
+| --- | --- |
+| Type | `EdgeInsetsGeometry` |
+| Default | `null` |
+
+---
+
+### searchPadding
+
+Padding for the search box.
+
+| | |
+| --- | --- |
+| Type | `EdgeInsetsGeometry` |
+| Default | `null` |
 
 ---
 
@@ -1715,6 +2019,7 @@ Custom submit icon for selection mode.
 | Event | Payload | Fires when |
 | --- | --- | --- |
 | `CometChatConversationEvents.ccConversationDeleted` | `Conversation` | Conversation deleted from list |
+| `CometChatConversationEvents.ccUpdateConversation` | `Conversation` | Conversation updated (last message change, metadata update) |
 
 Subscribe using `CometChatConversationEvents.addConversationListListener()` and unsubscribe with `removeConversationListListener()`.
 
