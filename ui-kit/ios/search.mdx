@@ -121,6 +121,42 @@ search.set(onEmpty: {
 
 Filters allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria using RequestBuilders of the Chat SDK.
 
+#### SearchScope
+
+The `SearchScope` enum defines what types of content to search:
+
+| Value | Description |
+|-------|-------------|
+| `.conversations` | Search in conversations |
+| `.messages` | Search in messages |
+
+```swift
+// Search only in messages
+search.set(searchIn: [.messages])
+
+// Search in both conversations and messages (default)
+search.set(searchIn: [.conversations, .messages])
+```
+
+#### SearchFilter
+
+The `SearchFilter` enum defines available filter options:
+
+| Value | Description |
+|-------|-------------|
+| `.unread` | Filter by unread items |
+| `.groups` | Filter by group conversations |
+| `.photos` | Filter by photo messages |
+| `.videos` | Filter by video messages |
+| `.links` | Filter by link messages |
+| `.documents` | Filter by document messages |
+| `.audio` | Filter by audio messages |
+
+```swift
+// Set available filters with an initial selection
+search.set(searchFilters: [.unread, .groups, .photos, .videos], initialFilter: .photos)
+```
+
 #### 1. ConversationsRequestBuilder
 
 Set the `ConversationsRequestBuilder` in the Search Component to filter the search results. For more options, refer to [ConversationRequestBuilder](/sdk/ios/retrieve-conversations).
@@ -213,12 +249,15 @@ These are small functional customizations that allow you to fine-tune the overal
 | group                     | Restrict search to a group                            | `search.group = group`                                               |
 | hideUserStatus            | Hide online/offline indicator                         | `search.hideUserStatus = true`                                       |
 | hideGroupType             | Hide group type icon                                  | `search.hideGroupType = true`                                        |
-| searchFilters             | Filters like "Messages", "Media"                      | `search.set(searchFilters: [.unread, .groups, .photos])`             |
-| initialSearchFilter       | Default tab/filter                                    | `search.initialSearchFilter = .messages`                             |
-| searchIn                  | Restrict search: messages / conversations / both      | `search.set(searchIn: [.messages])`                                  |
-| loadingStateView          | Custom loader                                         | `search.set(loadingStateView: spinner)`                              |
-| emptyStateView            | Custom empty result view                              | `search.set(emptyStateView: emptyView)`                              |
-| errorStateView            | Custom error UI                                       | `search.set(errorStateView: errorView)`                              |
+| searchFilters             | Filters like "Unread", "Groups", "Photos", etc.       | `search.set(searchFilters: [.unread, .groups, .photos])`             |
+| initialSearchFilter       | Default filter to apply on load                       | `search.set(searchFilters: [...], initialFilter: .photos)`           |
+| searchIn (searchScopes)   | Restrict search: messages / conversations / both      | `search.set(searchIn: [.messages, .conversations])`                  |
+| loadingView               | Custom loader view                                    | `search.set(loadingView: spinner)`                                   |
+| emptyView                 | Custom empty result view                              | `search.set(emptyView: emptyView)`                                   |
+| errorView                 | Custom error UI                                       | `search.set(errorView: errorView)`                                   |
+| disableTyping             | Disable typing indicators                             | `search.disableTyping = true`                                        |
+| disableSoundForMessages   | Disable message sounds                                | `search.disableSoundForMessages = true`                              |
+| customSoundForMessages    | Custom sound URL for messages                         | `search.customSoundForMessages = URL(string: "...")`                 |
 
 ---
 
@@ -228,13 +267,27 @@ For advanced-level customization, you can set custom views to the component. Thi
 
 #### Conversation View Customization
 
-| Function                      | Description                                                 |
-|-------------------------------|-------------------------------------------------------------|
-| conversationListItemView      | Assign a custom list item view to a conversation.           |
-| conversationLeadingView       | Assign a custom leading view to a conversation.             |
-| conversationTitleView         | Assign a custom title view to a conversation.               |
-| conversationSubtitleView      | Assign a custom subtitle view to a conversation.            |
-| conversationTrailingView      | Assign a custom trailing view to a conversation.            |
+| Function                        | Description                                                 |
+|---------------------------------|-------------------------------------------------------------|
+| listItemViewForConversation     | Assign a custom list item view to a conversation.           |
+| leadingViewForConversation      | Assign a custom leading view to a conversation.             |
+| titleViewForConversation        | Assign a custom title view to a conversation.               |
+| subtitleViewForConversation     | Assign a custom subtitle view to a conversation.            |
+| tailViewForConversation         | Assign a custom trailing view to a conversation.            |
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let searchVC = CometChatSearch()
+
+searchVC.set(listItemViewForConversation: { conversation in
+    let customView = UIView()
+    // Configure custom conversation view
+    return customView
+})
+```
+</Tab>
+</Tabs>
 
 #### Message View Customization
 
@@ -374,11 +427,72 @@ Available message item view functions for customization:
 
 | Function                    | Message Type         |
 |-----------------------------|----------------------|
+| listItemViewForMessage      | Text Message         |
 | listItemViewForImage        | Image Message        |
 | listItemViewForVideo        | Video Message        |
 | listItemViewForAudio        | Audio Message        |
 | listItemViewForDocument     | Document Message     |
 | listItemViewForLink         | Link Message         |
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let searchVC = CometChatSearch()
+
+// Custom view for image messages
+searchVC.set(listItemViewForImage: { mediaMessage in
+    let customView = UIView()
+    // Configure custom image message view
+    return customView
+})
+
+// Custom view for video messages
+searchVC.set(listItemViewForVideo: { mediaMessage in
+    let customView = UIView()
+    // Configure custom video message view
+    return customView
+})
+
+// Custom view for audio messages
+searchVC.set(listItemViewForAudio: { mediaMessage in
+    let customView = UIView()
+    // Configure custom audio message view
+    return customView
+})
+
+// Custom view for document messages
+searchVC.set(listItemViewForDocument: { mediaMessage in
+    let customView = UIView()
+    // Configure custom document message view
+    return customView
+})
+
+// Custom view for link messages
+searchVC.set(listItemViewForLink: { mediaMessage in
+    let customView = UIView()
+    // Configure custom link message view
+    return customView
+})
+```
+</Tab>
+</Tabs>
+
+---
+
+#### Mention Configuration
+
+Configure how @all mentions appear in search results using the `setMentionAllLabel` method.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let searchVC = CometChatSearch()
+
+// Set a custom label for @all mentions
+searchVC.setMentionAllLabel("all", "Everyone")
+```
+</Tab>
+</Tabs>
 
 ---
 

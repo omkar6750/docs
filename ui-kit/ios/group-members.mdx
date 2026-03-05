@@ -3,20 +3,124 @@ title: "Group Members"
 description: "Display and manage members of a CometChat group"
 ---
 
-The `CometChatGroupMembers` component displays all members of a group with their roles (owner, admin, participant). It supports member management actions like kick, ban, and role changes.
+The `CometChatGroupMembers` component displays all members of a group with their roles (owner, admin, moderator, participant). It supports member management actions like kick, ban, and role changes based on the logged-in user's permissions.
 
 <Frame>
   <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
 </Frame>
 
-## Prerequisites
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatGroupMembers",
+  "package": "CometChatUIKitSwift",
+  "import": "import CometChatUIKitSwift\nimport CometChatSDK",
+  "description": "Displays all members of a group with their roles and supports member management actions like kick, ban, and role changes.",
+  "inherits": "UIViewController",
+  "primaryOutput": {
+    "callback": "onItemClick",
+    "type": "(GroupMember, IndexPath) -> Void"
+  },
+  "props": {
+    "data": {
+      "group": {
+        "type": "Group",
+        "required": true,
+        "note": "The group whose members to display"
+      },
+      "groupMembersRequestBuilder": {
+        "type": "GroupMembersRequest.GroupMembersRequestBuilder?",
+        "default": "nil",
+        "note": "Custom request builder for filtering members"
+      }
+    },
+    "callbacks": {
+      "onItemClick": "(GroupMember, IndexPath) -> Void",
+      "onItemLongClick": "(GroupMember, IndexPath) -> Void",
+      "onBack": "() -> Void",
+      "onSelection": "([GroupMember]) -> Void",
+      "onError": "(CometChatException) -> Void",
+      "onEmpty": "() -> Void",
+      "onLoad": "([GroupMember]) -> Void"
+    },
+    "visibility": {
+      "hideSearch": { "type": "Bool", "default": false },
+      "hideNavigationBar": { "type": "Bool", "default": false },
+      "hideBackIcon": { "type": "Bool", "default": false },
+      "hideUserStatus": { "type": "Bool", "default": false },
+      "hideKickMemberOption": { "type": "Bool", "default": false },
+      "hideBanMemberOption": { "type": "Bool", "default": false },
+      "hideScopeChangeOption": { "type": "Bool", "default": false },
+      "hideErrorView": { "type": "Bool", "default": false },
+      "hideLoadingState": { "type": "Bool", "default": false }
+    },
+    "selection": {
+      "selectionMode": { "type": "SelectionMode", "default": ".none" }
+    },
+    "viewSlots": {
+      "listItemView": "(GroupMember?) -> UIView",
+      "leadingView": "(GroupMember?) -> UIView",
+      "titleView": "(GroupMember?) -> UIView",
+      "subtitleView": "(GroupMember?) -> UIView",
+      "trailView": "(GroupMember?) -> UIView",
+      "emptyStateView": "UIView",
+      "errorStateView": "UIView",
+      "loadingStateView": "UIView"
+    }
+  },
+  "events": [
+    {
+      "name": "ccGroupMemberKicked",
+      "payload": "{ user: User, group: Group }",
+      "description": "Fires when a member is kicked"
+    },
+    {
+      "name": "ccGroupMemberBanned",
+      "payload": "{ user: User, group: Group }",
+      "description": "Fires when a member is banned"
+    },
+    {
+      "name": "ccGroupMemberScopeChanged",
+      "payload": "{ user: User, group: Group, scope: MemberScope }",
+      "description": "Fires when a member's scope is changed"
+    }
+  ],
+  "sdkListeners": [
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onGroupMemberUnbanned",
+    "onGroupMemberScopeChanged",
+    "onMemberAddedToGroup"
+  ],
+  "compositionExample": {
+    "description": "GroupMembers is typically accessed from group details or settings",
+    "components": ["CometChatGroups", "CometChatGroupMembers", "CometChatMessages"],
+    "flow": "User opens group → views members → taps member → starts direct chat"
+  },
+  "types": {
+    "GroupMember": {
+      "uid": "String",
+      "name": "String",
+      "avatar": "String?",
+      "scope": "MemberScope",
+      "joinedAt": "Int"
+    },
+    "MemberScope": {
+      "owner": "Group owner with full permissions",
+      "admin": "Administrator with management permissions",
+      "moderator": "Moderator with limited management",
+      "participant": "Regular member"
+    }
+  }
+}
+```
+</Accordion>
 
-Before using this component:
-1. [Initialize CometChat UI Kit](/ui-kit/ios/getting-started)
-2. [Log in a user](/ui-kit/ios/getting-started#step-4-initialize-and-login)
-3. Have a valid `Group` object
+---
 
-## Basic Usage
+## Where It Fits
+
+`CometChatGroupMembers` displays all members of a specific group. It's typically accessed from group details or settings screens.
 
 ```swift
 import UIKit
@@ -24,27 +128,6 @@ import CometChatUIKitSwift
 import CometChatSDK
 
 class GroupDetailViewController: UIViewController {
-    
-    var group: Group!
-    
-    func showGroupMembers() {
-        let groupMembers = CometChatGroupMembers(group: group)
-        let nav = UINavigationController(rootViewController: groupMembers)
-        present(nav, animated: true)
-    }
-}
-```
-
-## Production-Ready Implementation
-
-Complete example with member actions and navigation:
-
-```swift
-import UIKit
-import CometChatUIKitSwift
-import CometChatSDK
-
-class GroupMembersViewController: UIViewController {
     
     var group: Group!
     
@@ -56,62 +139,57 @@ class GroupMembersViewController: UIViewController {
     private func setupGroupMembers() {
         let groupMembers = CometChatGroupMembers(group: group)
         
-        // Handle member tap
+        // Handle member tap - start direct chat
         groupMembers.set(onItemClick: { [weak self] member, indexPath in
-            self?.showMemberProfile(member)
+            self?.startDirectChat(with: member)
         })
         
-        // Handle long press for options
-        groupMembers.set(onItemLongClick: { [weak self] member, indexPath in
-            self?.showMemberOptions(member)
-        })
-        
-        // Handle errors
-        groupMembers.set(onError: { error in
-            print("Error: \(error.errorDescription)")
-        })
-        
-        // Handle empty state
-        groupMembers.set(onEmpty: {
-            print("No members found")
-        })
-        
-        // Handle back button
-        groupMembers.set(onBack: { [weak self] in
-            self?.navigationController?.popViewController(animated: true)
-        })
-        
-        navigationController?.pushViewController(groupMembers, animated: true)
+        let navController = UINavigationController(rootViewController: groupMembers)
+        present(navController, animated: true)
     }
     
-    private func showMemberProfile(_ member: GroupMember) {
-        // Open user profile or start direct chat
-        let messages = CometChatMessages()
-        messages.set(user: member)
-        navigationController?.pushViewController(messages, animated: true)
-    }
-    
-    private func showMemberOptions(_ member: GroupMember) {
-        let alert = UIAlertController(title: member.name, message: nil, preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: "Message", style: .default) { [weak self] _ in
-            self?.showMemberProfile(member)
-        })
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+    private func startDirectChat(with member: GroupMember) {
+        let messagesVC = CometChatMessages()
+        messagesVC.set(user: member)
+        navigationController?.pushViewController(messagesVC, animated: true)
     }
 }
 ```
 
-## Filter Members
+<Frame>
+  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
+</Frame>
 
-Use `GroupMembersRequestBuilder` to filter the member list:
+---
+
+## Minimal Render
 
 ```swift
-// Filter by scope (admin, moderator, participant)
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+let navController = UINavigationController(rootViewController: groupMembers)
+present(navController, animated: true)
+```
+
+<Frame>
+  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
+</Frame>
+
+---
+
+## Filtering
+
+Use `GroupMembersRequest.GroupMembersRequestBuilder` to filter which members appear in the list.
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+// Create a custom request builder
 let requestBuilder = GroupMembersRequest.GroupMembersRequestBuilder(guid: group.guid)
-    .set(limit: 20)
+    .set(limit: 30)
     .set(scopes: ["admin", "moderator"])
 
 let groupMembers = CometChatGroupMembers(
@@ -120,168 +198,235 @@ let groupMembers = CometChatGroupMembers(
 )
 ```
 
-```swift
-// Search members
-let searchBuilder = GroupMembersRequest.GroupMembersRequestBuilder(guid: group.guid)
-    .set(searchKeyword: "john")
+### Filter Recipes
 
-let groupMembers = CometChatGroupMembers(
-    group: group,
-    groupMembersRequestBuilder: searchBuilder
-)
-```
+| Recipe | Code |
+|--------|------|
+| Admins only | `.set(scopes: ["admin"])` |
+| Admins and moderators | `.set(scopes: ["admin", "moderator"])` |
+| Search by name | `.set(searchKeyword: "john")` |
+| Limit results | `.set(limit: 20)` |
 
-## Actions Reference
+---
 
-| Method | Description |
-|--------|-------------|
-| `set(onItemClick:)` | Member tapped |
-| `set(onItemLongClick:)` | Member long-pressed |
-| `set(onBack:)` | Back button pressed |
-| `set(onSelection:)` | Selection changed (multi-select mode) |
-| `set(onError:)` | Error occurred |
-| `set(onEmpty:)` | No members found |
-| `set(onLoad:)` | Members loaded |
+## Actions and Events
 
-## Hide UI Elements
+### Callback Props
+
+#### onItemClick
+
+Fires when a user taps on a member. Use this to start a direct chat or view profile.
 
 ```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
 let groupMembers = CometChatGroupMembers(group: group)
 
-groupMembers.hideSearch = true              // Hide search bar
-groupMembers.hideUserStatus = true          // Hide online/offline status
-groupMembers.hideKickMemberOption = true    // Hide kick option
-groupMembers.hideBanMemberOption = true     // Hide ban option
-groupMembers.hideScopeChangeOption = true   // Hide role change option
-groupMembers.hideNavigationBar = true       // Hide navigation bar
-groupMembers.hideBackIcon = true            // Hide back button
-```
-
-## Styling
-
-### Quick Styling
-
-```swift
-// Global styling
-CometChatGroupMembers.style.titleColor = UIColor(hex: "#6851D6")
-CometChatGroupMembers.style.titleFont = .systemFont(ofSize: 20, weight: .bold)
-CometChatGroupMembers.style.backgroundColor = .systemBackground
-
-// Custom avatar style
-let avatarStyle = AvatarStyle()
-avatarStyle.backgroundColor = UIColor(hex: "#FBAA75")
-avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
-CometChatGroupMembers.avatarStyle = avatarStyle
-```
-
-### Instance Styling
-
-```swift
-let groupMembersStyle = GroupMembersStyle()
-groupMembersStyle.titleColor = UIColor(hex: "#F76808")
-groupMembersStyle.backgroundColor = .white
-groupMembersStyle.listItemTitleTextColor = .black
-
-let groupMembers = CometChatGroupMembers(group: group)
-groupMembers.style = groupMembersStyle
-```
-
-<Frame>
-  <img src="/images/eabe2caa-group_member_style-b82c423e9767a336d354fff4f63fad20.png" />
-</Frame>
-
-## Custom Views
-
-### Custom List Item
-
-Replace the entire member row with your own design:
-
-```swift
-let groupMembers = CometChatGroupMembers(group: group)
-
-groupMembers.set(listItemView: { member in
-    let customView = MemberRowView()
-    customView.configure(with: member!)
-    return customView
+groupMembers.set(onItemClick: { [weak self] member, indexPath in
+    guard let self = self else { return }
+    
+    let messagesVC = CometChatMessages()
+    messagesVC.set(user: member)
+    self.navigationController?.pushViewController(messagesVC, animated: true)
 })
 ```
 
-<Frame>
-  <img src="/images/382e01ec-group_member_list_item-01cb426ad821b98ee03fb8e05496bf04.png" />
-</Frame>
+#### onItemLongClick
+
+Fires when a user long-presses on a member. Use this to show member options.
 
 ```swift
-// MemberRowView.swift
-import UIKit
+import CometChatUIKitSwift
 import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(onItemLongClick: { [weak self] member, indexPath in
+    guard let self = self else { return }
+    
+    let alert = UIAlertController(title: member.name, message: nil, preferredStyle: .actionSheet)
+    
+    alert.addAction(UIAlertAction(title: "Message", style: .default) { _ in
+        // Start direct chat
+    })
+    
+    alert.addAction(UIAlertAction(title: "View Profile", style: .default) { _ in
+        // View profile
+    })
+    
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+    self.present(alert, animated: true)
+})
+```
+
+#### onBack
+
+Fires when the back button is pressed.
+
+```swift
 import CometChatUIKitSwift
 
-class MemberRowView: UIView {
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(onBack: { [weak self] in
+    self?.navigationController?.popViewController(animated: true)
+})
+```
+
+#### onSelection
+
+Fires when members are selected in selection mode.
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+groupMembers.selectionMode = .multiple
+
+groupMembers.set(onSelection: { [weak self] selectedMembers in
+    print("Selected \(selectedMembers.count) members")
+})
+```
+
+#### onError
+
+Fires when an error occurs while loading members.
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(onError: { error in
+    print("Error loading members: \(error.errorDescription)")
+})
+```
+
+#### onEmpty
+
+Fires when the member list is empty.
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(onEmpty: {
+    print("No members found")
+})
+```
+
+#### onLoad
+
+Fires when members are successfully loaded.
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(onLoad: { members in
+    print("Loaded \(members.count) members")
+})
+```
+
+### Actions Reference
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `set(onItemClick:)` | Triggered when a member is tapped | Start direct chat |
+| `set(onItemLongClick:)` | Triggered on long press | Show options menu |
+| `set(onBack:)` | Triggered when back button is pressed | Custom navigation |
+| `set(onSelection:)` | Triggered in selection mode | Multi-select members |
+| `set(onError:)` | Triggered when an error occurs | Show error alert |
+| `set(onEmpty:)` | Triggered when list is empty | Show empty state |
+| `set(onLoad:)` | Triggered when members load | Analytics tracking |
+
+### Global UI Events
+
+| Event | Fires when | Payload |
+|-------|------------|---------|
+| `ccGroupMemberKicked` | A member is kicked | `User, Group` |
+| `ccGroupMemberBanned` | A member is banned | `User, Group` |
+| `ccGroupMemberScopeChanged` | A member's role is changed | `User, Group, MemberScope` |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+class MyViewController: UIViewController, CometChatGroupEventListener {
     
-    private let avatar = CometChatAvatar(image: UIImage())
-    private let nameLabel = UILabel()
-    private let roleButton = UIButton(type: .system)
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        CometChatGroupEvents.addListener("my-listener", self)
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        CometChatGroupEvents.removeListener("my-listener")
     }
     
-    private func setupUI() {
-        avatar.translatesAutoresizingMaskIntoConstraints = false
-        avatar.layer.cornerRadius = 20
-        
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        
-        roleButton.translatesAutoresizingMaskIntoConstraints = false
-        roleButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .medium)
-        roleButton.setTitleColor(.white, for: .normal)
-        roleButton.backgroundColor = .systemPurple
-        roleButton.layer.cornerRadius = 10
-        roleButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
-        
-        addSubview(avatar)
-        addSubview(nameLabel)
-        addSubview(roleButton)
-        
-        NSLayoutConstraint.activate([
-            avatar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            avatar.centerYAnchor.constraint(equalTo: centerYAnchor),
-            avatar.widthAnchor.constraint(equalToConstant: 40),
-            avatar.heightAnchor.constraint(equalToConstant: 40),
-            
-            nameLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 12),
-            nameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            
-            roleButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            roleButton.centerYAnchor.constraint(equalTo: centerYAnchor)
-        ])
+    func onGroupMemberKick(kickedUser: User, kickedGroup: Group) {
+        print("\(kickedUser.name ?? "") was kicked from \(kickedGroup.name ?? "")")
     }
     
-    func configure(with member: GroupMember) {
-        nameLabel.text = member.name ?? ""
-        avatar.setAvatar(avatarUrl: member.avatar ?? "", with: member.name ?? "")
-        roleButton.setTitle(member.scope.rawValue.capitalized, for: .normal)
+    func onGroupMemberBan(bannedUser: User, bannedGroup: Group) {
+        print("\(bannedUser.name ?? "") was banned from \(bannedGroup.name ?? "")")
+    }
+    
+    func onGroupMemberChangeScope(updatedBy: User, updatedUser: User, scopeChangedTo: CometChat.MemberScope, scopeChangedFrom: CometChat.MemberScope, group: Group) {
+        print("\(updatedUser.name ?? "") role changed to \(scopeChangedTo)")
     }
 }
 ```
 
-### Custom Subtitle View
+### SDK Events (Real-Time, Automatic)
 
-Customize the subtitle area below the member name:
+| SDK Listener | Internal behavior |
+|--------------|-------------------|
+| `onGroupMemberKicked` | Removes member from list |
+| `onGroupMemberBanned` | Removes member from list |
+| `onGroupMemberUnbanned` | Updates member info |
+| `onGroupMemberScopeChanged` | Updates member role badge |
+| `onMemberAddedToGroup` | Adds new member to list |
+
+---
+
+## Custom View Slots
+
+| Slot | Setter Method | Signature | Replaces |
+|------|---------------|-----------|----------|
+| `listItemView` | `set(listItemView:)` | `(GroupMember?) -> UIView` | Entire member row |
+| `leadingView` | `set(leadingView:)` | `(GroupMember?) -> UIView` | Avatar / left section |
+| `titleView` | `set(titleView:)` | `(GroupMember?) -> UIView` | Name / title text |
+| `subtitleView` | `set(subtitleView:)` | `(GroupMember?) -> UIView` | Role / subtitle text |
+| `trailView` | `set(trailView:)` | `(GroupMember?) -> UIView` | Right side (role badge) |
+| `emptyStateView` | - | `UIView` | Empty state display |
+| `errorStateView` | - | `UIView` | Error state display |
+| `loadingStateView` | - | `UIView` | Loading state display |
+
+### subtitleView
+
+Customize the subtitle area below the member name.
 
 ```swift
-groupMembers.setSubtitleView(subtitleView: { member in
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(subtitleView: { member in
     let label = UILabel()
-    label.font = .systemFont(ofSize: 12)
-    label.textColor = .secondaryLabel
+    label.font = UIFont.systemFont(ofSize: 12)
+    label.textColor = UIColor.secondaryLabel
     
-    let date = Date(timeIntervalSince1970: Double(member!.joinedAt))
+    guard let member = member else { return label }
+    
+    let date = Date(timeIntervalSince1970: Double(member.joinedAt))
     let formatter = DateFormatter()
     formatter.dateStyle = .medium
     label.text = "Joined: \(formatter.string(from: date))"
@@ -290,37 +435,256 @@ groupMembers.setSubtitleView(subtitleView: { member in
 })
 ```
 
-<Frame>
-  <img src="/images/8fc709b4-group_member_subtitle_view-8bc04c04dbf061c4fa94bd6bd0d3ed26.png" />
-</Frame>
+### tailView
 
-### Custom Tail View
-
-Add custom content on the right side of each row:
+Customize the right side of the member row (role badge). Note: The setter method is `set(trailView:)`.
 
 ```swift
-groupMembers.setTailView(tailView: { member in
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(trailView: { member in
     let badge = UILabel()
-    badge.text = member!.scope.rawValue.capitalized
-    badge.font = .systemFont(ofSize: 10, weight: .semibold)
-    badge.textColor = UIColor(hex: "#6852D6")
-    badge.backgroundColor = UIColor(hex: "#EDEAFA")
+    badge.font = UIFont.systemFont(ofSize: 10, weight: .semibold)
     badge.textAlignment = .center
     badge.layer.cornerRadius = 10
     badge.clipsToBounds = true
+    
+    guard let member = member else { return badge }
+    
+    switch member.scope {
+    case .owner:
+        badge.text = "Owner"
+        badge.textColor = UIColor.systemOrange
+        badge.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.2)
+    case .admin:
+        badge.text = "Admin"
+        badge.textColor = UIColor.systemPurple
+        badge.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.2)
+    case .moderator:
+        badge.text = "Mod"
+        badge.textColor = UIColor.systemBlue
+        badge.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.2)
+    default:
+        badge.text = "Member"
+        badge.textColor = UIColor.systemGray
+        badge.backgroundColor = UIColor.systemGray.withAlphaComponent(0.2)
+    }
+    
     return badge
 })
 ```
 
+---
+
+## Styling
+
+### Style Hierarchy
+
+1. Global styles (`CometChatGroupMembers.style`) apply to all instances
+2. Instance styles override global for specific instances
+
+### Global Level Styling
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+
+// Apply global styles
+CometChatGroupMembers.style.backgroundColor = UIColor.systemBackground
+CometChatGroupMembers.style.titleColor = UIColor.label
+CometChatGroupMembers.style.titleFont = UIFont.systemFont(ofSize: 20, weight: .bold)
+CometChatGroupMembers.style.listItemTitleTextColor = UIColor.label
+
+// Custom avatar style
+let avatarStyle = AvatarStyle()
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
+CometChatGroupMembers.avatarStyle = avatarStyle
+```
+
+### Instance Level Styling
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+
+var customStyle = GroupMembersStyle()
+customStyle.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+customStyle.titleColor = UIColor.darkGray
+customStyle.listItemBackground = UIColor.white
+
+let groupMembers = CometChatGroupMembers(group: group)
+groupMembers.style = customStyle
+```
+
 <Frame>
-  <img src="/images/cd2c5fc6-group_member_tail_view-344ffd956596a9e0808fbeeb072db231.png" />
+  <img src="/images/eabe2caa-group_member_style-b82c423e9767a336d354fff4f63fad20.png" />
 </Frame>
+
+### Key Style Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `backgroundColor` | `UIColor` | `CometChatTheme.backgroundColor01` | Background color |
+| `titleColor` | `UIColor` | `CometChatTheme.textColorPrimary` | Navigation title color |
+| `titleFont` | `UIFont` | `CometChatTypography.Heading4.medium` | Navigation title font |
+| `listItemTitleTextColor` | `UIColor` | `CometChatTheme.textColorPrimary` | Member name color |
+| `listItemTitleFont` | `UIFont` | `CometChatTypography.Heading4.medium` | Member name font |
+| `listItemSubTitleTextColor` | `UIColor` | `CometChatTheme.textColorSecondary` | Subtitle color |
+| `listItemBackground` | `UIColor` | `.clear` | List item background |
+
+### Customization Matrix
+
+| What to change | Where | Property/API | Example |
+|----------------|-------|--------------|---------|
+| Background color | Style | `backgroundColor` | `UIColor.systemBackground` |
+| Title appearance | Style | `titleColor`, `titleFont` | Custom colors and fonts |
+| List item look | Style | `listItemBackground` | `UIColor.white` |
+| Avatar appearance | Style | `avatarStyle` | `AvatarStyle()` with custom radius |
+| Hide search | Property | `hideSearch` | `groupMembers.hideSearch = true` |
+| Hide kick option | Property | `hideKickMemberOption` | `groupMembers.hideKickMemberOption = true` |
+| Custom row | View Slot | `set(listItemView:)` | See Custom View Slots |
+
+---
+
+## Props
+
+All props are optional except `group`. Sorted alphabetically.
+
+### group (required)
+
+The group whose members to display.
+
+| | |
+|---|---|
+| Type | `Group` |
+| Required | `true` |
+
+### groupMembersRequestBuilder
+
+Custom request builder for filtering members.
+
+| | |
+|---|---|
+| Type | `GroupMembersRequest.GroupMembersRequestBuilder?` |
+| Default | `nil` |
+
+### hideBackIcon
+
+Hides the back button in the navigation bar.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideBanMemberOption
+
+Hides the ban member option in swipe actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideErrorView
+
+Hides the error state view.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideKickMemberOption
+
+Hides the kick member option in swipe actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideLoadingState
+
+Hides the loading state indicator.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideNavigationBar
+
+Hides the entire navigation bar.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideScopeChangeOption
+
+Hides the role change option in swipe actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideSearch
+
+Hides the search bar.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### hideUserStatus
+
+Hides online/offline status indicators.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### selectionMode
+
+Sets the selection mode for multi-select functionality.
+
+| | |
+|---|---|
+| Type | `SelectionMode` |
+| Default | `.none` |
+
+---
+
+## Events
+
+| Event | Payload | Fires when |
+|-------|---------|------------|
+| `ccGroupMemberKicked` | `User, Group` | A member is kicked |
+| `ccGroupMemberBanned` | `User, Group` | A member is banned |
+| `ccGroupMemberScopeChanged` | `User, Group, MemberScope` | A member's role is changed |
+
+---
 
 ## Custom Swipe Options
 
 Add custom actions when swiping on a member:
 
 ```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
 let deleteOption = CometChatGroupMemberOption(
     id: "delete",
     title: "Remove",
@@ -353,24 +717,47 @@ groupMembers.setOptions(options: { group, member in
   <img src="/images/227af15b-group_member_options-19c3fe437e698a03a71f5de937a80033.png" />
 </Frame>
 
+---
+
 ## Custom Menu Buttons
 
 Add buttons to the navigation bar:
 
 ```swift
-let addButton = UIBarButtonItem(
-    image: UIImage(systemName: "person.badge.plus"),
-    style: .plain,
-    target: self,
-    action: #selector(addMemberTapped)
-)
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
 
-groupMembers.set(menus: [addButton])
-
-@objc func addMemberTapped() {
-    // Show add member screen
-    let addMembers = CometChatAddMembers(group: group)
-    navigationController?.pushViewController(addMembers, animated: true)
+class GroupMembersViewController: UIViewController {
+    
+    var group: Group!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupGroupMembers()
+    }
+    
+    private func setupGroupMembers() {
+        let groupMembers = CometChatGroupMembers(group: group)
+        
+        let addButton = UIBarButtonItem(
+            image: UIImage(systemName: "person.badge.plus"),
+            style: .plain,
+            target: self,
+            action: #selector(addMemberTapped)
+        )
+        
+        groupMembers.set(menus: [addButton])
+        
+        let navController = UINavigationController(rootViewController: groupMembers)
+        present(navController, animated: true)
+    }
+    
+    @objc func addMemberTapped() {
+        // Show add member screen
+        let addMembers = CometChatAddMembers(group: group)
+        navigationController?.pushViewController(addMembers, animated: true)
+    }
 }
 ```
 
@@ -378,63 +765,24 @@ groupMembers.set(menus: [addButton])
   <img src="/images/1b0d7d92-group_member_menus-94916e6df0624110d8e72652379a862e.png" />
 </Frame>
 
-## Listen for Events
-
-React to member changes in your app:
-
-```swift
-class MyViewController: UIViewController, CometChatGroupEventListener {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        CometChatGroupEvents.addListener("member-listener", self)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        CometChatGroupEvents.removeListener("member-listener")
-    }
-    
-    // Member kicked
-    func onGroupMemberKick(kickedUser: User, kickedGroup: Group) {
-        print("\(kickedUser.name ?? "") was kicked")
-    }
-    
-    // Member banned
-    func onGroupMemberBan(bannedUser: User, bannedGroup: Group) {
-        print("\(bannedUser.name ?? "") was banned")
-    }
-    
-    // Member role changed
-    func onGroupMemberChangeScope(updatedBy: User, updatedUser: User, scopeChangedTo: CometChat.MemberScope, scopeChangedFrom: CometChat.MemberScope, group: Group) {
-        print("\(updatedUser.name ?? "") is now \(scopeChangedTo)")
-    }
-}
-```
-
-## Style Properties
-
-| Property | Description |
-|----------|-------------|
-| `backgroundColor` | Background color |
-| `titleColor` | Title text color |
-| `titleFont` | Title font |
-| `listItemTitleTextColor` | Member name color |
-| `listItemTitleFont` | Member name font |
-| `listItemSubTitleTextColor` | Subtitle color |
-| `listItemBackground` | Row background color |
-| `separatorColor` | Row separator color |
+---
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Empty member list | Verify group GUID is correct |
-| Actions not showing | Check user has admin/owner permissions |
-| Custom views not appearing | Ensure views have proper constraints |
-| Events not firing | Verify listener is added before actions |
+| Empty member list | Ensure group object is valid and has members |
+| Management options not showing | Check logged-in user's permissions (must be admin/owner) |
+| Search not working | Verify `hideSearch` is not set to true |
+| Status not showing | Check that `hideUserStatus` is not set to true |
+| Custom views not appearing | Ensure custom view has proper constraints |
+
+---
 
 ## Related Components
 
 - [Groups](/ui-kit/ios/groups) - List all groups
-- [Banned Members](/ui-kit/ios/banned-members) - View banned users
+- [Messages](/ui-kit/ios/messages) - Display messages in a group
+- [Add Members](/ui-kit/ios/add-members) - Add new members to a group
+- [Banned Members](/ui-kit/ios/banned-members) - View banned members
+- [Transfer Ownership](/ui-kit/ios/transfer-ownership) - Transfer group ownership
