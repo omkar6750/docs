@@ -7411,6 +7411,111 @@
                 ]
             }
         },
+        "/ai-agents/agent-builder/knowledge-base/uploads/{uniqueId}": {
+            "delete": {
+                "description": "Deletes an uploaded file and all associated data from the knowledge base by its unique ID. Use this endpoint to permanently remove a file that was uploaded via the Initiate File Uploads endpoint.\n\n**Cleanup:** Removes the file, associated embeddings, and any agent references to this file.",
+                "operationId": "RagController_deleteUploadedFile",
+                "parameters": [
+                    {
+                        "name": "uniqueId",
+                        "required": true,
+                        "in": "path",
+                        "description": "Unique upload ID to delete",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Uploaded file deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "File and all associated data deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "uploadId": {
+                                                    "type": "string"
+                                                },
+                                                "fileName": {
+                                                    "type": "string"
+                                                },
+                                                "deletedFromAgents": {
+                                                    "type": "boolean"
+                                                },
+                                                "vectorsDeleted": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — missing or invalid API key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — uploaded file with the given ID does not exist.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "summary": "Delete Uploaded File",
+                "tags": [
+                    "knowledge-base"
+                ]
+            }
+        },
         "/ai-agents/agent-builder/knowledge-base/text": {
             "post": {
                 "description": "Creates a new text-based knowledge base entry. Use this endpoint to add custom text content that agents can reference during conversations.\n\n**Processing:** Accepts a title and text content, converts it to a Markdown file, and adds it to the knowledge base for indexing.",
@@ -7721,14 +7826,14 @@
                 ]
             },
             "delete": {
-                "description": "Deletes a text-based knowledge base entry by its unique ID. Use this endpoint to remove text content from the knowledge base.\n\n**Cleanup:** The associated upload record and stored content are also removed.",
-                "operationId": "RagController_deleteTextDetail",
+                "description": "Deletes a text-based knowledge base entry and all associated data by its unique ID. Use this endpoint to permanently remove a text entry from the knowledge base.\n\n**Cleanup:** Removes the text content, associated embeddings, and any agent references to this entry.",
+                "operationId": "RagController_deleteText",
                 "parameters": [
                     {
                         "name": "uniqueId",
                         "required": true,
                         "in": "path",
-                        "description": "Unique text detail ID to delete",
+                        "description": "Unique text entry ID to delete",
                         "schema": {
                             "type": "string"
                         }
@@ -7736,7 +7841,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Text detail and all associated data deleted successfully",
+                        "description": "Text entry deleted successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7754,28 +7859,16 @@
                                             "type": "object",
                                             "properties": {
                                                 "uniqueId": {
-                                                    "type": "string",
-                                                    "description": "Unique identifier of the deleted text detail"
+                                                    "type": "string"
                                                 },
                                                 "fileName": {
-                                                    "type": "string",
-                                                    "description": "Name of the deleted file"
-                                                },
-                                                "uniqueFileId": {
-                                                    "type": "string",
-                                                    "description": "Unique file identifier"
+                                                    "type": "string"
                                                 },
                                                 "deletedFromAgents": {
-                                                    "type": "boolean",
-                                                    "description": "Whether the file reference was removed from agents"
+                                                    "type": "boolean"
                                                 },
                                                 "vectorsDeleted": {
-                                                    "type": "boolean",
-                                                    "description": "Whether associated vector embeddings were deleted"
-                                                },
-                                                "s3FileDeleted": {
-                                                    "type": "boolean",
-                                                    "description": "Whether the S3 file was deleted"
+                                                    "type": "boolean"
                                                 }
                                             }
                                         }
@@ -7785,7 +7878,7 @@
                         }
                     },
                     "400": {
-                        "description": "Bad Request — missing appId header or uniqueId parameter.",
+                        "description": "Bad Request.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7805,7 +7898,7 @@
                         }
                     },
                     "404": {
-                        "description": "Not Found — text detail with the given uniqueId does not exist.",
+                        "description": "Not Found — text entry with the given ID does not exist.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9086,6 +9179,108 @@
                 "summary": "Sync Discovered URLs",
                 "tags": [
                     "crawl-web-pages"
+                ]
+            }
+        },
+        "/ai-agents/agent-builder/knowledge-base/website/{uniqueId}": {
+            "delete": {
+                "description": "Deletes a website crawl and all associated data from the knowledge base by its unique ID. Use this endpoint to permanently remove a website source that was added via the Scrape Website endpoint.\n\n**Cleanup:** Removes all crawled pages, associated embeddings, and any agent references to this website.",
+                "operationId": "CrawlWebPagesController_deleteWebsite",
+                "parameters": [
+                    {
+                        "name": "uniqueId",
+                        "required": true,
+                        "in": "path",
+                        "description": "Unique website crawl ID to delete",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Website and all associated data deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Website and all associated data deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "uniqueId": {
+                                                    "type": "string"
+                                                },
+                                                "deletedFromAgents": {
+                                                    "type": "boolean"
+                                                },
+                                                "vectorsDeleted": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — missing or invalid API key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — website with the given ID does not exist.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "summary": "Delete Website",
+                "tags": [
+                    "knowledge-base"
                 ]
             }
         }
