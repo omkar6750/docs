@@ -3,6 +3,75 @@ title: "Events"
 description: "Listen and respond to user actions and state changes in CometChat UI Kit"
 ---
 
+<Accordion title="AI Agent Reference Spec">
+```json
+{
+  "category": "events",
+  "subscriptionPattern": {
+    "addListener": "CometChat{Category}Events.addListener(listenerId, self)",
+    "removeListener": "CometChat{Category}Events.removeListener(listenerId)"
+  },
+  "eventCategories": [
+    {
+      "name": "userEvents",
+      "listenerClass": "CometChatUserEvents",
+      "protocol": "CometChatUserEventListener",
+      "events": [
+        {"name": "onUserBlock", "payload": "User", "description": "User was blocked"},
+        {"name": "onUserUnblock", "payload": "User", "description": "User was unblocked"}
+      ]
+    },
+    {
+      "name": "groupEvents",
+      "listenerClass": "CometChatGroupEvents",
+      "protocol": "CometChatGroupEventListener",
+      "events": [
+        {"name": "onGroupCreate", "payload": "Group", "description": "New group created"},
+        {"name": "onGroupDelete", "payload": "Group", "description": "Group deleted"},
+        {"name": "onGroupMemberJoin", "payload": "(User, Group)", "description": "User joined group"},
+        {"name": "onGroupMemberLeave", "payload": "(User, Group)", "description": "User left group"},
+        {"name": "onGroupMemberKick", "payload": "(User, Group)", "description": "Member kicked"},
+        {"name": "onGroupMemberBan", "payload": "(User, Group)", "description": "Member banned"},
+        {"name": "onOwnershipChange", "payload": "(Group, GroupMember)", "description": "Ownership transferred"}
+      ]
+    },
+    {
+      "name": "conversationEvents",
+      "listenerClass": "CometChatConversationEvents",
+      "protocol": "CometChatConversationEventListener",
+      "events": [
+        {"name": "ccConversationDeleted", "payload": "Conversation", "description": "Conversation deleted"},
+        {"name": "ccUpdateConversation", "payload": "Conversation", "description": "Conversation updated"}
+      ]
+    },
+    {
+      "name": "messageEvents",
+      "listenerClass": "CometChatMessageEvents",
+      "protocol": "CometChatMessageEventListener",
+      "events": [
+        {"name": "onMessageSent", "payload": "(BaseMessage, MessageStatus)", "description": "Message sent"},
+        {"name": "onMessageEdit", "payload": "(BaseMessage, MessageStatus)", "description": "Message edited"},
+        {"name": "onMessageDelete", "payload": "(BaseMessage, MessageStatus)", "description": "Message deleted"},
+        {"name": "onMessageRead", "payload": "BaseMessage", "description": "Message read"},
+        {"name": "onMessageReact", "payload": "(BaseMessage, Reaction)", "description": "Reaction added"}
+      ]
+    },
+    {
+      "name": "callEvents",
+      "listenerClass": "CometChatCallEvents",
+      "protocol": "CometChatCallEventListener",
+      "events": [
+        {"name": "onCallInitiated", "payload": "Call", "description": "Outgoing call started"},
+        {"name": "onCallEnded", "payload": "Call", "description": "Call ended"},
+        {"name": "onIncomingCallAccepted", "payload": "Call", "description": "Incoming call accepted"},
+        {"name": "onOutgoingCallAccepted", "payload": "Call", "description": "Outgoing call accepted"}
+      ]
+    }
+  ]
+}
+```
+</Accordion>
+
 Events allow different parts of your app to communicate without direct dependencies. When a user performs an action (like blocking someone, deleting a conversation, or sending a message), events are emitted so other components can react accordingly.
 
 ## How Events Work
