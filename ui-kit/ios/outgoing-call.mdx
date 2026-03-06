@@ -1,14 +1,57 @@
 ---
 title: "Outgoing Call"
+description: "Displays outgoing call interface while waiting for recipient to answer"
 ---
 
-## Overview
-
-The `Outgoing Call` [Component](/ui-kit/ios/components-overview#components) is a visual representation of a user-initiated call, whether voice or video. It serves as an interface for managing outgoing calls, providing users with essential options to control the call experience. This component typically includes information about the call recipient, call controls for canceling the call, and feedback on the call status, such as indicating when the call is in progress.
+The `CometChatOutgoingCall` component is a visual representation of a user-initiated call, whether voice or video. It serves as an interface for managing outgoing calls, providing users with essential options to control the call experience.
 
 <Frame>
   <img src="/images/32f8b27c-out_going_call-4c017be781ae3fa02d30cb92ead32c25.png" />
 </Frame>
+
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatOutgoingCall",
+  "package": "CometChatUIKitSwift",
+  "import": "import CometChatUIKitSwift\nimport CometChatSDK",
+  "description": "Displays outgoing call interface while waiting for recipient to answer",
+  "inherits": "UIViewController",
+  "primaryOutput": {
+    "callback": "onCancelClick",
+    "type": "(Call, UIViewController) -> Void"
+  },
+  "props": {
+    "data": {
+      "call": { "type": "Call", "required": true }
+    },
+    "callbacks": {
+      "onCancelClick": "(Call, UIViewController) -> Void",
+      "onError": "(CometChatException) -> Void"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "Bool", "default": false },
+      "customSoundForCalls": { "type": "URL?", "default": "nil" }
+    },
+    "viewSlots": {
+      "listItemView": "(Call) -> UIView",
+      "leadingView": "(Call) -> UIView",
+      "titleView": "(Call) -> UIView"
+    }
+  },
+  "events": [
+    { "name": "onOutgoingCallAccepted", "payload": "Call", "description": "Fires when outgoing call is accepted" },
+    { "name": "onOutgoingCallRejected", "payload": "Call", "description": "Fires when outgoing call is rejected" }
+  ],
+  "sdkListeners": [],
+  "compositionExample": {
+    "description": "OutgoingCall is presented when user initiates a call",
+    "components": ["CometChatCallButtons", "CometChatOutgoingCall", "CometChatOngoingCall"],
+    "flow": "User taps call → OutgoingCall shown → Recipient answers → OngoingCall starts"
+  }
+}
+```
+</Accordion>
 
 ---
 

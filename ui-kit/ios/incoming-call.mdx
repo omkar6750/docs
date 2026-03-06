@@ -3,13 +3,57 @@ title: "Incoming Call"
 description: "Display and handle incoming voice and video calls"
 ---
 
-## Overview
-
-The `Incoming call` is a [Component](/ui-kit/ios/components-overview#components) that serves as a visual representation when the user receives an incoming call, such as a voice call or video call, providing options to answer or decline the call.
+The `CometChatIncomingCall` component serves as a visual representation when the user receives an incoming call, such as a voice call or video call, providing options to answer or decline the call.
 
 <Frame>
   <img src="/images/6525dce0-incoming_calls-8346d43a997a18a002a647504faa7760.png" />
 </Frame>
+
+<Accordion title="AI Agent Component Spec">
+```json
+{
+  "component": "CometChatIncomingCall",
+  "package": "CometChatUIKitSwift",
+  "import": "import CometChatUIKitSwift\nimport CometChatSDK",
+  "description": "Displays incoming call interface with accept and reject options",
+  "inherits": "UIViewController",
+  "primaryOutput": {
+    "callback": "onAcceptClick",
+    "type": "(Call, UIViewController) -> Void"
+  },
+  "props": {
+    "data": {
+      "call": { "type": "Call", "required": true }
+    },
+    "callbacks": {
+      "onAcceptClick": "(Call, UIViewController) -> Void",
+      "onCancelClick": "(Call, UIViewController) -> Void",
+      "onError": "(CometChatException) -> Void"
+    },
+    "sound": {
+      "disableSoundForCalls": { "type": "Bool", "default": false },
+      "customSoundForCalls": { "type": "URL?", "default": "nil" }
+    },
+    "viewSlots": {
+      "listItemView": "(Call) -> UIView",
+      "leadingView": "(Call) -> UIView",
+      "titleView": "(Call) -> UIView"
+    }
+  },
+  "events": [
+    { "name": "onIncomingCallAccepted", "payload": "Call", "description": "Fires when incoming call is accepted" },
+    { "name": "onIncomingCallRejected", "payload": "Call", "description": "Fires when incoming call is rejected" },
+    { "name": "onCallEnded", "payload": "Call", "description": "Fires when call ends" }
+  ],
+  "sdkListeners": [],
+  "compositionExample": {
+    "description": "IncomingCall is presented when a call is received",
+    "components": ["CometChatIncomingCall", "CometChatOngoingCall"],
+    "flow": "Call received → IncomingCall shown → User accepts → OngoingCall starts"
+  }
+}
+```
+</Accordion>
 
 ---
 
