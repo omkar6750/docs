@@ -65,6 +65,93 @@ await CometChat.deleteMessage(messageId,
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `BaseMessage` object with `deletedAt` and `deletedBy` fields set:
+
+<span id="delete-message-base-message-object" style={{scrollMarginTop: '100px'}}></span>
+
+**BaseMessage Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `id` | number | Unique message ID | `1234` |
+| `metadata` | object | Custom metadata attached to the message | `{}` |
+| `receiver` | object | Receiver user object | [See below ↓](#delete-message-receiver-object) |
+| `editedBy` | string | UID of the user who edited the message | `null` |
+| `conversationId` | string | Unique conversation identifier | `"cometchat-uid-1_user_cometchat-uid-2"` |
+| `sentAt` | number | Epoch timestamp when the message was sent | `1745554729` |
+| `receiverUid` | string | UID of the receiver | `"cometchat-uid-2"` |
+| `type` | string | Type of the message | `"text"` |
+| `readAt` | number | Epoch timestamp when the message was read | `0` |
+| `deletedBy` | string | UID of the user who deleted the message | `"cometchat-uid-1"` |
+| `deliveredAt` | number | Epoch timestamp when the message was delivered | `1745554750` |
+| `deletedAt` | number | Epoch timestamp when the message was deleted | `1745554800` |
+| `replyCount` | number | Number of replies to this message | `0` |
+| `sender` | object | Sender user object | [See below ↓](#delete-message-sender-object) |
+| `receiverType` | string | Type of the receiver | `"user"` |
+| `editedAt` | number | Epoch timestamp when the message was edited | `0` |
+| `parentMessageId` | number | ID of the parent message (for threads) | `0` |
+| `readByMeAt` | number | Epoch timestamp when read by the current user | `0` |
+| `category` | string | Message category | `"message"` |
+| `deliveredToMeAt` | number | Epoch timestamp when delivered to the current user | `0` |
+| `updatedAt` | number | Epoch timestamp when the message was last updated | `1745554800` |
+| `unreadRepliesCount` | number | Count of unread replies | `0` |
+| `quotedMessageId` | number | ID of the quoted message | `null` |
+
+---
+
+<span id="delete-message-sender-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`sender` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the sender | `"cometchat-uid-1"` |
+| `name` | string | Display name of the sender | `"Andrew Joseph"` |
+| `link` | string | Profile link | `null` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
+| `metadata` | object | Custom metadata | `{}` |
+| `status` | string | Online status | `"online"` |
+| `role` | string | User role | `"default"` |
+| `statusMessage` | string | Status message | `null` |
+| `tags` | array | User tags | `[]` |
+| `hasBlockedMe` | boolean | Whether this user has blocked the current user | `false` |
+| `blockedByMe` | boolean | Whether the current user has blocked this user | `false` |
+| `lastActiveAt` | number | Epoch timestamp of last activity | `1745554700` |
+
+---
+
+<span id="delete-message-receiver-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`receiver` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the receiver | `"cometchat-uid-2"` |
+| `name` | string | Display name of the receiver | `"George Alan"` |
+| `link` | string | Profile link | `null` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
+| `metadata` | object | Custom metadata | `{}` |
+| `status` | string | Online status | `"offline"` |
+| `role` | string | User role | `"default"` |
+| `statusMessage` | string | Status message | `null` |
+| `tags` | array | User tags | `[]` |
+| `hasBlockedMe` | boolean | Whether this user has blocked the current user | `false` |
+| `blockedByMe` | boolean | Whether the current user has blocked this user | `false` |
+| `lastActiveAt` | number | Epoch timestamp of last activity | `1745550000` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"The message could not be deleted."` |
+| `details` | string | Additional technical details | `"Ensure the message ID is valid and you have permission to delete this message."` |
+
+</Accordion>
+
 Once the message is deleted, In the `onSuccess()` callback, you get an object of the `BaseMessage` class, with the `deletedAt` field set with the timestamp of the time the message was deleted. Also, the `deletedBy` field is set. These two fields can be used to identify if the message is deleted while iterating through a list of messages.
 
 By default, CometChat allows certain roles to delete a message.
