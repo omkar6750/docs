@@ -630,6 +630,70 @@ The following features will be available only if the **Enhanced Messaging Status
 Always remove message listeners when they're no longer needed (e.g., in `onDestroy()` or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
 
+## MessageReceipt Payload Structure
+
+<Accordion title="MessageReceipt Object">
+
+The `MessageReceipt` object contains information about message delivery and read status:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `messageId` | long | ID of the message |
+| `sender` | [User](#user-object-receipts) | User who sent the receipt |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `receiverId` | String | ID of the receiver |
+| `timestamp` | long | Unix timestamp of the receipt |
+| `receiptType` | String | Type of receipt. Values: `"delivered"`, `"read"` |
+| `deliveredAt` | long | Unix timestamp when message was delivered |
+| `readAt` | long | Unix timestamp when message was read |
+| `messageSender` | String | UID of the message sender |
+
+**Sample MessageReceipt Object:**
+
+```json
+{
+  "messageId": 12345,
+  "sender": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default"
+  },
+  "receiverType": "user",
+  "receiverId": "user_456",
+  "timestamp": 1699900000,
+  "receiptType": "read",
+  "deliveredAt": 1699900001,
+  "readAt": 1699900002,
+  "messageSender": "user_123"
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (Receipts)">
+
+The nested `User` object in `sender` contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
 ## Best Practices
 
 <AccordionGroup>

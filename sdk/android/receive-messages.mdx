@@ -1106,3 +1106,153 @@ override fun onError(e: CometChatException) {
 </Tabs>
 
 In the `onSuccess()` callback, you will receive a hashmap which will contain the `GUIDs` of the groups as the key and the unread message counts as the values.
+
+## Message Payload Structure
+
+<Accordion title="BaseMessage Object">
+
+The `BaseMessage` object returned by SDK methods contains the following fields. `TextMessage`, `MediaMessage`, and `CustomMessage` extend this base structure with additional type-specific fields.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | long | Unique message identifier |
+| `muid` | String | Developer-defined message ID for deduplication |
+| `sender` | [User](#user-object) | User who sent the message |
+| `receiver` | AppEntity | Message receiver ([User](#user-object) or [Group](#group-object)) |
+| `receiverUid` | String | Receiver's unique identifier |
+| `type` | String | Message type. Values: `"text"`, `"image"`, `"video"`, `"audio"`, `"file"`, `"custom"` |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `category` | String | Message category. Values: `"message"`, `"action"`, `"call"`, `"custom"` |
+| `sentAt` | long | Unix timestamp when message was sent |
+| `deliveredAt` | long | Unix timestamp when message was delivered |
+| `readAt` | long | Unix timestamp when message was read |
+| `metadata` | JSONObject | Custom message metadata set by developer |
+| `readByMeAt` | long | Unix timestamp when logged-in user read the message |
+| `deliveredToMeAt` | long | Unix timestamp when message was delivered to logged-in user |
+| `deletedAt` | long | Unix timestamp when message was deleted (0 if not deleted) |
+| `editedAt` | long | Unix timestamp when message was edited (0 if not edited) |
+| `deletedBy` | String | UID of user who deleted the message (null if not deleted) |
+| `editedBy` | String | UID of user who edited the message (null if not edited) |
+| `updatedAt` | long | Unix timestamp of last message update |
+| `conversationId` | String | Associated conversation identifier |
+| `parentMessageId` | long | Parent message ID for threaded messages (0 if not a reply) |
+| `replyCount` | int | Number of replies in thread |
+| `unreadRepliesCount` | int | Number of unread replies in thread |
+| `mentionedUsers` | Array\<[User](#user-object)\> | List of users mentioned in the message |
+| `hasMentionedMe` | boolean | Whether the logged-in user is mentioned |
+| `reactions` | Array\<[ReactionCount](#reactioncount-object)\> | List of reaction counts on the message |
+| `rawMessage` | JSONObject | Raw JSON message data |
+| `quotedMessageId` | long | ID of the quoted message (0 if not quoting) |
+| `quotedMessage` | BaseMessage | The quoted message object (null if not quoting) |
+
+**Sample BaseMessage Object:**
+
+```json
+{
+  "id": 12345,
+  "muid": "msg_abc123",
+  "sender": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default",
+    "lastActiveAt": 1699900000
+  },
+  "receiver": {
+    "uid": "user_456",
+    "name": "Jane Smith",
+    "avatar": "https://example.com/avatar2.png"
+  },
+  "receiverUid": "user_456",
+  "type": "text",
+  "receiverType": "user",
+  "category": "message",
+  "sentAt": 1699900000,
+  "deliveredAt": 1699900001,
+  "readAt": 1699900002,
+  "metadata": {
+    "priority": "high",
+    "customField": "value"
+  },
+  "readByMeAt": 1699900002,
+  "deliveredToMeAt": 1699900001,
+  "deletedAt": 0,
+  "editedAt": 0,
+  "deletedBy": null,
+  "editedBy": null,
+  "updatedAt": 1699900000,
+  "conversationId": "user_123_user_456",
+  "parentMessageId": 0,
+  "replyCount": 5,
+  "unreadRepliesCount": 2,
+  "mentionedUsers": [],
+  "hasMentionedMe": false,
+  "reactions": [
+    {
+      "reaction": "👍",
+      "count": 3,
+      "reactedByMe": true
+    }
+  ],
+  "rawMessage": {},
+  "quotedMessageId": 0,
+  "quotedMessage": null
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object">
+
+The nested `User` object (used in `sender`, `receiver`, `mentionedUsers`) contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
+<Accordion title="Group Object">
+
+The nested `Group` object (used in `receiver` for group messages) contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `guid` | String | Unique identifier of the group |
+| `name` | String | Display name of the group |
+| `type` | String | Group type. Values: `"public"`, `"private"`, `"password"` |
+| `icon` | String | URL to group icon |
+| `description` | String | Group description |
+| `owner` | String | UID of group owner |
+| `metadata` | JSONObject | Custom data set by developer |
+| `membersCount` | int | Number of group members |
+| `tags` | Array\<String\> | List of tags for group identification |
+| `hasJoined` | boolean | Whether logged-in user has joined |
+| `scope` | String | User's scope in group. Values: `"admin"`, `"moderator"`, `"participant"` |
+
+</Accordion>
+
+<Accordion title="ReactionCount Object">
+
+The nested `ReactionCount` object (used in `reactions` array) contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reaction` | String | The reaction emoji |
+| `count` | int | Total count of this reaction |
+| `reactedByMe` | boolean | Whether the logged-in user has reacted with this emoji |
+
+</Accordion>

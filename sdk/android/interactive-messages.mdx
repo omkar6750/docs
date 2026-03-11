@@ -283,6 +283,169 @@ These event listeners offer your application a way to provide real-time updates 
 
 An `InteractiveMessage` is constructed with the receiver's UID, the receiver type, the interactive type, and interactive data as a JSONObject. Once created, the `InteractiveMessage` can be sent using CometChat's `sendInteractiveMessage()` method. Incoming `InteractiveMessages` can be received and processed via CometChat's message listener framework.
 
+## InteractiveMessage Payload Structure
+
+<Accordion title="InteractiveMessage Object">
+
+The `InteractiveMessage` object contains interactive content like forms and buttons:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | long | Unique message identifier |
+| `muid` | String | Developer-defined message ID |
+| `sender` | [User](#user-object-interactive) | User who sent the message |
+| `receiver` | AppEntity | Message receiver ([User](#user-object-interactive) or Group) |
+| `type` | String | Message type (e.g., `"form"`, `"card"`) |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `category` | String | Message category. Value: `"interactive"` |
+| `sentAt` | long | Unix timestamp when sent |
+| `metadata` | JSONObject | Custom message metadata |
+| `conversationId` | String | Associated conversation ID |
+| `interactiveData` | JSONObject | Interactive content data |
+| `tags` | Array\<String\> | Message tags |
+| `interactionGoal` | [InteractionGoal](#interactiongoal-object) | Goal for interactions |
+| `interactions` | Array\<[Interaction](#interaction-object)\> | User interactions |
+| `allowSenderInteraction` | boolean | If sender can interact |
+
+**Sample InteractiveMessage Object:**
+
+```json
+{
+  "id": 12345,
+  "muid": "msg_abc123",
+  "sender": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default"
+  },
+  "receiver": {
+    "uid": "user_456",
+    "name": "Jane Smith"
+  },
+  "type": "form",
+  "receiverType": "user",
+  "category": "interactive",
+  "sentAt": 1699900000,
+  "metadata": {"priority": "high"},
+  "conversationId": "user_123_user_456",
+  "interactiveData": {
+    "title": "Demo Form",
+    "formFields": [
+      {
+        "elementType": "textInput",
+        "elementId": "element1",
+        "label": "Name",
+        "optional": false,
+        "maxLines": 1
+      }
+    ],
+    "submitElement": {
+      "elementType": "button",
+      "elementId": "element8",
+      "buttonText": "Submit",
+      "disableAfterInteracted": true,
+      "action": {
+        "actionType": "urlNavigation",
+        "url": "https://www.cometchat.com/"
+      }
+    }
+  },
+  "tags": ["interactive"],
+  "interactionGoal": {
+    "type": "anyOf",
+    "elementIds": ["element1", "element8"]
+  },
+  "interactions": [],
+  "allowSenderInteraction": false
+}
+```
+
+</Accordion>
+
+<Accordion title="InteractionGoal Object">
+
+The `InteractionGoal` object defines the desired outcome of interactions:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | String | Goal type. Values: `"none"`, `"anyAction"`, `"anyOf"`, `"allOf"` |
+| `elementIds` | Array\<String\> | Target element IDs for the goal |
+
+**Sample InteractionGoal Object:**
+
+```json
+{
+  "type": "anyOf",
+  "elementIds": ["button_1", "input_1"]
+}
+```
+
+</Accordion>
+
+<Accordion title="Interaction Object">
+
+The `Interaction` object represents a user action on an interactive element:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `elementId` | String | Identifier of the interacted element |
+| `interactedAt` | long | Unix timestamp when interaction occurred |
+
+**Sample Interaction Object:**
+
+```json
+{
+  "elementId": "element1",
+  "interactedAt": 1699900500
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (Interactive)">
+
+The nested `User` object in `sender` contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+**Sample User Object:**
+
+```json
+{
+  "uid": "user_123",
+  "name": "John Doe",
+  "avatar": "https://example.com/avatar.png",
+  "link": "https://example.com/profile/user_123",
+  "role": "default",
+  "metadata": {"department": "engineering"},
+  "status": "online",
+  "statusMessage": "Available",
+  "lastActiveAt": 1699900000,
+  "hasBlockedMe": false,
+  "blockedByMe": false,
+  "tags": ["premium"],
+  "deactivatedAt": 0
+}
+```
+
+</Accordion>
+
 ## Best Practices
 
 <AccordionGroup>

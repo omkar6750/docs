@@ -477,6 +477,87 @@ val modifiedBaseMessage: BaseMessage = CometChatHelper.updateMessageWithReaction
 
 After calling this method, the `message` instance's reactions are updated. You can then use `message.getReactions()` to get the latest reactions and refresh your UI accordingly.
 
+## Reaction Payload Structure
+
+<Accordion title="Reaction Object">
+
+When fetching reactions for a message, each `Reaction` object contains the following fields:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | String | Unique reaction identifier |
+| `messageId` | long | ID of the message that was reacted to |
+| `reaction` | String | The reaction emoji |
+| `uid` | String | UID of the user who reacted |
+| `reactedAt` | long | Unix timestamp when reaction was added |
+| `reactedBy` | [User](#user-object-reactions) | User who added the reaction |
+
+**Sample Reaction Object:**
+
+```json
+{
+  "id": "reaction_123",
+  "messageId": 12345,
+  "reaction": "👍",
+  "uid": "user_123",
+  "reactedAt": 1699900000,
+  "reactedBy": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default",
+    "tags": ["premium", "verified"]
+  }
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (Reactions)">
+
+The nested `User` object in `reactedBy` contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
+<Accordion title="ReactionCount Object">
+
+When accessing reactions on a message via `message.getReactions()`, each `ReactionCount` object contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reaction` | String | The reaction emoji |
+| `count` | int | Total count of this reaction |
+| `reactedByMe` | boolean | Whether the logged-in user has reacted with this emoji |
+
+**Sample ReactionCount Object:**
+
+```json
+{
+  "reaction": "👍",
+  "count": 5,
+  "reactedByMe": true
+}
+```
+
+</Accordion>
+
 ## Best Practices
 
 <AccordionGroup>

@@ -563,6 +563,127 @@ While converting a `Message` object to a `Conversation` object, the `unreadMessa
 
 </Note>
 
+## Conversation Payload Structure
+
+<Accordion title="Conversation Object">
+
+The `Conversation` object returned by SDK methods contains the following fields:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conversationId` | String | Unique conversation identifier |
+| `conversationType` | String | Type of conversation. Values: `"user"`, `"group"` |
+| `conversationWith` | AppEntity | The [User](#user-object-conversation) or [Group](#group-object-conversation) in the conversation |
+| `lastMessage` | [BaseMessage](#lastmessage-object) | Last message in the conversation |
+| `unreadMessageCount` | int | Number of unread messages in the conversation |
+| `unreadMentionsCount` | int | Number of unread mentions in the conversation |
+| `updatedAt` | long | Unix timestamp of last conversation update |
+| `tags` | Array\<String\> | List of tags for conversation organization |
+| `lastReadMessageId` | long | ID of the last read message |
+| `latestMessageId` | long | ID of the latest message |
+
+**Sample Conversation Object:**
+
+```json
+{
+  "conversationId": "user_123_user_456",
+  "conversationType": "user",
+  "conversationWith": {
+    "uid": "user_456",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default",
+    "lastActiveAt": 1699900000,
+    "tags": ["premium", "verified"]
+  },
+  "lastMessage": {
+    "id": 12345,
+    "muid": "msg_abc123",
+    "type": "text",
+    "receiverType": "user",
+    "category": "message",
+    "sentAt": 1699900000,
+    "deliveredAt": 1699900001,
+    "readAt": 1699900002,
+    "metadata": {"priority": "high"},
+    "conversationId": "user_123_user_456"
+  },
+  "unreadMessageCount": 3,
+  "unreadMentionsCount": 1,
+  "updatedAt": 1699900000,
+  "tags": ["important", "work"],
+  "lastReadMessageId": 12340,
+  "latestMessageId": 12345
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (conversationWith)">
+
+When `conversationType` is `"user"`, the `conversationWith` field contains a User object:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
+<Accordion title="Group Object (conversationWith)">
+
+When `conversationType` is `"group"`, the `conversationWith` field contains a Group object:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `guid` | String | Unique identifier of the group |
+| `name` | String | Display name of the group |
+| `type` | String | Group type. Values: `"public"`, `"private"`, `"password"` |
+| `icon` | String | URL to group icon |
+| `description` | String | Group description |
+| `owner` | String | UID of group owner |
+| `metadata` | JSONObject | Custom data set by developer |
+| `membersCount` | int | Number of group members |
+| `tags` | Array\<String\> | List of tags for group identification |
+| `hasJoined` | boolean | Whether logged-in user has joined |
+| `scope` | String | User's scope in group. Values: `"admin"`, `"moderator"`, `"participant"` |
+| `createdAt` | long | Unix timestamp when group was created |
+| `updatedAt` | long | Unix timestamp of last group update |
+
+</Accordion>
+
+<Accordion title="LastMessage Object">
+
+The `lastMessage` field contains a BaseMessage object with key fields:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | long | Unique message identifier |
+| `muid` | String | Developer-defined message ID |
+| `type` | String | Message type. Values: `"text"`, `"image"`, `"video"`, `"audio"`, `"file"`, `"custom"` |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `category` | String | Message category. Values: `"message"`, `"action"`, `"call"` |
+| `sentAt` | long | Unix timestamp when message was sent |
+| `deliveredAt` | long | Unix timestamp when message was delivered |
+| `readAt` | long | Unix timestamp when message was read |
+| `metadata` | JSONObject | Custom message metadata |
+| `conversationId` | String | Associated conversation identifier |
+| `sender` | User | User who sent the message |
+
+</Accordion>
+
 ## Best Practices
 
 <AccordionGroup>

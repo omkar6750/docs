@@ -175,6 +175,64 @@ The `TypingIndicator` class consists of the below parameters:
 | `receiverType` | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChatConstants.RECEIVER_TYPE_USER` 2. `CometChatConstants.RECEIVER_TYPE_GROUP` |
 | `metadata`     | A JSONObject to provider additional data                                                                                                                                                             |
 
+## TypingIndicator Payload Structure
+
+<Accordion title="TypingIndicator Object">
+
+The `TypingIndicator` object contains information about typing status:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sender` | [User](#user-object-typing) | User who is typing |
+| `receiverId` | String | ID of the receiver (user UID or group GUID) |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `metadata` | JSONObject | Custom typing metadata |
+| `lastTimestamp` | long | Unix timestamp of last typing event |
+| `typingStatus` | String | Typing status. Values: `"started"`, `"ended"` |
+
+**Sample TypingIndicator Object:**
+
+```json
+{
+  "sender": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online",
+    "role": "default"
+  },
+  "receiverId": "user_456",
+  "receiverType": "user",
+  "metadata": {},
+  "lastTimestamp": 1699900000,
+  "typingStatus": "started"
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (Typing)">
+
+The nested `User` object in `sender` contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
 <Warning>
 Always remove message listeners when they're no longer needed (e.g., in `onDestroy()` or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
