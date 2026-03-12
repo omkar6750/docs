@@ -6,7 +6,7 @@ description: "Display and manage all chat conversations for the logged-in user"
 The `CometChatConversations` component displays a list of all conversations (one-on-one and group chats) for the currently logged-in user. It shows the last message, unread count, typing indicators, and user presence in real-time.
 
 <Frame>
-  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" />
+  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" alt="CometChatConversations showing a list of recent conversations with user avatars, last message previews, timestamps, and unread message badges" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -156,7 +156,7 @@ class ChatListViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" />
+  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" alt="CometChatConversations showing integration flow with conversation list navigating to messages screen" />
 </Frame>
 
 ---
@@ -171,7 +171,7 @@ navigationController?.pushViewController(conversations, animated: true)
 ```
 
 <Frame>
-  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" />
+  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" alt="CometChatConversations showing minimal render with default configuration displaying conversation list" />
 </Frame>
 
 ---
@@ -500,6 +500,112 @@ conversations.set(subtitleView: { conversation in
 })
 ```
 
+### leadingView
+
+Customize the avatar / left section of the conversation row.
+
+| | |
+|---|---|
+| Signature | `(Conversation) -> UIView` |
+| Replaces | Avatar / left section |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+conversations.set(leadingView: { conversation in
+    let containerView = UIView()
+    containerView.translatesAutoresizingMaskIntoConstraints = false
+    
+    let avatarView = CometChatAvatar(image: UIImage())
+    avatarView.translatesAutoresizingMaskIntoConstraints = false
+    
+    if let user = conversation.conversationWith as? User {
+        avatarView.setAvatar(avatarUrl: user.avatar, with: user.name ?? "")
+    } else if let group = conversation.conversationWith as? Group {
+        avatarView.setAvatar(avatarUrl: group.icon, with: group.name ?? "")
+    }
+    
+    containerView.addSubview(avatarView)
+    
+    // Add online indicator
+    let statusIndicator = UIView()
+    statusIndicator.backgroundColor = UIColor.systemGreen
+    statusIndicator.layer.cornerRadius = 6
+    statusIndicator.translatesAutoresizingMaskIntoConstraints = false
+    containerView.addSubview(statusIndicator)
+    
+    NSLayoutConstraint.activate([
+        avatarView.widthAnchor.constraint(equalToConstant: 48),
+        avatarView.heightAnchor.constraint(equalToConstant: 48),
+        avatarView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+        avatarView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+        statusIndicator.widthAnchor.constraint(equalToConstant: 12),
+        statusIndicator.heightAnchor.constraint(equalToConstant: 12),
+        statusIndicator.trailingAnchor.constraint(equalTo: avatarView.trailingAnchor),
+        statusIndicator.bottomAnchor.constraint(equalTo: avatarView.bottomAnchor)
+    ])
+    
+    return containerView
+})
+```
+
+{/* TODO: Add screenshot showing leadingView customization */}
+
+### titleView
+
+Customize the title area that displays the conversation name.
+
+| | |
+|---|---|
+| Signature | `(Conversation) -> UIView` |
+| Replaces | Name / title text area |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+conversations.set(titleView: { conversation in
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.spacing = 8
+    stackView.alignment = .center
+    
+    // Name label
+    let nameLabel = UILabel()
+    nameLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    nameLabel.textColor = UIColor.label
+    
+    if let user = conversation.conversationWith as? User {
+        nameLabel.text = user.name
+    } else if let group = conversation.conversationWith as? Group {
+        nameLabel.text = group.name
+    }
+    
+    stackView.addArrangedSubview(nameLabel)
+    
+    // Add verified badge for specific users
+    if let user = conversation.conversationWith as? User,
+       user.metadata?["verified"] as? Bool == true {
+        let badgeImage = UIImageView(image: UIImage(systemName: "checkmark.seal.fill"))
+        badgeImage.tintColor = UIColor.systemBlue
+        badgeImage.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        badgeImage.heightAnchor.constraint(equalToConstant: 16).isActive = true
+        stackView.addArrangedSubview(badgeImage)
+    }
+    
+    return stackView
+})
+```
+
+{/* TODO: Add screenshot showing titleView customization */}
+
 ### tailView
 
 Customize the right side of the conversation row (time, unread badge). Note: The setter method is `set(trailView:)`.
@@ -549,6 +655,8 @@ conversations.set(trailView: { conversation in
     return stackView
 })
 ```
+
+{/* TODO: Add screenshot showing trailingView customization */}
 
 ---
 
@@ -603,7 +711,7 @@ conversations.style = customStyle
 ```
 
 <Frame>
-  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" />
+  <img src="/images/a64b9191-Conversation-b61978dd3caa80a24c801de3492fe2b5.png" alt="CometChatConversations with custom styling applied showing customized background, colors, and list item appearance" />
 </Frame>
 
 ### Key Style Properties
@@ -637,9 +745,272 @@ conversations.style = customStyle
 
 ---
 
+## Methods
+
+### Swipe Action Methods
+
+#### set(options:)
+
+Sets custom swipe actions for conversation list items, replacing the default options.
+
+```swift
+@discardableResult
+public func set(options: ((_ conversation: Conversation?) -> [CometChatConversationOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((Conversation?) -> [CometChatConversationOption])?` | Closure that returns an array of swipe action options for a conversation |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+conversations.set(options: { conversation in
+    var options = [CometChatConversationOption]()
+    
+    // Add delete option
+    let deleteOption = CometChatConversationOption(
+        id: "delete",
+        title: "Delete",
+        icon: UIImage(systemName: "trash"),
+        backgroundColor: .systemRed
+    ) { conv in
+        // Handle delete action
+        print("Delete conversation: \(conv?.conversationId ?? "")")
+    }
+    options.append(deleteOption)
+    
+    return options
+})
+```
+
+#### add(options:)
+
+Adds additional swipe actions to the existing default options.
+
+```swift
+@discardableResult
+public func add(options: ((_ conversation: Conversation?) -> [CometChatConversationOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((Conversation?) -> [CometChatConversationOption])?` | Closure that returns additional swipe action options to append |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+conversations.add(options: { conversation in
+    var options = [CometChatConversationOption]()
+    
+    // Add mute option
+    let muteOption = CometChatConversationOption(
+        id: "mute",
+        title: "Mute",
+        icon: UIImage(systemName: "bell.slash"),
+        backgroundColor: .systemOrange
+    ) { conv in
+        print("Mute conversation: \(conv?.conversationId ?? "")")
+    }
+    options.append(muteOption)
+    
+    return options
+})
+```
+
+{/* TODO: Add screenshot showing swipe action options customization */}
+
+### Data Manipulation Methods
+
+#### insert(conversation:at:)
+
+Inserts a conversation at a specific index in the list.
+
+```swift
+public func insert(conversation: Conversation, at index: Int)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conversation` | `Conversation` | The conversation to insert |
+| `index` | `Int` | The position at which to insert the conversation |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+// Insert a conversation at the top of the list
+if let conversation = someConversation {
+    conversations.insert(conversation: conversation, at: 0)
+}
+```
+
+#### getSelectedConversations()
+
+Returns the list of currently selected conversations when in selection mode.
+
+```swift
+public func getSelectedConversations() -> [Conversation]
+```
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+conversations.selectionMode = .multiple
+
+// Get selected conversations
+let selectedConversations = conversations.getSelectedConversations()
+print("Selected \(selectedConversations.count) conversations")
+```
+
+#### getConversationList()
+
+Returns the complete list of conversations currently displayed.
+
+```swift
+public func getConversationList() -> [Conversation]
+```
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let conversations = CometChatConversations()
+
+// Get all conversations in the list
+let allConversations = conversations.getConversationList()
+print("Total conversations: \(allConversations.count)")
+```
+
+### Connection Methods
+
+#### connect()
+
+Manually establishes the WebSocket connection for real-time updates. Use this when you need to reconnect after calling `disconnect()`.
+
+```swift
+public func connect()
+```
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+// Reconnect to receive real-time updates
+conversations.connect()
+```
+
+#### disconnect()
+
+Manually disconnects the WebSocket connection. Use this when you want to temporarily stop receiving real-time updates, such as when the view is not visible.
+
+```swift
+public func disconnect()
+```
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+// Disconnect when view is not visible
+conversations.disconnect()
+
+// Later, reconnect when view becomes visible again
+conversations.connect()
+```
+
+### Text Formatter Methods
+
+#### set(textFormatters:)
+
+Sets custom text formatters for processing and displaying message text in conversation subtitles.
+
+```swift
+@discardableResult
+public func set(textFormatters: [CometChatTextFormatter]) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `textFormatters` | `[CometChatTextFormatter]` | Array of text formatters to apply to message text |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+// Create custom text formatters
+let mentionFormatter = CometChatMentionTextFormatter()
+let urlFormatter = CometChatURLTextFormatter()
+
+conversations.set(textFormatters: [mentionFormatter, urlFormatter])
+```
+
+---
+
 ## Props
 
 All props are optional. Sorted alphabetically.
+
+### avatarStyle
+
+Customizes the appearance of avatars in conversation list items.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor.systemBlue
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
+avatarStyle.borderWidth = 1
+avatarStyle.borderColor = UIColor.systemGray4
+
+conversations.set(avatarStyle: avatarStyle)
+```
+
+### badgeStyle
+
+Customizes the appearance of unread message count badges.
+
+| | |
+|---|---|
+| Type | `BadgeStyle` |
+| Default | `BadgeStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let badgeStyle = BadgeStyle()
+badgeStyle.backgroundColor = UIColor.systemRed
+badgeStyle.textColor = UIColor.white
+badgeStyle.textFont = UIFont.systemFont(ofSize: 12, weight: .bold)
+badgeStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 10)
+
+conversations.set(badgeStyle: badgeStyle)
+```
 
 ### conversationRequestBuilder
 
@@ -649,6 +1020,49 @@ Custom request builder for filtering which conversations appear.
 |---|---|
 | Type | `ConversationRequest.ConversationRequestBuilder?` |
 | Default | `nil` |
+
+### dateStyle
+
+Customizes the appearance of date/time labels in conversation list items.
+
+| | |
+|---|---|
+| Type | `DateStyle` |
+| Default | `DateStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let dateStyle = DateStyle()
+dateStyle.textColor = UIColor.secondaryLabel
+dateStyle.textFont = UIFont.systemFont(ofSize: 12)
+
+conversations.set(dateStyle: dateStyle)
+```
+
+### dateTimeFormatter
+
+Custom formatter for date/time display in conversation list items.
+
+| | |
+|---|---|
+| Type | `CometChatDateTimeFormatter?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let dateTimeFormatter = CometChatDateTimeFormatter()
+dateTimeFormatter.todayFormat = "h:mm a"
+dateTimeFormatter.yesterdayFormat = "'Yesterday'"
+dateTimeFormatter.otherFormat = "MMM d"
+
+conversations.dateTimeFormatter = dateTimeFormatter
+```
 
 ### customSoundForMessages
 
@@ -667,6 +1081,22 @@ Disables notification sounds for new messages.
 |---|---|
 | Type | `Bool` |
 | Default | `false` |
+
+### disableTyping
+
+Disables typing indicators in the conversation list.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+conversations.disableTyping = true
+```
 
 ### hideBackButton
 
@@ -731,6 +1161,80 @@ Hides online/offline status indicators.
 | Type | `Bool` |
 | Default | `false` |
 
+### onSearchClick
+
+Callback triggered when the search button is clicked.
+
+| | |
+|---|---|
+| Type | `(() -> Void)?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+conversations.set(onSearchClick: { [weak self] in
+    // Handle search button click
+    self?.presentSearchViewController()
+})
+```
+
+### privateGroupIcon
+
+Custom icon for private group conversations.
+
+| | |
+|---|---|
+| Type | `UIImage?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+conversations.privateGroupIcon = UIImage(systemName: "lock.fill")
+```
+
+### protectedGroupIcon
+
+Custom icon for password-protected group conversations.
+
+| | |
+|---|---|
+| Type | `UIImage?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+conversations.protectedGroupIcon = UIImage(systemName: "lock.shield.fill")
+```
+
+### receiptStyle
+
+Customizes the appearance of message receipt indicators (sent, delivered, read).
+
+| | |
+|---|---|
+| Type | `ReceiptStyle` |
+| Default | `ReceiptStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let receiptStyle = ReceiptStyle()
+receiptStyle.sentIconTint = UIColor.systemGray
+receiptStyle.deliveredIconTint = UIColor.systemGray
+receiptStyle.readIconTint = UIColor.systemBlue
+
+conversations.set(receiptStyle: receiptStyle)
+```
+
 ### selectionMode
 
 Sets the selection mode for multi-select functionality.
@@ -740,6 +1244,28 @@ Sets the selection mode for multi-select functionality.
 | Type | `SelectionMode` |
 | Default | `.none` |
 
+### statusIndicatorStyle
+
+Customizes the appearance of online/offline status indicators.
+
+| | |
+|---|---|
+| Type | `StatusIndicatorStyle` |
+| Default | `StatusIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let statusIndicatorStyle = StatusIndicatorStyle()
+statusIndicatorStyle.backgroundColor = UIColor.systemGreen
+statusIndicatorStyle.borderWidth = 2
+statusIndicatorStyle.borderColor = UIColor.white
+
+conversations.set(statusIndicatorStyle: statusIndicatorStyle)
+```
+
 ### textFormatters
 
 Array of text formatters for customizing message text display.
@@ -748,6 +1274,27 @@ Array of text formatters for customizing message text display.
 |---|---|
 | Type | `[CometChatTextFormatter]` |
 | Default | `[]` |
+
+### typingIndicatorStyle
+
+Customizes the appearance of typing indicators in conversation list items.
+
+| | |
+|---|---|
+| Type | `TypingIndicatorStyle` |
+| Default | `TypingIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let conversations = CometChatConversations()
+
+let typingIndicatorStyle = TypingIndicatorStyle()
+typingIndicatorStyle.textColor = UIColor.systemGray
+typingIndicatorStyle.textFont = UIFont.italicSystemFont(ofSize: 14)
+
+conversations.set(typingIndicatorStyle: typingIndicatorStyle)
+```
 
 ---
 

@@ -6,7 +6,7 @@ description: "Display user or group details with typing indicators and navigatio
 The `CometChatMessageHeader` component displays user or group details in the toolbar including avatar, name, status, and typing indicators. It also provides navigation controls and call buttons.
 
 <Frame>
-  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" />
+  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" alt="CometChatMessageHeader showing user avatar, name, online status, and call buttons in the navigation bar" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -36,13 +36,26 @@ The `CometChatMessageHeader` component displays user or group details in the too
     },
     "callbacks": {
       "onBack": "() -> Void",
-      "onError": "(CometChatException) -> Void"
+      "onError": "(CometChatException) -> Void",
+      "onAiChatHistoryClicked": "() -> Void",
+      "onAiNewChatClicked": "() -> Void"
     },
     "visibility": {
       "hideBackButton": { "type": "Bool", "default": false },
       "hideUserStatus": { "type": "Bool", "default": false },
       "hideVideoCallButton": { "type": "Bool", "default": false },
-      "hideVoiceCallButton": { "type": "Bool", "default": false }
+      "hideVoiceCallButton": { "type": "Bool", "default": false },
+      "hideNewChatButton": { "type": "Bool", "default": false },
+      "hideChatHistoryButton": { "type": "Bool", "default": false },
+      "disableTyping": { "type": "Bool", "default": false }
+    },
+    "style": {
+      "avatarStyle": { "type": "AvatarStyle", "default": "AvatarStyle()" },
+      "statusIndicatorStyle": { "type": "StatusIndicatorStyle", "default": "StatusIndicatorStyle()" },
+      "typingIndicatorStyle": { "type": "TypingIndicatorStyle", "default": "TypingIndicatorStyle()" }
+    },
+    "formatting": {
+      "dateTimeFormatter": { "type": "CometChatDateTimeFormatter?", "default": "nil" }
     },
     "viewSlots": {
       "listItemView": "(User?, Group?) -> UIView",
@@ -50,6 +63,15 @@ The `CometChatMessageHeader` component displays user or group details in the too
       "titleView": "(User?, Group?) -> UIView",
       "subtitleView": "(User?, Group?) -> UIView",
       "trailView": "(User?, Group?) -> UIView"
+    }
+  },
+  "methods": {
+    "connection": {
+      "connect()": "Establishes WebSocket connection for real-time updates",
+      "disconnect()": "Disconnects WebSocket connection"
+    },
+    "menuCustomization": {
+      "set(options:)": "((User?, Group?) -> [CometChatMessageHeaderOption])? - Sets custom menu options"
     }
   },
   "events": [],
@@ -104,7 +126,7 @@ class ChatViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" />
+  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" alt="CometChatMessageHeader showing user avatar, name, online status, and call buttons in the navigation bar" />
 </Frame>
 
 ---
@@ -120,7 +142,7 @@ messageHeader.set(user: user)
 ```
 
 <Frame>
-  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" />
+  <img src="/images/cdbdc9b3-message-header-cd5bd3b233f9e340571a62cc0e32f3f5.png" alt="CometChatMessageHeader showing minimal render with user details and default styling" />
 </Frame>
 
 ---
@@ -178,6 +200,8 @@ messageHeader.set(onError: { error in
 ---
 
 ## Custom View Slots
+
+{/* TODO: Add screenshot showing auxiliaryButtonView customization - Note: iOS MessageHeader uses trailView instead of auxiliaryButtonView (which is Android-specific). The trailView screenshot below demonstrates equivalent functionality for customizing the right side action buttons area. */}
 
 | Slot | Signature | Replaces |
 |------|-----------|----------|
@@ -336,7 +360,7 @@ messageHeader.set(leadingView: { user, group in
 ```
 
 <Frame>
-  <img src="/images/e6fad16f-headerLeadng-6f55e63eb8a291dfe2a06771801f2337.png" />
+  <img src="/images/e6fad16f-headerLeadng-6f55e63eb8a291dfe2a06771801f2337.png" alt="CometChatMessageHeader with custom leadingView showing avatar with Admin badge overlay" />
 </Frame>
 
 You can create a `CustomLeadingView` as a custom `UIView`:
@@ -419,7 +443,7 @@ messageHeader.set(titleView: { user, group in
 ```
 
 <Frame>
-  <img src="/images/77d20b8c-headerTitle-20200a0eddfa0c9f2337abb9511a9671.png" />
+  <img src="/images/77d20b8c-headerTitle-20200a0eddfa0c9f2337abb9511a9671.png" alt="CometChatMessageHeader with custom titleView showing group name with Public badge" />
 </Frame>
 
 You can create a `CustomTitleView` as a custom `UIView`:
@@ -539,7 +563,7 @@ messageHeader.set(trailView: { user, group in
 ```
 
 <Frame>
-  <img src="/images/7ae625d7-headerTrail-b0c07329c262e97434036abff2c01d32.png" />
+  <img src="/images/7ae625d7-headerTrail-b0c07329c262e97434036abff2c01d32.png" alt="CometChatMessageHeader with custom trailView showing video call, voice call, and bookmark buttons" />
 </Frame>
 
 You can create a `CustomTrailView` as a custom `UIView`:
@@ -648,7 +672,7 @@ messageHeader.style = customStyle
 ```
 
 <Frame>
-  <img src="/images/54a6e640-message-header-style-d4203b4eece8507a4e5750d88e7fa913.png" />
+  <img src="/images/54a6e640-message-header-style-d4203b4eece8507a4e5750d88e7fa913.png" alt="CometChatMessageHeader with custom instance styling showing modified background color and text appearance" />
 </Frame>
 
 ### Key Style Properties
@@ -667,7 +691,9 @@ messageHeader.style = customStyle
 | `backButtonIcon` | `UIImage?` | System chevron | Back button icon |
 | `privateGroupBadgeImageTintColor` | `UIColor` | `CometChatTheme.iconColorSecondary` | Private group badge tint |
 | `passwordProtectedGroupBadgeImageTintColor` | `UIColor` | `CometChatTheme.iconColorSecondary` | Password group badge tint |
-| `avatarStyle` | `AvatarStyle` | Default avatar style | Avatar customization |
+| `avatarStyle` | `AvatarStyle` | `AvatarStyle()` | Avatar customization |
+| `statusIndicatorStyle` | `StatusIndicatorStyle` | `StatusIndicatorStyle()` | Online/offline status indicator customization |
+| `typingIndicatorStyle` | `TypingIndicatorStyle` | `TypingIndicatorStyle()` | Typing indicator customization |
 
 ### Customization Matrix
 
@@ -678,15 +704,186 @@ messageHeader.style = customStyle
 | Subtitle appearance | Style | `subtitleTextColor`, `subtitleTextFont` | Custom colors and fonts |
 | Back button | Style | `backButtonIcon`, `backButtonImageTintColor` | Custom icon and color |
 | Avatar look | Style | `avatarStyle` | `AvatarStyle()` with custom radius |
+| Status indicator | Style | `statusIndicatorStyle` | `StatusIndicatorStyle()` with custom colors |
+| Typing indicator | Style | `typingIndicatorStyle` | `TypingIndicatorStyle()` with custom font |
 | Hide back button | Property | `hideBackButton` | `header.hideBackButton = true` |
 | Hide status | Property | `hideUserStatus` | `header.hideUserStatus = true` |
+| Disable typing | Property | `disableTyping` | `header.disableTyping = true` |
+| Hide AI buttons | Property | `hideNewChatButton`, `hideChatHistoryButton` | `header.hideNewChatButton = true` |
 | Custom subtitle | View Slot | `set(subtitleView:)` | See Custom View Slots |
+| Custom menu options | Method | `set(options:)` | See Menu Customization |
+
+---
+
+## Connection Management
+
+Manually control the WebSocket connection for the message header.
+
+### connect()
+
+Establishes the WebSocket connection for real-time updates. Use this when you need to manually reconnect after disconnecting.
+
+```swift
+@discardableResult
+public func connect() -> Self
+```
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+// Manually connect to receive real-time updates
+messageHeader.connect()
+```
+
+### disconnect()
+
+Disconnects the WebSocket connection. Use this when you want to temporarily stop receiving real-time updates, such as when the view is not visible.
+
+```swift
+@discardableResult
+public func disconnect() -> Self
+```
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+
+class ChatViewController: UIViewController {
+    
+    private var messageHeader: CometChatMessageHeader!
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        messageHeader.disconnect()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        messageHeader.connect()
+    }
+}
+```
+
+---
+
+## Menu Customization
+
+### set(options:)
+
+Sets custom menu options for the message header. These options appear in the header's menu (typically accessed via a more button or long press).
+
+```swift
+@discardableResult
+public func set(options: ((_ user: User?, _ group: Group?) -> [CometChatMessageHeaderOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((User?, Group?) -> [CometChatMessageHeaderOption])?` | Closure that returns an array of menu options based on the current user or group |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageHeader = CometChatMessageHeader()
+
+messageHeader.set(options: { user, group in
+    var options = [CometChatMessageHeaderOption]()
+    
+    // Add a custom "View Profile" option
+    let viewProfileOption = CometChatMessageHeaderOption(
+        id: "view_profile",
+        title: "View Profile",
+        icon: UIImage(systemName: "person.circle")
+    ) { user, group in
+        // Handle view profile action
+        print("View profile tapped")
+    }
+    options.append(viewProfileOption)
+    
+    // Add a custom "Mute Notifications" option
+    let muteOption = CometChatMessageHeaderOption(
+        id: "mute_notifications",
+        title: "Mute Notifications",
+        icon: UIImage(systemName: "bell.slash")
+    ) { user, group in
+        // Handle mute action
+        print("Mute notifications tapped")
+    }
+    options.append(muteOption)
+    
+    return options
+})
+```
 
 ---
 
 ## Props
 
 All props are optional. Sorted alphabetically.
+
+### avatarStyle
+
+Customizes the appearance of the avatar in the message header.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor.systemBlue
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
+avatarStyle.borderWidth = 2
+avatarStyle.borderColor = UIColor.white
+
+messageHeader.set(avatarStyle: avatarStyle)
+```
+
+### dateTimeFormatter
+
+Custom formatter for date/time display in the message header (e.g., "Last seen at...").
+
+| | |
+|---|---|
+| Type | `CometChatDateTimeFormatter?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+let dateTimeFormatter = CometChatDateTimeFormatter()
+dateTimeFormatter.todayFormat = "h:mm a"
+dateTimeFormatter.yesterdayFormat = "'Yesterday at' h:mm a"
+dateTimeFormatter.otherFormat = "MMM d, yyyy"
+
+messageHeader.dateTimeFormatter = dateTimeFormatter
+```
+
+### disableTyping
+
+Disables typing indicators in the message header.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+messageHeader.disableTyping = true
+```
 
 ### hideBackButton
 
@@ -696,6 +893,38 @@ Hides the back button in the header.
 |---|---|
 | Type | `Bool` |
 | Default | `false` |
+
+### hideChatHistoryButton
+
+Hides the AI chat history button in the header.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+messageHeader.hideChatHistoryButton = true
+```
+
+### hideNewChatButton
+
+Hides the AI new chat button in the header.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+messageHeader.hideNewChatButton = true
+```
 
 ### hideUserStatus
 
@@ -723,6 +952,90 @@ Hides the voice call button.
 |---|---|
 | Type | `Bool` |
 | Default | `false` |
+
+### onAiChatHistoryClicked
+
+Callback triggered when the AI chat history button is clicked.
+
+| | |
+|---|---|
+| Type | `(() -> Void)?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+messageHeader.set(onAiChatHistoryClicked: { [weak self] in
+    // Handle AI chat history button click
+    self?.presentAiChatHistory()
+})
+```
+
+### onAiNewChatClicked
+
+Callback triggered when the AI new chat button is clicked.
+
+| | |
+|---|---|
+| Type | `(() -> Void)?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+messageHeader.set(onAiNewChatClicked: { [weak self] in
+    // Handle AI new chat button click
+    self?.startNewAiChat()
+})
+```
+
+### statusIndicatorStyle
+
+Customizes the appearance of the online/offline status indicator.
+
+| | |
+|---|---|
+| Type | `StatusIndicatorStyle` |
+| Default | `StatusIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+let statusIndicatorStyle = StatusIndicatorStyle()
+statusIndicatorStyle.backgroundColor = UIColor.systemGreen
+statusIndicatorStyle.borderWidth = 2
+statusIndicatorStyle.borderColor = UIColor.white
+statusIndicatorStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 6)
+
+messageHeader.set(statusIndicatorStyle: statusIndicatorStyle)
+```
+
+### typingIndicatorStyle
+
+Customizes the appearance of the typing indicator in the message header subtitle.
+
+| | |
+|---|---|
+| Type | `TypingIndicatorStyle` |
+| Default | `TypingIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageHeader = CometChatMessageHeader()
+
+let typingIndicatorStyle = TypingIndicatorStyle()
+typingIndicatorStyle.textColor = UIColor.systemGray
+typingIndicatorStyle.textFont = UIFont.italicSystemFont(ofSize: 13)
+
+messageHeader.set(typingIndicatorStyle: typingIndicatorStyle)
+```
 
 ---
 

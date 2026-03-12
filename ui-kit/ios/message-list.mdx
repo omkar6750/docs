@@ -6,7 +6,7 @@ description: "Display and manage real-time chat messages with various message ty
 The `CometChatMessageList` component displays a scrollable list of messages in a conversation. It supports text messages, media messages, reactions, threads, and real-time updates for new messages, edits, and deletions.
 
 <Frame>
-  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" />
+  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" alt="CometChatMessageList showing a scrollable list of chat messages with text bubbles, timestamps, and read receipts in a conversation view" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -172,7 +172,7 @@ class ChatViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" />
+  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" alt="CometChatMessageList integrated within a chat view controller showing message bubbles with thread replies and reaction handling" />
 </Frame>
 
 ---
@@ -188,7 +188,7 @@ messageList.set(user: user)
 ```
 
 <Frame>
-  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" />
+  <img src="/images/942fc513-message_list-90e4da42a9cbee8143f9caeb4ca12282.png" alt="CometChatMessageList showing minimal render with default configuration displaying messages for a user conversation" />
 </Frame>
 
 ---
@@ -354,20 +354,215 @@ messageList.set(onLoad: { messages in
 
 ---
 
+## Data Manipulation Methods
+
+Programmatically manage messages in the list using these methods.
+
+### add(message:)
+
+Adds a new message to the message list.
+
+```swift
+@discardableResult
+public func add(message: BaseMessage) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `BaseMessage` | The message to add to the list |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageList = CometChatMessageList()
+
+// Add a message programmatically
+let textMessage = TextMessage(receiverUid: "user-id", text: "Hello!", receiverType: .user)
+messageList.add(message: textMessage)
+```
+
+### update(message:)
+
+Updates an existing message in the list.
+
+```swift
+@discardableResult
+public func update(message: BaseMessage) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `BaseMessage` | The message with updated content |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageList = CometChatMessageList()
+
+// Update a message after editing
+if let editedMessage = existingMessage as? TextMessage {
+    editedMessage.text = "Updated message text"
+    messageList.update(message: editedMessage)
+}
+```
+
+### remove(message:)
+
+Removes a message from the list without deleting it from the server.
+
+```swift
+@discardableResult
+public func remove(message: BaseMessage) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `BaseMessage` | The message to remove from the list |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageList = CometChatMessageList()
+
+// Remove a message from the UI
+messageList.remove(message: messageToRemove)
+```
+
+### delete(message:)
+
+Deletes a message from both the list and the server.
+
+```swift
+@discardableResult
+public func delete(message: BaseMessage) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `BaseMessage` | The message to delete |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageList = CometChatMessageList()
+
+// Delete a message permanently
+messageList.delete(message: messageToDelete)
+```
+
+### clearList()
+
+Removes all messages from the list.
+
+```swift
+@discardableResult
+public func clearList() -> Self
+```
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Clear all messages from the list
+messageList.clearList()
+```
+
+### isEmpty()
+
+Checks if the message list is empty.
+
+```swift
+public func isEmpty() -> Bool
+```
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Check if list is empty
+if messageList.isEmpty() {
+    print("No messages in the list")
+}
+```
+
+---
+
+## Connection Management
+
+Manually control the WebSocket connection for the message list.
+
+### connect()
+
+Establishes the WebSocket connection for real-time updates. Use this when you need to manually reconnect after disconnecting.
+
+```swift
+@discardableResult
+public func connect() -> Self
+```
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Manually connect to receive real-time updates
+messageList.connect()
+```
+
+### disconnect()
+
+Disconnects the WebSocket connection. Use this when you want to temporarily stop receiving real-time updates, such as when the view is not visible.
+
+```swift
+@discardableResult
+public func disconnect() -> Self
+```
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Disconnect when view disappears
+override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    messageList.disconnect()
+}
+
+// Reconnect when view appears
+override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    messageList.connect()
+}
+```
+
+---
+
 ## Custom View Slots
 
 | Slot | Signature | Replaces |
 |------|-----------|----------|
-| `headerView` | `() -> UIView` | Header above message list |
-| `footerView` | `() -> UIView` | Footer below message list |
-| `emptyStateView` | `() -> UIView` | Empty state display |
-| `errorStateView` | `() -> UIView` | Error state display |
-| `loadingStateView` | `() -> UIView` | Loading state display |
-| `newMessageIndicatorView` | `() -> UIView` | New message indicator |
+| `headerView` | `UIView` | Header above message list |
+| `footerView` | `UIView` | Footer below message list |
+| `emptyView` | `UIView` | Empty state display |
+| `errorView` | `UIView` | Error state display |
+| `loadingView` | `UIView` | Loading state display |
+| `newMessageIndicatorView` | `UIView` | New message indicator |
 
-### headerView
+### set(headerView:)
 
-Add a custom header above the message list.
+Replaces the default header with a custom view.
+
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default header above message list |
 
 ```swift
 import UIKit
@@ -387,9 +582,16 @@ headerView.addSubview(label)
 messageList.set(headerView: headerView)
 ```
 
-### footerView
+{/* TODO: Add screenshot showing headerView customization */}
 
-Add a custom footer below the message list.
+### set(footerView:)
+
+Replaces the default footer with a custom view.
+
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default footer below message list |
 
 ```swift
 import UIKit
@@ -417,9 +619,16 @@ footerView.addSubview(quickRepliesStack)
 messageList.set(footerView: footerView)
 ```
 
-### emptyStateView
+{/* TODO: Add screenshot showing footerView customization */}
 
-Customize the view shown when there are no messages.
+### set(emptyView:)
+
+Replaces the default empty state view with a custom view.
+
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default empty state when no messages exist |
 
 ```swift
 import UIKit
@@ -442,9 +651,44 @@ emptyView.addSubview(label)
 messageList.set(emptyView: emptyView)
 ```
 
-### loadingStateView
+### set(errorView:)
 
-Customize the loading indicator.
+Replaces the default error state view with a custom view.
+
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default error state when loading fails |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let errorView = UIView()
+let errorLabel = UILabel()
+errorLabel.text = "Something went wrong!"
+errorLabel.textColor = .red
+errorLabel.textAlignment = .center
+
+let retryButton = UIButton(type: .system)
+retryButton.setTitle("Retry", for: .normal)
+
+errorView.addSubview(errorLabel)
+errorView.addSubview(retryButton)
+
+messageList.set(errorView: errorView)
+```
+
+### set(loadingView:)
+
+Replaces the default loading indicator with a custom view.
+
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default loading indicator |
 
 ```swift
 import UIKit
@@ -459,25 +703,14 @@ loadingView.startAnimating()
 messageList.set(loadingView: loadingView)
 ```
 
-### errorStateView
+### set(newMessageIndicatorView:)
 
-Customize the error state view.
+Replaces the default new message indicator with a custom view.
 
-```swift
-import UIKit
-import CometChatUIKitSwift
-
-let messageList = CometChatMessageList()
-
-let errorLabel = UILabel()
-errorLabel.text = "Something went wrong!"
-errorLabel.textColor = .red
-messageList.set(errorView: errorLabel)
-```
-
-### newMessageIndicatorView
-
-Set a custom view for the unread message indicator.
+| | |
+|---|---|
+| Signature | `(UIView) -> Self` |
+| Replaces | Default new message indicator |
 
 ```swift
 import UIKit
@@ -533,6 +766,53 @@ let myCustomTextFormatter = MyCustomTextFormatter(trackingCharacter: "#")
 let cometChatMessages = CometChatMessages()
     .set(user: user)
     .set(textFormatter: [myCustomTextFormatter])
+```
+
+### set(textFormatters:)
+
+Sets custom text formatters for message text display.
+
+```swift
+@discardableResult
+public func set(textFormatters: [CometChatTextFormatter]) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `textFormatters` | `[CometChatTextFormatter]` | Array of text formatters to apply |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let hashtagFormatter = HashtagTextFormatter(trackingCharacter: "#")
+let mentionFormatter = MentionTextFormatter(trackingCharacter: "@")
+
+messageList.set(textFormatters: [hashtagFormatter, mentionFormatter])
+```
+
+### setMentionAllLabel(_:_:)
+
+Customizes the label displayed for @all mentions.
+
+```swift
+@discardableResult
+public func setMentionAllLabel(_ title: String, _ subtitle: String) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `title` | `String` | The title for the @all mention |
+| `subtitle` | `String` | The subtitle for the @all mention |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Customize the @all mention label
+messageList.setMentionAllLabel("Everyone", "Notify all members")
 ```
 
 You can create a custom text formatter:
@@ -594,6 +874,192 @@ class MyCustomTextFormatter: CometChatTextFormatter {
 
 ---
 
+## AI Features
+
+Configure AI-powered features for the message list.
+
+### enableSmartReplies
+
+Enables AI-powered smart reply suggestions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.enableSmartReplies = true
+```
+
+### enableConversationStarters
+
+Enables AI-powered conversation starter suggestions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.enableConversationStarters = true
+```
+
+### enableConversationSummary
+
+Enables AI-powered conversation summary feature.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.enableConversationSummary = true
+```
+
+### set(smartRepliesKeywords:)
+
+Sets keywords that trigger smart reply suggestions.
+
+```swift
+@discardableResult
+public func set(smartRepliesKeywords: [String]) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `smartRepliesKeywords` | `[String]` | Keywords that trigger smart replies |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Set keywords that trigger smart replies
+messageList.set(smartRepliesKeywords: ["help", "question", "support"])
+```
+
+### set(smartRepliesDelayDuration:)
+
+Sets the delay duration before showing smart reply suggestions.
+
+```swift
+@discardableResult
+public func set(smartRepliesDelayDuration: TimeInterval) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `smartRepliesDelayDuration` | `TimeInterval` | Delay in seconds before showing suggestions |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+// Set a 2-second delay before showing smart replies
+messageList.set(smartRepliesDelayDuration: 2.0)
+```
+
+---
+
+## Reactions Configuration
+
+Configure how reactions are displayed and behave in the message list.
+
+### reactionsConfiguration
+
+Configuration object for the reactions feature.
+
+| | |
+|---|---|
+| Type | `ReactionsConfiguration` |
+| Default | `ReactionsConfiguration()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let reactionsConfig = ReactionsConfiguration()
+reactionsConfig.reactionLimit = 5
+reactionsConfig.showReactionCount = true
+
+messageList.reactionsConfiguration = reactionsConfig
+```
+
+### reactionListConfiguration
+
+Configuration object for the reaction list display.
+
+| | |
+|---|---|
+| Type | `ReactionListConfiguration` |
+| Default | `ReactionListConfiguration()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let reactionListConfig = ReactionListConfiguration()
+reactionListConfig.showUserNames = true
+
+messageList.reactionListConfiguration = reactionListConfig
+```
+
+### quickReactionsConfiguration
+
+Configuration object for quick reactions.
+
+| | |
+|---|---|
+| Type | `QuickReactionsConfiguration` |
+| Default | `QuickReactionsConfiguration()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let quickReactionsConfig = QuickReactionsConfiguration()
+quickReactionsConfig.quickReactions = ["👍", "❤️", "😂", "😮", "😢"]
+
+messageList.quickReactionsConfiguration = quickReactionsConfig
+```
+
+### messageInformationConfiguration
+
+Configuration object for message information display.
+
+| | |
+|---|---|
+| Type | `MessageInformationConfiguration` |
+| Default | `MessageInformationConfiguration()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let messageInfoConfig = MessageInformationConfiguration()
+messageInfoConfig.showReadReceipts = true
+messageInfoConfig.showDeliveryReceipts = true
+
+messageList.messageInformationConfiguration = messageInfoConfig
+```
+
+---
+
 ## Styling
 
 ### Style Hierarchy
@@ -635,7 +1101,7 @@ messageList.style = messageListStyle
 ```
 
 <Frame>
-  <img src="/images/82d08739-message-list-style-25635b75554376a8c9ed3664cf61e44c.png" />
+  <img src="/images/82d08739-message-list-style-25635b75554376a8c9ed3664cf61e44c.png" alt="CometChatMessageList with custom styling applied showing modified background color and message bubble appearance" />
 </Frame>
 
 ### Key Style Properties
@@ -657,6 +1123,140 @@ messageList.style = messageListStyle
 | `newMessageIndicatorTextColor` | `UIColor?` | `nil` | New message indicator text color |
 | `newMessageIndicatorBackgroundColor` | `UIColor?` | `nil` | New message indicator background |
 
+### Style Properties
+
+#### emojiKeyboardStyle
+
+Customizes the appearance of the emoji keyboard.
+
+| | |
+|---|---|
+| Type | `EmojiKeyboardStyle` |
+| Default | `EmojiKeyboardStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let emojiKeyboardStyle = EmojiKeyboardStyle()
+emojiKeyboardStyle.backgroundColor = UIColor.systemBackground
+emojiKeyboardStyle.borderColor = UIColor.systemGray4
+
+messageList.emojiKeyboardStyle = emojiKeyboardStyle
+```
+
+#### dateSeparatorStyle
+
+Customizes the appearance of date separators between messages.
+
+| | |
+|---|---|
+| Type | `DateSeparatorStyle` |
+| Default | `DateSeparatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let dateSeparatorStyle = DateSeparatorStyle()
+dateSeparatorStyle.textColor = UIColor.secondaryLabel
+dateSeparatorStyle.textFont = UIFont.systemFont(ofSize: 12, weight: .medium)
+dateSeparatorStyle.backgroundColor = UIColor.systemGray6
+
+messageList.dateSeparatorStyle = dateSeparatorStyle
+```
+
+#### newMessageIndicatorStyle
+
+Customizes the appearance of the new message indicator.
+
+| | |
+|---|---|
+| Type | `NewMessageIndicatorStyle` |
+| Default | `NewMessageIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let newMessageIndicatorStyle = NewMessageIndicatorStyle()
+newMessageIndicatorStyle.textColor = UIColor.white
+newMessageIndicatorStyle.backgroundColor = UIColor.systemBlue
+newMessageIndicatorStyle.cornerRadius = 16
+
+messageList.newMessageIndicatorStyle = newMessageIndicatorStyle
+```
+
+#### messageBubbleStyle
+
+Customizes the appearance of message bubbles.
+
+| | |
+|---|---|
+| Type | `MessageBubbleStyle` |
+| Default | `MessageBubbleStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let messageBubbleStyle = MessageBubbleStyle()
+messageBubbleStyle.outgoing.backgroundColor = UIColor.systemBlue
+messageBubbleStyle.incoming.backgroundColor = UIColor.systemGray5
+messageBubbleStyle.outgoing.textColor = UIColor.white
+messageBubbleStyle.incoming.textColor = UIColor.label
+
+messageList.messageBubbleStyle = messageBubbleStyle
+```
+
+#### actionBubbleStyle
+
+Customizes the appearance of action message bubbles (e.g., group actions).
+
+| | |
+|---|---|
+| Type | `ActionBubbleStyle` |
+| Default | `ActionBubbleStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let actionBubbleStyle = ActionBubbleStyle()
+actionBubbleStyle.backgroundColor = UIColor.systemGray6
+actionBubbleStyle.textColor = UIColor.secondaryLabel
+actionBubbleStyle.textFont = UIFont.systemFont(ofSize: 13, weight: .regular)
+
+messageList.actionBubbleStyle = actionBubbleStyle
+```
+
+#### callActionBubbleStyle
+
+Customizes the appearance of call action message bubbles.
+
+| | |
+|---|---|
+| Type | `CallActionBubbleStyle` |
+| Default | `CallActionBubbleStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+let callActionBubbleStyle = CallActionBubbleStyle()
+callActionBubbleStyle.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.1)
+callActionBubbleStyle.iconTintColor = UIColor.systemGreen
+callActionBubbleStyle.textColor = UIColor.label
+
+messageList.callActionBubbleStyle = callActionBubbleStyle
+```
+
 ### Customization Matrix
 
 | What to change | Where | Property/API | Example |
@@ -677,6 +1277,33 @@ messageList.style = messageListStyle
 
 All props are optional. Sorted alphabetically.
 
+### actionBubbleStyle
+
+Customizes the appearance of action message bubbles.
+
+| | |
+|---|---|
+| Type | `ActionBubbleStyle` |
+| Default | `ActionBubbleStyle()` |
+
+### callActionBubbleStyle
+
+Customizes the appearance of call action message bubbles.
+
+| | |
+|---|---|
+| Type | `CallActionBubbleStyle` |
+| Default | `CallActionBubbleStyle()` |
+
+### dateSeparatorStyle
+
+Customizes the appearance of date separators.
+
+| | |
+|---|---|
+| Type | `DateSeparatorStyle` |
+| Default | `DateSeparatorStyle()` |
+
 ### disableSoundForMessages
 
 Disables notification sounds for new messages.
@@ -686,6 +1313,122 @@ Disables notification sounds for new messages.
 | Type | `Bool` |
 | Default | `false` |
 
+### disableSwipeToReply
+
+Disables the swipe-to-reply gesture on messages.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.disableSwipeToReply = true
+```
+
+### emojiKeyboardStyle
+
+Customizes the appearance of the emoji keyboard.
+
+| | |
+|---|---|
+| Type | `EmojiKeyboardStyle` |
+| Default | `EmojiKeyboardStyle()` |
+
+### emptySubtitleText
+
+Custom subtitle text for the empty state view.
+
+| | |
+|---|---|
+| Type | `String` |
+| Default | `""` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.emptySubtitleText = "Send a message to start the conversation"
+```
+
+### emptyTitleText
+
+Custom title text for the empty state view.
+
+| | |
+|---|---|
+| Type | `String` |
+| Default | `"No Messages"` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.emptyTitleText = "No messages yet"
+```
+
+### enableConversationStarters
+
+Enables AI-powered conversation starter suggestions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### enableConversationSummary
+
+Enables AI-powered conversation summary feature.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### enableSmartReplies
+
+Enables AI-powered smart reply suggestions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+### errorSubtitleText
+
+Custom subtitle text for the error state view.
+
+| | |
+|---|---|
+| Type | `String` |
+| Default | `""` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.errorSubtitleText = "Please check your connection and try again"
+```
+
+### errorTitleText
+
+Custom title text for the error state view.
+
+| | |
+|---|---|
+| Type | `String` |
+| Default | `"Something went wrong"` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.errorTitleText = "Unable to load messages"
+```
+
 ### hideAvatar
 
 Hides the sender's avatar in message bubbles.
@@ -694,6 +1437,22 @@ Hides the sender's avatar in message bubbles.
 |---|---|
 | Type | `Bool` |
 | Default | `false` |
+
+### hideBubbleHeader
+
+Hides the header section of message bubbles (sender name, timestamp).
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.hideBubbleHeader = true
+```
 
 ### hideCopyMessageOption
 
@@ -748,6 +1507,22 @@ Hides the error view when an error occurs.
 |---|---|
 | Type | `Bool` |
 | Default | `false` |
+
+### hideFlagMessageOption
+
+Hides the flag/report message option in message actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.hideFlagMessageOption = true
+```
 
 ### hideFooterView
 
@@ -839,6 +1614,38 @@ Hides the reply in thread option.
 | Type | `Bool` |
 | Default | `false` |
 
+### hideReplyMessageOption
+
+Hides the reply to message option in message actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.hideReplyMessageOption = true
+```
+
+### hideShareMessageOption
+
+Hides the share message option in message actions.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+messageList.hideShareMessageOption = true
+```
+
 ### hideTranslateMessageOption
 
 Hides the message translation option.
@@ -857,6 +1664,24 @@ Sets the alignment of messages in the list.
 | Type | `MessageAlignment` |
 | Default | `.standard` |
 
+### messageBubbleStyle
+
+Customizes the appearance of message bubbles.
+
+| | |
+|---|---|
+| Type | `MessageBubbleStyle` |
+| Default | `MessageBubbleStyle()` |
+
+### messageInformationConfiguration
+
+Configuration object for message information display.
+
+| | |
+|---|---|
+| Type | `MessageInformationConfiguration` |
+| Default | `MessageInformationConfiguration()` |
+
 ### messagesRequestBuilder
 
 Custom request builder for filtering messages.
@@ -865,6 +1690,42 @@ Custom request builder for filtering messages.
 |---|---|
 | Type | `MessagesRequest.MessageRequestBuilder?` |
 | Default | `nil` |
+
+### newMessageIndicatorStyle
+
+Customizes the appearance of the new message indicator.
+
+| | |
+|---|---|
+| Type | `NewMessageIndicatorStyle` |
+| Default | `NewMessageIndicatorStyle()` |
+
+### quickReactionsConfiguration
+
+Configuration object for quick reactions.
+
+| | |
+|---|---|
+| Type | `QuickReactionsConfiguration` |
+| Default | `QuickReactionsConfiguration()` |
+
+### reactionsConfiguration
+
+Configuration object for the reactions feature.
+
+| | |
+|---|---|
+| Type | `ReactionsConfiguration` |
+| Default | `ReactionsConfiguration()` |
+
+### reactionListConfiguration
+
+Configuration object for the reaction list display.
+
+| | |
+|---|---|
+| Type | `ReactionListConfiguration` |
+| Default | `ReactionListConfiguration()` |
 
 ### reactionsRequestBuilder
 
@@ -915,7 +1776,56 @@ Array of text formatters for customizing message text display.
 
 ## Events
 
-The MessageList component does not emit any global UI events. It relies on SDK listeners for real-time updates.
+The MessageList component provides callback events for handling state changes.
+
+### set(onLoad:)
+
+Fires when messages are successfully loaded.
+
+```swift
+@discardableResult
+public func set(onLoad: @escaping ([BaseMessage]) -> Void) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `onLoad` | `([BaseMessage]) -> Void` | Callback with loaded messages |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let messageList = CometChatMessageList()
+
+messageList.set(onLoad: { messages in
+    print("Loaded \(messages.count) messages")
+    // Perform analytics tracking or other actions
+})
+```
+
+### set(onEmpty:)
+
+Fires when the message list is empty.
+
+```swift
+@discardableResult
+public func set(onEmpty: @escaping () -> Void) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `onEmpty` | `() -> Void` | Callback when list is empty |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
+
+messageList.set(onEmpty: {
+    print("No messages found")
+    // Show custom empty state or prompt user to start conversation
+})
+```
 
 ---
 
@@ -955,6 +1865,19 @@ CometChatMessageList.dateTimeFormatter.otherDay = { timestamp in
 
 ### Instance Level Formatting
 
+#### set(datePattern:)
+
+Sets a custom date pattern for message timestamps.
+
+```swift
+@discardableResult
+public func set(datePattern: @escaping (Int?) -> String) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `datePattern` | `(Int?) -> String` | Closure that formats timestamp to date string |
+
 ```swift
 import CometChatUIKitSwift
 
@@ -967,6 +1890,25 @@ messageList.set(datePattern: { timestamp in
     formatter.dateFormat = "dd-MM-yyyy"
     return formatter.string(from: date)
 })
+```
+
+#### set(timePattern:)
+
+Sets a custom time pattern for message timestamps.
+
+```swift
+@discardableResult
+public func set(timePattern: @escaping (Int) -> String) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `timePattern` | `(Int) -> String` | Closure that formats timestamp to time string |
+
+```swift
+import CometChatUIKitSwift
+
+let messageList = CometChatMessageList()
 
 messageList.set(timePattern: { timestamp in
     let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
@@ -976,7 +1918,18 @@ messageList.set(timePattern: { timestamp in
 })
 ```
 
-### Date Separator Pattern
+#### set(dateSeparatorPattern:)
+
+Sets a custom pattern for date separators between messages.
+
+```swift
+@discardableResult
+public func set(dateSeparatorPattern: @escaping (Int?) -> String) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dateSeparatorPattern` | `(Int?) -> String` | Closure that formats timestamp to date separator string |
 
 ```swift
 import CometChatUIKitSwift

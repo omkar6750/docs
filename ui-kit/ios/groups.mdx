@@ -6,7 +6,7 @@ description: "Display and manage a list of groups with search functionality"
 The `CometChatGroups` component displays a searchable list of all available groups. It shows group names, avatars, member counts, and group type indicators (public/private/password-protected). Users can browse, join, and interact with group conversations.
 
 <Frame>
-  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" />
+  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" alt="CometChatGroups showing a searchable list of groups with avatars, names, member counts, and group type indicators" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -39,6 +39,7 @@ The `CometChatGroups` component displays a searchable list of all available grou
       "onItemLongClick": "(Group, IndexPath) -> Void",
       "onBack": "() -> Void",
       "onSelection": "([Group]) -> Void",
+      "onSelectedItemProceed": "([Group]) -> Void",
       "onError": "(CometChatException) -> Void",
       "onEmpty": "() -> Void",
       "onLoad": "([Group]) -> Void"
@@ -53,7 +54,13 @@ The `CometChatGroups` component displays a searchable list of all available grou
       "hideLoadingState": { "type": "Bool", "default": false }
     },
     "selection": {
-      "selectionMode": { "type": "SelectionMode", "default": ".none" }
+      "selectionMode": { "type": "SelectionMode", "default": ".none" },
+      "selectionLimit": { "type": "Int", "default": 0 },
+      "selectedCellCount": { "type": "Int", "default": 0 }
+    },
+    "styling": {
+      "avatarStyle": { "type": "AvatarStyle", "default": "AvatarStyle()" },
+      "statusIndicatorStyle": { "type": "StatusIndicatorStyle", "default": "StatusIndicatorStyle()" }
     },
     "viewSlots": {
       "listItemView": "(Group) -> UIView",
@@ -160,7 +167,7 @@ class GroupsViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" />
+  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" alt="CometChatGroups showing integration with navigation controller and group selection handling" />
 </Frame>
 
 ---
@@ -176,7 +183,7 @@ present(navController, animated: true)
 ```
 
 <Frame>
-  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" />
+  <img src="/images/a1ee9071-groups-ded5c6327532be7d5d09c0a491777f9b.png" alt="CometChatGroups showing minimal render with default configuration displaying group list" />
 </Frame>
 
 ---
@@ -289,6 +296,31 @@ groups.set(onSelection: { [weak self] selectedGroups in
 })
 ```
 
+#### onSelectedItemProceed
+
+Fires when the user confirms their selection by tapping the proceed/submit button. Use this to handle the final selection action.
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groups = CometChatGroups()
+groups.selectionMode = .multiple
+groups.selectionLimit = 5
+
+groups.onSelectedItemProceed = { [weak self] selectedGroups in
+    guard let self = self else { return }
+    
+    // Handle the selected groups
+    for group in selectedGroups {
+        print("Selected group: \(group.name ?? "")")
+    }
+    
+    // Proceed with the selection
+    self.processSelectedGroups(selectedGroups)
+}
+```
+
 #### onError
 
 Fires when an error occurs while loading groups.
@@ -340,6 +372,7 @@ groups.set(onLoad: { groups in
 | `set(onItemLongClick:)` | Triggered on long press | Show options menu |
 | `set(onBack:)` | Triggered when back button is pressed | Custom navigation |
 | `set(onSelection:)` | Triggered in selection mode | Multi-select groups |
+| `onSelectedItemProceed` | Triggered when selection is confirmed | Process selected groups |
 | `set(onError:)` | Triggered when an error occurs | Show error alert |
 | `set(onEmpty:)` | Triggered when list is empty | Show empty state |
 | `set(onLoad:)` | Triggered when groups load | Analytics tracking |
@@ -433,7 +466,7 @@ groups.set(listItemView: { group in
 ```
 
 <Frame>
-  <img src="/images/699f4044-group_list_item-2e7419d48b8185e5effd6cfd19e340b7.png" />
+  <img src="/images/699f4044-group_list_item-2e7419d48b8185e5effd6cfd19e340b7.png" alt="CometChatGroups with custom listItemView showing customized group row with avatar, title, member count, and join button" />
 </Frame>
 
 You can create a `CustomGroupCell` as a custom `UIView`:
@@ -558,7 +591,7 @@ groups.set(leadingView: { group in
 ```
 
 <Frame>
-  <img src="/images/7262c876-groupLeading-0104027a201b630d2a22c675886e8f17.png" />
+  <img src="/images/7262c876-groupLeading-0104027a201b630d2a22c675886e8f17.png" alt="CometChatGroups with custom leadingView showing customized avatar area with icon and join button" />
 </Frame>
 
 You can create a `CustomLeadingView` as a custom `UIView`:
@@ -625,7 +658,7 @@ groups.set(titleView: { group in
 ```
 
 <Frame>
-  <img src="/images/adc31834-groupTitle-be2f9110dcb78618c2505a5ab2944b8e.png" />
+  <img src="/images/adc31834-groupTitle-be2f9110dcb78618c2505a5ab2944b8e.png" alt="CometChatGroups with custom titleView showing group name with public badge indicator" />
 </Frame>
 
 You can create a `CustomTitleView` as a custom `UIView`:
@@ -719,7 +752,7 @@ groups.set(subtitleView: { group in
 ```
 
 <Frame>
-  <img src="/images/da6d6843-groups_subtitle_view-6e73eb325145dd0670dc66bbf32e41d0.png" />
+  <img src="/images/da6d6843-groups_subtitle_view-6e73eb325145dd0670dc66bbf32e41d0.png" alt="CometChatGroups with custom subtitleView showing member count and group description text" />
 </Frame>
 
 You can create a `CustomSubtitleView` as a custom `UIView`:
@@ -761,7 +794,7 @@ groups.set(trailView: { group in
 ```
 
 <Frame>
-  <img src="/images/146de2e1-groupTrail-2cd0321d94d83b2b9194d6182ef5bdde.png" />
+  <img src="/images/146de2e1-groupTrail-2cd0321d94d83b2b9194d6182ef5bdde.png" alt="CometChatGroups with custom trailingView showing joined status badge on the right side" />
 </Frame>
 
 You can create a `CustomTrailView` as a custom `UIView`:
@@ -859,7 +892,7 @@ groups.set(emptyView: emptyLabel)
 
 ### set(options:)
 
-Define custom options for each group. This method allows you to return an array of `CometChatGroupOption` based on the group object.
+Define custom swipe options for each group. This method allows you to return an array of `CometChatGroupOption` based on the group object. These options appear when the user swipes on a group cell.
 
 ```swift
 import CometChatUIKitSwift
@@ -868,13 +901,37 @@ import CometChatSDK
 let groups = CometChatGroups()
 
 groups.set(options: { group in
-    return [CometChatGroupOption]()
+    // Create a custom delete option
+    let deleteOption = CometChatGroupOption(
+        id: "delete",
+        title: "Delete",
+        icon: UIImage(systemName: "trash"),
+        backgroundColor: .systemRed,
+        onClick: { group, section, option, controller in
+            // Handle delete action
+            print("Delete group: \(group.name ?? "")")
+        }
+    )
+    
+    // Create a custom mute option
+    let muteOption = CometChatGroupOption(
+        id: "mute",
+        title: "Mute",
+        icon: UIImage(systemName: "bell.slash"),
+        backgroundColor: .systemOrange,
+        onClick: { group, section, option, controller in
+            // Handle mute action
+            print("Mute group: \(group.name ?? "")")
+        }
+    )
+    
+    return [deleteOption, muteOption]
 })
 ```
 
 ### add(options:)
 
-Dynamically add options to groups. This method lets you return additional `CometChatGroupOption` elements.
+Dynamically add additional swipe options to groups while preserving the default options. This method lets you return additional `CometChatGroupOption` elements that will be appended to the existing options.
 
 ```swift
 import CometChatUIKitSwift
@@ -883,8 +940,75 @@ import CometChatSDK
 let groups = CometChatGroups()
 
 groups.add(options: { group in
-    return [ArchiveOption()]
+    // Add a custom archive option
+    let archiveOption = CometChatGroupOption(
+        id: "archive",
+        title: "Archive",
+        icon: UIImage(systemName: "archivebox"),
+        backgroundColor: .systemBlue,
+        onClick: { group, section, option, controller in
+            // Handle archive action
+            print("Archive group: \(group.name ?? "")")
+        }
+    )
+    
+    return [archiveOption]
 })
+```
+
+---
+
+## Data Manipulation Methods
+
+### showJoiningGroupAlert(for:)
+
+Displays an alert dialog when a user attempts to join a password-protected group. This method shows a prompt for the user to enter the group password.
+
+```swift
+public func showJoiningGroupAlert(for group: Group)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `group` | `Group` | The password-protected group to join |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groups = CometChatGroups()
+
+// Show joining alert for a password-protected group
+groups.set(onItemClick: { [weak self] group, indexPath in
+    if group.groupType == .password && !group.hasJoined {
+        self?.groups.showJoiningGroupAlert(for: group)
+    } else {
+        // Navigate to group chat
+    }
+})
+```
+
+### hideJoiningGroupAlert(completion:)
+
+Dismisses the joining group alert dialog programmatically. Use this when you need to close the alert without user interaction.
+
+```swift
+public func hideJoiningGroupAlert(completion: (() -> Void)? = nil)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `completion` | `(() -> Void)?` | Optional closure called after the alert is dismissed |
+
+```swift
+import CometChatUIKitSwift
+
+let groups = CometChatGroups()
+
+// Hide the joining alert with a completion handler
+groups.hideJoiningGroupAlert {
+    print("Alert dismissed")
+}
 ```
 
 ---
@@ -964,6 +1088,29 @@ groups.style = customStyle
 ## Props
 
 All props are optional. Sorted alphabetically.
+
+### avatarStyle
+
+Customizes the appearance of avatars in group list items.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let groups = CometChatGroups()
+
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor.systemBlue
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
+avatarStyle.borderWidth = 1
+avatarStyle.borderColor = UIColor.systemGray4
+
+groups.set(avatarStyle: avatarStyle)
+```
 
 ### groupsRequestBuilder
 
@@ -1046,6 +1193,55 @@ Custom request builder for search functionality.
 | Type | `GroupsRequest.GroupsRequestBuilder?` |
 | Default | `nil` |
 
+### selectedCellCount
+
+Returns the count of currently selected groups when in selection mode.
+
+| | |
+|---|---|
+| Type | `Int` |
+| Default | `0` |
+
+```swift
+import CometChatUIKitSwift
+
+let groups = CometChatGroups()
+groups.selectionMode = .multiple
+
+// Get the count of selected groups
+let selectedCount = groups.selectedCellCount
+print("Selected \(selectedCount) groups")
+```
+
+### selectionLimit
+
+Sets the maximum number of groups that can be selected in selection mode. When the limit is reached, further selections are disabled.
+
+| | |
+|---|---|
+| Type | `Int` |
+| Default | `0` (unlimited) |
+
+```swift
+import CometChatUIKitSwift
+
+let groups = CometChatGroups()
+groups.selectionMode = .multiple
+
+// Limit selection to 5 groups
+groups.selectionLimit = 5
+
+// Handle selection confirmation
+groups.onSelectedItemProceed = { selectedGroups in
+    print("Selected \(selectedGroups.count) groups")
+    
+    // Process the selected groups
+    for group in selectedGroups {
+        print("Group: \(group.name ?? "")")
+    }
+}
+```
+
 ### selectionMode
 
 Sets the selection mode for multi-select functionality.
@@ -1054,6 +1250,28 @@ Sets the selection mode for multi-select functionality.
 |---|---|
 | Type | `SelectionMode` |
 | Default | `.none` |
+
+### statusIndicatorStyle
+
+Customizes the appearance of group type status indicators.
+
+| | |
+|---|---|
+| Type | `StatusIndicatorStyle` |
+| Default | `StatusIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let groups = CometChatGroups()
+
+let statusIndicatorStyle = StatusIndicatorStyle()
+statusIndicatorStyle.backgroundColor = UIColor.systemGreen
+statusIndicatorStyle.borderWidth = 2
+statusIndicatorStyle.borderColor = UIColor.white
+
+groups.set(statusIndicatorStyle: statusIndicatorStyle)
+```
 
 ---
 

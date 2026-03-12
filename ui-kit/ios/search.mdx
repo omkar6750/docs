@@ -7,7 +7,7 @@ description: "Search across conversations and messages with customizable filters
 The `CometChatSearch` component is a powerful and customizable search interface that allows users to search across conversations and messages in real time. It supports a wide variety of filters, scopes, and customization options.
 
 <Frame>
-  <img src="/images/android-search-overview.png" />
+  <img src="/images/android-search-overview.png" alt="CometChatSearch showing the search interface with search bar, filter options, and search results displaying conversations and messages" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -23,14 +23,46 @@ The `CometChatSearch` component is a powerful and customizable search interface 
     "type": "(BaseMessage) -> Void"
   },
   "props": {
+    "data": {
+      "user": { "type": "User?", "default": "nil", "note": "Limits search to specific user" },
+      "group": { "type": "Group?", "default": "nil", "note": "Limits search to specific group" },
+      "conversationsRequestBuilder": { "type": "ConversationsRequest.ConversationsRequestBuilder", "default": "SDK default" },
+      "messagesRequestBuilder": { "type": "MessagesRequest.MessageRequestBuilder", "default": "SDK default" }
+    },
     "callbacks": {
       "onConversationClicked": "(Conversation) -> Void",
       "onMessageClicked": "(BaseMessage) -> Void",
       "onBack": "() -> Void",
-      "onError": "(CometChatException) -> Void"
+      "onError": "(CometChatException) -> Void",
+      "onEmpty": "() -> Void"
     },
     "visibility": {
-      "hideNavigationBar": { "type": "Bool", "default": false }
+      "hideNavigationBar": { "type": "Bool", "default": false },
+      "hideBackButton": { "type": "Bool", "default": false },
+      "hideUserStatus": { "type": "Bool", "default": false },
+      "hideGroupType": { "type": "Bool", "default": false },
+      "hideReceipts": { "type": "Bool", "default": false }
+    },
+    "search": {
+      "searchFilters": { "type": "[SearchFilter]", "default": "All available filters" },
+      "initialSearchFilter": { "type": "SearchFilter?", "default": "nil" },
+      "searchIn": { "type": "[SearchScope]", "default": "[.conversations, .messages]" }
+    },
+    "viewSlots": {
+      "listItemViewForConversation": "(Conversation) -> UIView",
+      "leadingViewForConversation": "(Conversation) -> UIView",
+      "titleViewForConversation": "(Conversation) -> UIView",
+      "subtitleViewForConversation": "(Conversation) -> UIView",
+      "tailViewForConversation": "(Conversation) -> UIView",
+      "listItemViewForMessage": "(BaseMessage) -> UIView",
+      "leadingViewForMessage": "(BaseMessage) -> UIView",
+      "titleViewForMessage": "(BaseMessage) -> UIView",
+      "subtitleViewForMessage": "(BaseMessage) -> UIView",
+      "trailingViewForMessage": "(BaseMessage) -> UIView",
+      "initialView": "UIView",
+      "loadingView": "UIView",
+      "emptyView": "UIView",
+      "errorView": "UIView"
     }
   },
   "events": [],
@@ -55,6 +87,8 @@ The `CometChatSearch` component is a powerful and customizable search interface 
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let search = CometChatSearch()
 self.navigationController?.pushViewController(search, animated: true)
 ```
@@ -74,6 +108,9 @@ Triggered when you click on a Conversation from the search result. This action d
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
 search.onConversationClicked = { conversation in
     print("Conversation clicked:", conversation.conversationId)
 }
@@ -90,6 +127,9 @@ Triggered when you click on a Message from the search result. This action doesn'
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
 search.onMessageClicked = { message in
     print("Message clicked:", message.id)
 }
@@ -106,6 +146,9 @@ Triggered when you click on the back button of the search component.
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
 search.onBack = {
     self.navigationController?.popViewController(animated: true)
 }
@@ -122,6 +165,9 @@ Listens for any errors that occur in the Search component. This action doesn't c
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
 search.set(onError: { error in
     print("Search error:", error.localizedDescription)
 })
@@ -138,6 +184,9 @@ Listens for the empty state of the Search component. This action doesn't change 
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
 search.set(onEmpty: {
     print("No results found")
 })
@@ -161,6 +210,10 @@ The `SearchScope` enum defines what types of content to search:
 | `.messages` | Search in messages |
 
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
+
 // Search only in messages
 search.set(searchIn: [.messages])
 
@@ -183,6 +236,10 @@ The `SearchFilter` enum defines available filter options:
 | `.audio` | Filter by audio messages |
 
 ```swift
+import CometChatUIKitSwift
+
+let search = CometChatSearch()
+
 // Set available filters with an initial selection
 search.set(searchFilters: [.unread, .groups, .photos, .videos], initialFilter: .photos)
 ```
@@ -194,9 +251,13 @@ Set the `ConversationsRequestBuilder` in the Search Component to filter the sear
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
 let convBuilder = ConversationsRequest.ConversationsRequestBuilder()
     .set(limit: 20)
 
+let search = CometChatSearch()
 search.set(conversationsRequestBuilder: convBuilder)
 ```
 </Tab>
@@ -211,10 +272,14 @@ Set the `MessagesRequestBuilder` in the Search Component to filter the search re
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
 let msgBuilder = MessagesRequest.MessageRequestBuilder()
     .set(limit: 30)
     .hide(deletedMessages: true)
 
+let search = CometChatSearch()
 search.set(messagesRequestBuilder: msgBuilder)
 ```
 </Tab>
@@ -239,12 +304,14 @@ To fit your app's design requirements, you can customize the appearance of the `
 Using Style, you can customize the look and feel of the component in your app. These parameters typically control elements such as the color, size, shape, and fonts used within the component.
 
 <Frame>
-  <img src="/images/android-search-style.png" />
+  <img src="/images/android-search-style.png" alt="CometChatSearch with custom styling showing modified background color, list item styling, and custom fonts applied" />
 </Frame>
 
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 // Instance-level styling
 let style = SearchStyle()
 style.backgroundColor = UIColor(hex: "#EDEAFA")
@@ -279,12 +346,15 @@ These are small functional customizations that allow you to fine-tune the overal
 | group                     | Restrict search to a group                            | `search.group = group`                                               |
 | hideUserStatus            | Hide online/offline indicator                         | `search.hideUserStatus = true`                                       |
 | hideGroupType             | Hide group type icon                                  | `search.hideGroupType = true`                                        |
+| hideBackButton            | Hide the back button                                  | `search.hideBackButton = true`                                       |
+| hideReceipts              | Hide message read/delivery receipt indicators         | `search.hideReceipts = true`                                         |
 | searchFilters             | Filters like "Unread", "Groups", "Photos", etc.       | `search.set(searchFilters: [.unread, .groups, .photos])`             |
 | initialSearchFilter       | Default filter to apply on load                       | `search.set(searchFilters: [...], initialFilter: .photos)`           |
 | searchIn (searchScopes)   | Restrict search: messages / conversations / both      | `search.set(searchIn: [.messages, .conversations])`                  |
 | loadingView               | Custom loader view                                    | `search.set(loadingView: spinner)`                                   |
 | emptyView                 | Custom empty result view                              | `search.set(emptyView: emptyView)`                                   |
 | errorView                 | Custom error UI                                       | `search.set(errorView: errorView)`                                   |
+| initialView               | Custom view before search query is entered            | `search.set(initialView: initialView)`                               |
 | disableTyping             | Disable typing indicators                             | `search.disableTyping = true`                                        |
 | disableSoundForMessages   | Disable message sounds                                | `search.disableSoundForMessages = true`                              |
 | customSoundForMessages    | Custom sound URL for messages                         | `search.customSoundForMessages = URL(string: "...")`                 |
@@ -308,6 +378,8 @@ For advanced-level customization, you can set custom views to the component. Thi
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let searchVC = CometChatSearch()
 
 searchVC.set(listItemViewForConversation: { conversation in
@@ -328,6 +400,8 @@ Here's how you can override the default message item view with a custom one for 
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let searchVC = CometChatSearch()
 searchVC.set(listItemViewForMessage: { message in
     return SearchMessageItemView()
@@ -337,7 +411,7 @@ searchVC.set(listItemViewForMessage: { message in
 </Tabs>
 
 <Frame>
-  <img src="/images/android-custom-text-message-item.png" />
+  <img src="/images/android-custom-text-message-item.png" alt="CometChatSearch with custom message item view showing sender name and message text in a customized layout with purple accent styling" />
 </Frame>
 
 Custom view implementation:
@@ -467,6 +541,8 @@ Available message item view functions for customization:
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let searchVC = CometChatSearch()
 
 // Custom view for image messages
@@ -507,6 +583,110 @@ searchVC.set(listItemViewForLink: { mediaMessage in
 </Tab>
 </Tabs>
 
+#### Message Granular View Customization
+
+For more granular control over message search results, you can customize individual parts of the message item:
+
+| Function                    | Description                                              |
+|-----------------------------|----------------------------------------------------------|
+| leadingViewForMessage       | Replaces the message avatar / left section               |
+| titleViewForMessage         | Replaces the message title text                          |
+| subtitleViewForMessage      | Replaces the message subtitle text                       |
+| trailingViewForMessage      | Replaces the message trailing section                    |
+
+<Tabs>
+<Tab title="Swift">
+```swift
+import CometChatUIKitSwift
+
+let searchVC = CometChatSearch()
+
+// Custom leading view for messages (avatar area)
+searchVC.set(leadingViewForMessage: { message in
+    let customView = UIView()
+    customView.backgroundColor = .systemPurple
+    customView.layer.cornerRadius = 24
+    // Configure custom leading view
+    return customView
+})
+
+// Custom title view for messages
+searchVC.set(titleViewForMessage: { message in
+    let label = UILabel()
+    label.text = message.sender?.name ?? "Unknown"
+    label.font = .boldSystemFont(ofSize: 16)
+    return label
+})
+
+// Custom subtitle view for messages
+searchVC.set(subtitleViewForMessage: { message in
+    let label = UILabel()
+    if let textMessage = message as? TextMessage {
+        label.text = textMessage.text
+    } else {
+        label.text = message.type
+    }
+    label.textColor = .secondaryLabel
+    return label
+})
+
+// Custom trailing view for messages
+searchVC.set(trailingViewForMessage: { message in
+    let label = UILabel()
+    let date = Date(timeIntervalSince1970: TimeInterval(message.sentAt))
+    let formatter = DateFormatter()
+    formatter.dateFormat = "HH:mm"
+    label.text = formatter.string(from: date)
+    label.font = .systemFont(ofSize: 12)
+    label.textColor = .tertiaryLabel
+    return label
+})
+```
+</Tab>
+</Tabs>
+
+#### Initial View
+
+Customize the view displayed before the user enters a search query using the `initialView` property.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+import CometChatUIKitSwift
+
+let searchVC = CometChatSearch()
+
+// Create a custom initial view
+let initialView = UIView()
+let imageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+imageView.tintColor = .systemGray
+imageView.contentMode = .scaleAspectFit
+imageView.translatesAutoresizingMaskIntoConstraints = false
+
+let label = UILabel()
+label.text = "Search for conversations and messages"
+label.textColor = .secondaryLabel
+label.textAlignment = .center
+label.translatesAutoresizingMaskIntoConstraints = false
+
+initialView.addSubview(imageView)
+initialView.addSubview(label)
+
+NSLayoutConstraint.activate([
+    imageView.centerXAnchor.constraint(equalTo: initialView.centerXAnchor),
+    imageView.centerYAnchor.constraint(equalTo: initialView.centerYAnchor, constant: -20),
+    imageView.widthAnchor.constraint(equalToConstant: 60),
+    imageView.heightAnchor.constraint(equalToConstant: 60),
+    label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16),
+    label.leadingAnchor.constraint(equalTo: initialView.leadingAnchor, constant: 20),
+    label.trailingAnchor.constraint(equalTo: initialView.trailingAnchor, constant: -20)
+])
+
+searchVC.set(initialView: initialView)
+```
+</Tab>
+</Tabs>
+
 ---
 
 #### Mention Configuration
@@ -516,6 +696,8 @@ Configure how @all mentions appear in search results using the `setMentionAllLab
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let searchVC = CometChatSearch()
 
 // Set a custom label for @all mentions
@@ -533,6 +715,8 @@ By providing a custom implementation of the DateTimeFormatterCallback, you can c
 <Tabs>
 <Tab title="Swift">
 ```swift
+import CometChatUIKitSwift
+
 let searchVC = CometChatSearch()
 
 searchVC.dateTimeFormatter.today = { timestamp in

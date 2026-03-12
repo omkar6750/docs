@@ -6,7 +6,7 @@ description: "Display and handle incoming voice and video calls"
 The `CometChatIncomingCall` component serves as a visual representation when the user receives an incoming call, such as a voice call or video call, providing options to answer or decline the call.
 
 <Frame>
-  <img src="/images/6525dce0-incoming_calls-8346d43a997a18a002a647504faa7760.png" />
+  <img src="/images/6525dce0-incoming_calls-8346d43a997a18a002a647504faa7760.png" alt="CometChatIncomingCall showing incoming call interface with caller avatar, name, and accept/reject buttons" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -270,7 +270,7 @@ incomingCall.avatarStyle = customAvatarStyle
 </Tabs>
 
 <Frame>
-  <img src="/images/2dded815-incoming_call_style-e41f894682eb0af5320d0b30e20f7d91.png" />
+  <img src="/images/2dded815-incoming_call_style-e41f894682eb0af5320d0b30e20f7d91.png" alt="CometChatIncomingCall with custom styling showing custom fonts and rounded button corners" />
 </Frame>
 
 List of properties exposed by IncomingCallStyle:
@@ -332,7 +332,7 @@ cometChatIncomingCall.set(listItemView: { call in
 Demonstration:
 
 <Frame>
-  <img src="/images/40b34830-incomingListItem-c64bca25cd22223a9cc4c74cb1a59370.png" />
+  <img src="/images/40b34830-incomingListItem-c64bca25cd22223a9cc4c74cb1a59370.png" alt="CometChatIncomingCall with custom list item view showing compact call notification with avatar and action buttons" />
 </Frame>
 
 You can create a CustomListItemView as a custom `UIView`:
@@ -457,7 +457,7 @@ cometChatIncomingCall.set(leadingView: { call in
 Demonstration:
 
 <Frame>
-  <img src="/images/a8f3c67b-incomingLeading-b70fbea174f8314b07113482f1a481a0.png" />
+  <img src="/images/a8f3c67b-incomingLeading-b70fbea174f8314b07113482f1a481a0.png" alt="CometChatIncomingCall with custom leading view showing PRO USER badge with star icon" />
 </Frame>
 
 You can create a CustomLeadingView as a custom `UIView`:
@@ -542,7 +542,7 @@ cometChatIncomingCall.set(titleView: { call in
 Demonstration:
 
 <Frame>
-  <img src="/images/91c0b857-incomingTitle-109530b696995eed7a6f86511c640dac.png" />
+  <img src="/images/91c0b857-incomingTitle-109530b696995eed7a6f86511c640dac.png" alt="CometChatIncomingCall with custom title view showing Voice Call label with Important tag" />
 </Frame>
 
 You can create a `CustomTitleView` as a custom `UIView` which we will inflate in `setTitleView()`:
@@ -622,6 +622,121 @@ class CustomTitleView: UIView {
         ])
     }
 }
+```
+</Tab>
+</Tabs>
+
+---
+
+## Props
+
+All props are optional unless noted.
+
+---
+
+### call
+
+The incoming call object to display.
+
+| | |
+|---|---|
+| Type | `Call` |
+| Default | Auto-detected |
+
+---
+
+### disableSoundForCalls
+
+Disables the incoming call ringtone.
+
+| | |
+|---|---|
+| Type | `Bool` |
+| Default | `false` |
+
+---
+
+### customSoundForCalls
+
+Custom sound file URL for incoming calls.
+
+| | |
+|---|---|
+| Type | `URL?` |
+| Default | `nil` |
+
+---
+
+### avatarStyle
+
+Customizes the appearance of the caller's avatar.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let customAvatarStyle = AvatarStyle()
+customAvatarStyle.backgroundColor = UIColor.systemPurple
+customAvatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
+
+let incomingCall = CometChatIncomingCall()
+incomingCall.avatarStyle = customAvatarStyle
+```
+
+---
+
+## Events
+
+Events emitted by the Incoming Call component:
+
+| Event | Description |
+|-------|-------------|
+| `onIncomingCallAccepted` | Triggers when the logged-in user accepts the incoming call |
+| `onIncomingCallRejected` | Triggers when the logged-in user rejects the incoming call |
+| `onCallEnded` | Triggers when the call ends |
+
+---
+
+## View Slots
+
+| Slot | Signature | Replaces |
+|------|-----------|----------|
+| `listItemView` | `(Call) -> UIView` | Entire list item |
+| `leadingView` | `(Call) -> UIView` | Avatar / left section |
+| `titleView` | `(Call) -> UIView` | Name / title text |
+| `subtitleView` | `(Call) -> UIView` | Subtitle text (call type) |
+| `trailingView` | `(Call) -> UIView` | Right section |
+
+### subtitleView
+
+You can customize the subtitle view of an incoming call component using the property below.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+cometChatIncomingCall.set(subtitleView: { call in
+    let view = CustomSubtitleView()
+    return view
+})
+```
+</Tab>
+</Tabs>
+
+### trailingView
+
+You can customize the trailing view of an incoming call component using the property below.
+
+<Tabs>
+<Tab title="Swift">
+```swift
+cometChatIncomingCall.set(trailingView: { call in
+    let view = CustomTrailingView()
+    return view
+})
 ```
 </Tab>
 </Tabs>

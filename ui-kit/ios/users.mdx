@@ -6,7 +6,7 @@ description: "Display and manage a list of users with search functionality"
 The `CometChatUsers` component displays a searchable list of all available users. It shows user names, avatars, and online/offline status indicators. Users can be filtered, searched, and selected for starting conversations.
 
 <Frame>
-  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" />
+  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" alt="CometChatUsers showing a searchable list of users with avatars, names, and online/offline status indicators" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -39,6 +39,7 @@ The `CometChatUsers` component displays a searchable list of all available users
       "onItemLongClick": "(User, IndexPath) -> Void",
       "onBack": "() -> Void",
       "onSelection": "([User]) -> Void",
+      "onSelectedItemProceed": "([User]) -> Void",
       "onError": "(CometChatException) -> Void",
       "onEmpty": "() -> Void",
       "onLoad": "([[User]]) -> Void"
@@ -53,7 +54,13 @@ The `CometChatUsers` component displays a searchable list of all available users
       "hideLoadingState": { "type": "Bool", "default": false }
     },
     "selection": {
-      "selectionMode": { "type": "SelectionMode", "default": ".none" }
+      "selectionMode": { "type": "SelectionMode", "default": ".none" },
+      "selectionLimit": { "type": "Int", "default": 0, "note": "0 means unlimited" },
+      "selectedCellCount": { "type": "Int", "default": 0, "note": "Read-only count of selected users" }
+    },
+    "styling": {
+      "avatarStyle": { "type": "AvatarStyle", "default": "AvatarStyle()" },
+      "statusIndicatorStyle": { "type": "StatusIndicatorStyle", "default": "StatusIndicatorStyle()" }
     },
     "viewSlots": {
       "listItemView": "(User) -> UIView",
@@ -64,6 +71,18 @@ The `CometChatUsers` component displays a searchable list of all available users
       "emptyStateView": "() -> UIView",
       "errorStateView": "() -> UIView",
       "loadingStateView": "() -> UIView"
+    }
+  },
+  "methods": {
+    "swipeActions": {
+      "set(options:)": "((User?) -> [CometChatUserOption])? - Sets custom swipe actions",
+      "add(options:)": "((User?) -> [CometChatUserOption])? - Adds additional swipe actions"
+    },
+    "dataManipulation": {
+      "add(user:)": "User - Adds a user to the list",
+      "update(user:)": "User - Updates a user in the list",
+      "remove(user:)": "User - Removes a user from the list",
+      "getSelectedUsers()": "[User] - Returns selected users"
     }
   },
   "events": [
@@ -143,7 +162,7 @@ class UsersViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" />
+  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" alt="CometChatUsers displaying the user list within a navigation controller hierarchy" />
 </Frame>
 
 ---
@@ -159,7 +178,7 @@ present(navController, animated: true)
 ```
 
 <Frame>
-  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" />
+  <img src="/images/9f8c3cd6-users-fc584f14cdd688426b25887ffd43c5bc.png" alt="CometChatUsers showing the minimal render with default configuration" />
 </Frame>
 
 ---
@@ -439,7 +458,7 @@ users.set(leadingView: { user in
 ```
 
 <Frame>
-  <img src="/images/085ec6a0-userLeading-6b8755d5eaaf247786fa0a9297fd4172.png" />
+  <img src="/images/085ec6a0-userLeading-6b8755d5eaaf247786fa0a9297fd4172.png" alt="CometChatUsers with custom leadingView showing user avatars with a star badge overlay" />
 </Frame>
 
 You can create a `CustomLeadingView` as a custom `UIView`:
@@ -528,7 +547,7 @@ users.set(titleView: { user in
 ```
 
 <Frame>
-  <img src="/images/a9bd9375-userTitle-118d500b83f6e42c6f8341d1783a5018.png" />
+  <img src="/images/a9bd9375-userTitle-118d500b83f6e42c6f8341d1783a5018.png" alt="CometChatUsers with custom titleView showing user names with a green Teacher badge" />
 </Frame>
 
 You can create a `CustomTitleView` as a custom `UIView`:
@@ -604,7 +623,7 @@ users.set(subtitleView: { user in
 ```
 
 <Frame>
-  <img src="/images/70eebf4a-users_subtitle_view-366dec214ed04fac2a1755f16276f147.png" />
+  <img src="/images/70eebf4a-users_subtitle_view-366dec214ed04fac2a1755f16276f147.png" alt="CometChatUsers with custom subtitleView showing last active timestamp below user names" />
 </Frame>
 
 You can create a `CustomSubtitleView` as a custom `UIView`:
@@ -646,7 +665,7 @@ users.set(trailView: { user in
 ```
 
 <Frame>
-  <img src="/images/5e25bdf1-userTrailing-c84120b7e1b54ed5a37bcd521ddbe936.png" />
+  <img src="/images/5e25bdf1-userTrailing-c84120b7e1b54ed5a37bcd521ddbe936.png" alt="CometChatUsers with custom trailingView showing a purple PRO badge with star icon" />
 </Frame>
 
 You can create a `CustomTrailView` as a custom `UIView`:
@@ -762,26 +781,113 @@ users.set(emptyView: emptyLabel)
 
 ---
 
-## Options
+## Methods
 
-### set(options:)
+### Swipe Action Methods
 
-Define custom options for each user. This method allows you to return an array of `CometChatUserOption` based on the user object.
+#### set(options:)
+
+Sets custom swipe actions for user list items, replacing the default options. These options appear when the user swipes on a user cell.
 
 ```swift
+@discardableResult
+public func set(options: ((_ user: User?) -> [CometChatUserOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((User?) -> [CometChatUserOption])?` | Closure that returns an array of swipe action options for a user |
+
+```swift
+import UIKit
 import CometChatUIKitSwift
 import CometChatSDK
 
 let users = CometChatUsers()
 
 users.set(options: { user in
-    return [CometChatUserOption]()
+    var options = [CometChatUserOption]()
+    
+    // Add block option
+    let blockOption = CometChatUserOption(
+        id: "block",
+        title: "Block",
+        icon: UIImage(systemName: "hand.raised"),
+        backgroundColor: .systemRed
+    ) { selectedUser in
+        // Handle block action
+        print("Block user: \(selectedUser?.name ?? "")")
+    }
+    options.append(blockOption)
+    
+    // Add message option
+    let messageOption = CometChatUserOption(
+        id: "message",
+        title: "Message",
+        icon: UIImage(systemName: "message"),
+        backgroundColor: .systemBlue
+    ) { selectedUser in
+        // Handle message action
+        print("Message user: \(selectedUser?.name ?? "")")
+    }
+    options.append(messageOption)
+    
+    return options
 })
 ```
 
-### add(options:)
+#### add(options:)
 
-Dynamically add options to users. This method lets you return additional `CometChatUserOption` elements.
+Adds additional swipe actions to the existing default options.
+
+```swift
+@discardableResult
+public func add(options: ((_ user: User?) -> [CometChatUserOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((User?) -> [CometChatUserOption])?` | Closure that returns additional swipe action options to append |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let users = CometChatUsers()
+
+users.add(options: { user in
+    var options = [CometChatUserOption]()
+    
+    // Add favorite option
+    let favoriteOption = CometChatUserOption(
+        id: "favorite",
+        title: "Favorite",
+        icon: UIImage(systemName: "star.fill"),
+        backgroundColor: .systemOrange
+    ) { selectedUser in
+        print("Favorite user: \(selectedUser?.name ?? "")")
+    }
+    options.append(favoriteOption)
+    
+    return options
+})
+```
+
+### Data Manipulation Methods
+
+#### add(user:)
+
+Adds a new user to the user list.
+
+```swift
+@discardableResult
+public func add(user: User) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `user` | `User` | The user to add to the list |
 
 ```swift
 import CometChatUIKitSwift
@@ -789,9 +895,82 @@ import CometChatSDK
 
 let users = CometChatUsers()
 
-users.add(options: { user in
-    return [ArchiveOption()]
-})
+// Add a user programmatically
+let newUser = User(uid: "user-123", name: "John Doe")
+users.add(user: newUser)
+```
+
+#### update(user:)
+
+Updates an existing user in the list.
+
+```swift
+@discardableResult
+public func update(user: User) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `user` | `User` | The user with updated information |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let users = CometChatUsers()
+
+// Update a user's information
+if var existingUser = userToUpdate {
+    existingUser.name = "Updated Name"
+    users.update(user: existingUser)
+}
+```
+
+#### remove(user:)
+
+Removes a user from the list.
+
+```swift
+@discardableResult
+public func remove(user: User) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `user` | `User` | The user to remove from the list |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let users = CometChatUsers()
+
+// Remove a user from the UI
+users.remove(user: userToRemove)
+```
+
+#### getSelectedUsers()
+
+Returns an array of currently selected users when in selection mode.
+
+```swift
+public func getSelectedUsers() -> [User]
+```
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let users = CometChatUsers()
+users.selectionMode = .multiple
+
+// Get all selected users
+let selectedUsers = users.getSelectedUsers()
+print("Selected \(selectedUsers.count) users")
+
+for user in selectedUsers {
+    print("User: \(user.name ?? "")")
+}
 ```
 
 ---
@@ -801,7 +980,7 @@ users.add(options: { user in
 For more complex or unique list items, you can create a custom `UIView` file named `CustomListItem` and integrate it into the `set(listItemView:)` method.
 
 <Frame>
-  <img src="/images/51ba830e-user_list_item-b35edc939531686f2495659d7b7c99b9.png" />
+  <img src="/images/51ba830e-user_list_item-b35edc939531686f2495659d7b7c99b9.png" alt="CometChatUsers with custom listItemView showing a simplified user row with avatar and name" />
 </Frame>
 
 ```swift
@@ -921,7 +1100,7 @@ users.style = customStyle
 ```
 
 <Frame>
-  <img src="/images/86da41df-users_style-ad9cd93f76d5d1b5062c1bb585a8ef4a.png" />
+  <img src="/images/86da41df-users_style-ad9cd93f76d5d1b5062c1bb585a8ef4a.png" alt="CometChatUsers with custom styling showing modified background colors and text appearance" />
 </Frame>
 
 ### Key Style Properties
@@ -959,6 +1138,29 @@ users.style = customStyle
 ## Props
 
 All props are optional. Sorted alphabetically.
+
+### avatarStyle
+
+Customizes the appearance of avatars in user list items.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let users = CometChatUsers()
+
+let avatarStyle = AvatarStyle()
+avatarStyle.backgroundColor = UIColor.systemBlue
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 8)
+avatarStyle.borderWidth = 1
+avatarStyle.borderColor = UIColor.systemGray4
+
+users.set(avatarStyle: avatarStyle)
+```
 
 ### hideBackButton
 
@@ -1023,6 +1225,33 @@ Hides online/offline status indicators.
 | Type | `Bool` |
 | Default | `false` |
 
+### onSelectedItemProceed
+
+Callback triggered when the user confirms their selection in selection mode. Use this to handle the selected users.
+
+| | |
+|---|---|
+| Type | `(([User]) -> Void)?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let users = CometChatUsers()
+users.selectionMode = .multiple
+users.selectionLimit = 5
+
+users.onSelectedItemProceed = { selectedUsers in
+    print("Proceeding with \(selectedUsers.count) users")
+    
+    // Process the selected users
+    for user in selectedUsers {
+        print("User: \(user.name ?? "")")
+    }
+}
+```
+
 ### searchRequestBuilder
 
 Custom request builder for search functionality.
@@ -1032,6 +1261,44 @@ Custom request builder for search functionality.
 | Type | `UsersRequest.UsersRequestBuilder?` |
 | Default | `nil` |
 
+### selectedCellCount
+
+Returns the count of currently selected users in selection mode.
+
+| | |
+|---|---|
+| Type | `Int` |
+| Default | `0` |
+
+### selectionLimit
+
+Sets the maximum number of users that can be selected in selection mode. When the limit is reached, further selections are disabled.
+
+| | |
+|---|---|
+| Type | `Int` |
+| Default | `0` (unlimited) |
+
+```swift
+import CometChatUIKitSwift
+
+let users = CometChatUsers()
+users.selectionMode = .multiple
+
+// Limit selection to 5 users
+users.selectionLimit = 5
+
+// Handle selection confirmation
+users.onSelectedItemProceed = { selectedUsers in
+    print("Selected \(selectedUsers.count) users")
+    
+    // Process the selected users
+    for user in selectedUsers {
+        print("User: \(user.name ?? "")")
+    }
+}
+```
+
 ### selectionMode
 
 Sets the selection mode for multi-select functionality.
@@ -1040,6 +1307,28 @@ Sets the selection mode for multi-select functionality.
 |---|---|
 | Type | `SelectionMode` |
 | Default | `.none` |
+
+### statusIndicatorStyle
+
+Customizes the appearance of online/offline status indicators.
+
+| | |
+|---|---|
+| Type | `StatusIndicatorStyle` |
+| Default | `StatusIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let users = CometChatUsers()
+
+let statusIndicatorStyle = StatusIndicatorStyle()
+statusIndicatorStyle.backgroundColor = UIColor.systemGreen
+statusIndicatorStyle.borderWidth = 2
+statusIndicatorStyle.borderColor = UIColor.white
+
+users.set(statusIndicatorStyle: statusIndicatorStyle)
+```
 
 ### usersRequestBuilder
 

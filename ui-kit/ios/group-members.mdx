@@ -6,7 +6,7 @@ description: "Display and manage members of a CometChat group"
 The `CometChatGroupMembers` component displays all members of a group with their roles (owner, admin, moderator, participant). It supports member management actions like kick, ban, and role changes based on the logged-in user's permissions.
 
 <Frame>
-  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
+  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" alt="CometChatGroupMembers showing a list of group members with their avatars, names, and role badges indicating owner, admin, moderator, and participant status" />
 </Frame>
 
 <Accordion title="AI Agent Component Spec">
@@ -39,6 +39,7 @@ The `CometChatGroupMembers` component displays all members of a group with their
       "onItemLongClick": "(GroupMember, IndexPath) -> Void",
       "onBack": "() -> Void",
       "onSelection": "([GroupMember]) -> Void",
+      "onSelectedItemProceed": "([GroupMember]) -> Void",
       "onError": "(CometChatException) -> Void",
       "onEmpty": "() -> Void",
       "onLoad": "([GroupMember]) -> Void"
@@ -57,6 +58,10 @@ The `CometChatGroupMembers` component displays all members of a group with their
     "selection": {
       "selectionMode": { "type": "SelectionMode", "default": ".none" }
     },
+    "styling": {
+      "avatarStyle": { "type": "AvatarStyle", "default": "AvatarStyle()" },
+      "statusIndicatorStyle": { "type": "StatusIndicatorStyle", "default": "StatusIndicatorStyle()" }
+    },
     "viewSlots": {
       "listItemView": "(GroupMember?) -> UIView",
       "leadingView": "(GroupMember?) -> UIView",
@@ -66,6 +71,20 @@ The `CometChatGroupMembers` component displays all members of a group with their
       "emptyStateView": "UIView",
       "errorStateView": "UIView",
       "loadingStateView": "UIView"
+    }
+  },
+  "methods": {
+    "swipeActions": {
+      "set(options:)": "((Group, GroupMember?) -> [CometChatGroupMemberOption])? - Sets custom swipe actions",
+      "add(options:)": "((Group, GroupMember?) -> [CometChatGroupMemberOption])? - Adds additional swipe actions"
+    },
+    "dataManipulation": {
+      "add(groupMember:)": "GroupMember - Adds a member to the list",
+      "update(groupMember:)": "GroupMember - Updates a member in the list",
+      "remove(groupMember:)": "GroupMember - Removes a member from the list",
+      "insert(groupMember:at:)": "GroupMember, Int - Inserts a member at a specific index",
+      "clearList()": "Void - Removes all members from the list",
+      "size()": "Int - Returns the number of members in the list"
     }
   },
   "events": [
@@ -157,7 +176,7 @@ class GroupDetailViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
+  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" alt="CometChatGroupMembers displaying group members in a navigation context with search functionality and member details" />
 </Frame>
 
 ---
@@ -174,7 +193,7 @@ present(navController, animated: true)
 ```
 
 <Frame>
-  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" />
+  <img src="/images/139e9271-group_member-51998771f0c58441593b1adfa7850557.png" alt="CometChatGroupMembers showing minimal render with default configuration displaying member list" />
 </Frame>
 
 ---
@@ -408,6 +427,143 @@ class MyViewController: UIViewController, CometChatGroupEventListener {
 | `errorStateView` | - | `UIView` | Error state display |
 | `loadingStateView` | - | `UIView` | Loading state display |
 
+### set(titleView:)
+
+Replaces the default title view (member name) with a custom implementation.
+
+| | |
+|---|---|
+| Signature | `(GroupMember?) -> UIView` |
+| Replaces | Member name / title text |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(titleView: { member in
+    let containerView = UIView()
+    
+    let nameLabel = UILabel()
+    nameLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    nameLabel.textColor = UIColor.label
+    nameLabel.text = member?.name ?? "Unknown"
+    nameLabel.translatesAutoresizingMaskIntoConstraints = false
+    
+    let roleLabel = UILabel()
+    roleLabel.font = UIFont.systemFont(ofSize: 10, weight: .medium)
+    roleLabel.textColor = UIColor.white
+    roleLabel.textAlignment = .center
+    roleLabel.layer.cornerRadius = 4
+    roleLabel.clipsToBounds = true
+    roleLabel.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Set role badge color based on scope
+    switch member?.scope {
+    case .owner:
+        roleLabel.text = " Owner "
+        roleLabel.backgroundColor = UIColor.systemOrange
+    case .admin:
+        roleLabel.text = " Admin "
+        roleLabel.backgroundColor = UIColor.systemPurple
+    case .moderator:
+        roleLabel.text = " Mod "
+        roleLabel.backgroundColor = UIColor.systemBlue
+    default:
+        roleLabel.text = ""
+        roleLabel.backgroundColor = .clear
+    }
+    
+    containerView.addSubview(nameLabel)
+    containerView.addSubview(roleLabel)
+    
+    NSLayoutConstraint.activate([
+        nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+        nameLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+        
+        roleLabel.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 8),
+        roleLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+    ])
+    
+    return containerView
+})
+```
+
+### set(leadingView:)
+
+Replaces the default leading view (avatar) with a custom implementation.
+
+| | |
+|---|---|
+| Signature | `(GroupMember?) -> UIView` |
+| Replaces | Avatar / left section |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(leadingView: { member in
+    let containerView = UIView()
+    containerView.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create avatar
+    let avatar = CometChatAvatar(image: UIImage())
+    avatar.setAvatar(avatarUrl: member?.avatar, with: member?.name ?? "")
+    avatar.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create role badge overlay
+    let badgeView = UIView()
+    badgeView.layer.cornerRadius = 10
+    badgeView.layer.borderWidth = 2
+    badgeView.layer.borderColor = UIColor.white.cgColor
+    badgeView.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Set badge color based on scope
+    switch member?.scope {
+    case .owner:
+        badgeView.backgroundColor = UIColor.systemOrange
+    case .admin:
+        badgeView.backgroundColor = UIColor.systemPurple
+    case .moderator:
+        badgeView.backgroundColor = UIColor.systemBlue
+    default:
+        badgeView.backgroundColor = UIColor.systemGray
+    }
+    
+    let badgeIcon = UIImageView(image: UIImage(systemName: "star.fill"))
+    badgeIcon.tintColor = .white
+    badgeIcon.translatesAutoresizingMaskIntoConstraints = false
+    badgeView.addSubview(badgeIcon)
+    
+    containerView.addSubview(avatar)
+    containerView.addSubview(badgeView)
+    
+    NSLayoutConstraint.activate([
+        avatar.topAnchor.constraint(equalTo: containerView.topAnchor),
+        avatar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+        avatar.widthAnchor.constraint(equalToConstant: 40),
+        avatar.heightAnchor.constraint(equalToConstant: 40),
+        
+        badgeView.widthAnchor.constraint(equalToConstant: 20),
+        badgeView.heightAnchor.constraint(equalToConstant: 20),
+        badgeView.bottomAnchor.constraint(equalTo: avatar.bottomAnchor, constant: 2),
+        badgeView.trailingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 2),
+        
+        badgeIcon.centerXAnchor.constraint(equalTo: badgeView.centerXAnchor),
+        badgeIcon.centerYAnchor.constraint(equalTo: badgeView.centerYAnchor),
+        badgeIcon.widthAnchor.constraint(equalToConstant: 12),
+        badgeIcon.heightAnchor.constraint(equalToConstant: 12)
+    ])
+    
+    return containerView
+})
+```
+
 ### subtitleView
 
 Customize the subtitle area below the member name.
@@ -434,6 +590,8 @@ groupMembers.set(subtitleView: { member in
     return label
 })
 ```
+
+{/* TODO: Add screenshot showing subtitleView customization */}
 
 ### tailView
 
@@ -478,6 +636,8 @@ groupMembers.set(trailView: { member in
 })
 ```
 
+{/* TODO: Add screenshot showing trailingView customization */}
+
 ---
 
 ## Styling
@@ -521,7 +681,7 @@ groupMembers.style = customStyle
 ```
 
 <Frame>
-  <img src="/images/eabe2caa-group_member_style-b82c423e9767a336d354fff4f63fad20.png" />
+  <img src="/images/eabe2caa-group_member_style-b82c423e9767a336d354fff4f63fad20.png" alt="CometChatGroupMembers with custom styling showing modified background color, title appearance, and list item styling" />
 </Frame>
 
 ### Key Style Properties
@@ -553,6 +713,27 @@ groupMembers.style = customStyle
 ## Props
 
 All props are optional except `group`. Sorted alphabetically.
+
+### avatarStyle
+
+Customizes the appearance of member avatars in the list.
+
+| | |
+|---|---|
+| Type | `AvatarStyle` |
+| Default | `AvatarStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+let avatarStyle = AvatarStyle()
+avatarStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 20)
+avatarStyle.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+
+groupMembers.avatarStyle = avatarStyle
+```
 
 ### group (required)
 
@@ -662,6 +843,28 @@ Sets the selection mode for multi-select functionality.
 | Type | `SelectionMode` |
 | Default | `.none` |
 
+### statusIndicatorStyle
+
+Customizes the appearance of online/offline status indicators.
+
+| | |
+|---|---|
+| Type | `StatusIndicatorStyle` |
+| Default | `StatusIndicatorStyle()` |
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+let statusIndicatorStyle = StatusIndicatorStyle()
+statusIndicatorStyle.backgroundColor = UIColor.systemGreen
+statusIndicatorStyle.borderWidth = 2
+statusIndicatorStyle.borderColor = UIColor.white
+
+groupMembers.statusIndicatorStyle = statusIndicatorStyle
+```
+
 ---
 
 ## Events
@@ -671,6 +874,273 @@ Sets the selection mode for multi-select functionality.
 | `ccGroupMemberKicked` | `User, Group` | A member is kicked |
 | `ccGroupMemberBanned` | `User, Group` | A member is banned |
 | `ccGroupMemberScopeChanged` | `User, Group, MemberScope` | A member's role is changed |
+
+---
+
+## Methods
+
+### Swipe Action Methods
+
+#### set(options:)
+
+Sets custom swipe actions for group member list items, replacing the default options. These options appear when the user swipes on a member cell.
+
+```swift
+@discardableResult
+public func set(options: ((_ group: Group, _ member: GroupMember?) -> [CometChatGroupMemberOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((Group, GroupMember?) -> [CometChatGroupMemberOption])?` | Closure that returns an array of swipe action options for a member |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(options: { group, member in
+    var options = [CometChatGroupMemberOption]()
+    
+    // Add message option
+    let messageOption = CometChatGroupMemberOption(
+        id: "message",
+        title: "Message",
+        icon: UIImage(systemName: "message"),
+        backgroundColor: .systemBlue,
+        onClick: { member, group, section, option, controller in
+            let messages = CometChatMessages()
+            messages.set(user: member)
+            controller.navigationController?.pushViewController(messages, animated: true)
+        }
+    )
+    options.append(messageOption)
+    
+    // Add remove option
+    let removeOption = CometChatGroupMemberOption(
+        id: "remove",
+        title: "Remove",
+        icon: UIImage(systemName: "trash"),
+        backgroundColor: .systemRed,
+        onClick: { member, group, section, option, controller in
+            print("Remove member: \(member.name ?? "")")
+        }
+    )
+    options.append(removeOption)
+    
+    return options
+})
+```
+
+#### add(options:)
+
+Adds additional swipe actions to the existing default options.
+
+```swift
+@discardableResult
+public func add(options: ((_ group: Group, _ member: GroupMember?) -> [CometChatGroupMemberOption])?) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `((Group, GroupMember?) -> [CometChatGroupMemberOption])?` | Closure that returns additional swipe action options to append |
+
+```swift
+import UIKit
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.add(options: { group, member in
+    var options = [CometChatGroupMemberOption]()
+    
+    // Add promote option
+    let promoteOption = CometChatGroupMemberOption(
+        id: "promote",
+        title: "Promote",
+        icon: UIImage(systemName: "arrow.up.circle"),
+        backgroundColor: .systemGreen,
+        onClick: { member, group, section, option, controller in
+            print("Promote member: \(member.name ?? "")")
+        }
+    )
+    options.append(promoteOption)
+    
+    return options
+})
+```
+
+### Data Manipulation Methods
+
+#### add(groupMember:)
+
+Adds a new group member to the list.
+
+```swift
+@discardableResult
+public func add(groupMember: GroupMember) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `groupMember` | `GroupMember` | The group member to add to the list |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Add a member programmatically
+let newMember = GroupMember(uid: "user-123", groupMemberScope: .participant)
+newMember.name = "John Doe"
+groupMembers.add(groupMember: newMember)
+```
+
+#### update(groupMember:)
+
+Updates an existing group member in the list.
+
+```swift
+@discardableResult
+public func update(groupMember: GroupMember) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `groupMember` | `GroupMember` | The group member with updated information |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Update a member's information
+if var existingMember = memberToUpdate {
+    existingMember.scope = .admin
+    groupMembers.update(groupMember: existingMember)
+}
+```
+
+#### remove(groupMember:)
+
+Removes a group member from the list.
+
+```swift
+@discardableResult
+public func remove(groupMember: GroupMember) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `groupMember` | `GroupMember` | The group member to remove from the list |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Remove a member from the UI
+groupMembers.remove(groupMember: memberToRemove)
+```
+
+#### insert(groupMember:at:)
+
+Inserts a group member at a specific index in the list.
+
+```swift
+@discardableResult
+public func insert(groupMember: GroupMember, at index: Int) -> Self
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `groupMember` | `GroupMember` | The group member to insert |
+| `index` | `Int` | The position at which to insert the member |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Insert a member at the top of the list
+let newMember = GroupMember(uid: "user-456", groupMemberScope: .participant)
+newMember.name = "Jane Smith"
+groupMembers.insert(groupMember: newMember, at: 0)
+```
+
+#### clearList()
+
+Removes all group members from the list.
+
+```swift
+public func clearList()
+```
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Clear all members from the list
+groupMembers.clearList()
+```
+
+#### size()
+
+Returns the number of group members currently in the list.
+
+```swift
+public func size() -> Int
+```
+
+```swift
+import CometChatUIKitSwift
+
+let groupMembers = CometChatGroupMembers(group: group)
+
+// Get the count of members
+let memberCount = groupMembers.size()
+print("Total members: \(memberCount)")
+```
+
+---
+
+## Selection Properties
+
+### onSelectedItemProceed
+
+Callback that fires when the user proceeds with selected members in selection mode. This is typically triggered when the user taps a "Done" or "Proceed" button after selecting members.
+
+| | |
+|---|---|
+| Type | `(([GroupMember]) -> Void)?` |
+| Default | `nil` |
+
+```swift
+import CometChatUIKitSwift
+import CometChatSDK
+
+let groupMembers = CometChatGroupMembers(group: group)
+groupMembers.selectionMode = .multiple
+
+groupMembers.set(onSelectedItemProceed: { [weak self] selectedMembers in
+    print("Proceeding with \(selectedMembers.count) selected members")
+    
+    for member in selectedMembers {
+        print("Selected: \(member.name ?? "")")
+    }
+    
+    // Perform action with selected members
+    self?.handleSelectedMembers(selectedMembers)
+})
+```
 
 ---
 
@@ -714,7 +1184,7 @@ groupMembers.setOptions(options: { group, member in
 ```
 
 <Frame>
-  <img src="/images/227af15b-group_member_options-19c3fe437e698a03a71f5de937a80033.png" />
+  <img src="/images/227af15b-group_member_options-19c3fe437e698a03a71f5de937a80033.png" alt="CometChatGroupMembers showing custom swipe options with Remove and Message action buttons revealed on a member row" />
 </Frame>
 
 ---
@@ -762,7 +1232,7 @@ class GroupMembersViewController: UIViewController {
 ```
 
 <Frame>
-  <img src="/images/1b0d7d92-group_member_menus-94916e6df0624110d8e72652379a862e.png" />
+  <img src="/images/1b0d7d92-group_member_menus-94916e6df0624110d8e72652379a862e.png" alt="CometChatGroupMembers showing custom navigation bar menu with an add member button in the top right corner" />
 </Frame>
 
 ---
