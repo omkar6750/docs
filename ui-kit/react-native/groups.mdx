@@ -3,35 +3,154 @@ title: "Groups"
 description: "Display and interact with a searchable list of all available groups with CometChatGroups component in React Native UI Kit."
 ---
 
-<Info>
-**Quick Reference for AI Agents & Developers**
-
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-// Minimal usage
-<CometChatGroups />
-
-// Common pattern: Navigate to Messages on group tap
-<CometChatGroups
-  onItemPress={(group: CometChat.Group) => {
-    // Navigate to Messages screen  with group prop
-    // navigation.navigate('Messages', { group });
-    console.log("Selected group:", group.getGuid(), group.getName());
-  }}
-  onError={(error: CometChat.CometChatException) => console.log("Error:", error)}
-/>
+<Accordion title="AI Integration Quick Reference">
+```json
+{
+  "component": "CometChatGroups",
+  "package": "@cometchat/chat-uikit-react-native",
+  "import": "import { CometChatGroups } from \"@cometchat/chat-uikit-react-native\";",
+  "description": "Searchable, scrollable list of all available groups with icon, name, member count, and group type indicator.",
+  "primaryOutput": {
+    "prop": "onItemPress",
+    "type": "(group: CometChat.Group) => void"
+  },
+  "props": {
+    "data": {
+      "groupsRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "searchRequestBuilder": {
+        "type": "CometChat.GroupsRequestBuilder",
+        "default": "undefined"
+      },
+      "searchKeyword": {
+        "type": "string",
+        "default": "\"\""
+      }
+    },
+    "callbacks": {
+      "onItemPress": "(group: CometChat.Group) => void",
+      "onItemLongPress": "(group: CometChat.Group) => void",
+      "onBack": "() => void",
+      "onSelection": "(list: Array<CometChat.Group>) => void",
+      "onError": "(error: CometChat.CometChatException) => void",
+      "onEmpty": "() => void",
+      "onLoad": "(list: CometChat.GroupMember[]) => void"
+    },
+    "visibility": {
+      "hideHeader": { "type": "boolean", "default": false },
+      "showBackButton": { "type": "boolean", "default": false },
+      "hideSearch": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "hideSubmitButton": { "type": "boolean", "default": true },
+      "hideLoadingState": { "type": "boolean", "default": false },
+      "groupTypeVisibility": { "type": "boolean", "default": true }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["single", "multiple", "none"],
+        "default": "none"
+      }
+    },
+    "viewSlots": {
+      "ItemView": "(group: CometChat.Group) => JSX.Element",
+      "LeadingView": "(group: CometChat.Group) => JSX.Element",
+      "TitleView": "(group: CometChat.Group) => JSX.Element",
+      "SubtitleView": "(group: CometChat.Group) => JSX.Element",
+      "TrailingView": "(group: CometChat.Group) => JSX.Element",
+      "LoadingView": "() => JSX.Element",
+      "EmptyView": "() => JSX.Element",
+      "ErrorView": "() => JSX.Element",
+      "AppBarOptions": "() => JSX.Element"
+    }
+  },
+  "events": [
+    {
+      "name": "ccGroupCreated",
+      "payload": "CometChat.Group",
+      "description": "Triggered when logged-in user creates a group"
+    },
+    {
+      "name": "ccGroupDeleted",
+      "payload": "CometChat.Group",
+      "description": "Triggered when logged-in user deletes a group"
+    },
+    {
+      "name": "ccGroupLeft",
+      "payload": "{ leftGroup: CometChat.Group }",
+      "description": "Triggered when logged-in user leaves a group"
+    },
+    {
+      "name": "ccGroupMemberScopeChanged",
+      "payload": "IGroupMemberScopeChanged",
+      "description": "Triggered when logged-in user changes scope of another member"
+    },
+    {
+      "name": "ccGroupMemberBanned",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Triggered when logged-in user bans a group member"
+    },
+    {
+      "name": "ccGroupMemberKicked",
+      "payload": "IGroupMemberKickedBanned",
+      "description": "Triggered when logged-in user kicks a group member"
+    },
+    {
+      "name": "ccGroupMemberUnbanned",
+      "payload": "IGroupMemberUnBanned",
+      "description": "Triggered when logged-in user unbans a group member"
+    },
+    {
+      "name": "ccGroupMemberJoined",
+      "payload": "IGroupMemberJoined",
+      "description": "Triggered when logged-in user joins a group"
+    },
+    {
+      "name": "ccGroupMemberAdded",
+      "payload": "IGroupMemberAdded",
+      "description": "Triggered when logged-in user adds members to a group"
+    },
+    {
+      "name": "ccOwnershipChanged",
+      "payload": "IOwnershipChanged",
+      "description": "Triggered when logged-in user transfers group ownership"
+    }
+  ],
+  "sdkListeners": [
+    "onGroupMemberJoined",
+    "onGroupMemberLeft",
+    "onMemberAddedToGroup",
+    "onGroupMemberKicked",
+    "onGroupMemberBanned",
+    "onGroupMemberScopeChanged"
+  ],
+  "compositionExample": {
+    "description": "Group directory wired to message view",
+    "components": [
+      "CometChatGroups",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemPress emits CometChat.Group -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "SelectionMode": {
+      "single": "Select one group at a time",
+      "multiple": "Select multiple groups",
+      "none": "No selection mode"
+    }
+  }
+}
 ```
+</Accordion>
 
-- **Conversations** → [CometChatConversations](/ui-kit/react-native/conversations)
-- **Users** → [CometChatUsers](/ui-kit/react-native/users)
-- **Group Members** → [CometChatGroupMembers](/ui-kit/react-native/group-members)
-</Info>
+## Where It Fits
 
-## Overview
-
-`CometChatGroups` functions as a standalone [Component](/ui-kit/react-native/components-overview#components), showcasing an accessible list of all available groups. It provides an integral search functionality, allowing you to locate any specific groups swiftly and easily. For each group listed, the group name is displayed by default, in conjunction with the group icon when available. Additionally, it provides a useful feature by displaying the number of members in each group as a subtitle, offering valuable context about group size and activity level.
+`CometChatGroups` is a directory list component that displays all available groups. It renders a searchable, scrollable list and emits the selected `CometChat.Group` via `onItemPress`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a group chat layout.
 
 <Note>
 **Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/retrieve-groups) | [REST API](/rest-api/groups/list)
@@ -41,220 +160,27 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
   <img src="/images/8f0fe074-groups-876f11ccd26289efd7bd12d29a1bc205.png" />
 </Frame>
 
-***
+---
 
-## Usage
+## Minimal Render
 
-***
-
-### Integration
-
-The following code snippet illustrates how you can can launch `CometChatGroups`.
-
-```tsx App.tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-return <CometChatGroups />;
-```
-
-***
-
-### Actions
-
-[Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and Group-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
-
-##### onItemPress
-
-Function invoked when a Group item is clicked, typically used to open a Group profile or chat screen.
-
-```tsx
-onItemPress?: (item: CometChat.Group) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onPressHandler = (group: CometChat.Group) => {
-  //code
-};
-
-return <CometChatGroups onItemPress={onPressHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onItemLongPress
-
-Function executed when a Group item is long-pressed, allowing additional actions like delete or block.
-
-```tsx
-onItemLongPress?: (item: CometChat.Group) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onLongPressHandler = (group: CometChat.Group) => {
-  //code
-};
-
-return <CometChatGroups onItemLongPress={onLongPressHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onBack
-
-`onBack` is triggered when you press the back button in the app bar. It has a predefined behavior; when clicked, it navigates to the previous activity. However, you can override this action using the following code snippet.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
 
-const onBackHandler = () => {
-  //code
-};
+function GroupsDemo() {
+  return <CometChatGroups />;
+}
 
-return <CometChatGroups showBackButton={true} onBack={onBackHandler} />;
+export default GroupsDemo;
 ```
 
-</Tab>
+---
 
-</Tabs>
+## Filtering Groups
 
-***
+Pass a `CometChat.GroupsRequestBuilder` to `groupsRequestBuilder`. Pass the builder instance — not the result of `.build()`.
 
-##### onSelection
-
-Called when an item from the fetched list is selected, useful for multi-selection features.
-
-```tsx
-onSelection?: (list: Array<CometChat.Group>) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onSelectionHandler = (list: Array<CometChat.Group>) => {
-  //code
-};
-
-return (
-  <CometChatGroups selectionMode={"single"} onSelection={onSelectionHandler} />
-);
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onError
-
-This action does not change the behavior of the component but rather listens for any errors that occur in the Groups component.
-
-```tsx
-onError?: (e: CometChat.CometChatException) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onErrorHandler = (e: CometChat.CometChatException) => {
-  console.log("Error:", e);
-};
-
-return <CometChatGroups onError={onErrorHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onLoad
-
-Callback triggered once the groups have loaded and are not empty.
-
-```tsx
-onLoad?: (list: CometChat.GroupMember[]) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onLoadHandler = (list: CometChat.GroupMember[]) => {
-  console.log("Groups loaded:", list.length);
-};
-
-return <CometChatGroups onLoad={onLoadHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onEmpty
-
-Callback triggered when the fetched list is empty.
-
-```tsx
-onEmpty?: () => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-
-const onEmptyHandler = () => {
-  console.log("No groups found");
-};
-
-return <CometChatGroups onEmpty={onEmptyHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Filters
-
-Filters allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria, allowing for a more customized. Filters can be applied using RequestBuilders of Chat SDK.
-
-##### 1. GroupsRequestBuilder
-
-The [GroupsRequestBuilder](/sdk/react-native/retrieve-groups) enables you to filter and customize the group list based on available parameters in [GroupsRequestBuilder](/sdk/react-native/retrieve-groups). This feature allows you to create more specific and targeted queries when fetching groups. The following are the parameters available in [GroupsRequestBuilder](/sdk/react-native/retrieve-groups)
+The [GroupsRequestBuilder](/sdk/react-native/retrieve-groups) enables you to filter and customize the group list based on available parameters. The following are the parameters available in [GroupsRequestBuilder](/sdk/react-native/retrieve-groups):
 
 | Methods              | Type           | Description                                                                             |
 | -------------------- | -------------- | --------------------------------------------------------------------------------------- |
@@ -265,142 +191,588 @@ The [GroupsRequestBuilder](/sdk/react-native/retrieve-groups) enables you to fil
 | **setTags**          | Array\<string> | used for fetching groups containing the passed tags                                     |
 | **withTags**         | boolean        | used to fetch tags data along with the list of groups                                   |
 
-**Example**
-
-In the example below, we are applying a filter to the Group List based on only joined groups and setting the limit to ten.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
 
-function App(): React.JSX.Element {
+function FilteredGroups() {
   const groupsRequestBuilder = new CometChat.GroupsRequestBuilder()
     .setLimit(10)
     .joinedOnly(true);
 
-  return (
-    <CometChatGroups
-      groupsRequestBuilder={groupsRequestBuilder}
-    />
-  );
+  return <CometChatGroups groupsRequestBuilder={groupsRequestBuilder} />;
 }
 ```
 
-</Tab>
+### Filter Recipes
 
-</Tabs>
+| Recipe | Code |
+| --- | --- |
+| Joined groups only | `new CometChat.GroupsRequestBuilder().joinedOnly(true)` |
+| Limit to 10 per page | `new CometChat.GroupsRequestBuilder().setLimit(10)` |
+| Search by keyword | `new CometChat.GroupsRequestBuilder().setSearchKeyword("design")` |
+| Filter by tags | `new CometChat.GroupsRequestBuilder().setTags(["vip"])` |
+| With tags data | `new CometChat.GroupsRequestBuilder().withTags(true)` |
 
-##### 2. SearchRequestBuilder
+### SearchRequestBuilder
 
-The SearchRequestBuilder uses [GroupsRequestBuilder](/sdk/react-native/retrieve-groups) enables you to filter and customize the search list based on available parameters in [GroupsRequestBuilder](/sdk/react-native/retrieve-groups).
+The SearchRequestBuilder uses [GroupsRequestBuilder](/sdk/react-native/retrieve-groups) to filter and customize the search list based on available parameters. This allows you to keep uniformity between the displayed GroupList and searched GroupList.
 
-**Example**
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
 
-function App(): React.JSX.Element {
+function SearchGroups() {
   const searchRequestBuilder = new CometChat.GroupsRequestBuilder()
     .setLimit(10)
     .setSearchKeyword("custom-keyword");
 
+  return <CometChatGroups searchRequestBuilder={searchRequestBuilder} />;
+}
+```
+
+---
+
+## Actions and Events
+
+### Callback Props
+
+#### onItemPress
+
+Fires when a group row is tapped. Primary navigation hook — set the active group and render the message view.
+
+```tsx lines
+onItemPress?: (group: CometChat.Group) => void
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function GroupsWithPress() {
+  const handleItemPress = (group: CometChat.Group) => {
+    console.log("Selected:", group.getName());
+  };
+
+  return <CometChatGroups onItemPress={handleItemPress} />;
+}
+```
+
+#### onItemLongPress
+
+Fires when a group item is long-pressed, allowing additional actions like delete or leave.
+
+```tsx lines
+onItemLongPress?: (group: CometChat.Group) => void
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function GroupsWithLongPress() {
+  const handleLongPress = (group: CometChat.Group) => {
+    console.log("Long pressed:", group.getName());
+  };
+
+  return <CometChatGroups onItemLongPress={handleLongPress} />;
+}
+```
+
+#### onBack
+
+Fires when the back button in the app bar is pressed. Requires `showBackButton={true}`.
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+function GroupsWithBack() {
   return (
     <CometChatGroups
-      searchRequestBuilder={searchRequestBuilder}
+      showBackButton={true}
+      onBack={() => {
+        console.log("Back pressed");
+      }}
     />
   );
 }
 ```
 
-</Tab>
+#### onSelection
 
-</Tabs>
+Fires when groups are selected/deselected in selection mode. Requires `selectionMode` to be set.
 
-***
-
-### Events
-
-[Events](/ui-kit/react-native/components-overview#events) are emitted by a Component. By using events you can extend existing functionality. Being global events, they can be applied in multiple locations and are capable of being added or removed.
-
-The list of events emitted by the Groups component is as follows.
-
-| Events                      | Description                                                                                                |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `ccGroupCreated`            | This will get triggered when the logged in user creates a group                                            |
-| `ccGroupDeleted`            | This will get triggered when the logged in user deletes a group                                            |
-| `ccGroupLeft`               | This will get triggered when the logged in user leaves a group                                             |
-| `ccGroupMemberScopeChanged` | This will get triggered when the logged in user changes the scope of another group member                  |
-| `ccGroupMemberBanned`       | This will get triggered when the logged in user bans a group member from the group                         |
-| `ccGroupMemberKicked`       | This will get triggered when the logged in user kicks another group member from the group                  |
-| `ccGroupMemberUnbanned`     | This will get triggered when the logged in user unbans a user banned from the group                        |
-| `ccGroupMemberJoined`       | This will get triggered when the logged in user joins a group                                              |
-| `ccGroupMemberAdded`        | This will get triggered when the logged in user add new members to the group                               |
-| `ccOwnershipChanged`        | This will get triggered when the logged in user transfer the ownership of their group to some other member |
-
-##### 1. Add `CometChatGroupEvents` Listener's
-
-<Tabs>
-<Tab title="Adding Listeners">
-```tsx
-import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
-
-CometChatUIEventHandler.addGroupListener("GROUP_LISTENER_ID", {
-  ccGroupLeft: ({ leftGroup }) => {
-    //code
-  },
-});
-
-CometChatUIEventHandler.addGroupListener("GROUP_LISTENER_ID", {
-  ccGroupDeleted: ({ group }) => {
-    //code
-  },
-});
+```tsx lines
+onSelection?: (list: Array<CometChat.Group>) => void
 ```
 
-</Tab>
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-</Tabs>
+function GroupsWithSelection() {
+  const handleSelection = (list: Array<CometChat.Group>) => {
+    console.log("Selected:", list.length);
+  };
 
-***
-
-##### 2. Removing `CometChatGroupEvents` Listener's
-
-<Tabs>
-<Tab title="Removing Listeners">
-```tsx
-import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
-
-CometChatUIEventHandler.removeGroupListener("GROUP_LISTENER_ID");
+  return (
+    <CometChatGroups
+      selectionMode={"single"}
+      onSelection={handleSelection}
+    />
+  );
+}
 ```
 
-</Tab>
+#### onError
 
-</Tabs>
+Fires on internal errors (network failure, auth issue, SDK exception).
 
-***
+```tsx lines
+onError?: (e: CometChat.CometChatException) => void
+```
 
-## Customization
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-To fit your app's design requirements, you can customize the appearance of the groups component. We provide exposed methods that allow you to modify the experience and behavior according to your specific needs.
+function GroupsWithErrorHandler() {
+  return (
+    <CometChatGroups
+      onError={(error: CometChat.CometChatException) => {
+        console.error("CometChatGroups error:", error);
+      }}
+    />
+  );
+}
+```
 
-### Style
+#### onEmpty
 
-Using Style you can customize the look and feel of the component in your app. These parameters typically control elements such as the color, size, shape, and fonts used within the component.
+Fires when the group list is empty.
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+function GroupsWithEmptyHandler() {
+  return (
+    <CometChatGroups
+      onEmpty={() => {
+        console.log("No groups available");
+      }}
+    />
+  );
+}
+```
+
+#### onLoad
+
+Fires when the list is successfully fetched and loaded.
+
+```tsx lines
+onLoad?: (list: CometChat.GroupMember[]) => void
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function GroupsWithLoadHandler() {
+  const handleLoad = (list: CometChat.GroupMember[]) => {
+    console.log("Groups loaded:", list.length);
+  };
+
+  return <CometChatGroups onLoad={handleLoad} />;
+}
+```
+
+### Global UI Events
+
+`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Add listeners and remove them on cleanup.
+
+| Event | Fires when | Payload |
+| --- | --- | --- |
+| `ccGroupCreated` | The logged-in user creates a group | `CometChat.Group` |
+| `ccGroupDeleted` | The logged-in user deletes a group | `CometChat.Group` |
+| `ccGroupLeft` | The logged-in user leaves a group | `{ leftGroup: CometChat.Group }` |
+| `ccGroupMemberScopeChanged` | The logged-in user changes scope of another member | `IGroupMemberScopeChanged` |
+| `ccGroupMemberBanned` | The logged-in user bans a group member | `IGroupMemberKickedBanned` |
+| `ccGroupMemberKicked` | The logged-in user kicks a group member | `IGroupMemberKickedBanned` |
+| `ccGroupMemberUnbanned` | The logged-in user unbans a group member | `IGroupMemberUnBanned` |
+| `ccGroupMemberJoined` | The logged-in user joins a group | `IGroupMemberJoined` |
+| `ccGroupMemberAdded` | The logged-in user adds members to a group | `IGroupMemberAdded` |
+| `ccOwnershipChanged` | The logged-in user transfers group ownership | `IOwnershipChanged` |
+
+When to use: sync external UI with group state changes. For example, update a group list when a group is created, or refresh the member count when members are added.
+
+```tsx lines
+import { useEffect } from "react";
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function useGroupEvents() {
+  useEffect(() => {
+    const listenerId = "GROUP_EVENTS_" + Date.now();
+    
+    CometChatUIEventHandler.addGroupListener(listenerId, {
+      ccGroupCreated: (group: CometChat.Group) => {
+        console.log("Group created:", group.getName());
+      },
+      ccGroupDeleted: (group: CometChat.Group) => {
+        console.log("Group deleted:", group.getName());
+      },
+      ccGroupLeft: ({ leftGroup }: { leftGroup: CometChat.Group }) => {
+        console.log("Left group:", leftGroup.getName());
+      },
+    });
+
+    return () => {
+      CometChatUIEventHandler.removeGroupListener(listenerId);
+    };
+  }, []);
+}
+```
+
+### SDK Events (Real-Time, Automatic)
+
+The component listens to these SDK events internally. No manual attachment needed unless additional side effects are required.
+
+| SDK Listener | Internal behavior |
+| --- | --- |
+| `onGroupMemberJoined` | Updates member count when a user joins |
+| `onGroupMemberLeft` | Updates member count when a user leaves |
+| `onMemberAddedToGroup` | Updates member count when members are added |
+| `onGroupMemberKicked` | Updates member count when a member is kicked |
+| `onGroupMemberBanned` | Updates member count when a member is banned |
+| `onGroupMemberScopeChanged` | Updates scope when a member's scope changes |
+
+<Note>
+In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
+</Note>
+
+---
+
+## Custom View Slots
+
+Each slot replaces a section of the default UI. Slots that accept a group parameter receive the `CometChat.Group` object for that row.
+
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `ItemView` | `(group: CometChat.Group) => JSX.Element` | Entire list item row |
+| `LeadingView` | `(group: CometChat.Group) => JSX.Element` | Avatar / left section |
+| `TitleView` | `(group: CometChat.Group) => JSX.Element` | Name / title text |
+| `SubtitleView` | `(group: CometChat.Group) => JSX.Element` | Member count subtitle |
+| `TrailingView` | `(group: CometChat.Group) => JSX.Element` | Right section |
+| `LoadingView` | `() => JSX.Element` | Loading spinner |
+| `EmptyView` | `() => JSX.Element` | Empty state |
+| `ErrorView` | `() => JSX.Element` | Error state |
+| `AppBarOptions` | `() => JSX.Element` | Header bar options |
+
+### LoadingView
+
+Custom view displayed when data is being fetched.
+
+```tsx lines
+LoadingView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+const getLoadingView = (): JSX.Element => {
+  return <Text>Loading groups...</Text>;
+};
+
+return <CometChatGroups LoadingView={getLoadingView} />;
+```
+
+### EmptyView
+
+Custom view displayed when there are no groups.
+
+```tsx lines
+EmptyView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+const getEmptyView = (): JSX.Element => {
+  return <Text>No groups found. Create one now!</Text>;
+};
+
+return <CometChatGroups EmptyView={getEmptyView} />;
+```
+
+### ErrorView
+
+Custom view displayed when an error occurs.
+
+```tsx lines
+ErrorView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+const getErrorView = (): JSX.Element => {
+  return <Text>Something went wrong. Please try again.</Text>;
+};
+
+return <CometChatGroups ErrorView={getErrorView} />;
+```
+
+### LeadingView
+
+Custom view for the avatar / left section of each group item.
+
+```tsx lines
+LeadingView?: (group: CometChat.Group) => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getLeadingView = (group: CometChat.Group): JSX.Element => {
+  return (
+    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#6852D6' }}>
+      <Text style={{ color: 'white', textAlign: 'center', lineHeight: 40 }}>
+        {group.getName().charAt(0)}
+      </Text>
+    </View>
+  );
+};
+
+return <CometChatGroups LeadingView={getLeadingView} />;
+```
+
+### TitleView
+
+Custom view for the name / title text.
+
+```tsx lines
+TitleView?: (group: CometChat.Group) => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getTitleView = (group: CometChat.Group): JSX.Element => {
+  return (
+    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+      {group.getName()}
+    </Text>
+  );
+};
+
+return <CometChatGroups TitleView={getTitleView} />;
+```
+
+### SubtitleView
+
+Custom view for the subtitle text.
+
+```tsx lines
+SubtitleView?: (group: CometChat.Group) => JSX.Element
+```
+
+<Frame>
+  <img src="/images/9d2dd1ec-groups_subtitle_view-4257df0157253a4dca4cb83299b966a7.png" />
+</Frame>
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getSubtitleView = (group: CometChat.Group): JSX.Element => {
+  return (
+    <Text style={{ fontSize: 12, color: '#727272' }}>
+      {group.getMembersCount()} members
+    </Text>
+  );
+};
+
+return <CometChatGroups SubtitleView={getSubtitleView} />;
+```
+
+### TrailingView
+
+Custom view for the right section.
+
+```tsx lines
+TrailingView?: (group: CometChat.Group) => JSX.Element
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getTrailingView = (group: CometChat.Group): JSX.Element => {
+  return (
+    <TouchableOpacity onPress={() => { /* join group */ }}>
+      <Text style={{ color: '#6852D6' }}>Join</Text>
+    </TouchableOpacity>
+  );
+};
+
+return <CometChatGroups TrailingView={getTrailingView} />;
+```
+
+### ItemView
+
+Custom view for the entire list item row.
+
+```tsx lines
+ItemView?: (group: CometChat.Group) => JSX.Element
+```
+
+<Frame>
+  <img src="/images/6c5fc063-groups_list_item_view-2567373b1b5f9faf6c29be8d07a1a274.png" />
+</Frame>
+
+```tsx lines
+import {
+  CometChatGroups,
+  CometChatAvatar,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const theme = useTheme();
+
+const getItemView = (group: CometChat.Group): JSX.Element => {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: theme.color.borderLight,
+      }}>
+      <CometChatAvatar
+        name={group.getName()}
+        image={{ uri: group.getIcon() }}
+        style={{
+          containerStyle: { borderRadius: 8 },
+          imageStyle: { borderRadius: 8 },
+        }}
+      />
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text
+          style={{
+            color: theme.color.textPrimary,
+            fontSize: 16,
+            fontWeight: '500',
+          }}
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {group.getName()}
+        </Text>
+        <Text style={{ color: theme.color.textSecondary, fontSize: 12 }}>
+          {group.getMembersCount()} members
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+return <CometChatGroups ItemView={getItemView} />;
+```
+
+### AppBarOptions
+
+Custom view for the header bar options.
+
+<Frame>
+  <img src="/images/6f8b7200-groups_menu-abd299ecf561c71932941257525ea004.png" />
+</Frame>
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+
+return (
+  <CometChatGroups
+    AppBarOptions={() => {
+      return (
+        <TouchableOpacity onPress={() => { /* handle click */ }}>
+          <Text>Custom App Bar Options</Text>
+        </TouchableOpacity>
+      );
+    }}
+  />
+);
+```
+
+### options
+
+Custom context menu actions for each group item.
+
+```tsx lines
+options?: (group: CometChat.Group) => MenuItemInterface[]
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const setMyOptions = (group: CometChat.Group) => {
+  return [
+    {
+      text: "Leave",
+      onPress: () => { /* leave logic */ },
+    },
+    {
+      text: "Mute",
+      onPress: () => { /* mute logic */ },
+    },
+  ];
+};
+
+return <CometChatGroups options={setMyOptions} />;
+```
+
+### addOptions
+
+Extends the default context menu actions with additional options.
+
+```tsx lines
+addOptions?: (group: CometChat.Group) => MenuItemInterface[]
+```
+
+```tsx lines
+import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const addOptions = (group: CometChat.Group) => {
+  return [
+    {
+      text: "Pin Group",
+      onPress: () => { /* pin group logic */ },
+    },
+  ];
+};
+
+return <CometChatGroups addOptions={addOptions} />;
+```
+
+---
+
+## Styling
+
+Using Style you can customize the look and feel of the component in your app. Pass a styling object as a prop to the `CometChatGroups` component.
 
 <Frame>
   <img src="/images/5b3c1825-groups_styling-f8164f3a9b1247ad1db859328c199051.png" />
 </Frame>
 
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
+
 return (
   <CometChatGroups
     style={{
@@ -426,374 +798,25 @@ return (
 );
 ```
 
-</Tab>
-
-</Tabs>
-
-### Functionality
-
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can change text, set custom icons, and toggle the visibility of UI elements.
-
-Below is a list of customizations along with corresponding code snippets
-
-| Property                  | Description                                                                                                                     | Code                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| **hideHeader**            | Used to toggle visibility for the toolbar/header                                                                                | `hideHeader?: boolean`        |
-| **showBackButton**        | Used to toggle visibility for back button                                                                                       | `showBackButton?: boolean`    |
-| **hideSearch**            | Used to toggle visibility for search box                                                                                        | `hideSearch?: boolean`        |
-| **hideError**             | Used to hide error on fetching groups                                                                                           | `hideError?: boolean`         |
-| **selectionMode**         | This method determines the selection mode for groups, enabling users to select either a single group or multiple groups at once. | `selectionMode?: SelectionMode` |
-| **hideSubmitButton**      | Used to toggle the visibility of the submit button when selectionMode is enabled.                                               | `hideSubmitButton?: boolean`  |
-| **searchPlaceholderText** | Used to set search placeholder text                                                                                             | `searchPlaceholderText?: string` |
-| **hideLoadingState**      | Hide the loading skeleton                                                                                                       | `hideLoadingState?: boolean`  |
-| **groupTypeVisibility**   | Toggle visibility of group type (public/private/password)                                                                       | `groupTypeVisibility?: boolean` |
-| **searchKeyword**         | Set initial search keyword                                                                                                      | `searchKeyword?: string`      |
-
-***
-
-### Advanced
-
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
-
-#### LoadingView
-
-Configures a custom loading view displayed while groups are being fetched.
-
-Use Cases:
-
-* Show a spinner with "Loading groups..." text.
-* Display a skeleton loader for a smooth UI experience.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-const getLoadingView = (): JSX.Element => {
-  //your custom loading view
-  //return jsx;
-};
-return <CometChatGroups LoadingView={getLoadingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### EmptyView
-
-Defines a view that appears when no groups are available.
-
-Use Cases:
-
-* Show a message like "No groups found, create one now!".
-* Display an illustration with a "Create New Group" button.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-const getEmptyView = (): JSX.Element => {
-  //your custom empty view
-  //return jsx;
-};
-return <CometChatGroups EmptyView={getEmptyView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### ErrorView
-
-Configures the UI when an error occurs while fetching groups.
-
-Use Cases:
-
-* Display a retry button with "Failed to load groups, try again.".
-* Show a friendly error illustration.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-const getErrorView = (): JSX.Element => {
-  //your custom error view
-  //return jsx;
-};
-return <CometChatGroups ErrorView={getErrorView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### LeadingView
-
-Sets a custom leading view that appears at the start of each group item.
-
-Use Cases:
-
-* Display the group profile picture.
-* Add an icon indicating Public or Private groups.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getLeadingView = (item: CometChat.Group): JSX.Element => {
-  //your custom leading view
-  //return jsx;
-};
-return <CometChatGroups LeadingView={getLeadingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### TitleView
-
-Customizes the title view of each group item, which typically displays the group name.
-
-Use Cases:
-
-* Style group names with custom fonts and colors.
-* Show a verified badge for official groups.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTitleView = (item: CometChat.Group): JSX.Element => {
-  //your custom title view
-  //return jsx;
-};
-return <CometChatGroups TitleView={getTitleView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### TrailingView
-
-Allows custom elements to be added at the end of each group item, such as buttons or indicators.
-
-Use Cases:
-
-* Show unread message counts.
-* Add a quick Join or Leave button.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTrailingView = (item: CometChat.Group): JSX.Element => {
-  //your custom Trailing view
-  //return jsx;
-};
-return <CometChatGroups TrailingView={getTrailingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-#### ItemView
-
-Assigns a fully custom ListItem layout to the Groups component, replacing the default design.
-
-Use Cases:
-
-* Add a description below the group name.
-* Customize layout to include additional metadata.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getItemView = (item: CometChat.Group): JSX.Element => {
-  //your custom Item view
-  //return jsx;
-};
-return <CometChatGroups ItemView={getItemView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-**Example**
-
-<Frame>
-  <img src="/images/6c5fc063-groups_list_item_view-2567373b1b5f9faf6c29be8d07a1a274.png" />
-</Frame>
-
-***
-
-#### SubTitleView
-
-Customizes the subtitle view for each group item, which typically displays extra information.
-
-Use Cases:
-
-* Show last message preview.
-* Display the number of members.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getSubtitleView = (item: CometChat.Group): JSX.Element => {
-  //your custom Subtitle view
-  //return jsx;
-};
-return <CometChatGroups SubtitleView={getSubtitleView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-**Example**
-
-<Frame>
-  <img src="/images/9d2dd1ec-groups_subtitle_view-4257df0157253a4dca4cb83299b966a7.png" />
-</Frame>
-
-***
-
-#### AppBarOptions
-
-Customizes the overflow menu (three-dot ⋮ icon) with additional options.
-
-Use Cases:
-
-* Add options like "Invite Members", "Report Group".
-* Enable admin-specific options like "Manage Group Settings".
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-return (
-  <CometChatGroups
-    AppBarOptions={() => {
-      return (
-        <TouchableOpacity
-          onPress={() => {
-            //do something
-          }}
-        >
-          <Text>Custom App Bar Options</Text>
-        </TouchableOpacity>
-      );
-    }}
-  />
-);
-```
-
-</Tab>
-
-</Tabs>
-
-**Example**
-
-<Frame>
-  <img src="/images/6f8b7200-groups_menu-abd299ecf561c71932941257525ea004.png" />
-</Frame>
-
-#### options
-
-This method sets a predefined list of actions that users can perform when they long press a group in the list. These options typically include:
-
-* Enable actions like "Mute Notifications", "Leave Group", "Pin Group".
-* Provide admin-only actions like "Manage Members", "Delete Group".
-
-By customizing these options, developers can provide a streamlined and contextually relevant user experience
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-
-const setMyOptions = (group: CometChat.Group) => {
-    return [
-      //options
-    ];
-  };
-
-
-return (
-  <CometChatGroups
-    options={setMyOptions}
-  />
-);
-```
-
-</Tab>
-
-</Tabs>
-
-#### addOptions
-
-This method extends the existing set of actions available when users long press a group item. Unlike setOptionsDefines, which replaces the default options, addOptionsAdds allows developers to append additional actions without removing the default ones. Example use cases include:
-
-* Adding a "Report Spam" action
-* Introducing a "Save to Notes" option
-* Integrating third-party actions such as "Share to Cloud Storage"
-
-This method provides flexibility in modifying user interaction capabilities.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatGroups } from "@cometchat/chat-uikit-react-native";
-//code
-
-const addOptions = (group: CometChat.Group) => {
-    return [
-      //options
-    ];
-  };
-
-
-return (
-  <CometChatGroups
-    addOptions={addOptions}
-  />
-);
-```
-
-</Tab>
-
-</Tabs>
-
+### Visibility Props
+
+| Property | Description | Code |
+| --- | --- | --- |
+| `hideHeader` | Toggle visibility for the toolbar/header | `hideHeader?: boolean` |
+| `showBackButton` | Toggle visibility for back button | `showBackButton?: boolean` |
+| `hideSearch` | Toggle visibility for search box | `hideSearch?: boolean` |
+| `hideError` | Hide error on fetching groups | `hideError?: boolean` |
+| `hideSubmitButton` | Toggle visibility of the submit button when selectionMode is enabled | `hideSubmitButton?: boolean` |
+| `hideLoadingState` | Toggle visibility for Loading state | `hideLoadingState?: boolean` |
+| `groupTypeVisibility` | Toggle visibility for group type (public/private/password) | `groupTypeVisibility?: boolean` |
+
+### Selection Mode
+
+| Property | Description | Code |
+| --- | --- | --- |
+| `selectionMode` | Determines the selection mode for groups | `selectionMode?: SelectionMode` |
+| `searchKeyword` | Keyword used to fetch initial group list | `searchKeyword?: string` |
+| `searchPlaceholderText` | Placeholder text for search input | `searchPlaceholderText?: string` |
 
 ---
 

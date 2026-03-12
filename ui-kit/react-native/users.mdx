@@ -3,35 +3,112 @@ title: "Users"
 description: "Display and interact with a searchable list of all available users with CometChatUsers component in React Native UI Kit."
 ---
 
-<Info>
-**Quick Reference for AI Agents & Developers**
-
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-// Minimal usage
-<CometChatUsers />
-
-// Common pattern: Navigate to Messages on user tap
-<CometChatUsers
-  onItemPress={(user: CometChat.User) => {
-    // Navigate to CometChatMessages with user prop
-    // navigation.navigate('Messages', { user });
-    console.log("Selected user:", user.getUid(), user.getName());
-  }}
-  onError={(error: CometChat.CometChatException) => console.log("Error:", error)}
-/>
+<Accordion title="AI Integration Quick Reference">
+```json
+{
+  "component": "CometChatUsers",
+  "package": "@cometchat/chat-uikit-react-native",
+  "import": "import { CometChatUsers } from \"@cometchat/chat-uikit-react-native\";",
+  "description": "Searchable, scrollable list of all available users with avatar, name, and online/offline status.",
+  "primaryOutput": {
+    "prop": "onItemPress",
+    "type": "(user: CometChat.User) => void"
+  },
+  "props": {
+    "data": {
+      "usersRequestBuilder": {
+        "type": "CometChat.UsersRequestBuilder",
+        "default": "SDK default (30 per page)",
+        "note": "Pass the builder, not the result of .build()"
+      },
+      "searchRequestBuilder": {
+        "type": "CometChat.UsersRequestBuilder",
+        "default": "undefined"
+      },
+      "searchKeyword": {
+        "type": "string",
+        "default": "\"\""
+      }
+    },
+    "callbacks": {
+      "onItemPress": "(user: CometChat.User) => void",
+      "onItemLongPress": "(user: CometChat.User) => void",
+      "onBack": "() => void",
+      "onSelection": "(list: CometChat.User[]) => void",
+      "onError": "(error: CometChat.CometChatException) => void",
+      "onEmpty": "() => void",
+      "onLoad": "(list: CometChat.User[]) => void",
+      "onSubmit": "(list: Array<CometChat.User>) => void"
+    },
+    "visibility": {
+      "hideHeader": { "type": "boolean", "default": false },
+      "showBackButton": { "type": "boolean", "default": false },
+      "hideSearch": { "type": "boolean", "default": false },
+      "hideError": { "type": "boolean", "default": false },
+      "stickyHeaderVisibility": { "type": "boolean", "default": true },
+      "hideSubmitButton": { "type": "boolean", "default": true },
+      "hideLoadingState": { "type": "boolean", "default": false },
+      "usersStatusVisibility": { "type": "boolean", "default": true }
+    },
+    "selection": {
+      "selectionMode": {
+        "type": "SelectionMode",
+        "values": ["single", "multiple", "none"],
+        "default": "none"
+      }
+    },
+    "viewSlots": {
+      "ItemView": "(user: CometChat.User) => JSX.Element",
+      "LeadingView": "(user: CometChat.User) => JSX.Element",
+      "TitleView": "(user: CometChat.User) => JSX.Element",
+      "SubtitleView": "(user: CometChat.User) => JSX.Element",
+      "TrailingView": "(user: CometChat.User) => JSX.Element",
+      "LoadingView": "() => JSX.Element",
+      "EmptyView": "() => JSX.Element",
+      "ErrorView": "() => JSX.Element",
+      "AppBarOptions": "() => JSX.Element"
+    }
+  },
+  "events": [
+    {
+      "name": "ccUserBlocked",
+      "payload": "CometChat.User",
+      "description": "Triggered when logged-in user blocks another user"
+    },
+    {
+      "name": "ccUserUnblocked",
+      "payload": "CometChat.User",
+      "description": "Triggered when logged-in user unblocks another user"
+    }
+  ],
+  "sdkListeners": [
+    "onUserOnline",
+    "onUserOffline"
+  ],
+  "compositionExample": {
+    "description": "User list wired to message view",
+    "components": [
+      "CometChatUsers",
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatMessageComposer"
+    ],
+    "flow": "onItemPress emits CometChat.User -> pass to MessageHeader, MessageList, MessageComposer"
+  },
+  "types": {
+    "SelectionMode": {
+      "single": "Select one user at a time",
+      "multiple": "Select multiple users",
+      "none": "No selection mode"
+    }
+  }
+}
 ```
+</Accordion>
 
-- **Conversations** → [CometChatConversations](/ui-kit/react-native/conversations)
-- **Groups** → [CometChatGroups](/ui-kit/react-native/groups)
-- **Message List** → [CometChatMessageList](/ui-kit/react-native/message-list)
-</Info>
+## Where It Fits
 
-## Overview
-
-The Users is a [Component](/ui-kit/react-native/components-overview#components), showcasing an accessible list of all available users. It provides an integral search functionality, allowing you to locate any specific user swiftly and easily. For each user listed, the component displays the user's name by default, in conjunction with their avatar when available. Furthermore, it includes a status indicator, visually informing you whether a user is currently online or offline.
+`CometChatUsers` is a contact list component that displays all available users. It renders a searchable, scrollable list and emits the selected `CometChat.User` via `onItemPress`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a standard two-panel chat layout.
 
 <Note>
 **Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/retrieve-users) | [REST API](/rest-api/chat-apis)
@@ -41,238 +118,27 @@ The Users is a [Component](/ui-kit/react-native/components-overview#components),
   <img src="/images/358a0b21-users-4e1d9c895a8ae47d23ac0d6646db160b.png" />
 </Frame>
 
-***
+---
 
-## Usage
+## Minimal Render
 
-### Integration
-
-To use Users in your component, use the following code snippet:
-
-```tsx App.tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
-return <CometChatUsers />;
-```
-
-### Actions
-
-[Actions](/ui-kit/react-native/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
-
-##### onItemPress
-
-Function invoked when a user item is clicked, typically used to open a user profile or chat screen.
-
-```tsx
-onItemPress?: (user: CometChat.User) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onPressHandler = (user: CometChat.User) => {
-  //code
-};
-
-return <CometChatUsers onItemPress={onPressHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onItemLongPress
-
-Function executed when a user item is long-pressed, allowing additional actions like delete or block.
-
-```tsx
-onItemLongPress?: (user: CometChat.User) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onLongPressHandler = (user: CometChat.User) => {
-  //code
-};
-
-return <CometChatUsers onItemLongPress={onLongPressHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onBack
-
-`onBack` is triggered when you press the back button in the app bar. It has a predefined behavior; when clicked, it navigates to the previous activity. However, you can override this action using the following code snippet.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
 
-const onBackHandler = () => {
-  //code
-};
+function UsersDemo() {
+  return <CometChatUsers />;
+}
 
-return <CometChatUsers showBackButton={true} onBack={onBackHandler} />;
+export default UsersDemo;
 ```
 
-</Tab>
+---
 
-</Tabs>
+## Filtering Users
 
-***
+Pass a `CometChat.UsersRequestBuilder` to `usersRequestBuilder`. Pass the builder instance — not the result of `.build()`.
 
-##### onSelection
-
-Called when an item from the fetched list is selected, useful for multi-selection features.
-
-```tsx
-onSelection?: (list: CometChat.User[]) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onSelectionHandler = (list: CometChat.User[]) => {
-  //code
-};
-
-return (
-  <CometChatUsers selectionMode={"single"} onSelection={onSelectionHandler} />
-);
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onError
-
-This action does not change the behavior of the component but rather listens for any errors that occur in the Users component.
-
-```tsx
-onError?: (e: CometChat.CometChatException) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onErrorHandler = (e: CometChat.CometChatException) => {
-  console.log("Error:", e);
-};
-
-return <CometChatUsers onError={onErrorHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onEmpty
-
-Called when the list is empty, enabling custom handling such as showing a placeholder message.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onEmptyHandler = () => {
-  console.log("Empty");
-};
-
-return <CometChatUsers onEmpty={onEmptyHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onLoad
-
-Invoked when the list is successfully fetched and loaded, helping track component readiness.
-
-```tsx
-onLoad?: (list: CometChat.User[]) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onLoadHandler = (list: CometChat.User[]) => {
-  console.log("Users loaded:", list.length);
-};
-
-return <CometChatUsers onLoad={onLoadHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-##### onSubmit
-
-Callback when submit selection button is pressed.
-
-```tsx
-onSubmit?: (list: Array<CometChat.User>) => void
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-const onSubmitHandler = (list: Array<CometChat.User>) => {
-  console.log("Final List", list);
-};
-
-return <CometChatUsers onSubmit={onSubmitHandler} />;
-```
-
-</Tab>
-
-</Tabs>
-
-### Filters
-
-**Filters** allow you to customize the data displayed in a list within a Component. You can filter the list based on your specific criteria, allowing for a more customized. Filters can be applied using RequestBuilders of Chat SDK.
-
-##### 1. UserRequestBuilder
-
-The [UserRequestBuilder](/sdk/react-native/retrieve-users) enables you to filter and customize the user list based on available parameters in UserRequestBuilder. This feature allows you to create more specific and targeted queries when fetching users. The following are the parameters available in [UserRequestBuilder](/sdk/react-native/retrieve-users)
+The [UserRequestBuilder](/sdk/react-native/retrieve-users) enables you to filter and customize the user list based on available parameters. The following are the parameters available in [UserRequestBuilder](/sdk/react-native/retrieve-users):
 
 | Methods              | Type           | Description                                                                            |
 | -------------------- | -------------- | -------------------------------------------------------------------------------------- |
@@ -286,17 +152,11 @@ The [UserRequestBuilder](/sdk/react-native/retrieve-users) enables you to filter
 | **setUserStatus**    | string         | used for fetching users by their status online or offline                              |
 | **setUIDs**          | Array\<string> | used for fetching users containing the passed users                                    |
 
-**Example**
-
-In the example below, we are applying a filter to the UserList based on Friends.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
 
-function App(): React.JSX.Element {
+function FilteredUsers() {
   const usersRequestBuilder = new CometChat.UsersRequestBuilder()
     .setLimit(5)
     .friendsOnly(true);
@@ -305,87 +165,583 @@ function App(): React.JSX.Element {
 }
 ```
 
-</Tab>
+### Filter Recipes
 
-</Tabs>
+| Recipe | Code |
+| --- | --- |
+| Friends only | `new CometChat.UsersRequestBuilder().friendsOnly(true)` |
+| Online users only | `new CometChat.UsersRequestBuilder().setUserStatus("online")` |
+| Limit to 5 per page | `new CometChat.UsersRequestBuilder().setLimit(5)` |
+| Search by keyword | `new CometChat.UsersRequestBuilder().setSearchKeyword("Alice")` |
+| Hide blocked users | `new CometChat.UsersRequestBuilder().hideBlockedUsers(true)` |
+| Filter by roles | `new CometChat.UsersRequestBuilder().setRoles(["admin", "moderator"])` |
+| Filter by tags | `new CometChat.UsersRequestBuilder().setTags(["vip"])` |
+| Specific UIDs | `new CometChat.UsersRequestBuilder().setUIDs(["uid1", "uid2"])` |
 
-##### 2. SearchRequestBuilder
+### SearchRequestBuilder
 
-The SearchRequestBuilder uses [UserRequestBuilder](/sdk/react-native/retrieve-users) enables you to filter and customize the search list based on available parameters in UserRequestBuilder. This feature allows you to keep uniformity between the displayed UserList and searched UserList.
+The SearchRequestBuilder uses [UserRequestBuilder](/sdk/react-native/retrieve-users) to filter and customize the search list based on available parameters. This allows you to keep uniformity between the displayed UserList and searched UserList.
 
-**Example**
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
 
-function App(): React.JSX.Element {
-  const usersRequestBuilder = new CometChat.UsersRequestBuilder()
+function SearchUsers() {
+  const searchRequestBuilder = new CometChat.UsersRequestBuilder()
     .setLimit(5)
     .setSearchKeyword("Alice");
 
-  return <CometChatUsers searchRequestBuilder={usersRequestBuilder} />;
+  return <CometChatUsers searchRequestBuilder={searchRequestBuilder} />;
 }
 ```
 
-</Tab>
+---
 
-</Tabs>
+## Actions and Events
 
-### Events
+### Callback Props
 
-[Events](/ui-kit/react-native/components-overview#events) are emitted by a Component. By using events you can extend existing functionality. Being global events, they can be applied in multiple locations and are capable of being added or removed.
+#### onItemPress
 
-To handle events supported by Users you have to add corresponding listeners by using `CometChatUIEventHandler.addUserListener`
+Fires when a user row is tapped. Primary navigation hook — set the active user and render the message view.
 
-| Events          | Description                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| ccUserBlocked   | This will get triggered when the logged in user blocks another user   |
-| ccUserUnblocked | This will get triggered when the logged in user unblocks another user |
-
-<Tabs>
-<Tab title="Adding Listeners">
-```tsx
-import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
-
-CometChatUIEventHandler.addUserListener("USER_LISTENER_ID", {
-  ccUserBlocked: ({ item }) => {
-    //code
-  },
-});
-
-CometChatUIEventHandler.addUserListener("USER_LISTENER_ID", {
-  ccUserUnblocked: ({ item }) => {
-    //code
-  },
-});
+```tsx lines
+onItemPress?: (user: CometChat.User) => void
 ```
 
-</Tab>
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-</Tabs>
+function UsersWithPress() {
+  const handleItemPress = (user: CometChat.User) => {
+    console.log("Selected:", user.getName());
+  };
 
-## Customization
+  return <CometChatUsers onItemPress={handleItemPress} />;
+}
+```
 
-To fit your app's design requirements, you can customize the appearance of the User component. We provide exposed methods that allow you to modify the experience and behavior according to your specific needs.
+#### onItemLongPress
 
-### Style
+Fires when a user item is long-pressed, allowing additional actions like delete or block.
 
-Using Style you can customize the look and feel of the component in your app. These parameters typically control elements such as the color, size, shape, and fonts used within the component.
+```tsx lines
+onItemLongPress?: (user: CometChat.User) => void
+```
 
-You can set the styling object to the `CometChatUsers` Component to customize the styling.
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function UsersWithLongPress() {
+  const handleLongPress = (user: CometChat.User) => {
+    console.log("Long pressed:", user.getName());
+  };
+
+  return <CometChatUsers onItemLongPress={handleLongPress} />;
+}
+```
+
+#### onBack
+
+Fires when the back button in the app bar is pressed. Requires `showBackButton={true}`.
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+function UsersWithBack() {
+  return (
+    <CometChatUsers
+      showBackButton={true}
+      onBack={() => {
+        console.log("Back pressed");
+      }}
+    />
+  );
+}
+```
+
+#### onSelection
+
+Fires when users are selected/deselected in selection mode. Requires `selectionMode` to be set.
+
+```tsx lines
+onSelection?: (list: CometChat.User[]) => void
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function UsersWithSelection() {
+  const handleSelection = (list: CometChat.User[]) => {
+    console.log("Selected:", list.length);
+  };
+
+  return (
+    <CometChatUsers
+      selectionMode={"single"}
+      onSelection={handleSelection}
+    />
+  );
+}
+```
+
+#### onError
+
+Fires on internal errors (network failure, auth issue, SDK exception).
+
+```tsx lines
+onError?: (e: CometChat.CometChatException) => void
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function UsersWithErrorHandler() {
+  return (
+    <CometChatUsers
+      onError={(error: CometChat.CometChatException) => {
+        console.error("CometChatUsers error:", error);
+      }}
+    />
+  );
+}
+```
+
+#### onEmpty
+
+Fires when the user list is empty.
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+function UsersWithEmptyHandler() {
+  return (
+    <CometChatUsers
+      onEmpty={() => {
+        console.log("No users available");
+      }}
+    />
+  );
+}
+```
+
+#### onLoad
+
+Fires when the list is successfully fetched and loaded.
+
+```tsx lines
+onLoad?: (list: CometChat.User[]) => void
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function UsersWithLoadHandler() {
+  const handleLoad = (list: CometChat.User[]) => {
+    console.log("Users loaded:", list.length);
+  };
+
+  return <CometChatUsers onLoad={handleLoad} />;
+}
+```
+
+#### onSubmit
+
+Fires when the submit selection button is pressed. Requires `selectionMode` to be set.
+
+```tsx lines
+onSubmit?: (list: Array<CometChat.User>) => void
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function UsersWithSubmit() {
+  const handleSubmit = (list: Array<CometChat.User>) => {
+    console.log("Submit", list);
+  };
+
+  return <CometChatUsers onSubmit={handleSubmit} />;
+}
+```
+
+### Global UI Events
+
+`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Add listeners and remove them on cleanup.
+
+| Event | Fires when | Payload |
+| --- | --- | --- |
+| `ccUserBlocked` | The logged-in user blocks another user | `CometChat.User` |
+| `ccUserUnblocked` | The logged-in user unblocks another user | `CometChat.User` |
+
+When to use: sync external UI with user state changes. For example, update a blocked users list when a user is blocked, or refresh the user list when a user is unblocked.
+
+```tsx lines
+import { useEffect } from "react";
+import { CometChatUIEventHandler } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function useUserEvents() {
+  useEffect(() => {
+    const listenerId = "USER_EVENTS_" + Date.now();
+    
+    CometChatUIEventHandler.addUserListener(listenerId, {
+      ccUserBlocked: (user: CometChat.User) => {
+        console.log("Blocked:", user.getName());
+      },
+      ccUserUnblocked: (user: CometChat.User) => {
+        console.log("Unblocked:", user.getName());
+      },
+    });
+
+    return () => {
+      CometChatUIEventHandler.removeListener(listenerId);
+    };
+  }, []);
+}
+```
+
+### SDK Events (Real-Time, Automatic)
+
+The component listens to these SDK events internally. No manual attachment needed unless additional side effects are required.
+
+| SDK Listener | Internal behavior |
+| --- | --- |
+| `onUserOnline` | Updates the user's status indicator to online |
+| `onUserOffline` | Updates the user's status indicator to offline |
+
+Automatic: user presence changes (online/offline).
+
+<Note>
+In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
+</Note>
+
+---
+
+## Custom View Slots
+
+Each slot replaces a section of the default UI. Slots that accept a user parameter receive the `CometChat.User` object for that row.
+
+| Slot | Signature | Replaces |
+| --- | --- | --- |
+| `ItemView` | `(user: CometChat.User) => JSX.Element` | Entire list item row |
+| `LeadingView` | `(user: CometChat.User) => JSX.Element` | Avatar / left section |
+| `TitleView` | `(user: CometChat.User) => JSX.Element` | Name / title text |
+| `SubtitleView` | `(user: CometChat.User) => JSX.Element` | Subtitle text |
+| `TrailingView` | `(user: CometChat.User) => JSX.Element` | Right section |
+| `LoadingView` | `() => JSX.Element` | Loading spinner |
+| `EmptyView` | `() => JSX.Element` | Empty state |
+| `ErrorView` | `() => JSX.Element` | Error state |
+| `AppBarOptions` | `() => JSX.Element` | Header bar options |
+
+### LoadingView
+
+Custom view displayed when data is being fetched.
+
+```tsx lines
+LoadingView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+const getLoadingView = (): JSX.Element => {
+  return <Text>Loading users...</Text>;
+};
+
+return <CometChatUsers LoadingView={getLoadingView} />;
+```
+
+### EmptyView
+
+Custom view displayed when there are no users.
+
+```tsx lines
+EmptyView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+const getEmptyView = (): JSX.Element => {
+  return <Text>No users found. Invite some friends!</Text>;
+};
+
+return <CometChatUsers EmptyView={getEmptyView} />;
+```
+
+### ErrorView
+
+Custom view displayed when an error occurs.
+
+```tsx lines
+ErrorView?: () => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+const getErrorView = (): JSX.Element => {
+  return <Text>Something went wrong. Please try again.</Text>;
+};
+
+return <CometChatUsers ErrorView={getErrorView} />;
+```
+
+### LeadingView
+
+Custom view for the avatar / left section of each user item.
+
+```tsx lines
+LeadingView?: (user: CometChat.User) => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getLeadingView = (user: CometChat.User): JSX.Element => {
+  return (
+    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#6852D6' }}>
+      <Text style={{ color: 'white', textAlign: 'center', lineHeight: 40 }}>
+        {user.getName().charAt(0)}
+      </Text>
+    </View>
+  );
+};
+
+return <CometChatUsers LeadingView={getLeadingView} />;
+```
+
+### TitleView
+
+Custom view for the name / title text.
+
+```tsx lines
+TitleView?: (user: CometChat.User) => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getTitleView = (user: CometChat.User): JSX.Element => {
+  return (
+    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+      {user.getName()}
+    </Text>
+  );
+};
+
+return <CometChatUsers TitleView={getTitleView} />;
+```
+
+### SubtitleView
+
+Custom view for the subtitle text.
+
+```tsx lines
+SubtitleView?: (user: CometChat.User) => JSX.Element
+```
+
+<Frame>
+  <img src="/images/6e16192f-users_subtitle_view-51f448114408521010b6feb4a5bba41d.png" />
+</Frame>
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getSubtitleView = (user: CometChat.User): JSX.Element => {
+  return (
+    <Text style={{ fontSize: 12, color: '#727272' }}>
+      {user.getStatus() === 'online' ? 'Online' : 'Offline'}
+    </Text>
+  );
+};
+
+return <CometChatUsers SubtitleView={getSubtitleView} />;
+```
+
+### TrailingView
+
+Custom view for the right section.
+
+```tsx lines
+TrailingView?: (user: CometChat.User) => JSX.Element
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getTrailingView = (user: CometChat.User): JSX.Element => {
+  return (
+    <TouchableOpacity onPress={() => { /* follow user */ }}>
+      <Text style={{ color: '#6852D6' }}>Follow</Text>
+    </TouchableOpacity>
+  );
+};
+
+return <CometChatUsers TrailingView={getTrailingView} />;
+```
+
+### ItemView
+
+Custom view for the entire list item row.
+
+```tsx lines
+ItemView?: (user: CometChat.User) => JSX.Element
+```
+
+<Frame>
+  <img src="/images/de656dc8-users_list_item_view-e66a444aac7edcb18dec787a42b646c3.png" />
+</Frame>
+
+```tsx lines
+import {
+  CometChatUsers,
+  CometChatAvatar,
+  useTheme,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const theme = useTheme();
+
+const getItemView = (user: CometChat.User): JSX.Element => {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: theme.color.borderLight,
+      }}>
+      <CometChatAvatar
+        name={user.getName()}
+        image={{ uri: user.getAvatar() }}
+        style={{
+          containerStyle: { borderRadius: 8 },
+          imageStyle: { borderRadius: 8 },
+        }}
+      />
+      <Text
+        style={{
+          flex: 1,
+          color: theme.color.textPrimary,
+          fontSize: 16,
+          marginLeft: 12,
+          fontWeight: '500',
+        }}
+        numberOfLines={1}
+        ellipsizeMode="tail">
+        {user.getName()}
+      </Text>
+    </View>
+  );
+};
+
+return <CometChatUsers ItemView={getItemView} />;
+```
+
+### AppBarOptions
+
+Custom view for the header bar options.
+
+<Frame>
+  <img src="/images/50473531-user_menu-5b7eb7088d966ada9e751e591dbee212.png" />
+</Frame>
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+
+return (
+  <CometChatUsers
+    AppBarOptions={() => {
+      return (
+        <TouchableOpacity onPress={() => { /* handle click */ }}>
+          <Text>Custom App Bar Options</Text>
+        </TouchableOpacity>
+      );
+    }}
+  />
+);
+```
+
+### options
+
+Custom context menu actions for each user item.
+
+```tsx lines
+options?: (user: CometChat.User) => MenuItemInterface[]
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const setMyOptions = (user: CometChat.User) => {
+  return [
+    {
+      text: "Block",
+      onPress: () => { /* block logic */ },
+    },
+    {
+      text: "Report",
+      onPress: () => { /* report logic */ },
+    },
+  ];
+};
+
+return <CometChatUsers options={setMyOptions} />;
+```
+
+### addOptions
+
+Extends the default context menu actions with additional options.
+
+```tsx lines
+addOptions?: (user: CometChat.User) => MenuItemInterface[]
+```
+
+```tsx lines
+import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const addOptions = (user: CometChat.User) => {
+  return [
+    {
+      text: "Add to Favorites",
+      onPress: () => { /* add to favorites logic */ },
+    },
+  ];
+};
+
+return <CometChatUsers addOptions={addOptions} />;
+```
+
+---
+
+## Styling
+
+Using Style you can customize the look and feel of the component in your app. Pass a styling object as a prop to the `CometChatUsers` component.
 
 <Frame>
   <img src="/images/c8909b74-users_styling-3acb1ffef7870b6903a070fd83b5103f.png" />
 </Frame>
 
-<Tabs>
-<Tab title="App.tsx">
-```tsx
+```tsx lines
 import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
+
 return (
   <CometChatUsers
     style={{
@@ -407,431 +763,31 @@ return (
         },
       },
     }}
-  ></CometChatUsers>
-);
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-### Functionality
-
-These are a set of small functional customizations that allow you to fine-tune the overall experience of the component. With these, you can toggle the visibility of UI elements.
-
-Below is a list of customizations along with corresponding code snippets
-
-| Property                   | Description                                                                                                                   | Code                                     |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **hideHeader**             | Used to toggle visibility for the toolbar/header                                                                              | `hideHeader?: boolean`                   |
-| **showBackButton**         | Used to toggle visibility for back button                                                                                     | `showBackButton?: boolean`               |
-| **hideSearch**             | Used to toggle visibility for search box                                                                                      | `hideSearch?: boolean`                   |
-| **hideError**              | Used to hide error on fetching users                                                                                          | `hideError?: boolean`                    |
-| **stickyHeaderVisibility** | Used to hide section headers                                                                                                  | `stickyHeaderVisibility?: boolean`       |
-| **selectionMode**          | This method determines the selection mode for users, enabling users to select either a single user or multiple users at once. | `selectionMode={SelectionMode.multiple}` |
-| **hideSubmitButton**       | Used to toggle the visibility of the submit button when selectionMode is enabled.                                             | `hideBackButton={true}`                  |
-| **searchPlaceholderText**  | Used to set search placeholder text                                                                                           | `searchPlaceholderText?: string;`        |
-| **hideLoadingState**       | Used to toggle visibility for Loading state                                                                                   | `hideLoadingState?: boolean`             |
-| **usersStatusVisibility**  | Used to toggle visibility for User status                                                                                     | `usersStatusVisibility?: boolean`        |
-| **searchKeyword**          | Keyword used to fetch initial user list.                                                                                      | `searchKeyword?: string`                 |
-| **title**                  | Title for the header.                                                                                                         | `title?: string`                         |
-
-***
-
-### Advanced
-
-For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
-
-***
-
-#### LoadingView
-
-This method allows developers to set a custom loading view that is displayed when data is being fetched or loaded within the component. Instead of using a default loading spinner, a custom animation, progress bar, or branded loading screen can be displayed.
-
-```tsx
-LoadingView?: () => JSX.Element
-```
-
-Use cases:
-
-* Showing a skeleton loader for users while data loads
-* Displaying a custom progress indicator with branding
-* Providing an animated loading experience for a more engaging UI
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
-const getLoadingView = (): JSX.Element => {
-  //your custom loading view
-  //return jsx;
-};
-return <CometChatUsers LoadingView={getLoadingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### EmptyView
-
-Configures a custom view to be displayed when there are no users. This improves the user experience by providing meaningful content instead of an empty screen.
-
-```tsx
-EmptyView?: () => JSX.Element
-```
-
-Examples:
-
-* Displaying a message like "No users yet. Start a new chat!"
-* Showing an illustration or animation to make the UI visually appealing
-* Providing a button to start a new user
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
-const getEmptyView = (): JSX.Element => {
-  //your custom Empty view
-  //return jsx;
-};
-return <CometChatUsers EmptyView={getEmptyView}/>;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### ErrorView
-
-Defines a custom error state view that appears when an issue occurs while loading users or messages. This enhances the user experience by displaying friendly error messages instead of generic system errors.
-
-```tsx
-ErrorView?: () => JSX.Element
-```
-
-Common use cases:
-
-* Showing "Something went wrong. Please try again." with a retry button
-* Displaying a connection issue message if the user is offline
-* Providing troubleshooting steps for the error
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
-const getErrorView = (): JSX.Element => {
-  //your custom error view
-  //return jsx;
-};
-return <CometChatUsers ErrorView={getErrorView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### LeadingView
-
-This method allows developers to set a custom leading view element that appears at the beginning of each user item. Typically, this space is used for profile pictures, avatars, or user badges.
-
-```tsx
-LeadingView?: (item: CometChat.User) => JSX.Element
-```
-
-Use Cases:
-
-* Profile Pictures & Avatars – Display user profile images with online/offline indicators.
-* Custom Icons or Badges – Show role-based badges (Admin, VIP, Verified) before the user name.
-* Status Indicators – Add an active status ring or colored border based on availability.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getLeadingView = (user: CometChat.User): JSX.Element => {
-  //your custom leading view
-  //return jsx;
-};
-return <CometChatUsers LeadingView={getLeadingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### TitleView
-
-This method customizes the title view of each user item, which typically displays the user’s name. It allows for styling modifications, additional metadata, or inline action buttons.
-
-Use Cases:
-
-* Styled Usernames – Customize fonts, colors, or text sizes for the name display.
-* Additional Metadata – Show extra details like username handles or job roles.
-* Inline Actions – Add a follow button or verification checkmark next to the name.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTitleView = (user: CometChat.User): JSX.Element => {
-  //your custom title view
-  //return jsx;
-};
-return <CometChatUsers TitleView={getTitleView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-***
-
-#### TrailingView
-
-This method allows developers to customize the trailing (right-end) section of each user item, typically used for actions like buttons, icons, or extra information.
-
-```tsx
-TrailingView?: (item: CometChat.User) => JSX.Element
-```
-
-Use Cases:
-
-* Quick Actions – Add a follow/unfollow button.
-* Notification Indicators – Show unread message counts or alert icons.
-* Custom Info Display – Display last active time or mutual connections.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getTrailingView = (user: CometChat.User): JSX.Element => {
-  //your custom Trailing view
-  //return jsx;
-};
-return <CometChatUsers TrailingView={getTrailingView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-#### ItemView
-
-This method allows developers to assign a fully custom ListItem layout to the Users component, replacing the default design. It provides complete control over the appearance and structure of each user item in the list.
-
-```tsx
-ItemView?: (item: CometChat.User) => JSX.Element
-```
-
-Use Cases:
-
-* Customizing User Display – Modify how user information (name, avatar, status) is presented.
-* Adding Action Buttons – Include follow, message, or call buttons directly in the item view.
-* Highlighting User Roles – Display user badges such as Admin, Moderator, or VIP.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getItemView = (user: CometChat.User): JSX.Element => {
-  //your custom Item view
-  //return jsx;
-};
-return <CometChatUsers ItemView={getItemView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-**Example**
-
-<Frame>
-  <img src="/images/de656dc8-users_list_item_view-e66a444aac7edcb18dec787a42b646c3.png" />
-</Frame>
-
-***
-
-#### SubtitleView
-
-This method customizes the subtitle view of each user item, typically shown below the user's name. It can display additional details such as user status, last seen time, or a brief bio.
-
-```tsx
-SubtitleView?: (item: CometChat.User) => JSX.Element
-```
-
-Use Cases:
-
-* Last Active Time – Show "Online Now", "Last seen 2 hours ago".
-* User Status – Display status messages like "Offine", "Available".
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-const getSubtitleView = (user: CometChat.User): JSX.Element => {
-  //your custom Subtitle view
-  //return jsx;
-};
-return <CometChatUsers SubtitleView={getSubtitleView} />;
-```
-
-</Tab>
-
-</Tabs>
-
-**Example**
-
-<Frame>
-  <img src="/images/6e16192f-users_subtitle_view-51f448114408521010b6feb4a5bba41d.png" />
-</Frame>
-
-***
-
-#### AppBarOptions
-
-This method customizes the overflow menu, typically appearing as a three-dot (⋮) icon, allowing additional options for each user in the list.
-
-Use Cases:
-
-* User Management Actions – "Block User", "Report", "Add to Favorites".
-* Friendship & Communication – "Send Message", "Follow/Unfollow".
-* Profile Settings – "View Profile", "Edit Contact Info".
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-//code
-return (
-  <CometChatUsers
-    AppBarOptions={() => {
-      return (
-        <TouchableOpacity
-          onPress={() => {
-            //do something
-          }}
-        >
-          <Text>Custom App Bar Options</Text>
-        </TouchableOpacity>
-      );
-    }}
   />
 );
 ```
 
-</Tab>
+### Visibility Props
 
-</Tabs>
+| Property | Description | Code |
+| --- | --- | --- |
+| `hideHeader` | Toggle visibility for the toolbar/header | `hideHeader?: boolean` |
+| `showBackButton` | Toggle visibility for back button | `showBackButton?: boolean` |
+| `hideSearch` | Toggle visibility for search box | `hideSearch?: boolean` |
+| `hideError` | Hide error on fetching users | `hideError?: boolean` |
+| `stickyHeaderVisibility` | Hide section headers | `stickyHeaderVisibility?: boolean` |
+| `hideSubmitButton` | Toggle visibility of the submit button when selectionMode is enabled | `hideSubmitButton?: boolean` |
+| `hideLoadingState` | Toggle visibility for Loading state | `hideLoadingState?: boolean` |
+| `usersStatusVisibility` | Toggle visibility for User status | `usersStatusVisibility?: boolean` |
 
-**Example**
+### Selection Mode
 
-<Frame>
-  <img src="/images/50473531-user_menu-5b7eb7088d966ada9e751e591dbee212.png" />
-</Frame>
-
-#### options
-
-This method sets a predefined list of actions that users can perform when they long press a user in the list. These options typically include:
-
-* Muting notifications for a specific user.
-
-By customizing these options, developers can provide a streamlined and contextually relevant user experience
-
-```tsx
-options?: (user: CometChat.User) => MenuItemInterface[]
-```
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-
-const setMyOptions = (user: CometChat.User) => {
-    return [
-      //options
-    ];
-  };
-
-
-return (
-  <CometChatUsers
-    options={setMyOptions}
-  />
-);
-```
-
-</Tab>
-
-</Tabs>
-
-#### addOptions
-
-This method extends the existing set of actions available when users long press a user item. Unlike setOptions, which replaces the default options, addOptionsAdds allows developers to append additional actions without removing the default ones. Example use cases include:
-
-```tsx
-addOptions?: (user: CometChat.User) => MenuItemInterface[]
-```
-
-Use Cases:
-
-* Adding a "Report Spam" action.
-* Introducing a "Save to Notes" option.
-* Integrating third-party actions such as "Share to Cloud Storage".
-
-This method provides flexibility in modifying user interaction capabilities.
-
-<Tabs>
-<Tab title="App.tsx">
-```tsx
-import { CometChatUsers } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-//code
-
-const addOptions = (user: CometChat.User) => {
-    return [
-      //options
-    ];
-  };
-
-
-return (
-  <CometChatUsers
-    addOptions={addOptions}
-  />
-);
-```
-
-</Tab>
-
-</Tabs>
-
+| Property | Description | Code |
+| --- | --- | --- |
+| `selectionMode` | Determines the selection mode for users | `selectionMode?: SelectionMode` |
+| `searchKeyword` | Keyword used to fetch initial user list | `searchKeyword?: string` |
+| `searchPlaceholderText` | Placeholder text for search input | `searchPlaceholderText?: string` |
+| `title` | Title for the header | `title?: string` |
 
 ---
 
