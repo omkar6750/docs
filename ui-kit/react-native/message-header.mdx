@@ -38,9 +38,13 @@ description: "Display user or group details in the chat toolbar with CometChatMe
     "viewSlots": {
       "ItemView": "({ user, group }) => JSX.Element",
       "LeadingView": "({ user, group }) => JSX.Element",
+      "TitleView": "({ user, group }) => JSX.Element",
       "SubtitleView": "({ user, group }) => JSX.Element",
       "TrailingView": "({ user, group }) => JSX.Element",
       "AuxiliaryButtonView": "({ user, group }) => JSX.Element"
+    },
+    "options": {
+      "options": "({ user, group }) => MenuItemInterface[]"
     }
   },
   "compositionExample": {
@@ -182,9 +186,43 @@ Each slot replaces a section of the default UI. Slots that accept parameters rec
 | --- | --- | --- |
 | `ItemView` | `({ user, group }) => JSX.Element` | Entire header layout |
 | `LeadingView` | `({ user, group }) => JSX.Element` | Avatar / left section |
+| `TitleView` | `({ user, group }) => JSX.Element` | Name / title text |
 | `SubtitleView` | `({ user, group }) => JSX.Element` | Status / subtitle text |
 | `TrailingView` | `({ user, group }) => JSX.Element` | Right section next to call buttons |
 | `AuxiliaryButtonView` | `({ user, group }) => JSX.Element` | Replaces default call buttons |
+
+### TitleView
+
+Custom view for the name / title text.
+
+```tsx lines
+TitleView?: ({ user, group }) => JSX.Element
+```
+
+```tsx lines
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { Text } from "react-native";
+
+function TitleViewDemo() {
+  const getTitleView = ({
+    user,
+    group,
+  }: {
+    user?: CometChat.User;
+    group?: CometChat.Group;
+  }) => {
+    const name = user ? user.getName() : group?.getName();
+    return (
+      <Text style={{ fontWeight: 'bold', fontSize: 18 }}>
+        {name}
+      </Text>
+    );
+  };
+
+  return <CometChatMessageHeader group={group} TitleView={getTitleView} />;
+}
+```
 
 ### AuxiliaryButtonView
 
@@ -416,6 +454,42 @@ function StylingDemo() {
 | `usersStatusVisibility` | Toggle user status visibility | `usersStatusVisibility?: boolean` |
 | `hideNewChatButton` | Toggle visibility of new chat button for AI Assistants | `hideNewChatButton?: boolean` |
 | `hideChatHistoryButton` | Toggle visibility of chat history button for AI Assistants | `hideChatHistoryButton?: boolean` |
+
+### options
+
+Custom menu items for the header options menu.
+
+```tsx lines
+options?: ({ user, group }) => MenuItemInterface[]
+```
+
+```tsx lines
+import { CometChatMessageHeader } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function OptionsDemo() {
+  const getOptions = ({
+    user,
+    group,
+  }: {
+    user?: CometChat.User;
+    group?: CometChat.Group;
+  }) => {
+    return [
+      {
+        text: "View Profile",
+        onPress: () => { /* view profile logic */ },
+      },
+      {
+        text: "Block User",
+        onPress: () => { /* block logic */ },
+      },
+    ];
+  };
+
+  return <CometChatMessageHeader user={user} options={getOptions} />;
+}
+```
 
 ---
 

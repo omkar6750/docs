@@ -40,7 +40,8 @@ description: "Display and manage group members with CometChatGroupMembers compon
       "onItemLongPress": "(groupMember: CometChat.GroupMember) => void",
       "onBack": "() => void",
       "onSelection": "(list: CometChat.GroupMember[]) => void",
-      "onError": "(error: CometChat.CometChatException) => void",
+      "onSubmit": "(list: Array<CometChat.Conversation>) => void",
+      "onError": "() => void",
       "onEmpty": "() => void",
       "onLoad": "(list: CometChat.GroupMember[]) => void"
     },
@@ -54,7 +55,8 @@ description: "Display and manage group members with CometChatGroupMembers compon
       "hideKickMemberOption": { "type": "boolean", "default": false },
       "hideBanMemberOption": { "type": "boolean", "default": false },
       "hideScopeChangeOption": { "type": "boolean", "default": false },
-      "excludeOwner": { "type": "boolean", "default": false }
+      "excludeOwner": { "type": "boolean", "default": false },
+      "hideSubmitButton": { "type": "boolean", "default": false }
     },
     "selection": {
       "selectionMode": {
@@ -342,12 +344,33 @@ function GroupMembersWithSelection({ group }: { group: CometChat.Group }) {
 }
 ```
 
+#### onSubmit
+
+Fires when the submit selection button is pressed. Requires `selectionMode` to be set.
+
+```tsx lines
+onSubmit?: (list: Array<CometChat.Conversation>) => void
+```
+
+```tsx lines
+import { CometChatGroupMembers } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function GroupMembersWithSubmit({ group }: { group: CometChat.Group }) {
+  const handleSubmit = (list: Array<CometChat.Conversation>) => {
+    console.log("Submit", list);
+  };
+
+  return <CometChatGroupMembers group={group} onSubmit={handleSubmit} />;
+}
+```
+
 #### onError
 
 Fires on internal errors (network failure, auth issue, SDK exception).
 
 ```tsx lines
-onError?: (error: CometChat.CometChatException) => void
+onError?: () => void
 ```
 
 ```tsx lines
@@ -358,8 +381,8 @@ function GroupMembersWithError({ group }: { group: CometChat.Group }) {
   return (
     <CometChatGroupMembers
       group={group}
-      onError={(error: CometChat.CometChatException) => {
-        console.error("CometChatGroupMembers error:", error);
+      onError={() => {
+        console.error("CometChatGroupMembers error occurred");
       }}
     />
   );

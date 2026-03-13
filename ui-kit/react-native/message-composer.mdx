@@ -41,13 +41,19 @@ description: "Compose and send messages including text, media, and attachments w
       "hideSendButton": { "type": "boolean", "default": false },
       "hideAuxiliaryButtons": { "type": "boolean", "default": false }
     },
+    "configuration": {
+      "imageQuality": { "type": "number (1-100)", "default": 20 },
+      "auxiliaryButtonsAlignment": { "type": "\"left\" | \"right\"", "default": "\"left\"" }
+    },
     "sound": {
       "disableSoundForOutgoingMessages": { "type": "boolean", "default": false },
       "customSoundForOutgoingMessage": { "type": "audio source", "default": "built-in" }
     },
     "behavior": {
       "disableTypingEvents": { "type": "boolean", "default": false },
-      "disableMentions": { "type": "boolean", "default": false }
+      "disableMentions": { "type": "boolean", "default": false },
+      "disableMentionAll": { "type": "boolean", "default": false },
+      "mentionAllLabel": { "type": "string", "default": "\"all\"" }
     },
     "viewSlots": {
       "HeaderView": "({ user, group }: { user?: CometChat.User, group?: CometChat.Group }) => JSX.Element",
@@ -62,6 +68,10 @@ description: "Compose and send messages including text, media, and attachments w
       "attachmentOptions": {
         "type": "CometChatMessageComposerAction[]",
         "note": "Custom attachment options list"
+      },
+      "addAttachmentOptions": {
+        "type": "CometChatMessageComposerAction[]",
+        "note": "Additional attachment options to append to defaults"
       }
     }
   },
@@ -335,6 +345,44 @@ return (
   <img src="/images/927b388b-message_composer_attachment_options-7fab1d4e46f7ec14b998d555d3d26968.png" />
 </Frame>
 
+### addAttachmentOptions
+
+Extends the default attachment options with additional actions.
+
+```tsx lines
+import { CometChatMessageComposer } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+const getAdditionalAttachmentOptions = ({
+  user,
+  group,
+  composerId,
+}: {
+  user?: CometChat.User;
+  group?: CometChat.Group;
+  composerId: Map<any, any>;
+}): CometChatMessageComposerAction[] => {
+  return [
+    {
+      id: "location",
+      icon: LocationIcon,
+      title: "Share Location",
+      style: { iconStyle: { tintColor: "grey" } },
+      onPress: () => {
+        // handle location share
+      },
+    },
+  ];
+};
+
+return (
+  <CometChatMessageComposer
+    group={group}
+    addAttachmentOptions={getAdditionalAttachmentOptions}
+  />
+);
+```
+
 ### AuxiliaryButtonView
 
 Replace the sticker button area with a custom view.
@@ -525,6 +573,10 @@ Using Style you can customize the look and feel of the component in your app. Th
 | `hideSendButton` | Hide send button | `hideSendButton={true}` |
 | `hideAuxiliaryButtons` | Hide auxiliary buttons | `hideAuxiliaryButtons={true}` |
 | `disableMentions` | Disable mentions functionality | `disableMentions={true}` |
+| `disableMentionAll` | Disable @all mention | `disableMentionAll={true}` |
+| `mentionAllLabel` | Custom label for @all mention | `mentionAllLabel="everyone"` |
+| `imageQuality` | Image quality for camera (1-100) | `imageQuality={50}` |
+| `auxiliaryButtonsAlignment` | Alignment of auxiliary buttons | `auxiliaryButtonsAlignment="right"` |
 
 ---
 
