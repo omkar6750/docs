@@ -1,8 +1,7 @@
 ---
 title: "Message List"
-description: "Display and manage the list of messages in a conversation with CometChatMessageList component in React Native UI Kit, supporting text, media, reactions, and more."
+description: "Scrollable list of sent and received messages with text, media, reactions, read receipts, threaded replies, and AI features."
 ---
-
 <Accordion title="AI Integration Quick Reference">
 ```json
 {
@@ -16,46 +15,14 @@ description: "Display and manage the list of messages in a conversation with Com
   },
   "props": {
     "data": {
-      "user": {
-        "type": "CometChat.User",
-        "default": "undefined",
-        "note": "User object for 1-on-1 conversation"
-      },
-      "group": {
-        "type": "CometChat.Group",
-        "default": "undefined",
-        "note": "Group object for group conversation"
-      },
-      "messageRequestBuilder": {
-        "type": "CometChat.MessagesRequestBuilder",
-        "default": "SDK default",
-        "note": "UID/GUID/types/categories are always overridden internally"
-      },
-      "templates": {
-        "type": "CometChatMessageTemplate[]",
-        "default": "SDK defaults",
-        "note": "Custom message bubble templates"
-      },
-      "addTemplates": {
-        "type": "CometChatMessageTemplate[]",
-        "default": "[]",
-        "note": "Additional message templates to append to defaults"
-      },
-      "parentMessageId": {
-        "type": "number",
-        "default": "undefined",
-        "note": "For threaded message view"
-      },
-      "goToMessageId": {
-        "type": "string",
-        "default": "undefined",
-        "note": "Message ID to navigate to and highlight"
-      },
-      "searchKeyword": {
-        "type": "string",
-        "default": "undefined",
-        "note": "Keyword to highlight in message text"
-      }
+      "user": { "type": "CometChat.User", "default": "undefined", "note": "User object for 1-on-1 conversation" },
+      "group": { "type": "CometChat.Group", "default": "undefined", "note": "Group object for group conversation" },
+      "messageRequestBuilder": { "type": "CometChat.MessagesRequestBuilder", "default": "SDK default", "note": "UID/GUID/types/categories are always overridden internally" },
+      "templates": { "type": "CometChatMessageTemplate[]", "default": "SDK defaults", "note": "Custom message bubble templates" },
+      "addTemplates": { "type": "CometChatMessageTemplate[]", "default": "[]", "note": "Additional message templates to append to defaults" },
+      "parentMessageId": { "type": "number", "default": "undefined", "note": "For threaded message view" },
+      "goToMessageId": { "type": "string", "default": "undefined", "note": "Message ID to navigate to and highlight" },
+      "searchKeyword": { "type": "string", "default": "undefined", "note": "Keyword to highlight in message text" }
     },
     "callbacks": {
       "onThreadRepliesPress": "(messageObject: CometChat.BaseMessage, messageBubbleView: () => JSX.Element | null) => void",
@@ -91,11 +58,7 @@ description: "Display and manage the list of messages in a conversation with Com
       "hideFlagRemarkField": { "type": "boolean", "default": false }
     },
     "behavior": {
-      "alignment": {
-        "type": "MessageListAlignmentType",
-        "values": ["leftAligned", "standard"],
-        "default": "standard"
-      },
+      "alignment": { "type": "MessageListAlignmentType", "values": ["leftAligned", "standard"], "default": "standard" },
       "scrollToBottomOnNewMessage": { "type": "boolean", "default": false },
       "startFromUnreadMessages": { "type": "boolean", "default": false },
       "streamingSpeed": { "type": "number", "default": "undefined", "note": "AI response streaming speed in ms" }
@@ -107,7 +70,8 @@ description: "Display and manage the list of messages in a conversation with Com
     "ai": {
       "suggestedMessages": { "type": "string[]", "note": "Predefined prompts for AI assistant chats" },
       "aiAssistantTools": { "type": "CometChatAIAssistantTools", "note": "Tool actions for AI assistant" },
-      "quickReactionList": { "type": "string[]", "default": "predefined reactions" }
+      "quickReactionList": { "type": "string[]", "default": "predefined reactions" },
+      "streamingSpeed": { "type": "number", "default": "undefined", "note": "AI response streaming speed in ms" }
     },
     "viewSlots": {
       "HeaderView": "({ user, group, id }) => JSX.Element",
@@ -120,11 +84,12 @@ description: "Display and manage the list of messages in a conversation with Com
       "emptyChatIntroMessageView": "JSX.Element",
       "emptyChatImageView": "JSX.Element"
     },
+    "newMessageIndicator": {
+      "newMessageIndicatorStyle": { "type": "NewMessageIndicatorStyle", "default": "built-in" },
+      "newMessageIndicatorText": { "type": "string", "default": "built-in" }
+    },
     "formatting": {
-      "textFormatters": {
-        "type": "CometChatTextFormatter[]",
-        "default": "default formatters from data source"
-      },
+      "textFormatters": { "type": "CometChatTextFormatter[]", "default": "default formatters from data source" },
       "datePattern": "(message: CometChat.BaseMessage) => string",
       "dateSeperatorPattern": "(date: number) => string"
     }
@@ -138,30 +103,17 @@ description: "Display and manage the list of messages in a conversation with Com
     { "name": "ccMessageDelivered", "payload": "{ message }", "description": "Messages marked as delivered" }
   ],
   "sdkListeners": [
-    "onTextMessageReceived",
-    "onMediaMessageReceived",
-    "onCustomMessageReceived",
-    "onMessageEdited",
-    "onMessageDeleted",
-    "onTypingStarted",
-    "onTypingEnded",
-    "onMessagesDelivered",
-    "onMessagesRead"
+    "onTextMessageReceived", "onMediaMessageReceived", "onCustomMessageReceived",
+    "onMessageEdited", "onMessageDeleted", "onTypingStarted", "onTypingEnded",
+    "onMessagesDelivered", "onMessagesRead"
   ],
   "compositionExample": {
     "description": "Message list wired with header and composer for complete chat view",
-    "components": [
-      "CometChatMessageHeader",
-      "CometChatMessageList",
-      "CometChatMessageComposer"
-    ],
+    "components": ["CometChatMessageHeader", "CometChatMessageList", "CometChatMessageComposer"],
     "flow": "Pass user or group prop to all three components for a complete messaging interface"
   },
   "types": {
-    "MessageListAlignmentType": {
-      "leftAligned": "All messages aligned to left",
-      "standard": "Sent messages right, received messages left"
-    }
+    "MessageListAlignmentType": { "leftAligned": "All messages aligned to left", "standard": "Sent messages right, received messages left" }
   }
 }
 ```
@@ -169,13 +121,47 @@ description: "Display and manage the list of messages in a conversation with Com
 
 ## Where It Fits
 
-`CometChatMessageList` is a [Composite Component](/ui-kit/react-native/components-overview#components) that displays a list of messages and effectively manages real-time operations. It includes various types of messages such as Text Messages, Media Messages, Stickers, and more.
+`CometChatMessageList` renders a scrollable, real-time message feed for a user or group conversation. Wire it alongside `CometChatMessageHeader` and `CometChatMessageComposer` to build a standard chat view.
 
-`CometChatMessageList` is primarily a list of the base component [MessageBubble](/ui-kit/react-native/message-bubble-styling#message-bubbles). The MessageBubble Component is utilized to create different types of chat bubbles depending on the message type.
+```tsx lines
+import { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  CometChatMessageHeader,
+  CometChatMessageList,
+  CometChatMessageComposer,
+  CometChatThemeProvider,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-<Note>
-**Available via:** [UI Kits](/ui-kit/react-native/overview)
-</Note>
+function ChatView() {
+  const [chatUser, setChatUser] = useState<CometChat.User>();
+
+  useEffect(() => {
+    CometChat.getUser("uid").then((user) => setChatUser(user));
+  }, []);
+
+  return chatUser ? (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <CometChatThemeProvider>
+          <View style={styles.container}>
+            <CometChatMessageHeader user={chatUser} />
+            <CometChatMessageList user={chatUser} />
+            <CometChatMessageComposer user={chatUser} />
+          </View>
+        </CometChatThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  ) : null;
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
+```
 
 <Frame>
   <img src="/images/7c6476ad-message_list-f571abbea715b343416ff5ca1cbc8c9b.png" />
@@ -189,7 +175,7 @@ description: "Display and manage the list of messages in a conversation with Com
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 
 function MessageListDemo() {
-  return <CometChatMessageList group={group} />;
+  return <CometChatMessageList user={chatUser} />;
 }
 
 export default MessageListDemo;
@@ -203,34 +189,21 @@ Simply adding the `CometChatMessageList` component to the layout will result in 
 
 ## Filtering Messages
 
-You can adjust the `MessagesRequestBuilder` in the MessageList Component to customize your message list. Numerous options are available to alter the builder to meet your specific needs. For additional details on `MessagesRequestBuilder`, please visit [MessagesRequestBuilder](/sdk/react-native/additional-message-filtering).
-
-In the example below, we are applying a filter to the messages based on a search substring and for a specific user. This means that only messages that contain the search term and are associated with the specified user will be displayed.
+Pass a `CometChat.MessagesRequestBuilder` to `messageRequestBuilder`. The `UID`/`GUID` parameters are always overridden internally based on the `user`/`group` prop.
 
 ```tsx lines
-import { CometChat } from '@cometchat/chat-sdk-react-native';
-import { CometChatMessageList } from '@cometchat/chat-uikit-react-native';
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
-
-    React.useEffect(() => {
-        CometChat.getUser("uid").then((user) => {
-            setChatUser(user);
-        })
-    }, []);
-
-    const messageRequestBuilder = new CometChat.MessagesRequestBuilder().setLimit(5);
-
-    return (
-     <>
-         { chatUser && <CometChatMessageList
-              user={chatUser}
-              messageRequestBuilder={messageRequestBuilder}
-           />
-          }
-     </>
-   );
+function FilteredMessageList() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      messageRequestBuilder={
+        new CometChat.MessagesRequestBuilder().setLimit(5)
+      }
+    />
+  );
 }
 ```
 
@@ -242,6 +215,8 @@ The following parameters in messageRequestBuilder will always be altered inside 
 4. categories
 </Note>
 
+Refer to [MessagesRequestBuilder](/sdk/react-native/additional-message-filtering) for the full builder API.
+
 ---
 
 ## Actions and Events
@@ -250,21 +225,14 @@ The following parameters in messageRequestBuilder will always be altered inside 
 
 #### onThreadRepliesPress
 
-Fires when you press on the threaded message bubble. The `onThreadRepliesPress` action doesn't have a predefined behavior.
-
-```tsx lines
-onThreadRepliesPress?: (
-  messageObject: CometChat.BaseMessage,
-  messageBubbleView: () => JSX.Element | null
-) => void
-```
+Fires when you press on the threaded message bubble.
 
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 function MessageListWithThreads() {
-  const threadRepliesCallback = (
+  const handleThreadReplies = (
     msg: CometChat.BaseMessage,
     messageBubbleView: () => JSX.Element | null
   ) => {
@@ -273,8 +241,8 @@ function MessageListWithThreads() {
 
   return (
     <CometChatMessageList
-      group={group}
-      onThreadRepliesPress={threadRepliesCallback}
+      user={chatUser}
+      onThreadRepliesPress={handleThreadReplies}
     />
   );
 }
@@ -285,17 +253,13 @@ function MessageListWithThreads() {
 Fires on internal errors (network failure, auth issue, SDK exception).
 
 ```tsx lines
-onError?: (e: CometChat.CometChatException) => void
-```
-
-```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 function MessageListWithErrorHandler() {
   return (
     <CometChatMessageList
-      group={group}
+      user={chatUser}
       onError={(error: CometChat.CometChatException) => {
         console.error("MessageList error:", error);
       }}
@@ -304,74 +268,16 @@ function MessageListWithErrorHandler() {
 }
 ```
 
-#### onReactionLongPress
-
-Fires when a user long presses on a reaction pill, allowing developers to override the default behavior.
-
-```tsx lines
-onReactionLongPress?: (
-  reaction: CometChat.ReactionCount,
-  messageObject: CometChat.BaseMessage
-) => void
-```
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-function MessageListWithReactionLongPress() {
-  const onReactionLongPress = (
-    reaction: CometChat.ReactionCount,
-    messageObject: CometChat.BaseMessage
-  ) => {
-    console.log("Reaction long pressed:", reaction, messageObject.getId());
-  };
-
-  return (
-    <CometChatMessageList
-      group={group}
-      onReactionLongPress={onReactionLongPress}
-    />
-  );
-}
-```
-
-#### onAddReactionPress
-
-Fires when a user clicks on the 'Add More Reactions' button.
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-function MessageListWithAddReaction() {
-  return (
-    <CometChatMessageList
-      group={group}
-      onAddReactionPress={() => {
-        console.log("Add reaction pressed");
-      }}
-    />
-  );
-}
-```
-
 #### onReactionPress
 
-Fires when a reaction is clicked, enabling developers to customize reaction interactions.
-
-```tsx lines
-onReactionPress?: (
-  reaction: CometChat.ReactionCount,
-  messageObject: CometChat.BaseMessage
-) => void
-```
+Fires when a reaction on a message bubble is clicked.
 
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-function MessageListWithReactionPress() {
-  const onReactionPress = (
+function MessageListWithReactions() {
+  const handleReactionPress = (
     reaction: CometChat.ReactionCount,
     messageObject: CometChat.BaseMessage
   ) => {
@@ -380,41 +286,33 @@ function MessageListWithReactionPress() {
 
   return (
     <CometChatMessageList
-      group={group}
-      onReactionPress={onReactionPress}
+      user={chatUser}
+      onReactionPress={handleReactionPress}
     />
   );
 }
 ```
 
-#### onReactionListItemPress
+#### onLoad
 
-Fires when a reaction list item is clicked, allowing developers to override its behavior in CometChatReactionsList.
+Fires when messages are successfully fetched and loaded.
 
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-function MessageListWithReactionListItem() {
-  const onReactionListItemPress = (
-    reaction: CometChat.Reaction,
-    messageObject: CometChat.BaseMessage
-  ) => {
-    console.log("Reaction list item pressed:", reaction, messageObject.getId());
+function MessageListWithLoadHandler() {
+  const handleLoad = (messageList: CometChat.BaseMessage[]) => {
+    console.log("Messages loaded:", messageList.length);
   };
 
-  return (
-    <CometChatMessageList
-      group={group}
-      onReactionListItemPress={onReactionListItemPress}
-    />
-  );
+  return <CometChatMessageList user={chatUser} onLoad={handleLoad} />;
 }
 ```
 
 ### Global UI Events
 
-`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Add listeners and remove them on cleanup.
+`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Subscribe in a `useEffect` and unsubscribe on cleanup.
 
 | Event | Fires when | Payload |
 | --- | --- | --- |
@@ -424,8 +322,6 @@ function MessageListWithReactionListItem() {
 | `ccActiveChatChanged` | User navigates to a different chat | `chat details` |
 | `ccMessageRead` | Message read by logged-in user | `{ message }` |
 | `ccMessageDelivered` | Messages marked as delivered | `{ message }` |
-
-When to use: sync external UI with message state changes. For example, update a notification badge when messages are read, or refresh a conversation list when a message is deleted.
 
 ```tsx lines
 import { useEffect } from "react";
@@ -449,12 +345,6 @@ function useMessageListEvents() {
       ccMessageDeleted: ({ message }) => {
         console.log("Message deleted:", message.getId());
       },
-      ccMessageDelivered: ({ message }) => {
-        console.log("Message delivered:", message.getId());
-      },
-      ccMessageRead: ({ message }) => {
-        console.log("Message read:", message.getId());
-      },
     });
 
     return () => {
@@ -476,19 +366,11 @@ The component listens to these SDK events internally. No manual attachment neede
 | `onTypingStarted` / `onTypingEnded` | Shows/hides typing indicator |
 | `onMessagesDelivered` / `onMessagesRead` | Updates receipt ticks |
 
-Automatic: new messages, typing indicators, receipts.
-
-Manual: deleting a message via the SDK directly (not through the component's context menu) requires emitting `ccMessageDeleted` for the UI to update.
-
-<Note>
-In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
-</Note>
-
 ---
 
 ## Custom View Slots
 
-Each slot replaces a section of the default UI. Slots that accept parameters receive the relevant data for customization.
+Each slot replaces a section of the default UI.
 
 | Slot | Signature | Replaces |
 | --- | --- | --- |
@@ -501,385 +383,9 @@ Each slot replaces a section of the default UI. Slots that accept parameters rec
 | `templates` | `CometChatMessageTemplate[]` | Message bubble rendering |
 | `textFormatters` | `CometChatTextFormatter[]` | Text formatting in messages |
 
-### templates
-
-Custom message bubble templates via CometChatMessageTemplate.
-
-```tsx lines
-import { CometChat } from '@cometchat/chat-sdk-react-native';
-import { CometChatMessageList, ChatConfigurator, CometChatMessageTemplate } from '@cometchat/chat-uikit-react-native';
-
-function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
-
-    React.useEffect(() => {
-        CometChat.getUser("uid").then((user) => {
-            setChatUser(user);
-        })
-    }, []);
-
-    const getTemplates = () => {
-      let templates: CometChatMessageTemplate[] = ChatConfigurator.getDataSource().getAllMessageTemplates(theme);
-      templates.map((data) => {
-        if(data.type == "text") {
-          data.ContentView = (messageObject: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
-            const textMessage: CometChat.TextMessage = (messageObject as CometChat.TextMessage);
-            return <Text style={{backgroundColor: "#fff5fd", padding: 10}}>{textMessage.getText()}</Text>
-          }
-        }
-      });
-      return templates;
-    };
-
-    return (
-     <>
-         { chatUser && <CometChatMessageList
-              user={chatUser}
-              templates={getTemplates()}
-           />
-          }
-     </>
-   );
-}
-```
-
-### dateSeperatorPattern
-
-Specifies a custom format for displaying sticky date separators in the chat.
-
-Use Cases:
-* Customize date formats to match regional preferences.
-* Use relative formats like "Yesterday" instead of full dates.
-* Highlight weekend conversations with different styles.
-
-```tsx lines
-import React from "react";
-import { CometChat } from '@cometchat/chat-sdk-react-native';
-import { CometChatMessageList } from '@cometchat/chat-uikit-react-native';
-
-function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
-
-    React.useEffect(() => {
-        CometChat.getUser("uid").then((user) => {
-            setChatUser(user);
-        })
-    }, []);
-
-    const customDateSeparatorPattern = (date: number) => {
-       const timeStampInSeconds = new Date(date * 1000);
-       const day = String(timeStampInSeconds.getUTCDate()).padStart(2, '0');
-       const month = String(timeStampInSeconds.getUTCMonth() + 1).padStart(2, '0');
-       const year = timeStampInSeconds.getUTCFullYear();
-       const hours = String(timeStampInSeconds.getUTCHours()).padStart(2, '0');
-       const minutes = String(timeStampInSeconds.getUTCMinutes()).padStart(2, '0');
-       return `${day}/${month}/${year}, ${hours}:${minutes}`;
-    }
-
-    return (
-     <>
-         { chatUser && <CometChatMessageList
-              user={chatUser}
-              dateSeperatorPattern={customDateSeparatorPattern}
-           />
-          }
-     </>
-   );
-}
-```
-
-### datePattern
-
-Defines the format in which time appears for each message bubble.
-
-Use Cases:
-* Use 12-hour or 24-hour formats based on user preference.
-* Display relative time ("Just now", "5 min ago").
-* Add AM/PM indicators for clarity.
-
-```tsx lines
-import React from "react";
-import { CometChat } from '@cometchat/chat-sdk-react-native';
-import { CometChatMessageList } from '@cometchat/chat-uikit-react-native';
-
-function App(): React.JSX.Element {
-    const [chatUser, setChatUser] = React.useState<CometChat.User| undefined>();
-
-    React.useEffect(() => {
-        CometChat.getUser("uid").then((user) => {
-            setChatUser(user);
-        })
-    }, []);
-
-    const generateDateString = (message: CometChat.BaseMessage): any => {
-       const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-       const timeStamp = message['sentAt'];
-       if(timeStamp) {
-         const timeStampInSeconds = new Date(timeStamp * 1000);
-         const day = days[timeStampInSeconds.getUTCDay()].substring(0, 3);
-         const hours = timeStampInSeconds.getUTCHours();
-         const minutes = String(timeStampInSeconds.getUTCMinutes()).padStart(2, '0');
-         return `${day}, ${hours}:${minutes}`;
-       }
-       return `---, --:--`;
-    };
-
-    return (
-     <>
-         { chatUser && <CometChatMessageList
-              user={chatUser}
-              datePattern={generateDateString}
-           />
-          }
-     </>
-   );
-}
-```
-
-### LoadingView
-
-Custom view displayed when data is being fetched.
-
-```tsx lines
-LoadingView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-const getLoadingView = (): JSX.Element => {
-  return <Text>Loading messages...</Text>;
-};
-
-return <CometChatMessageList group={group} LoadingView={getLoadingView} />;
-```
-
-### EmptyView
-
-Custom view displayed when no messages are available.
-
-```tsx lines
-EmptyView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-const getEmptyView = (): JSX.Element => {
-  return <Text>No messages yet. Start the conversation!</Text>;
-};
-
-return <CometChatMessageList group={group} EmptyView={getEmptyView} />;
-```
-
-### ErrorView
-
-Custom error state view displayed when fetching messages fails.
-
-```tsx lines
-ErrorView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-const getErrorView = (): JSX.Element => {
-  return <Text>Couldn't load messages. Check your connection.</Text>;
-};
-
-return <CometChatMessageList group={group} ErrorView={getErrorView} />;
-```
-
-### emptyChatGreetingView
-
-Custom empty state view displayed in case of chats with AI Assistants.
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-import { View, Text } from "react-native";
-
-const getAIGreetingView = () => {
-  return (
-    <View style={{ padding: 20, alignItems: 'center' }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
-        Hey, I am your AI Assistant
-      </Text>
-      <Text style={{ fontSize: 14, color: '#666', marginTop: 8 }}>
-        How can I help you today?
-      </Text>
-    </View>
-  );
-};
-
-return <CometChatMessageList user={user} emptyChatGreetingView={getAIGreetingView()} />;
-```
-
-### suggestedMessages
-
-Sets the list of suggested messages for AI Assistant chats.
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-const aiSuggestedMessages = [
-  "How can I help you today?",
-  "Tell me more about your issue.",
-  "Can you provide more details?",
-  "What would you like to achieve?"
-];
-
-const handleSuggestedMessageClick = (suggestion: string) => {
-  console.log('Suggested message clicked:', suggestion);
-};
-
-return (
-  <CometChatMessageList
-    user={user}
-    suggestedMessages={aiSuggestedMessages}
-    onSuggestedMessageClick={handleSuggestedMessageClick}
-  />
-);
-```
-
-### aiAssistantTools
-
-Sets the available tools for the AI assistant by accepting a `CometChatAIAssistantTools` object.
-
-```tsx lines
-import { CometChatMessageList, CometChatAIAssistantTools } from "@cometchat/chat-uikit-react-native";
-
-const aiTools = new CometChatAIAssistantTools({
-  getCurrentWeather: (args: any) => {
-    console.log('Weather tool called with:', args);
-  },
-  getLocationInfo: (args: any) => {
-    console.log('Location tool called with:', args);
-  },
-});
-
-return <CometChatMessageList user={user} aiAssistantTools={aiTools} />;
-```
-
-### streamingSpeed
-
-Sets the streaming speed for AI Assistant responses in milliseconds.
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-
-return <CometChatMessageList user={user} streamingSpeed={100} />;
-```
-
-### emptyChatIntroMessageView
-
-Custom AI agent intro message view (only applies to @agentic users).
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-import { View, Text } from "react-native";
-
-const getAIIntroView = () => {
-  return (
-    <View style={{ padding: 16 }}>
-      <Text style={{ fontSize: 16, textAlign: 'center' }}>
-        Welcome! I'm here to assist you with any questions or tasks you might have.
-      </Text>
-    </View>
-  );
-};
-
-return <CometChatMessageList user={user} emptyChatIntroMessageView={getAIIntroView()} />;
-```
-
-### emptyChatImageView
-
-Custom AI agent image/avatar view (only applies to @agentic users).
-
-```tsx lines
-import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-import { View, Image } from "react-native";
-
-const getAIImageView = () => {
-  return (
-    <View style={{ alignItems: 'center', marginBottom: 16 }}>
-      <Image 
-        source={{ uri: 'https://example.com/ai-avatar.png' }}
-        style={{ width: 80, height: 80, borderRadius: 40 }}
-      />
-    </View>
-  );
-};
-
-return <CometChatMessageList user={user} emptyChatImageView={getAIImageView()} />;
-```
-
-### textFormatters
-
-Custom text formatters for message content. To configure the existing Mentions look and feel check out [MentionsFormatter Guide](/ui-kit/react-native/mentions-formatter-guide).
-
-<Tabs>
-<Tab title="TypeScript">
-```tsx lines
-import { CometChatMessageList, CometChatTextFormatter } from "@cometchat/chat-uikit-react-native";
-
-const getTextFormatters = () => {
-  const textFormatters: CometChatTextFormatter[] = [];
-  const customMentionsFormatter = new CustomMentionsFormatter();
-  textFormatters.push(customMentionsFormatter);
-  return textFormatters;
-};
-
-return <CometChatMessageList group={group} textFormatters={getTextFormatters()} />;
-```
-</Tab>
-<Tab title="CustomMentionsFormatter.ts">
-```ts lines
-import {
-  CometChatMentionsFormatter,
-  CometChatTheme,
-  CometChatUIKit,
-} from "@cometchat/chat-uikit-react-native";
-
-export class CustomMentionsFormatter extends CometChatMentionsFormatter {
-  setMentionsStyle(mentionsStyle: CometChatTheme["mentionsStyle"]) {
-    if (mentionsStyle) {
-      this.mentionsStyle = mentionsStyle;
-      return;
-    }
-    if (!this.messageObject) {
-      return;
-    }
-    const isMessageSentByLoggedInUser =
-      this.messageObject.getSender().getUid() ===
-      CometChatUIKit.loggedInUser!.getUid();
-    if (isMessageSentByLoggedInUser) {
-      this.mentionsStyle = {
-        selfTextStyle: { color: "#30A46C" },
-        textStyle: { color: "#FFFFFF" },
-      };
-    } else {
-      this.mentionsStyle = {
-        selfTextStyle: { color: "#30A46C" },
-        textStyle: { color: "#D6409F" },
-      };
-    }
-  }
-}
-```
-</Tab>
-</Tabs>
-
-<Frame>
-  <img src="/images/e2732868-mentions_message_bubble-fccf9cbdd63a54c2f734803e4480418a.png" />
-</Frame>
-
 ### HeaderView
 
 Custom view above the message list.
-
-```tsx lines
-HeaderView?: ({ user, group, id }) => JSX.Element
-```
 
 <Frame>
   <img src="/images/ce4ca595-message_list_header_veiw-886f367b48234ddad6bdff6871a7d5fb.png" />
@@ -888,33 +394,37 @@ HeaderView?: ({ user, group, id }) => JSX.Element
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
-const getMessageListHeaderView = ({
-  user,
-  group,
-  id,
-}: {
-  user?: CometChat.User;
-  group?: CometChat.Group;
-  id?: { uid?: string; guid?: string; parentMessageId?: string };
-}) => {
-  return (
-    <View style={{ padding: 10, backgroundColor: '#edeafa' }}>
-      <Text>Custom Header</Text>
-    </View>
-  );
-};
+function MessageListWithHeader() {
+  const getHeaderView = ({
+    user,
+    group,
+    id,
+  }: {
+    user?: CometChat.User;
+    group?: CometChat.Group;
+    id?: { uid?: string; guid?: string; parentMessageId?: string };
+  }) => {
+    return (
+      <View style={{ flexDirection: "row", padding: 10, backgroundColor: "#edeafa", gap: 8 }}>
+        <TouchableOpacity style={{ backgroundColor: "#fafafa", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+          <Text style={{ color: "#6852D6" }}>Notes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ backgroundColor: "#fafafa", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+          <Text style={{ color: "#6852D6" }}>Pinned</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
-return <CometChatMessageList group={group} HeaderView={getMessageListHeaderView} />;
+  return <CometChatMessageList user={chatUser} HeaderView={getHeaderView} />;
+}
 ```
 
 ### FooterView
 
 Custom view below the message list.
-
-```tsx lines
-FooterView?: ({ user, group, id }) => JSX.Element
-```
 
 <Frame>
   <img src="/images/53d4119c-message_list_footer_view-7210ad9b52c7d141691091518bd6e4e3.png" />
@@ -923,50 +433,250 @@ FooterView?: ({ user, group, id }) => JSX.Element
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
-const getMessageListFooterView = ({
-  user,
-  group,
-  id,
-}: {
-  user?: CometChat.User;
-  group?: CometChat.Group;
-  id?: { uid?: string; guid?: string; parentMessageId?: string };
-}) => {
-  return (
-    <View style={{ padding: 10, backgroundColor: '#edeafa' }}>
-      <Text>Custom Footer</Text>
-    </View>
-  );
-};
+function MessageListWithFooter() {
+  const getFooterView = ({
+    user,
+    group,
+    id,
+  }: {
+    user?: CometChat.User;
+    group?: CometChat.Group;
+    id?: { uid?: string; guid?: string; parentMessageId?: string };
+  }) => {
+    return (
+      <View style={{ flexDirection: "row", padding: 10, backgroundColor: "#edeafa", gap: 8 }}>
+        <TouchableOpacity style={{ backgroundColor: "#fafafa", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+          <Text style={{ color: "#6852D6" }}>Ice Breakers</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
-return <CometChatMessageList group={group} FooterView={getMessageListFooterView} />;
+  return <CometChatMessageList user={chatUser} FooterView={getFooterView} />;
+}
 ```
 
-### NewMessageIndicatorView
+### templates
 
-Custom view component for the "New Messages" indicator.
+Custom message bubble templates via CometChatMessageTemplate.
+
+```tsx lines
+import { CometChatMessageList, ChatConfigurator, CometChatMessageTemplate } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { Text } from "react-native";
+
+function MessageListCustomTemplates() {
+  const getTemplates = () => {
+    let templates: CometChatMessageTemplate[] = ChatConfigurator.getDataSource().getAllMessageTemplates(theme);
+    templates.map((data) => {
+      if (data.type === "text") {
+        data.ContentView = (messageObject: CometChat.BaseMessage) => {
+          const textMessage = messageObject as CometChat.TextMessage;
+          return (
+            <Text style={{ backgroundColor: "#fff5fd", padding: 10 }}>
+              {textMessage.getText()}
+            </Text>
+          );
+        };
+      }
+    });
+    return templates;
+  };
+
+  return <CometChatMessageList user={chatUser} templates={getTemplates()} />;
+}
+```
+
+### dateSeperatorPattern
+
+Custom format for displaying sticky date separators.
 
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
-import { View, Text } from 'react-native';
 
-const CustomNewMessageIndicator = () => {
+function MessageListCustomDateSeparator() {
+  const customDateSeparatorPattern = (date: number) => {
+    const timeStampInSeconds = new Date(date * 1000);
+    const day = String(timeStampInSeconds.getUTCDate()).padStart(2, "0");
+    const month = String(timeStampInSeconds.getUTCMonth() + 1).padStart(2, "0");
+    const year = timeStampInSeconds.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   return (
-    <View style={{ backgroundColor: '#3399FF', padding: 8, borderRadius: 20, alignSelf:'center' }}>
-      <Text style={{ color: 'white', fontWeight: 'bold' }}>⬇ New Messages</Text>
-    </View>
+    <CometChatMessageList
+      user={chatUser}
+      dateSeperatorPattern={customDateSeparatorPattern}
+    />
   );
-};
+}
+```
 
-return <CometChatMessageList user={chatUser} NewMessageIndicatorView={CustomNewMessageIndicator} />;
+### datePattern
+
+Custom format for message timestamps.
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function MessageListCustomDatePattern() {
+  const generateDateString = (message: CometChat.BaseMessage) => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const timeStamp = message.getSentAt();
+    if (timeStamp) {
+      const date = new Date(timeStamp * 1000);
+      const day = days[date.getUTCDay()];
+      const hours = date.getUTCHours();
+      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+      return `${day}, ${hours}:${minutes}`;
+    }
+    return "---, --:--";
+  };
+
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      datePattern={generateDateString}
+    />
+  );
+}
+```
+
+### textFormatters
+
+Custom text formatters for message content.
+
+<Frame>
+  <img src="/images/e2732868-mentions_message_bubble-fccf9cbdd63a54c2f734803e4480418a.png" />
+</Frame>
+
+```tsx lines
+import {
+  CometChatMessageList,
+  CometChatTextFormatter,
+  CometChatMentionsFormatter,
+} from "@cometchat/chat-uikit-react-native";
+
+function MessageListWithFormatters() {
+  const getTextFormatters = () => {
+    const textFormatters: CometChatTextFormatter[] = [];
+    const mentionsFormatter = new CometChatMentionsFormatter();
+    mentionsFormatter.setMentionsStyle({
+      textStyle: { color: "#D6409F" },
+      selfTextStyle: { color: "#30A46C" },
+    });
+    textFormatters.push(mentionsFormatter);
+    return textFormatters;
+  };
+
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      textFormatters={getTextFormatters()}
+    />
+  );
+}
+```
+
+See [CometChatMentionsFormatter](/ui-kit/react-native/mentions-formatter-guide) for mention formatting.
+
+---
+
+## Common Patterns
+
+### Threaded message list
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+
+function ThreadedMessageList() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      parentMessageId={parentMessage.getId()}
+    />
+  );
+}
+```
+
+### Hide all chrome — minimal list
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+
+function MinimalMessageList() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      receiptsVisibility={false}
+      avatarVisibility={false}
+      hideTimestamp={true}
+      hideGroupActionMessages={true}
+    />
+  );
+}
+```
+
+### Left-aligned messages
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+
+function LeftAlignedList() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      alignment="leftAligned"
+    />
+  );
+}
+```
+
+### AI conversation starters
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+
+function AIMessageList() {
+  const suggestedMessages = [
+    "How can I help you today?",
+    "Tell me more about your issue.",
+    "What would you like to achieve?",
+  ];
+
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      suggestedMessages={suggestedMessages}
+      onSuggestedMessageClick={(suggestion) => console.log("Clicked:", suggestion)}
+    />
+  );
+}
+```
+
+### Navigate to specific message
+
+```tsx lines
+import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
+
+function NavigateToMessage() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      goToMessageId="message_id_123"
+    />
+  );
+}
 ```
 
 ---
 
 ## Styling
 
-Using Style you can customize the look and feel of the component in your app. Pass a styling object as a prop to the `CometChatMessageList` component.
+The component uses the theme system from `CometChatThemeProvider`. Pass a `style` prop to customize the appearance.
 
 <Frame>
   <img src="/images/03a08ce8-message_list_styling-ebbb6bea74da1c21078f037fb50d8bff.png" />
@@ -975,55 +685,656 @@ Using Style you can customize the look and feel of the component in your app. Pa
 ```tsx lines
 import { CometChatMessageList } from "@cometchat/chat-uikit-react-native";
 
-return (
-  <CometChatMessageList
-    group={group}
-    style={{
-      containerStyle: {
-        backgroundColor: "#FEEDE1",
-      },
-      outgoingMessageBubbleStyles: {
+function StyledMessageList() {
+  return (
+    <CometChatMessageList
+      user={chatUser}
+      style={{
         containerStyle: {
-          backgroundColor: "#F76808",
+          backgroundColor: "#FEEDE1",
         },
-      },
-    }}
-  />
-);
+        outgoingMessageBubbleStyles: {
+          containerStyle: {
+            backgroundColor: "#F76808",
+          },
+        },
+      }}
+    />
+  );
+}
 ```
 
-### Visibility Props
+### Style Properties
 
-| Property | Description | Code |
+| Property | Type | Description |
 | --- | --- | --- |
-| `user` | User object for 1-on-1 conversation | `user={chatUser}` |
-| `group` | Group object for group conversation | `group={chatGroup}` |
-| `alignment` | Message alignment: `leftAligned` or `standard` | `alignment={"standard"}` |
-| `disableSoundForMessages` | Enable/disable sound for messages | `disableSoundForMessages={true}` |
-| `customSoundForMessages` | Custom sound for outgoing messages | `customSoundForMessages="your-sound"` |
-| `avatarVisibility` | Toggle avatar visibility | `avatarVisibility={true}` |
-| `scrollToBottomOnNewMessage` | Scroll to bottom on new message | `scrollToBottomOnNewMessages={true}` |
-| `receiptsVisibility` | Control read receipts visibility | `receiptsVisibility={true}` |
-| `hideError` | Toggle error state visibility | `hideError={true}` |
-| `quickReactionList` | Custom quick reactions list | `quickReactionList=["👻","😈","🙀"]` |
-| `hideReplyInThreadOption` | Hide reply in thread option | `hideReplyInThreadOption={true}` |
-| `hideShareMessageOption` | Hide share message option | `hideShareMessageOption={true}` |
-| `hideEditMessageOption` | Hide edit message option | `hideEditMessageOption={true}` |
-| `hideTranslateMessageOption` | Hide translate message option | `hideTranslateMessageOption={true}` |
-| `hideDeleteMessageOption` | Hide delete message option | `hideDeleteMessageOption={true}` |
-| `hideReactionOption` | Hide reaction option | `hideReactionOption={true}` |
-| `hideMessagePrivatelyOption` | Hide message privately option | `hideMessagePrivatelyOption={true}` |
-| `hideCopyMessageOption` | Hide copy message option | `hideCopyMessageOption={true}` |
-| `hideMessageInfoOption` | Hide message info option | `hideMessageInfoOption={true}` |
-| `hideGroupActionMessages` | Hide group action messages | `hideGroupActionMessages={true}` |
-| `hideTimestamp` | Hide timestamp in messages | `hideTimestamp={true}` |
-| `hideModerationStatus` | Hide moderation status UI | `hideModerationStatus={true}` |
-| `startFromUnreadMessages` | Load from first unread message | `startFromUnreadMessages={true}` |
-| `showMarkAsUnreadOption` | Show "Mark Unread" option | `showMarkAsUnreadOption={true}` |
-| `hideSuggestedMessages` | Hide suggested messages in AI view | `hideSuggestedMessages={true}` |
-| `hideReplyOption` | Hide reply option | `hideReplyOption={true}` |
-| `hideFlagMessageOption` | Hide flag message option | `hideFlagMessageOption={true}` |
-| `hideFlagRemarkField` | Hide flag remark field | `hideFlagRemarkField={true}` |
+| `containerStyle` | `ViewStyle` | Style for the root container |
+| `incomingMessageBubbleStyles` | `object` | Style for incoming message bubbles |
+| `outgoingMessageBubbleStyles` | `object` | Style for outgoing message bubbles |
+| `dateSeparatorStyle` | `object` | Style for date separators |
+| `actionSheetStyle` | `object` | Style for the action sheet |
+
+---
+
+## Props
+
+All props are optional unless noted. Either `user` or `group` is required.
+
+### alignment
+
+Controls message alignment.
+
+| | |
+| --- | --- |
+| Type | `"leftAligned" \| "standard"` |
+| Default | `"standard"` |
+
+---
+
+### avatarVisibility
+
+Shows/hides avatars on messages.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### customSoundForMessages
+
+Custom sound file for incoming message notifications.
+
+| | |
+| --- | --- |
+| Type | `audio source` |
+| Default | Built-in sound |
+
+---
+
+### datePattern
+
+Custom function to format message timestamps.
+
+| | |
+| --- | --- |
+| Type | `(message: CometChat.BaseMessage) => string` |
+| Default | Component default |
+
+---
+
+### dateSeperatorPattern
+
+Custom function to format date separator timestamps.
+
+| | |
+| --- | --- |
+| Type | `(date: number) => string` |
+| Default | Component default |
+
+---
+
+### disableSoundForMessages
+
+Disables the notification sound for incoming messages.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### EmptyView
+
+Custom component displayed when there are no messages.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in empty state |
+
+---
+
+### ErrorView
+
+Custom component displayed when an error occurs.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in error state |
+
+---
+
+### FooterView
+
+Custom component displayed below the message list.
+
+| | |
+| --- | --- |
+| Type | `({ user, group, id }) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### goToMessageId
+
+Scrolls to the specified message on initial load.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `undefined` |
+
+---
+
+### group
+
+The group for group conversation messages.
+
+| | |
+| --- | --- |
+| Type | `CometChat.Group` |
+| Default | `undefined` |
+
+---
+
+### HeaderView
+
+Custom component displayed above the message list.
+
+| | |
+| --- | --- |
+| Type | `({ user, group, id }) => JSX.Element` |
+| Default | `undefined` |
+
+---
+
+### hideCopyMessageOption
+
+Hides the copy message option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideDeleteMessageOption
+
+Hides the delete message option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideEditMessageOption
+
+Hides the edit message option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideError
+
+Hides the error state view.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideFlagMessageOption
+
+Hides the "Report Message" option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideFlagRemarkField
+
+Hides the remark text area in the flag message dialog.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideGroupActionMessages
+
+Hides group action messages (join, leave, kick, etc.).
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideMessageInfoOption
+
+Hides the message info option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideMessagePrivatelyOption
+
+Hides the "Message Privately" option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideModerationStatus
+
+Hides the moderation status UI.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideReactionOption
+
+Hides the reaction option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideReplyInThreadOption
+
+Hides the "Reply in Thread" option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideReplyOption
+
+Hides the reply option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideShareMessageOption
+
+Hides the share message option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideSuggestedMessages
+
+Hides suggested messages in AI view.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideTimestamp
+
+Hides timestamps on messages.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideTranslateMessageOption
+
+Hides the translate message option.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### LoadingView
+
+Custom component displayed during the loading state.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in loading indicator |
+
+---
+
+### messageRequestBuilder
+
+Controls which messages load and in what order.
+
+| | |
+| --- | --- |
+| Type | `CometChat.MessagesRequestBuilder` |
+| Default | SDK default |
+
+UID/GUID are always overridden internally.
+
+---
+
+### NewMessageIndicatorView
+
+Custom view for the "New Messages" indicator.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in indicator |
+
+---
+
+### onAddReactionPress
+
+Callback fired when the "Add More Reactions" button is clicked.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onEmpty
+
+Callback fired when the message list is empty.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `(error: CometChat.CometChatException) => void` |
+| Default | `undefined` |
+
+---
+
+### onLoad
+
+Callback fired when messages are loaded.
+
+| | |
+| --- | --- |
+| Type | `(messageList: CometChat.BaseMessage[]) => void` |
+| Default | `undefined` |
+
+---
+
+### onReactionLongPress
+
+Callback fired when a reaction is long-pressed.
+
+| | |
+| --- | --- |
+| Type | `(reaction: CometChat.ReactionCount, messageObject: CometChat.BaseMessage) => void` |
+| Default | `undefined` |
+
+---
+
+### onReactionPress
+
+Callback fired when a reaction is clicked.
+
+| | |
+| --- | --- |
+| Type | `(reaction: CometChat.ReactionCount, messageObject: CometChat.BaseMessage) => void` |
+| Default | `undefined` |
+
+---
+
+### onSuggestedMessageClick
+
+Callback fired when a suggested message is clicked.
+
+| | |
+| --- | --- |
+| Type | `(suggestion: string) => void` |
+| Default | `undefined` |
+
+---
+
+### onThreadRepliesPress
+
+Callback fired when a threaded message reply count is clicked.
+
+| | |
+| --- | --- |
+| Type | `(messageObject: CometChat.BaseMessage, messageBubbleView: () => JSX.Element \| null) => void` |
+| Default | `undefined` |
+
+---
+
+### parentMessageId
+
+Displays threaded conversation for the specified parent message.
+
+| | |
+| --- | --- |
+| Type | `number` |
+| Default | `undefined` |
+
+---
+
+### quickReactionList
+
+Custom list of quick reactions.
+
+| | |
+| --- | --- |
+| Type | `string[]` |
+| Default | Predefined reactions |
+
+---
+
+### receiptsVisibility
+
+Shows/hides read/delivery receipt indicators.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### scrollToBottomOnNewMessage
+
+Auto-scrolls to bottom when new messages arrive.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### searchKeyword
+
+Keyword to highlight in message text.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `undefined` |
+
+---
+
+### showMarkAsUnreadOption
+
+Shows "Mark Unread" option in message actions.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### startFromUnreadMessages
+
+Loads from the first unread message if available.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### suggestedMessages
+
+Predefined prompts for AI assistant chats.
+
+| | |
+| --- | --- |
+| Type | `string[]` |
+| Default | `undefined` |
+
+---
+
+### templates
+
+Custom message bubble templates. Replaces all default templates.
+
+| | |
+| --- | --- |
+| Type | `CometChatMessageTemplate[]` |
+| Default | SDK defaults |
+
+---
+
+### addTemplates
+
+Additional message templates to append to the default templates.
+
+| | |
+| --- | --- |
+| Type | `CometChatMessageTemplate[]` |
+| Default | `[]` |
+
+---
+
+### newMessageIndicatorStyle
+
+Custom styles for the "New Messages" indicator.
+
+| | |
+| --- | --- |
+| Type | `NewMessageIndicatorStyle` |
+| Default | Built-in style |
+
+---
+
+### newMessageIndicatorText
+
+Custom text for the "New Messages" indicator.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | Built-in text |
+
+---
+
+### streamingSpeed
+
+Speed in milliseconds for AI response streaming animation.
+
+| | |
+| --- | --- |
+| Type | `number` |
+| Default | `undefined` |
+
+---
+
+### aiAssistantTools
+
+Tool actions for AI assistant functionality.
+
+| | |
+| --- | --- |
+| Type | `CometChatAIAssistantTools` |
+| Default | `undefined` |
+
+---
+
+### textFormatters
+
+Custom text formatters for message content.
+
+| | |
+| --- | --- |
+| Type | `CometChatTextFormatter[]` |
+| Default | Default formatters from data source |
+
+---
+
+### user
+
+The user for 1-on-1 conversation messages.
+
+| | |
+| --- | --- |
+| Type | `CometChat.User` |
+| Default | `undefined` |
 
 ---
 

@@ -1,8 +1,7 @@
 ---
 title: "Conversations"
-description: "Display and manage the list of recent conversations for the logged-in user with CometChatConversations component in React Native UI Kit."
+description: "Scrollable list of recent one-on-one and group conversations for the logged-in user."
 ---
-
 <Accordion title="AI Integration Quick Reference">
 ```json
 {
@@ -47,7 +46,8 @@ description: "Display and manage the list of recent conversations for the logged
       "usersStatusVisibility": { "type": "boolean", "default": true },
       "groupTypeVisibility": { "type": "boolean", "default": true },
       "deleteConversationOptionVisibility": { "type": "boolean", "default": true },
-      "showSearchBar": { "type": "boolean", "default": false }
+      "showSearchBar": { "type": "boolean", "default": false },
+      "searchText": { "type": "string", "default": "\"\"" }
     },
     "sound": {
       "disableSoundForMessages": { "type": "boolean", "default": false },
@@ -125,11 +125,70 @@ description: "Display and manage the list of recent conversations for the logged
 
 ## Where It Fits
 
-`CometChatConversations` is a sidebar list component that displays all conversations associated with the currently logged-in user. It renders recent conversations and emits the selected `CometChat.Conversation` via `onItemPress`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a standard two-panel chat layout.
+`CometChatConversations` is a sidebar list component. It renders recent conversations and emits the selected `CometChat.Conversation` via `onItemPress`. Wire it to `CometChatMessageHeader`, `CometChatMessageList`, and `CometChatMessageComposer` to build a standard chat layout.
 
-<Note>
-**Available via:** [UI Kits](/ui-kit/react-native/overview) | [SDK](/sdk/react-native/retrieve-conversations) | [REST API](/rest-api/chat-apis)
-</Note>
+```tsx lines
+import { useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  CometChatConversations,
+  CometChatMessageHeader,
+  CometChatMessageList,
+  CometChatMessageComposer,
+  CometChatThemeProvider,
+} from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function ChatApp() {
+  const [selectedUser, setSelectedUser] = useState<CometChat.User>();
+  const [selectedGroup, setSelectedGroup] = useState<CometChat.Group>();
+
+  const handleItemPress = (conversation: CometChat.Conversation) => {
+    const entity = conversation.getConversationWith();
+    if (entity instanceof CometChat.User) {
+      setSelectedUser(entity);
+      setSelectedGroup(undefined);
+    } else if (entity instanceof CometChat.Group) {
+      setSelectedGroup(entity);
+      setSelectedUser(undefined);
+    }
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <CometChatThemeProvider>
+          <View style={styles.container}>
+            <View style={styles.sidebar}>
+              <CometChatConversations onItemPress={handleItemPress} />
+            </View>
+            {selectedUser || selectedGroup ? (
+              <View style={styles.chatArea}>
+                <CometChatMessageHeader user={selectedUser} group={selectedGroup} />
+                <CometChatMessageList user={selectedUser} group={selectedGroup} />
+                <CometChatMessageComposer user={selectedUser} group={selectedGroup} />
+              </View>
+            ) : (
+              <View style={styles.placeholder}>
+                <Text>Select a conversation</Text>
+              </View>
+            )}
+          </View>
+        </CometChatThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, flexDirection: "row" },
+  sidebar: { width: 350 },
+  chatArea: { flex: 1 },
+  placeholder: { flex: 1, justifyContent: "center", alignItems: "center" },
+});
+```
 
 <Frame>
   <img src="/images/f2c77c5b-Conversation-ac41cc6650fbb941c64f389aee910dbc.png" />
@@ -153,28 +212,20 @@ export default ConversationsDemo;
 
 ## Filtering Conversations
 
-You can set `ConversationsRequestBuilder` in the Conversations Component to filter the conversation list. You can modify the builder as per your specific requirements with multiple options available to know more refer to [ConversationRequestBuilder](/sdk/react-native/retrieve-conversations).
-
-You can set filters using the following parameters.
-
-1. **Conversation Type:** Filters on type of Conversation, `User` or `Groups`
-2. **Limit:** Number of conversations fetched in a single request.
-3. **WithTags:** Filter on fetching conversations containing tags
-4. **Tags:** Filters on specific `Tag`
-5. **UserTags:** Filters on specific User `Tag`
-6. **GroupTags:** Filters on specific Group `Tag`
+Pass a `CometChat.ConversationsRequestBuilder` to `conversationsRequestBuilder`. Pass the builder instance — not the result of `.build()`.
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 function FilteredConversations() {
-  const conversationsRequestBuilder = new CometChat.ConversationsRequestBuilder()
-    .setLimit(30);
-
   return (
     <CometChatConversations
-      conversationsRequestBuilder={conversationsRequestBuilder}
+      conversationsRequestBuilder={
+        new CometChat.ConversationsRequestBuilder()
+          .setConversationType("user")
+          .setLimit(10)
+      }
     />
   );
 }
@@ -186,10 +237,14 @@ function FilteredConversations() {
 | --- | --- |
 | Only user conversations | `new CometChat.ConversationsRequestBuilder().setConversationType("user")` |
 | Only group conversations | `new CometChat.ConversationsRequestBuilder().setConversationType("group")` |
-| Limit to 30 per page | `new CometChat.ConversationsRequestBuilder().setLimit(30)` |
+| Limit to 10 per page | `new CometChat.ConversationsRequestBuilder().setLimit(10)` |
 | With specific tags | `new CometChat.ConversationsRequestBuilder().setTags(["vip"])` |
 | Filter by user tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setUserTags(["premium"])` |
 | Filter by group tags | `new CometChat.ConversationsRequestBuilder().withUserAndGroupTags(true).setGroupTags(["support"])` |
+
+Default page size is 30. The component uses infinite scroll — the next page loads as the user scrolls to the bottom.
+
+Refer to [ConversationRequestBuilder](/sdk/react-native/retrieve-conversations) for the full builder API.
 
 ---
 
@@ -200,10 +255,6 @@ function FilteredConversations() {
 #### onItemPress
 
 Fires when a conversation row is tapped. Primary navigation hook — set the active conversation and render the message view.
-
-```tsx lines
-onItemPress?: (item: CometChat.Conversation) => void
-```
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
@@ -223,10 +274,6 @@ function ConversationsWithPress() {
 Fires when a conversation item is long-pressed, allowing additional actions like delete or select.
 
 ```tsx lines
-onItemLongPress?: (item: CometChat.Conversation) => void
-```
-
-```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
@@ -239,32 +286,9 @@ function ConversationsWithLongPress() {
 }
 ```
 
-#### onBack
-
-Fires when the back button in the app bar is pressed. Requires `hideBackButton={false}`.
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-
-function ConversationsWithBack() {
-  return (
-    <CometChatConversations
-      hideBackButton={false}
-      onBack={() => {
-        console.log("Back pressed");
-      }}
-    />
-  );
-}
-```
-
 #### onSelection
 
 Fires when conversations are selected/deselected in selection mode. Requires `selectionMode` to be set.
-
-```tsx lines
-onSelection?: (conversations: Array<CometChat.Conversation>) => void
-```
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
@@ -277,7 +301,7 @@ function ConversationsWithSelection() {
 
   return (
     <CometChatConversations
-      selectionMode={"single"}
+      selectionMode="multiple"
       onSelection={handleSelection}
     />
   );
@@ -287,10 +311,6 @@ function ConversationsWithSelection() {
 #### onError
 
 Fires on internal errors (network failure, auth issue, SDK exception).
-
-```tsx lines
-onError?: (e: CometChat.CometChatException) => void
-```
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
@@ -317,9 +337,7 @@ import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 function ConversationsWithEmptyHandler() {
   return (
     <CometChatConversations
-      onEmpty={() => {
-        console.log("No conversations");
-      }}
+      onEmpty={() => console.log("No conversations")}
     />
   );
 }
@@ -328,10 +346,6 @@ function ConversationsWithEmptyHandler() {
 #### onLoad
 
 Fires when the list is successfully fetched and loaded.
-
-```tsx lines
-onLoad?: (list: CometChat.Conversation[]) => void
-```
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
@@ -346,76 +360,9 @@ function ConversationsWithLoadHandler() {
 }
 ```
 
-#### onSearchBarClicked
-
-Fires when the search bar is clicked or focused. Requires `showSearchBar={true}`.
-
-```tsx lines
-onSearchBarClicked?: () => void
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-
-function ConversationsWithSearch() {
-  return (
-    <CometChatConversations
-      showSearchBar={true}
-      onSearchBarClicked={() => {
-        console.log("Search bar clicked");
-      }}
-    />
-  );
-}
-```
-
-#### onSearchTextChanged
-
-Fires when search text changes. Requires `showSearchBar={true}`.
-
-```tsx lines
-onSearchTextChanged?: (searchText: string) => void
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-
-function ConversationsWithSearchText() {
-  return (
-    <CometChatConversations
-      showSearchBar={true}
-      onSearchTextChanged={(searchText: string) => {
-        console.log("Search text:", searchText);
-      }}
-    />
-  );
-}
-```
-
-#### onSubmit
-
-Fires when the submit selection button is pressed. Requires `selectionMode` to be set.
-
-```tsx lines
-onSubmit?: (conversation: Array<CometChat.Conversation>) => void
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-
-function ConversationsWithSubmit() {
-  const handleSubmit = (list: Array<CometChat.Conversation>) => {
-    console.log("Submit", list);
-  };
-
-  return <CometChatConversations onSubmit={handleSubmit} />;
-}
-```
-
 ### Global UI Events
 
-`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Add listeners and remove them on cleanup.
+`CometChatUIEventHandler` emits events subscribable from anywhere in the application. Subscribe in a `useEffect` and unsubscribe on cleanup.
 
 | Event | Fires when | Payload |
 | --- | --- | --- |
@@ -439,7 +386,7 @@ function useConversationEvents() {
     });
 
     return () => {
-      CometChatUIEventHandler.removeListener(listenerId);
+      CometChatUIEventHandler.removeConversationListener(listenerId);
     };
   }, []);
 }
@@ -461,10 +408,6 @@ Automatic: new messages, typing indicators, receipts, user presence, group membe
 
 Manual: deleting a conversation via the SDK directly (not through the component's context menu) requires emitting `ccConversationDeleted` for the UI to update.
 
-<Note>
-In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
-</Note>
-
 ---
 
 ## Custom View Slots
@@ -482,193 +425,11 @@ Each slot replaces a section of the default UI. Slots that accept a conversation
 | `EmptyView` | `() => JSX.Element` | Empty state |
 | `ErrorView` | `() => JSX.Element` | Error state |
 | `AppBarOptions` | `() => JSX.Element` | Header bar options |
-
-### disableSoundForMessages
-
-Disables sound notifications for incoming messages.
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-
-function DisableSoundDemo() {
-  return <CometChatConversations disableSoundForMessages={true} />;
-}
-```
-
-### customSoundForMessages
-
-Sets a custom sound file for incoming message notifications.
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import customMessageSound from "./customMessageSound.wav";
-
-function CustomSoundDemo() {
-  return <CometChatConversations customSoundForMessages={customMessageSound} />;
-}
-```
-
-### LoadingView
-
-Custom view displayed when data is being fetched.
-
-```tsx lines
-LoadingView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { Text } from "react-native";
-
-function LoadingViewDemo() {
-  const getLoadingView = (): JSX.Element => {
-    return <Text>Loading conversations...</Text>;
-  };
-
-  return <CometChatConversations LoadingView={getLoadingView} />;
-}
-```
-
-### EmptyView
-
-Custom view displayed when there are no conversations.
-
-```tsx lines
-EmptyView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { Text } from "react-native";
-
-function EmptyViewDemo() {
-  const getEmptyView = (): JSX.Element => {
-    return <Text>No conversations yet. Start a new chat!</Text>;
-  };
-
-  return <CometChatConversations EmptyView={getEmptyView} />;
-}
-```
-
-### ErrorView
-
-Custom view displayed when an error occurs.
-
-```tsx lines
-ErrorView?: () => JSX.Element
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { Text } from "react-native";
-
-function ErrorViewDemo() {
-  const getErrorView = (): JSX.Element => {
-    return <Text>Something went wrong. Please try again.</Text>;
-  };
-
-  return <CometChatConversations ErrorView={getErrorView} />;
-}
-```
-
-### LeadingView
-
-Custom view for the avatar / left section of each conversation item.
-
-```tsx lines
-LeadingView?: (conversation: CometChat.Conversation) => JSX.Element
-```
-
-<Frame>
-  <img src="/images/50dd219e-conversation_leading_view-65768f699fe3f064c14b0491f7ce0f91.png" />
-</Frame>
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { View, Text } from "react-native";
-
-function LeadingViewDemo() {
-  const getLeadingView = (conversation: CometChat.Conversation): JSX.Element => {
-    const entity = conversation.getConversationWith();
-    return (
-      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#6852D6' }}>
-        <Text style={{ color: 'white', textAlign: 'center', lineHeight: 40 }}>
-          {entity.getName().charAt(0)}
-        </Text>
-      </View>
-    );
-  };
-
-  return <CometChatConversations LeadingView={getLeadingView} />;
-}
-```
-
-### TitleView
-
-Custom view for the name / title text.
-
-```tsx lines
-TitleView?: (conversation: CometChat.Conversation) => JSX.Element
-```
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { Text } from "react-native";
-
-function TitleViewDemo() {
-  const getTitleView = (conversation: CometChat.Conversation): JSX.Element => {
-    const entity = conversation.getConversationWith();
-    return (
-      <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
-        {entity.getName()}
-      </Text>
-    );
-  };
-
-  return <CometChatConversations TitleView={getTitleView} />;
-}
-```
-
-### TrailingView
-
-Custom view for the timestamp / badge / right section.
-
-```tsx lines
-TrailingView?: (item: CometChat.Conversation) => JSX.Element
-```
-
-<Frame>
-  <img src="/images/9c92115a-conversation_trailing_view-15ca261b8d20291c19b48c7f7af81976.png" />
-</Frame>
-
-```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { View, Text } from "react-native";
-
-function TrailingViewDemo() {
-  const getTrailingView = (conversation: CometChat.Conversation): JSX.Element => {
-    const unreadCount = conversation.getUnreadMessageCount();
-    return (
-      <View style={{ backgroundColor: '#F76808', borderRadius: 10, padding: 4 }}>
-        <Text style={{ color: 'white', fontSize: 12 }}>{unreadCount}</Text>
-      </View>
-    );
-  };
-
-  return <CometChatConversations TrailingView={getTrailingView} />;
-}
-```
+| `SearchView` | `() => JSX.Element` | Search bar |
 
 ### ItemView
 
-Custom view for the entire list item row.
-
-```tsx lines
-ItemView?: (item: CometChat.Conversation) => JSX.Element
-```
+Replace the entire list item row.
 
 <Frame>
   <img src="/images/c6aa2b6b-Conversation_List_Item_View-60ff280389ca87aea84133ea03a6a620.png" />
@@ -683,19 +444,19 @@ import {
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { View, Text } from "react-native";
 
-function ItemViewDemo() {
+function CustomItemViewConversations() {
   const theme = useTheme();
 
-  const getItemView = (conversation: CometChat.Conversation): JSX.Element => {
+  const getItemView = (conversation: CometChat.Conversation) => {
     const conversationWith = conversation.getConversationWith();
     return (
       <View
         style={{
-          flexDirection: 'row',
+          flexDirection: "row",
           flex: 1,
           paddingHorizontal: 16,
           paddingVertical: 12,
-          alignItems: 'center',
+          alignItems: "center",
           borderWidth: 1,
           borderColor: theme.color.borderLight,
         }}>
@@ -718,7 +479,7 @@ function ItemViewDemo() {
             color: theme.color.textPrimary,
             fontSize: 16,
             marginLeft: 12,
-            fontWeight: '500',
+            fontWeight: "500",
           }}
           numberOfLines={1}
           ellipsizeMode="tail">
@@ -732,13 +493,120 @@ function ItemViewDemo() {
 }
 ```
 
-### SubtitleView
+### LeadingView
 
-Custom view for the last message preview text.
+Replace the avatar / left section.
+
+<Frame>
+  <img src="/images/50dd219e-conversation_leading_view-65768f699fe3f064c14b0491f7ce0f91.png" />
+</Frame>
 
 ```tsx lines
-SubtitleView?: (conversation: CometChat.Conversation) => JSX.Element
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text } from "react-native";
+
+function LeadingViewConversations() {
+  const getLeadingView = (conversation: CometChat.Conversation) => {
+    const entity = conversation.getConversationWith();
+    return (
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: "#6852D6",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+        <Text style={{ color: "white", fontWeight: "bold" }}>
+          {entity.getName().charAt(0)}
+        </Text>
+      </View>
+    );
+  };
+
+  return <CometChatConversations LeadingView={getLeadingView} />;
+}
 ```
+
+### TrailingView
+
+Replace the timestamp / badge / right section.
+
+<Frame>
+  <img src="/images/9c92115a-conversation_trailing_view-15ca261b8d20291c19b48c7f7af81976.png" />
+</Frame>
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text } from "react-native";
+
+function TrailingViewConversations() {
+  const getTrailingView = (conversation: CometChat.Conversation) => {
+    const unreadCount = conversation.getUnreadMessageCount();
+    if (unreadCount === 0) return null;
+    
+    return (
+      <View
+        style={{
+          backgroundColor: "#F76808",
+          borderRadius: 10,
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+        }}>
+        <Text style={{ color: "white", fontSize: 12, fontWeight: "bold" }}>
+          {unreadCount}
+        </Text>
+      </View>
+    );
+  };
+
+  return <CometChatConversations TrailingView={getTrailingView} />;
+}
+```
+
+### TitleView
+
+Replace the name / title text.
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import { View, Text } from "react-native";
+
+function TitleViewConversations() {
+  const getTitleView = (conversation: CometChat.Conversation) => {
+    const entity = conversation.getConversationWith();
+    const isUser = entity instanceof CometChat.User;
+    
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+          {entity.getName()}
+        </Text>
+        {isUser && (entity as CometChat.User).getStatus() === "online" && (
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: "#09C26F",
+            }}
+          />
+        )}
+      </View>
+    );
+  };
+
+  return <CometChatConversations TitleView={getTitleView} />;
+}
+```
+
+### SubtitleView
+
+Replace the last message preview text.
 
 <Frame>
   <img src="/images/48bf8e47-Conversation_Subtitle_View-a52dabb66ff516b5afb85540c95ed92d.png" />
@@ -749,61 +617,28 @@ import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { Text } from "react-native";
 
-function SubtitleViewDemo() {
-  const getSubtitleView = (conversation: CometChat.Conversation): JSX.Element => {
+function SubtitleViewConversations() {
+  const getSubtitleView = (conversation: CometChat.Conversation) => {
     const conversationWith = conversation.getConversationWith();
     if (conversationWith instanceof CometChat.User) {
       return (
-        <Text style={{ fontSize: 12, color: '#727272' }}>
-          Last Active at: {new Date(conversationWith.getLastActiveAt() * 1000).toLocaleString()}
+        <Text style={{ fontSize: 12, color: "#727272" }}>
+          Last Active: {new Date(conversationWith.getLastActiveAt() * 1000).toLocaleString()}
         </Text>
       );
     } else if (conversationWith instanceof CometChat.Group) {
       return (
-        <Text style={{ fontSize: 12, color: '#727272' }}>
-          Created at: {new Date(conversationWith.getCreatedAt() * 1000).toLocaleString()}
+        <Text style={{ fontSize: 12, color: "#727272" }}>
+          {conversationWith.getMembersCount()} members
         </Text>
       );
     }
-    return <Text>Click To View Chat</Text>;
+    return null;
   };
 
   return <CometChatConversations SubtitleView={getSubtitleView} />;
 }
 ```
-
-### textFormatters
-
-Custom text formatters for the conversation subtitle.
-
-<Frame>
-  <img src="/images/55490fa9-mentions_conversations-1a7b847ad0af53848dc106216ac64e74.png" />
-</Frame>
-
-```tsx lines
-import {
-  CometChatConversations,
-  CometChatTextFormatter,
-  CometChatMentionsFormatter,
-} from "@cometchat/chat-uikit-react-native";
-
-function TextFormattersDemo() {
-  const getTextFormatters = () => {
-    const textFormatters: CometChatTextFormatter[] = [];
-    const mentionsFormatter = new CometChatMentionsFormatter();
-    mentionsFormatter.setMentionsStyle({
-      textStyle: { color: "#D6409F" },
-      selfTextStyle: { color: "#30A46C" },
-    });
-    textFormatters.push(mentionsFormatter);
-    return textFormatters;
-  };
-
-  return <CometChatConversations textFormatters={getTextFormatters()} />;
-}
-```
-
-See [CometChatMentionsFormatter](/ui-kit/react-native/mentions-formatter-guide) for mention formatting.
 
 ### AppBarOptions
 
@@ -817,18 +652,73 @@ Custom view for the header bar options.
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { TouchableOpacity, Text } from "react-native";
 
-function AppBarOptionsDemo() {
+function AppBarOptionsConversations() {
   return (
     <CometChatConversations
-      AppBarOptions={() => {
-        return (
-          <TouchableOpacity onPress={() => { /* handle click */ }}>
-            <Text>Custom App Bar Options</Text>
-          </TouchableOpacity>
-        );
-      }}
+      AppBarOptions={() => (
+        <TouchableOpacity onPress={() => console.log("Settings pressed")}>
+          <Text style={{ color: "#6852D6", fontWeight: "500" }}>Settings</Text>
+        </TouchableOpacity>
+      )}
     />
   );
+}
+```
+
+### options
+
+Custom context menu actions for each conversation item.
+
+<Frame>
+  <img src="/images/9415d47d-conversation_set_option-42a75eb50360de67a9bfab69beefbda3.png" />
+</Frame>
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function OptionsConversations() {
+  const getOptions = (conversation: CometChat.Conversation) => [
+    {
+      text: "Delete",
+      onPress: () => console.log("Delete:", conversation.getConversationId()),
+      textStyle: { color: "red" },
+    },
+    {
+      text: "Mute",
+      onPress: () => console.log("Mute:", conversation.getConversationId()),
+    },
+  ];
+
+  return <CometChatConversations options={getOptions} />;
+}
+```
+
+### addOptions
+
+Extends the default context menu actions with additional options.
+
+<Frame>
+  <img src="/images/88283fe5-conversation_add_options-c0f407ccc43b5f040d9ab9147e17def0.png" />
+</Frame>
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+
+function AddOptionsConversations() {
+  const addOptions = (conversation: CometChat.Conversation) => [
+    {
+      text: "Archive",
+      onPress: () => console.log("Archive:", conversation.getConversationId()),
+    },
+    {
+      text: "Pin",
+      onPress: () => console.log("Pin:", conversation.getConversationId()),
+    },
+  ];
+
+  return <CometChatConversations addOptions={addOptions} />;
 }
 ```
 
@@ -847,16 +737,16 @@ import {
 } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-function DatePatternDemo() {
+function DatePatternConversations() {
   const generateDateString = (conversation: CometChat.Conversation) => {
     const lastMessage = CometChatConversationUtils.getLastMessage(conversation);
     const conversationWith = conversation.getConversationWith();
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const timeStamp = lastMessage?.updatedAt || conversationWith.createdAt || conversationWith.lastActiveAt;
-    const timeStampInSeconds = new Date(timeStamp * 1000);
-    const day = days[timeStampInSeconds.getUTCDay()].substring(0, 3);
-    const hours = timeStampInSeconds.getUTCHours();
-    const minutes = String(timeStampInSeconds.getUTCMinutes()).padStart(2, "0");
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const timeStamp = lastMessage?.updatedAt || conversationWith.createdAt;
+    const date = new Date(timeStamp * 1000);
+    const day = days[date.getUTCDay()];
+    const hours = date.getUTCHours();
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
     return `${day}, ${hours}:${minutes}`;
   };
 
@@ -864,68 +754,118 @@ function DatePatternDemo() {
 }
 ```
 
-### options
+### textFormatters
 
-Custom context menu actions for each conversation item.
+Custom text formatters for the conversation subtitle.
 
 <Frame>
-  <img src="/images/9415d47d-conversation_set_option-42a75eb50360de67a9bfab69beefbda3.png" />
+  <img src="/images/55490fa9-mentions_conversations-1a7b847ad0af53848dc106216ac64e74.png" />
 </Frame>
 
 ```tsx lines
-import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {
+  CometChatConversations,
+  CometChatTextFormatter,
+  CometChatMentionsFormatter,
+} from "@cometchat/chat-uikit-react-native";
 
-function OptionsDemo() {
-  const setMyOptions = (conversation: CometChat.Conversation) => {
-    return [
-      {
-        text: "Delete",
-        onPress: () => { /* delete logic */ },
-        icon: <DeleteIcon color="red" height={24} width={24} />,
-        textStyle: { color: 'red' },
-      },
-    ];
+function TextFormattersConversations() {
+  const getTextFormatters = () => {
+    const textFormatters: CometChatTextFormatter[] = [];
+    const mentionsFormatter = new CometChatMentionsFormatter();
+    mentionsFormatter.setMentionsStyle({
+      textStyle: { color: "#D6409F" },
+      selfTextStyle: { color: "#30A46C" },
+    });
+    textFormatters.push(mentionsFormatter);
+    return textFormatters;
   };
 
-  return <CometChatConversations options={setMyOptions} />;
+  return <CometChatConversations textFormatters={getTextFormatters()} />;
 }
 ```
 
-### addOptions
+See [CometChatMentionsFormatter](/ui-kit/react-native/mentions-formatter-guide) for mention formatting.
 
-Extends the default context menu actions with additional options.
+---
 
-<Frame>
-  <img src="/images/88283fe5-conversation_add_options-c0f407ccc43b5f040d9ab9147e17def0.png" />
-</Frame>
+## Common Patterns
+
+### Custom empty state with CTA
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+import { View, Text, TouchableOpacity } from "react-native";
+
+function EmptyStateConversations() {
+  return (
+    <CometChatConversations
+      EmptyView={() => (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 40 }}>
+          <Text style={{ fontSize: 16, marginBottom: 16 }}>No conversations yet</Text>
+          <TouchableOpacity
+            style={{ backgroundColor: "#6852D6", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}
+            onPress={() => console.log("Start conversation")}>
+            <Text style={{ color: "white" }}>Start a conversation</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    />
+  );
+}
+```
+
+### Hide all chrome — minimal list
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+
+function MinimalConversations() {
+  return (
+    <CometChatConversations
+      receiptsVisibility={false}
+      usersStatusVisibility={false}
+      groupTypeVisibility={false}
+      deleteConversationOptionVisibility={false}
+      hideHeader={true}
+    />
+  );
+}
+```
+
+### Conversations with search
+
+```tsx lines
+import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
+
+function SearchableConversations() {
+  return (
+    <CometChatConversations
+      showSearchBar={true}
+      onSearchTextChanged={(text) => console.log("Search:", text)}
+    />
+  );
+}
+```
+
+### Multi-select with submit
 
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 
-function AddOptionsDemo() {
-  const addOptions = (conversation: CometChat.Conversation) => {
-    return [
-      {
-        text: "Archive",
-        onPress: () => { /* archive logic */ },
-        icon: <ArchiveIcon />,
-      },
-      {
-        text: "Pin",
-        onPress: () => { /* pin logic */ },
-        icon: <PinIcon />,
-      },
-      {
-        text: "Mark as unread",
-        onPress: () => { /* mark unread logic */ },
-        icon: <UnreadIcon />,
-      },
-    ];
+function MultiSelectConversations() {
+  const handleSubmit = (conversations: Array<CometChat.Conversation>) => {
+    console.log("Selected conversations:", conversations.length);
   };
 
-  return <CometChatConversations addOptions={addOptions} />;
+  return (
+    <CometChatConversations
+      selectionMode="multiple"
+      hideSubmitButton={false}
+      onSubmit={handleSubmit}
+    />
+  );
 }
 ```
 
@@ -933,7 +873,7 @@ function AddOptionsDemo() {
 
 ## Styling
 
-Using Style you can customize the look and feel of the component in your app. Pass a styling object as a prop to the `CometChatConversations` component.
+The component uses the theme system from `CometChatThemeProvider`. Pass a `style` prop to customize the appearance.
 
 <Frame>
   <img src="/images/433c987e-Conversation_Styling-1e5686a26eb349d5cbc40262b9b6df0e.png" />
@@ -942,10 +882,13 @@ Using Style you can customize the look and feel of the component in your app. Pa
 ```tsx lines
 import { CometChatConversations } from "@cometchat/chat-uikit-react-native";
 
-function StylingDemo() {
+function StyledConversations() {
   return (
     <CometChatConversations
       style={{
+        containerStyle: {
+          backgroundColor: "#FAFAFA",
+        },
         itemStyle: {
           avatarStyle: {
             containerStyle: {
@@ -968,26 +911,406 @@ function StylingDemo() {
 }
 ```
 
-### Visibility Props
+### Style Properties
 
-| Property | Description | Code |
+| Property | Type | Description |
 | --- | --- | --- |
-| `hideBackButton` | Toggle visibility of the back button in the app bar | `hideBackButton?: boolean` |
-| `hideHeader` | Toggle visibility for the toolbar/header bar | `hideHeader?: boolean` |
-| `hideError` | Hide error state on fetching conversations | `hideError?: boolean` |
-| `receiptsVisibility` | Control visibility of read receipts | `receiptsVisibility?: boolean` |
-| `hideSubmitButton` | Toggle visibility of the submit button when selectionMode is enabled | `hideSubmitButton?: boolean` |
-| `usersStatusVisibility` | Toggle user status visibility | `usersStatusVisibility?: boolean` |
-| `groupTypeVisibility` | Toggle group type visibility | `groupTypeVisibility?: boolean` |
-| `deleteConversationOptionVisibility` | Toggle delete conversation option visibility | `deleteConversationOptionVisibility?: boolean` |
-| `showSearchBar` | Toggle search bar visibility in the conversations header | `showSearchBar?: boolean` |
+| `containerStyle` | `ViewStyle` | Style for the root container |
+| `headerStyle` | `ViewStyle` | Style for the header section |
+| `titleStyle` | `TextStyle` | Style for the header title |
+| `itemStyle` | `object` | Style for list items (includes `avatarStyle`, `badgeStyle`, `titleStyle`, `subtitleStyle`) |
+| `searchStyle` | `object` | Style for the search bar |
 
-### Selection Mode
+---
 
-| Property | Description | Code |
-| --- | --- | --- |
-| `selectionMode` | Determines the selection mode for conversations | `selectionMode?: SelectionMode` |
-| `searchText` | Current search text value | `searchText?: string` |
+## Props
+
+All props are optional unless noted.
+
+### conversationsRequestBuilder
+
+Controls which conversations load and in what order.
+
+| | |
+| --- | --- |
+| Type | `CometChat.ConversationsRequestBuilder` |
+| Default | SDK default (30 per page) |
+
+Pass the builder instance, not the result of `.build()`.
+
+---
+
+### customSoundForMessages
+
+Custom sound file for incoming message notifications.
+
+| | |
+| --- | --- |
+| Type | `audio source` |
+| Default | Built-in sound |
+
+---
+
+### datePattern
+
+Custom function to format conversation timestamps.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => string` |
+| Default | Component default |
+
+---
+
+### deleteConversationOptionVisibility
+
+Shows/hides the delete option in the context menu.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### disableSoundForMessages
+
+Disables the notification sound for incoming messages.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### EmptyView
+
+Custom component displayed when there are no conversations.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in empty state |
+
+---
+
+### ErrorView
+
+Custom component displayed when an error occurs.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in error state |
+
+---
+
+### groupTypeVisibility
+
+Shows/hides the group type icon (public/private/password).
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### hideBackButton
+
+Hides the back button in the header.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### hideError
+
+Hides the error state view.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideHeader
+
+Hides the entire header bar.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### hideSubmitButton
+
+Hides the submit button when selection mode is enabled.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### ItemView
+
+Custom renderer for the entire list item row.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in list item |
+
+---
+
+### LeadingView
+
+Custom renderer for the avatar / left section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in avatar |
+
+---
+
+### LoadingView
+
+Custom component displayed during the loading state.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in loading indicator |
+
+---
+
+### onBack
+
+Callback fired when the back button is pressed.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onEmpty
+
+Callback fired when the conversation list is empty.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onError
+
+Callback fired when the component encounters an error.
+
+| | |
+| --- | --- |
+| Type | `(error: CometChat.CometChatException) => void` |
+| Default | `undefined` |
+
+---
+
+### onItemLongPress
+
+Callback fired when a conversation row is long-pressed.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => void` |
+| Default | `undefined` |
+
+---
+
+### onItemPress
+
+Callback fired when a conversation row is tapped.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => void` |
+| Default | `undefined` |
+
+---
+
+### onLoad
+
+Callback fired when conversations are loaded.
+
+| | |
+| --- | --- |
+| Type | `(list: CometChat.Conversation[]) => void` |
+| Default | `undefined` |
+
+---
+
+### onSearchBarClicked
+
+Callback fired when the search bar is clicked. Requires `showSearchBar={true}`.
+
+| | |
+| --- | --- |
+| Type | `() => void` |
+| Default | `undefined` |
+
+---
+
+### onSearchTextChanged
+
+Callback fired when search text changes. Requires `showSearchBar={true}`.
+
+| | |
+| --- | --- |
+| Type | `(searchText: string) => void` |
+| Default | `undefined` |
+
+---
+
+### onSelection
+
+Callback fired when conversations are selected/deselected. Requires `selectionMode` to be set.
+
+| | |
+| --- | --- |
+| Type | `(conversations: Array<CometChat.Conversation>) => void` |
+| Default | `undefined` |
+
+---
+
+### onSubmit
+
+Callback fired when the submit button is pressed. Requires `selectionMode` to be set.
+
+| | |
+| --- | --- |
+| Type | `(conversations: Array<CometChat.Conversation>) => void` |
+| Default | `undefined` |
+
+---
+
+### receiptsVisibility
+
+Shows/hides message read/delivery receipt indicators.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
+
+---
+
+### SearchView
+
+Custom search bar component.
+
+| | |
+| --- | --- |
+| Type | `() => JSX.Element` |
+| Default | Built-in search bar |
+
+---
+
+### selectionMode
+
+Enables single or multi-select mode on list items.
+
+| | |
+| --- | --- |
+| Type | `"single" \| "multiple" \| "none"` |
+| Default | `"none"` |
+
+---
+
+### searchText
+
+Current search text value for the search bar.
+
+| | |
+| --- | --- |
+| Type | `string` |
+| Default | `""` |
+
+---
+
+### showSearchBar
+
+Shows a search bar at the top of the list.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `false` |
+
+---
+
+### SubtitleView
+
+Custom renderer for the last message preview text.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in subtitle |
+
+---
+
+### textFormatters
+
+Custom text formatters for the conversation subtitle.
+
+| | |
+| --- | --- |
+| Type | `CometChatTextFormatter[]` |
+| Default | Default formatters from data source |
+
+---
+
+### TitleView
+
+Custom renderer for the name / title text.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in title |
+
+---
+
+### TrailingView
+
+Custom renderer for the timestamp / badge / right section.
+
+| | |
+| --- | --- |
+| Type | `(conversation: CometChat.Conversation) => JSX.Element` |
+| Default | Built-in trailing view |
+
+---
+
+### usersStatusVisibility
+
+Shows/hides the online/offline status indicator.
+
+| | |
+| --- | --- |
+| Type | `boolean` |
+| Default | `true` |
 
 ---
 
