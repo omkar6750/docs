@@ -1,0 +1,91 @@
+---
+title: "Messages"
+description: "Class reference for message objects returned by CometChat SDK methods. Covers BaseMessage and its subclasses like TextMessage."
+---
+
+This page documents the message classes used across all CometChat SDKs. All message objects share the same structure regardless of platform.
+
+All properties are accessed via getter methods.
+
+## Class Hierarchy
+
+```
+BaseMessage
+├── TextMessage
+├── MediaMessage
+├── CustomMessage
+├── InteractiveMessage
+└── Action
+```
+
+---
+
+## BaseMessage
+
+`BaseMessage` is the base class for all message types. Every message object — whether it's a text message, media message, or custom message — extends this class.
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| id | `getId()` | `number` | Unique message ID |
+| conversationId | `getConversationId()` | `string` | ID of the conversation this message belongs to |
+| parentMessageId | `getParentMessageId()` | `number` | ID of the parent message (for threaded messages) |
+| muid | `getMuid()` | `string` | Client-generated unique message ID |
+| sender | `getSender()` | `User` | Sender of the message |
+| receiver | `getReceiver()` | `User` \| `Group` | Receiver of the message |
+| receiverId | `getReceiverId()` | `string` | UID/GUID of the receiver |
+| type | `getType()` | `string` | Message type (e.g., `"text"`, `"image"`, `"file"`, `"custom"`) |
+| receiverType | `getReceiverType()` | `string` | Receiver type (`"user"` or `"group"`) |
+| category | `getCategory()` | `MessageCategory` | Message category (e.g., `"message"`, `"action"`, `"call"`, `"custom"`) |
+| sentAt | `getSentAt()` | `number` | Timestamp when the message was sent (epoch seconds) |
+| deliveredAt | `getDeliveredAt()` | `number` | Timestamp when the message was delivered |
+| readAt | `getReadAt()` | `number` | Timestamp when the message was read |
+| deliveredToMeAt | `getDeliveredToMeAt()` | `number` | Timestamp when the message was delivered to the logged-in user |
+| readByMeAt | `getReadByMeAt()` | `number` | Timestamp when the message was read by the logged-in user |
+| editedAt | `getEditedAt()` | `number` | Timestamp when the message was edited |
+| editedBy | `getEditedBy()` | `string` | UID of the user who edited the message |
+| deletedAt | `getDeletedAt()` | `number` | Timestamp when the message was deleted |
+| deletedBy | `getDeletedBy()` | `string` | UID of the user who deleted the message |
+| replyCount | `getReplyCount()` | `number` | Number of replies to this message |
+| unreadRepliesCount | `getUnreadRepliesCount()` | `number` | Number of unread replies |
+| data | `getData()` | `Object` | Raw data payload of the message |
+| metadata | `getMetadata()` | `Object` | Custom metadata attached to the message |
+| rawMessage | `getRawMessage()` | `Object` | Raw JSON of the message as received from the server |
+
+### Conditional Properties
+
+These properties may or may not be populated depending on the method or request configuration used to fetch the message.
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| reactions | `getReactions()` | `ReactionCount[]` | Array of reaction counts on the message |
+| mentionedUsers | `getMentionedUsers()` | `User[]` | Array of users mentioned in the message |
+| hasMentionedMe | `hasMentionedMe()` | `boolean` | Whether the logged-in user was mentioned in the message |
+| quotedMessageId | `getQuotedMessageId()` | `number` | ID of the quoted message (if this is a reply) |
+| quotedMessage | `getQuotedMessage()` | `BaseMessage` | The quoted message object (if this is a reply) |
+
+---
+
+## TextMessage
+
+`TextMessage` extends [BaseMessage](#basemessage) and represents a text-based chat message.
+
+It inherits all properties from `BaseMessage` and adds the following.
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| text | `getText()` | `string` | The text content of the message |
+| metadata | `getMetadata()` | `Object` | Custom metadata attached to the message (includes extension data like data masking, link preview, etc.) |
+| data | `getData()` | `Object` | Raw data payload including `text`, `resource`, `metadata`, `moderation`, and `entities` |
+| moderationStatus | `getModerationStatus()` | `ModerationStatus` | Moderation status of the message. Returns `"unmoderated"` if not moderated. |
+
+### Conditional Properties
+
+These properties may or may not be populated depending on the method or request configuration used to fetch the message.
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| tags | `getTags()` | `string[]` | Tags associated with the message |
