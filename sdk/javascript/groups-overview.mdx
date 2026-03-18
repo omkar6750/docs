@@ -20,9 +20,38 @@ Groups help your users to converse together in a single space. You can have thre
 
 Each group includes three kinds of users- owner, moderator, member.
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/react/overview)
-</Note>
+## Group Types
+
+| Type | Description | Join Behavior |
+|------|-------------|---------------|
+| **Public** | Open to all users | Any user can join without approval |
+| **Private** | Invite-only | Users must be added by admin/moderator |
+| **Password** | Protected by password | Users must provide correct password to join |
+
+## Member Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full control: manage members, settings, delete group. Cannot leave without transferring ownership. |
+| **Admin** | Manage members (add, kick, ban), change member scope, update group settings |
+| **Moderator** | Kick and ban members, moderate content |
+| **Member** | Send/receive messages, leave group |
+
+<Accordion title="Best Practices">
+- **Choose the right group type** — Use public for open communities, private for invite-only teams, password for semi-restricted access
+- **Assign appropriate roles** — Give admin/moderator roles only to trusted users who need management capabilities
+- **Transfer ownership before leaving** — Owners must transfer ownership to another member before they can leave the group
+- **Use pagination for large groups** — When fetching group members, use `GroupMembersRequestBuilder` with reasonable limits (30-50)
+- **Handle group events** — Register `GroupListener` to receive real-time updates for member changes, scope changes, and group updates
+</Accordion>
+
+<Accordion title="Troubleshooting">
+- **Can't join private group** — Private groups require an admin to add you. Use `joinGroup()` only for public or password-protected groups.
+- **Owner can't leave group** — Transfer ownership first using `transferGroupOwnership()`, then call `leaveGroup()`.
+- **Group not appearing in list** — Verify you're a member of the group. Use `getJoinedGroups()` to fetch only groups you've joined.
+- **Permission denied errors** — Check the user's scope in the group. Only admins/moderators can perform management actions.
+- **Password group join fails** — Ensure the password is correct and passed as the second parameter to `joinGroup()`.
+</Accordion>
 
 ---
 

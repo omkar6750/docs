@@ -1,0 +1,162 @@
+---
+title: "Troubleshooting"
+sidebarTitle: "Troubleshooting"
+description: "Common failure modes and fixes for the CometChat JavaScript SDK."
+---
+
+{/* TL;DR for Agents and Quick Reference */}
+<Info>
+**Quick Troubleshooting Reference**
+
+| Common Issue | Quick Fix |
+| --- | --- |
+| `init()` fails | Verify App ID and Region from [Dashboard](https://app.cometchat.com) |
+| Login fails with "UID not found" | Create user via Dashboard or REST API first |
+| SDK methods fail | Ensure `init()` completes before calling other methods |
+| No real-time events | Check WebSocket connection, verify listeners registered |
+| SSR errors | Use dynamic imports or `useEffect` for client-side only |
+
+**Need help?** [Open a support ticket](https://help.cometchat.com/hc/en-us/requests/new)
+</Info>
+
+<Accordion title="AI Integration Quick Reference">
+
+| Field | Value |
+| --- | --- |
+| Page type | Troubleshooting reference |
+| Scope | All CometChat JavaScript SDK issues — initialization, authentication, messaging, groups, calling, WebSocket, extensions, AI features |
+| When to reference | When SDK methods fail, data is missing, real-time events don't fire, or features don't work as expected |
+
+</Accordion>
+
+## Initialization and Setup
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `init()` fails with "App ID not found" | Invalid App ID or Region | Verify your App ID and Region match the [CometChat Dashboard](https://app.cometchat.com) → API & Auth Keys |
+| `init()` fails silently | Missing or incorrect credentials | Double-check App ID, Region, and ensure they're strings, not undefined |
+| SDK methods fail with "CometChat not initialized" | `init()` not called or not awaited | Ensure `init()` resolves successfully before calling `login()`, `sendMessage()`, or registering listeners |
+| `init()` works but nothing else does | Wrong SDK version or corrupted install | Run `npm install @cometchat/chat-sdk-javascript@latest` to reinstall |
+
+---
+
+## Authentication
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Login fails with "UID not found" | User doesn't exist in CometChat | Create the user via [Dashboard](https://app.cometchat.com) (testing) or [REST API](https://api-explorer.cometchat.com/reference/creates-user) (production) first |
+| Login fails with "Auth Key is not valid" | Wrong Auth Key | Verify Auth Key matches [Dashboard](https://app.cometchat.com) → API & Auth Keys. Don't confuse with REST API Key |
+| Login fails with "App not found" | `init()` not completed or wrong App ID | Ensure `init()` completes before `login()`. Verify App ID and Region |
+| `getLoggedinUser()` returns null after refresh | Session not persisted or `init()` not called | Call `init()` on every app load before checking `getLoggedinUser()`. Browser storage clearing also clears sessions |
+| Auth Token expired | Token has a limited lifetime | Generate a new Auth Token from your server using the [REST API](https://api-explorer.cometchat.com/reference/create-authtoken) |
+| Login works but user appears offline | Presence subscription not configured | Use `subscribePresenceForAllUsers()` or appropriate presence method in `AppSettingsBuilder` |
+
+---
+
+## Messaging
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `sendMessage()` fails | User not logged in or invalid receiver | Ensure `login()` completes before sending. Verify receiver UID/GUID exists |
+| Messages sent but not received | Message listener not registered | Register `CometChat.addMessageListener()` with `onTextMessageReceived` callback |
+| Duplicate messages received | Multiple listeners with same ID | Use unique listener IDs. Remove old listeners before adding new ones |
+| Messages not appearing in conversation | Wrong receiver type | Use `CometChat.RECEIVER_TYPE.USER` for 1:1 and `CometChat.RECEIVER_TYPE.GROUP` for groups |
+| Media message upload fails | File too large or unsupported format | Check file size limits. Supported formats: images (PNG, JPG, GIF), videos (MP4), audio (MP3, WAV) |
+| `onTextMessageReceived` not firing | Listener registered after message sent | Register listeners immediately after `login()` completes |
+
+---
+
+## Groups
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Cannot join group | Group doesn't exist or wrong GUID | Verify GUID. Create group first if it doesn't exist |
+| Cannot send message to group | User not a member | Join the group first using `CometChat.joinGroup()` |
+| Group members not loading | Insufficient permissions | Only group members can fetch member list. Ensure user has joined |
+| Cannot kick/ban members | User lacks admin/moderator scope | Only admins and moderators can kick/ban. Check user's scope in the group |
+| Group creation fails | Missing required fields | Ensure GUID, name, and group type are provided |
+
+---
+
+## Calling
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Calls SDK not found | Package not installed | Run `npm install @cometchat/calls-sdk-javascript` |
+| No audio/video | Browser permissions denied | Check browser permissions for camera and microphone. User must grant access |
+| Call not connecting | Session ID mismatch or SDK not initialized | Verify both participants use same session ID. Initialize Calls SDK before starting |
+| One-way audio | Firewall or NAT blocking WebRTC | CometChat uses TURN servers, but corporate networks may block WebRTC traffic |
+| Poor call quality | Network bandwidth issues | Check connection stability. Consider audio-only fallback for poor connections |
+| Call buttons not appearing | Calls SDK not detected | Ensure `@cometchat/calls-sdk-javascript` is installed — UI Kit auto-detects it |
+| Incoming call not showing | Call listener not registered | Register `CometChat.addCallListener()` at app root level |
+
+---
+
+## WebSocket and Connection
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Real-time events not received | WebSocket disconnected | Check `CometChat.getConnectionStatus()`. Reconnect if needed |
+| WebSocket connection fails | Firewall blocking WebSocket | Check network configuration. Corporate firewalls may block WebSocket connections |
+| Connection drops frequently | Network instability | Implement reconnection logic. Use `CometChat.addConnectionListener()` to monitor status |
+| Events delayed or batched | Network latency | This is expected on slow connections. Events are delivered in order |
+| `autoEstablishSocketConnection` not working | Set to `false` in AppSettings | If managing connections manually, call `CometChat.connect()` explicitly |
+
+---
+
+## Extensions and AI Features
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| AI features not appearing | Feature not enabled in Dashboard | Enable the specific AI feature from [Dashboard](https://app.cometchat.com) → AI Features |
+| AI Agents not responding | Agent not configured or text message not sent | Configure Agent in Dashboard. Agents only respond to text messages |
+| `onAIAssistantEventReceived` not firing | Listener not registered after login | Register `AIAssistantListener` after successful `init()` and `login()` |
+| Moderation status always PENDING | Moderation rules not configured | Configure moderation rules in Dashboard → Moderation → Rules |
+| Extension feature not appearing | Extension not activated | Enable the extension from [Dashboard](https://app.cometchat.com) → Extensions |
+| Stickers/Polls not showing | Extension not enabled | Activate Stickers or Polls extension in Dashboard |
+
+---
+
+## SSR / Framework-Specific
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| SSR hydration error | CometChat uses browser APIs (`window`, `WebSocket`) | Wrap in `useEffect` or use dynamic import with `ssr: false`. See [SSR examples](/sdk/javascript/overview#server-side-rendering-ssr-compatibility) |
+| "window is not defined" in Next.js | SDK accessed during server render | Use dynamic imports: `const CometChat = (await import('@cometchat/chat-sdk-javascript')).CometChat` |
+| "document is not defined" in Nuxt | SDK accessed during server render | Import SDK in `mounted()` lifecycle hook, not at module level |
+| Astro components fail | SSR tries to render on server | Use `client:only="react"` directive for CometChat components |
+| React Native errors | Wrong SDK | Use `@cometchat/chat-sdk-react-native` for React Native, not the JavaScript SDK |
+
+---
+
+## Common Error Codes
+
+| Error Code | Description | Resolution |
+| --- | --- | --- |
+| `ERR_UID_NOT_FOUND` | User with specified UID doesn't exist | Create user via Dashboard or REST API |
+| `ERR_AUTH_KEY_NOT_FOUND` | Invalid Auth Key | Verify Auth Key from Dashboard |
+| `ERR_APP_NOT_FOUND` | Invalid App ID or Region | Check App ID and Region in Dashboard |
+| `ERR_NOT_LOGGED_IN` | No active user session | Call `login()` before SDK operations |
+| `ERR_GUID_NOT_FOUND` | Group with specified GUID doesn't exist | Create group or verify GUID |
+| `ERR_NOT_A_MEMBER` | User is not a member of the group | Join group before sending messages |
+| `ERR_BLOCKED` | User is blocked | Unblock user via Dashboard or SDK |
+| `ERR_RATE_LIMIT_EXCEEDED` | Too many requests | Implement rate limiting. See [Rate Limits](/articles/rate-limits) |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup SDK" icon="gear" href="/sdk/javascript/setup-sdk">
+    Installation and initialization guide
+  </Card>
+  <Card title="Authentication" icon="lock" href="/sdk/javascript/authentication-overview">
+    Login methods and session management
+  </Card>
+  <Card title="AI Integration" icon="robot" href="/sdk/javascript/ai-integration-quick-reference">
+    AI Agents, Moderation, and Copilot features
+  </Card>
+  <Card title="Support" icon="headset" href="https://help.cometchat.com/hc/en-us/requests/new">
+    Open a support ticket
+  </Card>
+</CardGroup>
