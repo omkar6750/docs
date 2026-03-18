@@ -126,22 +126,6 @@ The connection listener callbacks and `getConnectionStatus()` return string enum
 Always remove connection listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
 
-<Accordion title="Best Practices">
-- **Register early** — Add the connection listener right after `CometChat.init()` succeeds, ideally in your app's entry point, so you catch all connection state changes.
-- **Show connection status in UI** — Display a banner or indicator when the connection is `"disconnected"` or `"connecting"` so users know messages may be delayed.
-- **Queue actions during disconnection** — If the connection drops, queue user actions (like sending messages) and retry once `onConnected` fires.
-- **Remove listeners on cleanup** — Always call `CometChat.removeConnectionListener()` when the component unmounts or the app shuts down.
-- **Don't poll `getConnectionStatus()`** — Use the listener-based approach instead. Polling adds unnecessary overhead when the SDK already pushes state changes.
-</Accordion>
-
-<Accordion title="Troubleshooting">
-- **Listener never fires** — Ensure you register the listener after a successful `CometChat.init()` call. Registering before init has no effect.
-- **Stuck in "connecting" state** — Check your network connection and firewall settings. Also verify your `appId` and `region` are correct in the init configuration.
-- **Frequent disconnections** — This usually indicates network instability. The SDK automatically reconnects, but if it persists, check for WebSocket-blocking proxies or VPNs.
-- **`getConnectionStatus()` returns `undefined`** — The SDK hasn't been initialized yet. Call `CometChat.init()` first.
-- **Multiple `onConnected` callbacks** — You likely have multiple listeners registered with different IDs. Remove old listeners before adding new ones.
-</Accordion>
-
 ---
 
 ## Next Steps

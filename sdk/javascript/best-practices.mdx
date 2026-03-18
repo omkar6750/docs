@@ -45,6 +45,12 @@ Follow these best practices to build reliable, performant, and secure applicatio
   <Accordion title="Handle logoutSuccess for session management">
     Use the `logoutSuccess` callback to clear your app's local state, redirect to the login screen, and clean up any other SDK listeners. This ensures a clean state when the user logs out.
   </Accordion>
+  <Accordion title="Keep listener callbacks lightweight">
+    Avoid heavy processing inside listener callbacks. Dispatch events to your state management layer and process asynchronously.
+  </Accordion>
+  <Accordion title="Use specific listeners">
+    Only register the listener types you need. Don't register a `GroupListener` if your page only handles messages.
+  </Accordion>
 </AccordionGroup>
 
 ## Rate Limits
@@ -92,6 +98,167 @@ Follow these best practices to build reliable, performant, and secure applicatio
   </Accordion>
 </AccordionGroup>
 
+## Messaging
+
+<AccordionGroup>
+  <Accordion title="Use appropriate message types">
+    Choose text, media, or custom messages based on your content.
+  </Accordion>
+  <Accordion title="Add metadata for context">
+    Use `setMetadata()` to attach location, device info, or other contextual data.
+  </Accordion>
+  <Accordion title="Tag important messages">
+    Use `setTags()` to mark messages for easy filtering (e.g., "starred", "important").
+  </Accordion>
+  <Accordion title="Handle errors gracefully">
+    Always implement error callbacks to handle network issues or invalid parameters.
+  </Accordion>
+  <Accordion title="Validate file types">
+    Before sending media messages, verify the file type matches the message type (IMAGE, VIDEO, AUDIO, FILE).
+  </Accordion>
+  <Accordion title="Remove listeners on cleanup">
+    Always call `removeMessageListener()` when components unmount to prevent memory leaks.
+  </Accordion>
+  <Accordion title="Paginate message history">
+    Use `setLimit()` with reasonable values (30-50) and call `fetchPrevious()` for more.
+  </Accordion>
+  <Accordion title="Filter by category/type">
+    Use `setCategories()` and `setTypes()` to fetch only relevant messages.
+  </Accordion>
+  <Accordion title="Combine filters strategically">
+    Use `setCategories()` with `setTypes()` for precise filtering.
+  </Accordion>
+  <Accordion title="Use timestamps for sync">
+    `setUpdatedAfter()` helps sync local cache with server.
+  </Accordion>
+  <Accordion title="Hide deleted messages in UI">
+    Use `hideDeletedMessages(true)` for cleaner message lists.
+  </Accordion>
+  <Accordion title="Filter blocked users">
+    Use `hideMessagesFromBlockedUsers(true)` to respect user preferences.
+  </Accordion>
+  <Accordion title="Reuse MessagesRequest">
+    Call `fetchPrevious()`/`fetchNext()` on the same object for pagination.
+  </Accordion>
+</AccordionGroup>
+
+## Threaded Messages
+
+<AccordionGroup>
+  <Accordion title="Track active thread ID">
+    Store the current thread's `parentMessageId` to filter incoming messages.
+  </Accordion>
+  <Accordion title="Use hideReplies(true)">
+    Exclude thread replies from main conversation to avoid clutter.
+  </Accordion>
+  <Accordion title="Paginate thread messages">
+    Use `setLimit()` and `fetchPrevious()` for large threads.
+  </Accordion>
+  <Accordion title="Remove listeners on thread close">
+    Clean up message listeners when user exits a thread view.
+  </Accordion>
+  <Accordion title="Show reply count">
+    Display the number of replies on parent messages to indicate thread activity.
+  </Accordion>
+</AccordionGroup>
+
+## Reactions
+
+<AccordionGroup>
+  <Accordion title="Update UI optimistically">
+    Show the reaction immediately, then sync with server response.
+  </Accordion>
+  <Accordion title="Use updateMessageWithReactionInfo()">
+    Keep message objects in sync with real-time events.
+  </Accordion>
+  <Accordion title="Limit reaction options">
+    Provide a curated set of emojis for better UX.
+  </Accordion>
+  <Accordion title="Show reaction counts">
+    Display aggregated counts with `getReactions()` for each message.
+  </Accordion>
+  <Accordion title="Handle duplicates">
+    Check `getReactedByMe()` before allowing users to add the same reaction.
+  </Accordion>
+</AccordionGroup>
+
+## Mentions
+
+<AccordionGroup>
+  <Accordion title="Use correct format">
+    Always use `<@uid:UID>` format for mentions in message text.
+  </Accordion>
+  <Accordion title="Validate UIDs">
+    Ensure mentioned UIDs exist before sending.
+  </Accordion>
+  <Accordion title="Highlight mentions in UI">
+    Parse message text and style mentions differently.
+  </Accordion>
+  <Accordion title="Fetch tag info when needed">
+    Use `mentionsWithTagInfo(true)` to get user tags for mentioned users.
+  </Accordion>
+  <Accordion title="Handle blocked users">
+    Use `mentionsWithBlockedInfo(true)` to check blocked relationships.
+  </Accordion>
+</AccordionGroup>
+
+## Typing Indicators
+
+<AccordionGroup>
+  <Accordion title="Debounce typing events">
+    Don't call `startTyping()` on every keystroke - debounce to ~300ms intervals.
+  </Accordion>
+  <Accordion title="Auto-stop typing">
+    Call `endTyping()` after a period of inactivity (e.g., 3-5 seconds).
+  </Accordion>
+  <Accordion title="Stop on send">
+    Always call `endTyping()` when the user sends a message.
+  </Accordion>
+  <Accordion title="Use unique listener IDs">
+    Prevent duplicate events by using component-specific listener IDs.
+  </Accordion>
+  <Accordion title="Remove listeners on unmount">
+    Clean up listeners when leaving a conversation view.
+  </Accordion>
+</AccordionGroup>
+
+## Delivery & Read Receipts
+
+<AccordionGroup>
+  <Accordion title="Mark as delivered on fetch">
+    Call `markAsDelivered()` when messages are fetched and displayed.
+  </Accordion>
+  <Accordion title="Mark as read on view">
+    Call `markAsRead()` when the user actually views/scrolls to a message.
+  </Accordion>
+  <Accordion title="Use message objects">
+    Prefer passing the full message object to `markAsDelivered()`/`markAsRead()` for simplicity.
+  </Accordion>
+  <Accordion title="Batch receipts">
+    Mark the last message in a batch - all previous messages are automatically marked.
+  </Accordion>
+  <Accordion title="Handle offline scenarios">
+    Receipts are queued and sent when the user comes back online.
+  </Accordion>
+</AccordionGroup>
+
+## Conversations
+
+<AccordionGroup>
+  <Accordion title="Confirm before deleting">
+    Always show a confirmation dialog before deleting conversations.
+  </Accordion>
+  <Accordion title="Update UI immediately">
+    Remove the conversation from the list optimistically, then handle errors.
+  </Accordion>
+  <Accordion title="Handle errors gracefully">
+    If deletion fails, restore the conversation in the UI.
+  </Accordion>
+  <Accordion title="Clear local cache">
+    If you cache conversations locally, remove them after successful deletion.
+  </Accordion>
+</AccordionGroup>
+
 ## Groups
 
 <AccordionGroup>
@@ -109,6 +276,103 @@ Follow these best practices to build reliable, performant, and secure applicatio
   </Accordion>
   <Accordion title="Confirm before leaving or deleting">
     Show a confirmation dialog before leaving or deleting a group, especially for groups with important conversations.
+  </Accordion>
+  <Accordion title="Choose the right group type">
+    Use public for open communities, private for invite-only teams, password for semi-restricted access.
+  </Accordion>
+  <Accordion title="Assign appropriate roles">
+    Give admin/moderator roles only to trusted users who need management capabilities.
+  </Accordion>
+  <Accordion title="Transfer ownership before leaving">
+    Owners must transfer ownership to another member before they can leave the group.
+  </Accordion>
+  <Accordion title="Use pagination for large groups">
+    When fetching group members, use `GroupMembersRequestBuilder` with reasonable limits (30-50).
+  </Accordion>
+  <Accordion title="Handle group events">
+    Register `GroupListener` to receive real-time updates for member changes, scope changes, and group updates.
+  </Accordion>
+  <Accordion title="Use joinedOnly(true) for navigation">
+    When building a sidebar or group list, filter to joined groups so users only see groups they belong to.
+  </Accordion>
+  <Accordion title="Cache group details">
+    If you call `getGroup()` frequently for the same GUID, cache the result locally to reduce API calls.
+  </Accordion>
+  <Accordion title="Use withTags(true) only when needed">
+    Fetching tags adds payload size. Only enable it when your UI displays or filters by tags.
+  </Accordion>
+</AccordionGroup>
+
+## Group Members
+
+<AccordionGroup>
+  <Accordion title="Batch member additions">
+    Add multiple members in a single `addMembersToGroup()` call rather than calling it once per user.
+  </Accordion>
+  <Accordion title="Set appropriate scopes">
+    Assign `PARTICIPANT` by default. Only use `ADMIN` or `MODERATOR` when the user genuinely needs elevated permissions.
+  </Accordion>
+  <Accordion title="Handle partial failures">
+    The response array contains per-user results. Check each entry for `"success"` or an error message to handle failures gracefully.
+  </Accordion>
+  <Accordion title="Validate UIDs before adding">
+    Ensure the UIDs exist and are not already members to avoid unnecessary API calls and confusing error responses.
+  </Accordion>
+  <Accordion title="Paginate results">
+    Always use `fetchNext()` in a loop or on-scroll. Set a reasonable limit (10–30) per request to avoid large payloads.
+  </Accordion>
+  <Accordion title="Reuse the request object">
+    Create the `GroupMembersRequest` once and call `fetchNext()` repeatedly. Creating a new builder each time resets pagination.
+  </Accordion>
+  <Accordion title="Filter by scope for admin panels">
+    Use `setScopes(["admin", "moderator"])` when building admin views to show only privileged members.
+  </Accordion>
+  <Accordion title="Use status filter for presence">
+    Filter by `CometChat.USER_STATUS.ONLINE` to show active members in real-time collaboration features.
+  </Accordion>
+  <Accordion title="Combine filters">
+    You can chain `setSearchKeyword()`, `setScopes()`, and `setStatus()` on the same builder for precise results.
+  </Accordion>
+  <Accordion title="Only admins can change scope">
+    The logged-in user must be the group admin to change another member's scope. Moderators cannot change scopes.
+  </Accordion>
+  <Accordion title="Confirm before promoting">
+    Promoting a user to admin gives them full control over the group. Add a confirmation dialog in your UI.
+  </Accordion>
+  <Accordion title="Use scope constants">
+    Always use `CometChat.GROUP_MEMBER_SCOPE.ADMIN`, `CometChat.GROUP_MEMBER_SCOPE.MODERATOR`, or `CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT` instead of raw strings.
+  </Accordion>
+  <Accordion title="Update UI after scope change">
+    Refresh the member list or update the local state after a successful scope change to reflect the new role immediately.
+  </Accordion>
+  <Accordion title="Kick vs. Ban">
+    Use kick when you want the user to be able to rejoin. Use ban when the user should be permanently removed until explicitly unbanned.
+  </Accordion>
+  <Accordion title="Confirm before banning">
+    Banning is a stronger action than kicking. Add a confirmation dialog in your UI before calling `banGroupMember()`.
+  </Accordion>
+  <Accordion title="Paginate banned members">
+    Use `BannedMembersRequestBuilder` with a reasonable limit (10–30) and call `fetchNext()` in a loop for large banned lists.
+  </Accordion>
+  <Accordion title="Handle permissions gracefully">
+    Only admins and moderators can kick/ban. Check the user's scope before showing these actions in the UI.
+  </Accordion>
+</AccordionGroup>
+
+## Group Ownership
+
+<AccordionGroup>
+  <Accordion title="Transfer before leaving">
+    The owner cannot leave a group without first transferring ownership. Always call `transferGroupOwnership()` before `leaveGroup()`.
+  </Accordion>
+  <Accordion title="Choose a trusted member">
+    Transfer ownership to an active admin or moderator who can manage the group responsibly.
+  </Accordion>
+  <Accordion title="Confirm in UI">
+    Ownership transfer is irreversible. Add a confirmation dialog before calling the method.
+  </Accordion>
+  <Accordion title="Update local state">
+    After a successful transfer, update your local group data to reflect the new owner.
   </Accordion>
 </AccordionGroup>
 
@@ -132,6 +396,119 @@ Follow these best practices to build reliable, performant, and secure applicatio
   </Accordion>
   <Accordion title="Inform users about recording">
     Always notify participants when recording starts. This is often a legal requirement in many jurisdictions.
+  </Accordion>
+  <Accordion title="Generate a fresh call token">
+    Always generate a new call token using `generateToken()` before starting a presentation. Reusing expired tokens will fail.
+  </Accordion>
+  <Accordion title="Set presenter role explicitly">
+    Use `setIsPresenter(true)` for presenters and `setIsPresenter(false)` for viewers. The default is viewer.
+  </Accordion>
+  <Accordion title="Limit presenters to 5">
+    The maximum number of presenters is 5. Additional users should join as viewers.
+  </Accordion>
+  <Accordion title="Handle onCallEnded and onCallEndButtonPressed">
+    These are different events. `onCallEnded` fires when the call ends server-side, while `onCallEndButtonPressed` fires when the user clicks the end button locally.
+  </Accordion>
+</AccordionGroup>
+
+## Custom CSS (Calling)
+
+<AccordionGroup>
+  <Accordion title="Only use documented CSS classes">
+    Applying styles to undocumented internal classes may break with SDK updates. Stick to the classes listed in the documentation.
+  </Accordion>
+  <Accordion title="Don't resize the grid container">
+    Altering the grid container dimensions can break the layout. Only customize colors, borders, and visibility.
+  </Accordion>
+  <Accordion title="Use !important sparingly">
+    Some SDK styles may need `!important` to override, but overusing it makes maintenance harder.
+  </Accordion>
+  <Accordion title="Test across modes">
+    CSS changes may look different in `DEFAULT`, `TILE`, and `SPOTLIGHT` modes. Test all three.
+  </Accordion>
+  <Accordion title="Keep button sizes accessible">
+    When customizing button dimensions, ensure they remain large enough for easy interaction (minimum 44x44px for touch targets).
+  </Accordion>
+</AccordionGroup>
+
+## Connection & WebSocket
+
+<AccordionGroup>
+  <Accordion title="Register connection listener early">
+    Add the connection listener right after `CometChat.init()` succeeds, ideally in your app's entry point, so you catch all connection state changes.
+  </Accordion>
+  <Accordion title="Show connection status in UI">
+    Display a banner or indicator when the connection is `"disconnected"` or `"connecting"` so users know messages may be delayed.
+  </Accordion>
+  <Accordion title="Queue actions during disconnection">
+    If the connection drops, queue user actions (like sending messages) and retry once `onConnected` fires.
+  </Accordion>
+  <Accordion title="Don't poll getConnectionStatus()">
+    Use the listener-based approach instead. Polling adds unnecessary overhead when the SDK already pushes state changes.
+  </Accordion>
+  <Accordion title="Only disable auto-connect when needed">
+    The default auto-connect behavior works well for most apps. Only manage connections manually if you need fine-grained control (e.g., background/foreground transitions, battery optimization).
+  </Accordion>
+  <Accordion title="Check login status before connecting">
+    Always verify the user is logged in with `CometChat.getLoggedInUser()` before calling `CometChat.connect()`.
+  </Accordion>
+  <Accordion title="Pair with Connection Listener">
+    Use `CometChat.addConnectionListener()` alongside manual connection management to track the actual connection state.
+  </Accordion>
+  <Accordion title="Reconnect on app foreground">
+    If you disconnect when the app goes to background, call `CometChat.connect()` when the app returns to foreground.
+  </Accordion>
+  <Accordion title="Don't call connect/disconnect rapidly">
+    Allow time for the connection to establish or close before toggling again.
+  </Accordion>
+</AccordionGroup>
+
+## AI Features
+
+<AccordionGroup>
+  <Accordion title="Register both listeners for AI Agents">
+    Use `AIAssistantListener` for real-time streaming events and `MessageListener` for persisted agentic messages. Both are needed for a complete experience.
+  </Accordion>
+  <Accordion title="Handle streaming progressively">
+    Use `Text Message Content` events to render the assistant's reply token-by-token for a responsive UI, rather than waiting for the full reply.
+  </Accordion>
+  <Accordion title="Track run lifecycle">
+    Use `Run Start` and `Run Finished` events to show loading indicators and know when the agent is done processing.
+  </Accordion>
+  <Accordion title="Handle tool calls gracefully">
+    Tool call events may occur multiple times in a single run. Display appropriate UI feedback for each tool invocation.
+  </Accordion>
+  <Accordion title="Show pending state in UI for moderation">
+    When `getModerationStatus()` returns `PENDING`, display a visual indicator (spinner, dimmed message) so users know the message is being reviewed.
+  </Accordion>
+  <Accordion title="Handle disapproved messages gracefully">
+    Don't just hide blocked messages silently. Show a placeholder or notification so the sender understands what happened.
+  </Accordion>
+  <Accordion title="Register the moderation listener early">
+    Add the `onMessageModerated` listener before sending messages so you don't miss any moderation results.
+  </Accordion>
+  <Accordion title="Track pending messages">
+    Maintain a local map of pending message IDs so you can update the UI when moderation results arrive.
+  </Accordion>
+  <Accordion title="Test with moderation rules">
+    Configure moderation rules in the Dashboard before testing. Without rules, messages won't be moderated.
+  </Accordion>
+</AccordionGroup>
+
+## Upgrading from V3
+
+<AccordionGroup>
+  <Accordion title="Follow the setup guide first">
+    Complete the v4 [setup instructions](/sdk/javascript/setup-sdk) before changing imports, so you have the latest SDK version installed.
+  </Accordion>
+  <Accordion title="Update all imports at once">
+    Use find-and-replace across your project to change all `@cometchat-pro/chat` imports to `@cometchat/chat-sdk-javascript` in one pass.
+  </Accordion>
+  <Accordion title="Test incrementally">
+    After updating dependencies and imports, test each feature area (messaging, calling, groups) individually to catch any breaking changes.
+  </Accordion>
+  <Accordion title="Remove old packages">
+    After migration, uninstall the v3 packages (`npm uninstall @cometchat-pro/chat`) to avoid conflicts.
   </Accordion>
 </AccordionGroup>
 
