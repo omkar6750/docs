@@ -72,6 +72,69 @@ Follow these best practices to build reliable, performant, and secure applicatio
   </Accordion>
 </AccordionGroup>
 
+## Users
+
+<AccordionGroup>
+  <Accordion title="Paginate user results">
+    Use `setLimit()` with reasonable values (30-50) and call `fetchNext()` for subsequent pages. Don't fetch all users at once.
+  </Accordion>
+  <Accordion title="Reuse the request object for pagination">
+    Call `fetchNext()` on the same `UsersRequest` instance for pagination. Creating a new object resets the cursor.
+  </Accordion>
+  <Accordion title="Cache user details">
+    Store frequently accessed user objects locally to reduce API calls, especially for `getUser()`.
+  </Accordion>
+  <Accordion title="Use hideBlockedUsers(true)">
+    Enable this in user lists to respect block relationships and provide a cleaner experience.
+  </Accordion>
+  <Accordion title="Backend user creation">
+    Always create and update users from your backend server using the REST API to keep your Auth Key secure.
+  </Accordion>
+</AccordionGroup>
+
+## Groups
+
+<AccordionGroup>
+  <Accordion title="Use meaningful GUIDs">
+    Choose descriptive, unique GUIDs (e.g., `"project-alpha-team"`) that are easy to reference in your codebase.
+  </Accordion>
+  <Accordion title="Set group type carefully">
+    Group type cannot be changed after creation. Choose between PUBLIC, PASSWORD, and PRIVATE based on your use case.
+  </Accordion>
+  <Accordion title="Add members at creation">
+    Use `createGroupWithMembers()` to add initial members in a single API call instead of creating the group and adding members separately.
+  </Accordion>
+  <Accordion title="Check hasJoined before joining">
+    Before calling `joinGroup()`, check the group's `hasJoined` property to avoid unnecessary API calls.
+  </Accordion>
+  <Accordion title="Confirm before leaving or deleting">
+    Show a confirmation dialog before leaving or deleting a group, especially for groups with important conversations.
+  </Accordion>
+</AccordionGroup>
+
+## Calling
+
+<AccordionGroup>
+  <Accordion title="Initialize Calls SDK after Chat SDK">
+    Unless using Standalone Calling, always initialize the Chat SDK (`CometChat.init()`) before the Calls SDK (`CometChatCalls.init()`).
+  </Accordion>
+  <Accordion title="Store session ID immediately">
+    Save the session ID from `initiateCall()` response immediately. You'll need it for accept, reject, cancel, and starting the session.
+  </Accordion>
+  <Accordion title="Handle all call states">
+    Implement handlers for all listener events (accepted, rejected, cancelled, busy, ended) to provide a complete user experience.
+  </Accordion>
+  <Accordion title="Generate tokens just-in-time">
+    Generate call tokens immediately before starting a session rather than caching them, as tokens may expire.
+  </Accordion>
+  <Accordion title="Clean up on session end">
+    Always call `CometChatCalls.endSession()` in both `onCallEnded` and `onCallEndButtonPressed` callbacks to release media resources.
+  </Accordion>
+  <Accordion title="Inform users about recording">
+    Always notify participants when recording starts. This is often a legal requirement in many jurisdictions.
+  </Accordion>
+</AccordionGroup>
+
 ---
 
 ## Next Steps
