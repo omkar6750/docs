@@ -1,5 +1,6 @@
 ---
 title: "AI Agents"
+sidebarTitle: "AI Agents"
 description: "Integrate AI Agents into your app to enable intelligent, automated conversations with real-time streaming events and tool invocations."
 ---
 
@@ -29,37 +30,37 @@ CometChat.removeMessageListener("LISTENER_ID");
 
 # AI Agents Overview
 
-AI Agents enable intelligent, automated interactions within your application. They can process user messages, trigger tools, and respond with contextually relevant information. For a broader introduction, see the [AI Agents section](/ai-agents).
+AI Agents enable intelligent, automated interactions within your application. They process user messages, trigger tools, and respond with contextually relevant information. For a broader introduction, see the [AI Agents section](/ai-agents).
 
-> **Note:**
-> Currently, an Agent only responds to **Text Messages**.
+<Note>
+Agents only respond to text messages.
+</Note>
 
 ## Agent Run Lifecycle and Message Flow
 
-This section explains how a user’s text message to an Agent becomes a structured "run" which emits real-time events and then produces agentic messages for historical retrieval.
-- A user sends a text message to an Agent.
-- The platform starts a run and streams real-time events via the **`AIAssistantListener`**.
-- After the run completes, persisted Agentic Messages arrive via the **`MessageListener`**.
+When a user sends a text message to an Agent:
+1. The platform starts a run and streams real-time events via `AIAssistantListener`
+2. After the run completes, persisted Agentic Messages arrive via `MessageListener`
 
 ### Real-time Events
-Events are received via the **`onAIAssistantEventReceived`** method of the **`AIAssistantListener`** class in this general order:
 
-1. Run Start
-2. Zero or more tool call cycles (repeats for each tool invocation):
-    - Tool Call Start
-    - Tool Call Arguments
-    - Tool Call End
-    - Tool Call Result
-3. One or more assistant reply streams:
-    - Text Message Start
-    - Text Message Content (multiple times; token/char streaming)
-    - Text Message End
-4. Run Finished
+Events arrive via `onAIAssistantEventReceived` in this order:
 
-Notes:
-- `Run Start` and `Run Finished` are always emitted.
-- `Tool Call` events appear only when a backend or frontend tool is invoked. There can be multiple tool calls in a single run.
-- `Text Message` events are always emitted and carry the assistant’s reply incrementally.
+| Order | Event | Description |
+|-------|-------|-------------|
+| 1 | Run Start | A new run has begun |
+| 2 | Tool Call Start | Agent decided to invoke a tool |
+| 3 | Tool Call Arguments | Arguments being passed to the tool |
+| 4 | Tool Call End | Tool execution completed |
+| 5 | Tool Call Result | Tool's output is available |
+| 6 | Text Message Start | Agent started composing a reply |
+| 7 | Text Message Content | Streaming content chunks (multiple) |
+| 8 | Text Message End | Agent reply is complete |
+| 9 | Run Finished | Run finalized; persisted messages follow |
+
+<Note>
+`Run Start` and `Run Finished` are always emitted. Tool Call events only appear when tools are invoked.
+</Note>
 
 <Tabs>
     <Tab title="JavaScript">
@@ -94,23 +95,15 @@ Notes:
     </Tab>
 </Tabs>
 
-#### Event descriptions
-- Run Start: A new run has begun for the user’s message.
-- Tool Call Start: The agent decided to invoke a tool.
-- Tool Call Arguments: Arguments being passed to the tool.
-- Tool Call End: Tool execution completed.
-- Tool Call Result: Tool’s output is available.
-- Text Message Start: The agent started composing a reply.
-- Text Message Content: Streaming content chunks for progressive rendering.
-- Text Message End: The agent reply is complete.
-- Run Finished: The run is finalized; persisted messages will follow.
-
 ### Agentic Messages
 
-These events are received via the **`MessageListener`** after the run completes.
-- `AIAssistantMessage`: The full assistant reply.
-- `AIToolResultMessage`: The final output of a tool call.
-- `AIToolArgumentMessage`: The arguments that were passed to a tool.
+After the run completes, these messages arrive via `MessageListener`:
+
+| Message Type | Description |
+|--------------|-------------|
+| `AIAssistantMessage` | The full assistant reply |
+| `AIToolResultMessage` | The final output of a tool call |
+| `AIToolArgumentMessage` | The arguments passed to a tool |
 
 <Tabs>
     <Tab title="JavaScript">
