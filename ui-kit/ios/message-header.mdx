@@ -1106,6 +1106,59 @@ messageHeader.dateTimeFormatter.otherDay = { timestamp in
 
 ---
 
+## Common Patterns
+
+### Hide call buttons
+
+```swift
+let messageHeader = CometChatMessageHeader()
+messageHeader.set(user: user)
+messageHeader.hideVideoCallButton = true
+messageHeader.hideVoiceCallButton = true
+```
+
+### Custom back button action
+
+```swift
+let messageHeader = CometChatMessageHeader()
+messageHeader.set(user: user)
+
+messageHeader.set(onBack: { [weak self] in
+    // Custom navigation logic
+    self?.dismiss(animated: true)
+})
+```
+
+### Custom subtitle with typing indicator
+
+```swift
+let messageHeader = CometChatMessageHeader()
+messageHeader.set(user: user)
+
+messageHeader.set(subtitleView: { user, group in
+    let label = UILabel()
+    label.font = UIFont.systemFont(ofSize: 12)
+    
+    if let user = user {
+        label.text = user.status == .online ? "Online" : "Offline"
+        label.textColor = user.status == .online ? .systemGreen : .secondaryLabel
+    }
+    
+    return label
+})
+```
+
+### Minimal header
+
+```swift
+let messageHeader = CometChatMessageHeader()
+messageHeader.set(user: user)
+messageHeader.hideBackButton = true
+messageHeader.hideUserStatus = true
+messageHeader.hideVideoCallButton = true
+messageHeader.hideVoiceCallButton = true
+```
+
 ---
 
 ## Related Components

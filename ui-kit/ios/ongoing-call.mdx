@@ -248,3 +248,102 @@ For advanced-level customization, you can set custom views to the component. Thi
 The `OngoingCall` component does not provide additional functionalities beyond this level of customization.
 
 ---
+
+## Common Patterns
+
+### Present Ongoing Call After Acceptance
+
+Show the ongoing call screen after a call is accepted:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func presentOngoingCall(sessionId: String) {
+    let ongoingCall = CometChatOngoingCall()
+    ongoingCall.set(sessionId: sessionId)
+    ongoingCall.modalPresentationStyle = .fullScreen
+    
+    self.present(ongoingCall, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+### Configure Call Settings for Video Call
+
+Customize video call settings before starting:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callSettingsBuilder = CallSettingsBuilder()
+    .setIsAudioOnly(false)
+    .setDefaultAudioMode("SPEAKER")
+    .setShowSwitchToVideoCall(false)
+    .setShowRecordingButton(true)
+    .setStartVideoMuted(false)
+    .setStartAudioMuted(false)
+
+let ongoingCall = CometChatOngoingCall()
+ongoingCall.set(sessionId: sessionId)
+ongoingCall.set(callSettingsBuilder: callSettingsBuilder)
+```
+</Tab>
+</Tabs>
+
+### Audio-Only Call Configuration
+
+Set up an audio-only call with speaker mode:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let audioCallSettings = CallSettingsBuilder()
+    .setIsAudioOnly(true)
+    .setDefaultAudioMode("SPEAKER")
+    .setMuteAudioButtonDisable(false)
+    .setEndCallButtonDisable(false)
+
+let ongoingCall = CometChatOngoingCall()
+ongoingCall.set(sessionId: sessionId)
+ongoingCall.set(callSettingsBuilder: audioCallSettings)
+ongoingCall.modalPresentationStyle = .fullScreen
+self.present(ongoingCall, animated: true)
+```
+</Tab>
+</Tabs>
+
+### Listen for Call End Events
+
+Use CometChatCallEvents to handle call end:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Subscribe to call events
+CometChatCallEvents.addListener("ongoing_call_listener", self as CometChatCallEventListener)
+
+// In CometChatCallEventListener extension
+func onCallEnded(call: Call) {
+    DispatchQueue.main.async { [weak self] in
+        self?.dismiss(animated: true) {
+            // Show call summary
+            let duration = call.duration ?? 0
+            let minutes = duration / 60
+            let seconds = duration % 60
+            
+            let alert = UIAlertController(
+                title: "Call Ended",
+                message: "Duration: \(minutes)m \(seconds)s",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self?.present(alert, animated: true)
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+---

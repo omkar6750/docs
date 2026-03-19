@@ -1286,6 +1286,68 @@ groups.set(statusIndicatorStyle: statusIndicatorStyle)
 
 ---
 
+## Common Patterns
+
+### Public groups only
+
+```swift
+let publicBuilder = GroupsRequest.GroupsRequestBuilder(limit: 30)
+    .set(groupType: .public)
+
+let groups = CometChatGroups()
+groups.set(groupsRequestBuilder: publicBuilder)
+```
+
+### Joined groups only
+
+```swift
+let joinedBuilder = GroupsRequest.GroupsRequestBuilder(limit: 30)
+    .set(joinedOnly: true)
+
+let groups = CometChatGroups()
+groups.set(groupsRequestBuilder: joinedBuilder)
+```
+
+### Custom empty state with CTA
+
+```swift
+let groups = CometChatGroups()
+
+groups.set(emptyStateView: {
+    let emptyView = UIView()
+    
+    let label = UILabel()
+    label.text = "No groups found"
+    label.textAlignment = .center
+    
+    let button = UIButton(type: .system)
+    button.setTitle("Create a group", for: .normal)
+    
+    // Add subviews and constraints...
+    return emptyView
+})
+```
+
+### Hide all chrome — minimal list
+
+```swift
+let groups = CometChatGroups()
+groups.hideSearch = true
+groups.hideGroupType = true
+groups.hideSectionHeader = true
+```
+
+### Multi-select groups
+
+```swift
+let groups = CometChatGroups()
+groups.selectionMode = .multiple
+
+groups.set(onSelection: { selectedGroups in
+    print("Selected \(selectedGroups.count) groups")
+})
+```
+
 ---
 
 ## Related Components

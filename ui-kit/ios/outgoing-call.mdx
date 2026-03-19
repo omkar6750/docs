@@ -691,8 +691,99 @@ cometChatOutgoingCall.set(trailingView: { call in
 
 ---
 
+## Common Patterns
+
+### Initiate Call and Present Outgoing Screen
+
+Start a call and show the outgoing call interface:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+func initiateCall(to user: User, callType: CometChat.CallType) {
+    let call = Call(receiverId: user.uid ?? "", callType: callType, receiverType: .user)
+    
+    CometChat.initiateCall(call: call) { [weak self] initiatedCall in
+        DispatchQueue.main.async {
+            let outgoingCall = CometChatOutgoingCall()
+            outgoingCall.set(call: initiatedCall)
+            outgoingCall.modalPresentationStyle = .fullScreen
+            self?.present(outgoingCall, animated: true)
+        }
+    } onError: { error in
+        print("Call initiation failed: \(error?.errorDescription ?? "")")
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Handle Call Acceptance and Transition to Ongoing Call
+
+Navigate to ongoing call when the recipient accepts:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Subscribe to call events
+CometChatCallEvents.addListener("outgoing_call_listener", self as CometChatCallEventListener)
+
+// In CometChatCallEventListener extension
+func onOutgoingCallAccepted(call: Call) {
+    DispatchQueue.main.async { [weak self] in
+        self?.dismiss(animated: false) {
+            let ongoingCall = CometChatOngoingCall()
+            ongoingCall.set(sessionId: call.sessionId ?? "")
+            ongoingCall.modalPresentationStyle = .fullScreen
+            self?.present(ongoingCall, animated: true)
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Custom Cancel Action with Confirmation
+
+Show confirmation before canceling an outgoing call:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let outgoingCall = CometChatOutgoingCall()
+outgoingCall.set(call: call)
+outgoingCall.set(onCancelClick: { [weak self] call, controller in
+    let alert = UIAlertController(
+        title: "Cancel Call",
+        message: "Are you sure you want to cancel this call?",
+        preferredStyle: .alert
+    )
+    alert.addAction(UIAlertAction(title: "No", style: .cancel))
+    alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { _ in
+        CometChat.rejectCall(sessionID: call.sessionId ?? "", status: .cancelled) { _ in
+            controller.dismiss(animated: true)
+        } onError: { error in
+            print("Failed to cancel: \(error?.errorDescription ?? "")")
+        }
+    })
+    controller.present(alert, animated: true)
+})
+```
+</Tab>
+</Tabs>
+
+---
+
 ## Related Components
 
-- [Incoming Call](/ui-kit/ios/incoming-call) - Display incoming call interface
-- [Ongoing Call](/ui-kit/ios/ongoing-call) - Display active call interface
-- [Call Logs](/ui-kit/ios/call-logs) - Display call history
+<CardGroup cols={3}>
+  <Card title="Incoming Call" href="/ui-kit/ios/incoming-call">
+    Display incoming call interface
+  </Card>
+  <Card title="Ongoing Call" href="/ui-kit/ios/ongoing-call">
+    Display active call interface
+  </Card>
+  <Card title="Call Logs" href="/ui-kit/ios/call-logs">
+    Display call history
+  </Card>
+</CardGroup>

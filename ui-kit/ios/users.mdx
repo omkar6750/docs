@@ -1350,6 +1350,70 @@ Custom request builder for filtering users.
 
 ---
 
+## Common Patterns
+
+### Friends-only list
+
+```swift
+let friendsBuilder = UsersRequest.UsersRequestBuilder(limit: 30)
+    .friendsOnly(true)
+
+let users = CometChatUsers()
+users.set(usersRequestBuilder: friendsBuilder)
+```
+
+### Online users only
+
+```swift
+let onlineBuilder = UsersRequest.UsersRequestBuilder(limit: 30)
+    .set(status: .online)
+
+let users = CometChatUsers()
+users.set(usersRequestBuilder: onlineBuilder)
+```
+
+### Custom empty state with CTA
+
+```swift
+let users = CometChatUsers()
+
+users.set(emptyStateView: {
+    let emptyView = UIView()
+    
+    let label = UILabel()
+    label.text = "No users found"
+    label.textAlignment = .center
+    label.textColor = .secondaryLabel
+    
+    let button = UIButton(type: .system)
+    button.setTitle("Invite friends", for: .normal)
+    
+    // Add subviews and constraints...
+    return emptyView
+})
+```
+
+### Hide all chrome — minimal list
+
+```swift
+let users = CometChatUsers()
+users.hideSearch = true
+users.hideUserStatus = true
+users.hideSectionHeader = true
+```
+
+### Multi-select users
+
+```swift
+let users = CometChatUsers()
+users.selectionMode = .multiple
+
+users.set(onSelection: { selectedUsers in
+    print("Selected \(selectedUsers.count) users")
+    // Create group with selected users, etc.
+})
+```
+
 ---
 
 ## Related Components

@@ -743,8 +743,85 @@ cometChatIncomingCall.set(trailingView: { call in
 
 ---
 
+## Common Patterns
+
+### Present Incoming Call Screen
+
+Present the incoming call screen when a call is received:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// In your call listener
+func onIncomingCallReceived(incomingCall: Call) {
+    DispatchQueue.main.async {
+        let incomingCallVC = CometChatIncomingCall()
+        incomingCallVC.set(call: incomingCall)
+        incomingCallVC.modalPresentationStyle = .fullScreen
+        
+        // Get the top view controller to present from
+        if let topVC = UIApplication.shared.keyWindow?.rootViewController {
+            topVC.present(incomingCallVC, animated: true)
+        }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Handle Call Accept and Navigate to Ongoing Call
+
+Transition from incoming call to ongoing call when accepted:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let incomingCall = CometChatIncomingCall()
+incomingCall.set(call: call)
+incomingCall.set(onAcceptClick: { [weak self] acceptedCall, controller in
+    // Dismiss incoming call screen
+    controller.dismiss(animated: false) {
+        // Present ongoing call screen
+        let ongoingCall = CometChatOngoingCall()
+        ongoingCall.set(sessionId: acceptedCall.sessionId ?? "")
+        ongoingCall.modalPresentationStyle = .fullScreen
+        self?.present(ongoingCall, animated: true)
+    }
+})
+```
+</Tab>
+</Tabs>
+
+### Custom Ringtone for Incoming Calls
+
+Set a custom sound for incoming calls:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let incomingCall = CometChatIncomingCall()
+incomingCall.set(call: call)
+
+// Use custom ringtone
+if let soundURL = Bundle.main.url(forResource: "custom_ringtone", withExtension: "mp3") {
+    incomingCall.set(customSoundForCalls: soundURL)
+}
+```
+</Tab>
+</Tabs>
+
+---
+
 ## Related Components
 
-- [Outgoing Call](/ui-kit/ios/outgoing-call) - Display outgoing call interface
-- [Ongoing Call](/ui-kit/ios/ongoing-call) - Display active call interface
-- [Call Logs](/ui-kit/ios/call-logs) - Display call history
+<CardGroup cols={3}>
+  <Card title="Outgoing Call" href="/ui-kit/ios/outgoing-call">
+    Display outgoing call interface
+  </Card>
+  <Card title="Ongoing Call" href="/ui-kit/ios/ongoing-call">
+    Display active call interface
+  </Card>
+  <Card title="Call Logs" href="/ui-kit/ios/call-logs">
+    Display call history
+  </Card>
+</CardGroup>

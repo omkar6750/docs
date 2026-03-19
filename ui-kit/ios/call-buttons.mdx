@@ -459,10 +459,110 @@ Events emitted by the Call Buttons component:
 
 ---
 
+## Common Patterns
+
+### Add Call Buttons to Message Header
+
+Integrate call buttons into a custom message header:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+class CustomMessageHeader: UIView {
+    
+    private var callButtons: CometChatCallButtons!
+    
+    func configure(with user: User) {
+        callButtons = CometChatCallButtons(width: 24, height: 24)
+        callButtons.set(user: user)
+        callButtons.set(controller: parentViewController)
+        
+        // Add to header view
+        addSubview(callButtons)
+        // Set up constraints...
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Voice-Only Call Button
+
+Show only the voice call button for audio-focused apps:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callButtons = CometChatCallButtons(width: 24, height: 24)
+callButtons.set(user: user)
+callButtons.hideVideoCallButton = true
+callButtons.set(controller: self)
+```
+</Tab>
+</Tabs>
+
+### Custom Call Initiation with Confirmation
+
+Show confirmation before starting a call:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callButtons = CometChatCallButtons(width: 24, height: 24)
+callButtons.set(user: user)
+callButtons.set(onVoiceCallClick: { [weak self] user, group in
+    let alert = UIAlertController(
+        title: "Start Voice Call",
+        message: "Call \(user?.name ?? group?.name ?? "")?",
+        preferredStyle: .alert
+    )
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+    alert.addAction(UIAlertAction(title: "Call", style: .default) { _ in
+        // Initiate the call
+        self?.initiateVoiceCall(to: user, group: group)
+    })
+    self?.present(alert, animated: true)
+})
+```
+</Tab>
+</Tabs>
+
+### Group Video Call Button
+
+Configure call buttons for group video calls:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callButtons = CometChatCallButtons(width: 24, height: 24)
+callButtons.set(group: group)
+callButtons.hideVoiceCallButton = true  // Groups often use video calls
+callButtons.set(controller: self)
+
+// Custom call settings for group calls
+callButtons.set(callSettingBuilder: { callType, participants in
+    return CallSettingsBuilder()
+        .setDefaultLayout(true)
+        .setShowRecordingButton(true)
+})
+```
+</Tab>
+</Tabs>
+
+---
+
 ## Related Components
 
-- [Incoming Call](/ui-kit/ios/incoming-call) - Display incoming call interface
-- [Outgoing Call](/ui-kit/ios/outgoing-call) - Display outgoing call interface
-- [Call Logs](/ui-kit/ios/call-logs) - Display call history
+<CardGroup cols={3}>
+  <Card title="Incoming Call" href="/ui-kit/ios/incoming-call">
+    Display incoming call interface
+  </Card>
+  <Card title="Outgoing Call" href="/ui-kit/ios/outgoing-call">
+    Display outgoing call interface
+  </Card>
+  <Card title="Call Logs" href="/ui-kit/ios/call-logs">
+    Display call history
+  </Card>
+</CardGroup>
 
 ***

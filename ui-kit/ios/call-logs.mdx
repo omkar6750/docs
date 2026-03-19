@@ -1075,10 +1075,135 @@ Ensure to pass and present `CometChatCallLogs`. If a navigation controller is al
 
 ---
 
+## Common Patterns
+
+### Present Call Logs as a Tab
+
+Add call logs as a tab in your main navigation:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+class MainTabBarController: UITabBarController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let callLogs = CometChatCallLogs()
+        let callLogsNav = UINavigationController(rootViewController: callLogs)
+        callLogsNav.tabBarItem = UITabBarItem(
+            title: "Calls",
+            image: UIImage(systemName: "phone"),
+            selectedImage: UIImage(systemName: "phone.fill")
+        )
+        
+        viewControllers = [/* other tabs */, callLogsNav]
+    }
+}
+```
+</Tab>
+</Tabs>
+
+### Callback on Call Log Selection
+
+Handle call log selection to initiate a callback:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callLogs = CometChatCallLogs()
+callLogs.set(onItemClick: { [weak self] callLog, indexPath in
+    // Get the other participant
+    var callUser: CallUser?
+    if let initiator = callLog.initiator as? CallUser,
+       initiator.uid != CometChatUIKit.getLoggedInUser()?.uid {
+        callUser = initiator
+    } else if let receiver = callLog.receiver as? CallUser {
+        callUser = receiver
+    }
+    
+    guard let user = callUser else { return }
+    
+    // Show callback options
+    let alert = UIAlertController(title: "Call \(user.name ?? "")?", message: nil, preferredStyle: .actionSheet)
+    alert.addAction(UIAlertAction(title: "Voice Call", style: .default) { _ in
+        self?.initiateCall(uid: user.uid ?? "", type: .audio)
+    })
+    alert.addAction(UIAlertAction(title: "Video Call", style: .default) { _ in
+        self?.initiateCall(uid: user.uid ?? "", type: .video)
+    })
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+    self?.present(alert, animated: true)
+})
+```
+</Tab>
+</Tabs>
+
+### Filter Call Logs by Type
+
+Show only missed calls or specific call types:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Show only missed calls
+let missedCallsBuilder = CallLogsRequest.CallLogsBuilder()
+    .set(callStatus: .unanswered)
+    .set(limit: 30)
+
+let callLogs = CometChatCallLogs()
+callLogs.set(callRequestBuilder: missedCallsBuilder)
+
+// Show only video calls
+let videoCallsBuilder = CallLogsRequest.CallLogsBuilder()
+    .set(callType: .video)
+    .set(limit: 30)
+```
+</Tab>
+</Tabs>
+
+### Call Logs with Custom Empty State
+
+Show a custom view when there are no call logs:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let callLogs = CometChatCallLogs()
+
+callLogs.set(onEmpty: { [weak self] in
+    // Show custom empty state or prompt user to make their first call
+    print("No call history yet")
+})
+
+// Or set a custom empty view
+let emptyView = UIView()
+let label = UILabel()
+label.text = "No calls yet\nStart a conversation!"
+label.textAlignment = .center
+label.numberOfLines = 0
+emptyView.addSubview(label)
+// Add constraints...
+
+callLogs.set(emptyView: emptyView)
+```
+</Tab>
+</Tabs>
+
+---
+
 ## Related Components
 
-- [Incoming Call](/ui-kit/ios/incoming-call) - Display incoming call interface
-- [Outgoing Call](/ui-kit/ios/outgoing-call) - Display outgoing call interface
-- [Call Buttons](/ui-kit/ios/call-buttons) - Voice and video call buttons
+<CardGroup cols={3}>
+  <Card title="Incoming Call" href="/ui-kit/ios/incoming-call">
+    Display incoming call interface
+  </Card>
+  <Card title="Outgoing Call" href="/ui-kit/ios/outgoing-call">
+    Display outgoing call interface
+  </Card>
+  <Card title="Call Buttons" href="/ui-kit/ios/call-buttons">
+    Voice and video call buttons
+  </Card>
+</CardGroup>
 
 ***

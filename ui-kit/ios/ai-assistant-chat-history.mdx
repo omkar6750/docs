@@ -740,11 +740,142 @@ class ProfileViewController: UIViewController {
 
 ---
 
+## Common Patterns
+
+### Present AI Chat History from Profile
+
+Show AI chat history when user taps a button in their profile:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc func showAIChatHistory() {
+    guard let currentUser = CometChat.getLoggedInUser() else { return }
+    
+    let chatHistory = CometChatAIAssistanceChatHistory()
+    chatHistory.user = currentUser
+    
+    chatHistory.onNewChatButtonClicked = { [weak self] user in
+        let messagesVC = CometChatMessages()
+        messagesVC.user = user
+        self?.navigationController?.pushViewController(messagesVC, animated: true)
+    }
+    
+    navigationController?.pushViewController(chatHistory, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+### Handle Message Selection from History
+
+Navigate to the full conversation when a message is tapped:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let chatHistory = CometChatAIAssistanceChatHistory()
+chatHistory.user = user
+
+chatHistory.onMessageClicked = { [weak self] message in
+    // Open the messages view to continue the conversation
+    let messagesVC = CometChatMessages()
+    messagesVC.user = self?.user
+    self?.navigationController?.pushViewController(messagesVC, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+### Custom Date Formatting for AI History
+
+Format dates to show relative time for recent conversations:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let chatHistory = CometChatAIAssistanceChatHistory()
+chatHistory.user = user
+
+// Instance-level date formatting
+chatHistory.dateTimeFormatter.today = { timestamp in
+    let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+    let formatter = DateFormatter()
+    formatter.timeStyle = .short
+    return "Today at \(formatter.string(from: date))"
+}
+
+chatHistory.dateTimeFormatter.yesterday = { timestamp in
+    let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+    let formatter = DateFormatter()
+    formatter.timeStyle = .short
+    return "Yesterday at \(formatter.string(from: date))"
+}
+
+// Or use global-level formatting
+CometChatAIAssistanceChatHistory.dateTimeFormatter.otherDay = { timestamp in
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM d, yyyy"
+    return formatter.string(from: Date(timeIntervalSince1970: TimeInterval(timestamp)))
+}
+```
+</Tab>
+</Tabs>
+
+### AI History as Tab in Main Navigation
+
+Add AI chat history as a dedicated tab:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+class MainTabBarController: UITabBarController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        guard let currentUser = CometChat.getLoggedInUser() else { return }
+        
+        let aiHistory = CometChatAIAssistanceChatHistory()
+        aiHistory.user = currentUser
+        
+        aiHistory.onNewChatButtonClicked = { [weak self] user in
+            let messagesVC = CometChatMessages()
+            messagesVC.user = user
+            if let nav = self?.selectedViewController as? UINavigationController {
+                nav.pushViewController(messagesVC, animated: true)
+            }
+        }
+        
+        let aiNav = UINavigationController(rootViewController: aiHistory)
+        aiNav.tabBarItem = UITabBarItem(
+            title: "AI Assistant",
+            image: UIImage(systemName: "sparkles"),
+            selectedImage: UIImage(systemName: "sparkles")
+        )
+        
+        viewControllers = [/* other tabs */, aiNav]
+    }
+}
+```
+</Tab>
+</Tabs>
+
 ---
 
 ## Related
 
-- [AI Features Overview](/ui-kit/ios/ai-features) - All AI features
-- [Message List](/ui-kit/ios/message-list) - Chat message display
-- [Message Composer](/ui-kit/ios/message-composer) - Message input
-- [Components Overview](/ui-kit/ios/components-overview) - All components
+<CardGroup cols={2}>
+  <Card title="AI Features Overview" href="/ui-kit/ios/ai-features">
+    All AI features
+  </Card>
+  <Card title="Message List" href="/ui-kit/ios/message-list">
+    Chat message display
+  </Card>
+  <Card title="Message Composer" href="/ui-kit/ios/message-composer">
+    Message input
+  </Card>
+  <Card title="Components Overview" href="/ui-kit/ios/components-overview">
+    All components
+  </Card>
+</CardGroup>

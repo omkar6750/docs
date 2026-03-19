@@ -1457,9 +1457,11 @@ class MentionConfiguredViewController: UIViewController {
 
 ---
 
-## Complete App Example
+## Common Patterns
 
-Here's a full implementation with tab bar integration showing how to use CometChatConversations in a real app:
+### Tab bar integration
+
+Full implementation with tab bar showing CometChatConversations in a real app:
 
 ```swift
 import UIKit
@@ -1527,7 +1529,53 @@ class ConversationsContainerViewController: UINavigationController {
 }
 ```
 
----
+### Custom empty state with CTA
+
+```swift
+let conversations = CometChatConversations()
+
+conversations.set(emptyStateView: {
+    let emptyView = UIView()
+    
+    let label = UILabel()
+    label.text = "No conversations yet"
+    label.textAlignment = .center
+    label.textColor = .secondaryLabel
+    
+    let button = UIButton(type: .system)
+    button.setTitle("Start a conversation", for: .normal)
+    button.addTarget(self, action: #selector(startNewConversation), for: .touchUpInside)
+    
+    // Add subviews and constraints...
+    return emptyView
+})
+```
+
+### Hide all chrome — minimal list
+
+```swift
+let conversations = CometChatConversations()
+conversations.hideReceipts = true
+conversations.hideUserStatus = true
+conversations.hideGroupType = true
+conversations.hideDeleteConversationOption = true
+```
+
+### Filter by conversation type
+
+```swift
+// Only user conversations
+let userOnlyBuilder = ConversationRequest.ConversationRequestBuilder(limit: 30)
+    .set(conversationType: .user)
+
+let conversations = CometChatConversations(conversationRequestBuilder: userOnlyBuilder)
+
+// Only group conversations
+let groupOnlyBuilder = ConversationRequest.ConversationRequestBuilder(limit: 30)
+    .set(conversationType: .group)
+
+let groupConversations = CometChatConversations(conversationRequestBuilder: groupOnlyBuilder)
+```
 
 ---
 

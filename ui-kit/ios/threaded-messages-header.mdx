@@ -319,6 +319,70 @@ class MyCustomTextFormatter: CometChatTextFormatter {
 
 ---
 
+## Common Patterns
+
+### Open Thread from Message List
+
+Present the threaded messages view when a user taps on a message's reply count:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// In your message list delegate or action handler
+func openThread(for parentMessage: BaseMessage) {
+    let threadedMessages = CometChatThreadedMessages()
+    threadedMessages.set(parentMessage: parentMessage)
+    threadedMessages.set(controller: self)
+    
+    self.navigationController?.pushViewController(threadedMessages, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+### Customize Thread Header with Parent Message Info
+
+Display additional context about the parent message in the thread header:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let threadedHeader = CometChatThreadedMessageHeader()
+threadedHeader.set(parentMessage: parentMessage)
+
+// Custom date formatting
+threadedHeader.set(datePattern: { timestamp in
+    guard let timestamp = timestamp else { return "" }
+    let date = Date(timeIntervalSince1970: TimeInterval(timestamp / 1000))
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM d 'at' h:mm a"
+    return formatter.string(from: date)
+})
+```
+</Tab>
+</Tabs>
+
+### Filter Thread Replies
+
+Show only specific types of messages in the thread:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Filter to show only text messages in thread
+let messageRequestBuilder = MessagesRequest.MessageRequestBuilder()
+    .set(parentMessageId: parentMessage.id)
+    .set(types: ["text"])
+    .set(limit: 30)
+
+let messageList = CometChatMessageList()
+messageList.set(messagesRequestBuilder: messageRequestBuilder)
+```
+</Tab>
+</Tabs>
+
+---
+
 <Note>
 To ensure that the `ThreadedMessages` is properly configured, passing the controller is mandatory.
 

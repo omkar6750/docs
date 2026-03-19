@@ -1237,6 +1237,51 @@ class GroupMembersViewController: UIViewController {
 
 ---
 
+## Common Patterns
+
+### Admins and moderators only
+
+```swift
+let adminBuilder = GroupMembersRequest.GroupMembersRequestBuilder(guid: group.guid)
+    .set(scopes: ["admin", "moderator"])
+
+let groupMembers = CometChatGroupMembers(group: group, groupMembersRequestBuilder: adminBuilder)
+```
+
+### Hide management options for participants
+
+```swift
+let groupMembers = CometChatGroupMembers(group: group)
+groupMembers.hideKickMemberOption = true
+groupMembers.hideBanMemberOption = true
+groupMembers.hideScopeChangeOption = true
+```
+
+### Custom empty state
+
+```swift
+let groupMembers = CometChatGroupMembers(group: group)
+
+groupMembers.set(emptyStateView: {
+    let label = UILabel()
+    label.text = "No members in this group"
+    label.textAlignment = .center
+    return label
+})
+```
+
+### Multi-select members
+
+```swift
+let groupMembers = CometChatGroupMembers(group: group)
+groupMembers.selectionMode = .multiple
+
+groupMembers.set(onSelection: { selectedMembers in
+    print("Selected \(selectedMembers.count) members")
+    // Kick selected members, change scope, etc.
+})
+```
+
 ---
 
 ## Related Components

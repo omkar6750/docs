@@ -746,3 +746,132 @@ The `setTextFormatters` method enables developers to define and apply text forma
 By utilizing this method, developers can enhance readability, usability, and compliance with content guidelines. See the [MentionsFormatter Guide](/ui-kit/ios/mentions-formatter-guide) for more details.
 
 ---
+
+## Common Patterns
+
+### Present Search from Conversations
+
+Open the search screen from a conversations list:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+@objc func openSearch() {
+    let searchVC = CometChatSearch()
+    
+    searchVC.onConversationClicked = { [weak self] conversation in
+        // Navigate to messages for the selected conversation
+        let messagesVC = CometChatMessages()
+        if let user = conversation.conversationWith as? User {
+            messagesVC.user = user
+        } else if let group = conversation.conversationWith as? Group {
+            messagesVC.group = group
+        }
+        self?.navigationController?.pushViewController(messagesVC, animated: true)
+    }
+    
+    searchVC.onMessageClicked = { [weak self] message in
+        // Navigate to the message in context
+        let messagesVC = CometChatMessages()
+        if let user = message.sender {
+            messagesVC.user = user
+        }
+        self?.navigationController?.pushViewController(messagesVC, animated: true)
+    }
+    
+    navigationController?.pushViewController(searchVC, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+### Search Within a Specific Conversation
+
+Limit search to messages within a specific user or group chat:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+// Search within a specific user's conversation
+let searchVC = CometChatSearch()
+searchVC.user = user
+searchVC.set(searchIn: [.messages])  // Only search messages, not conversations
+
+// Or search within a group
+let groupSearchVC = CometChatSearch()
+groupSearchVC.group = group
+groupSearchVC.set(searchIn: [.messages])
+```
+</Tab>
+</Tabs>
+
+### Filter Search by Media Type
+
+Show only photo or video messages in search results:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let searchVC = CometChatSearch()
+
+// Set available filters with photos as the initial selection
+searchVC.set(searchFilters: [.photos, .videos, .documents, .audio], initialFilter: .photos)
+
+// Or programmatically filter messages
+let msgBuilder = MessagesRequest.MessageRequestBuilder()
+    .set(categories: ["message"])
+    .set(types: ["image", "video"])
+
+searchVC.set(messagesRequestBuilder: msgBuilder)
+```
+</Tab>
+</Tabs>
+
+### Custom Search Result Actions
+
+Handle search result selection with custom actions:
+
+<Tabs>
+<Tab title="Swift">
+```swift
+let searchVC = CometChatSearch()
+
+searchVC.onMessageClicked = { [weak self] message in
+    // Show action sheet for the selected message
+    let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+    
+    alert.addAction(UIAlertAction(title: "Go to Message", style: .default) { _ in
+        self?.navigateToMessage(message)
+    })
+    
+    alert.addAction(UIAlertAction(title: "Reply", style: .default) { _ in
+        self?.replyToMessage(message)
+    })
+    
+    alert.addAction(UIAlertAction(title: "Forward", style: .default) { _ in
+        self?.forwardMessage(message)
+    })
+    
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+    
+    self?.present(alert, animated: true)
+}
+```
+</Tab>
+</Tabs>
+
+---
+
+## Related Components
+
+<CardGroup cols={3}>
+  <Card title="Conversations" href="/ui-kit/ios/conversations">
+    Display conversation list
+  </Card>
+  <Card title="Message List" href="/ui-kit/ios/message-list">
+    Display chat messages
+  </Card>
+  <Card title="Users" href="/ui-kit/ios/users">
+    Display user list
+  </Card>
+</CardGroup>
