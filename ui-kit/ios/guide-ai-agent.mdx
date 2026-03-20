@@ -163,9 +163,9 @@ class ProductionAIAgentViewController: UIViewController {
         })
         
         // Chat history button handler
-        messageHeader.set(chatHistoryButtonClick: { [weak self] in
+        messageHeader.onAiChatHistoryClicked = { [weak self] user in
             self?.openChatHistory()
-        })
+        }
         
         view.addSubview(messageHeader)
     }
@@ -227,7 +227,7 @@ class ProductionAIAgentViewController: UIViewController {
     
     // MARK: - Chat History
     private func openChatHistory() {
-        let chatHistoryVC = CometChatAIAssistantChatHistory()
+        let chatHistoryVC = CometChatAIAssistanceChatHistory()
         
         if let user = user {
             chatHistoryVC.set(user: user)
@@ -236,19 +236,19 @@ class ProductionAIAgentViewController: UIViewController {
         }
         
         // Handle new chat button
-        chatHistoryVC.set(onNewChatButtonClicked: { [weak self] in
+        chatHistoryVC.onNewChatButtonClicked = { [weak self] user in
             self?.startNewChat()
-        })
+        }
         
         // Handle message selection to resume conversation
-        chatHistoryVC.set(onMessageClicked: { [weak self] message in
+        chatHistoryVC.onMessageClicked = { [weak self] message in
             self?.resumeConversation(from: message)
-        })
+        }
         
         // Handle close
-        chatHistoryVC.set(onClose: { [weak self] in
+        chatHistoryVC.onClose = { [weak self] in
             self?.navigationController?.popViewController(animated: true)
-        })
+        }
         
         navigationController?.pushViewController(chatHistoryVC, animated: true)
     }
@@ -342,7 +342,7 @@ class AIAgentStylingExample {
     
     func applyGlobalStyles() {
         // Configure AI bubble style
-        let aiBubbleStyle = AiAssistantBubbleStyle()
+        var aiBubbleStyle = AIAssistantBubbleStyle()
         aiBubbleStyle.backgroundColor = .clear
         aiBubbleStyle.borderWidth = 1
         aiBubbleStyle.borderColor = .systemBlue
@@ -351,7 +351,7 @@ class AIAgentStylingExample {
         aiBubbleStyle.cornerRadius = CometChatCornerStyle(cornerRadius: 12)
         
         // Apply globally
-        CometChatAiAssistantBubble.style = aiBubbleStyle
+        CometChatAIAssistantBubble.style = aiBubbleStyle
     }
     
     func applyInstanceStyles() -> ProductionAIAgentViewController {
@@ -439,7 +439,7 @@ messageComposer.set(aiAssistantTools: { message in
 
 ## Chat History Component
 
-The `CometChatAIAssistantChatHistory` component displays previous AI conversations:
+The `CometChatAIAssistanceChatHistory` component displays previous AI conversations:
 
 ```swift
 import UIKit
@@ -463,29 +463,29 @@ class ChatHistoryViewController: UIViewController {
     private func setupChatHistory() {
         guard let user = user else { return }
         
-        let chatHistory = CometChatAIAssistantChatHistory()
+        let chatHistory = CometChatAIAssistanceChatHistory()
         chatHistory.set(user: user)
         
         // New chat button
-        chatHistory.set(onNewChatButtonClicked: { [weak self] in
+        chatHistory.onNewChatButtonClicked = { [weak self] user in
             let newChat = ProductionAIAgentViewController(user: user)
             self?.navigationController?.pushViewController(newChat, animated: true)
-        })
+        }
         
         // Resume conversation
-        chatHistory.set(onMessageClicked: { [weak self] message in
+        chatHistory.onMessageClicked = { [weak self] message in
             let resumeChat = ProductionAIAgentViewController(
                 user: user,
                 parentMessage: message,
                 isHistory: true
             )
             self?.navigationController?.pushViewController(resumeChat, animated: true)
-        })
+        }
         
         // Close handler
-        chatHistory.set(onClose: { [weak self] in
+        chatHistory.onClose = { [weak self] in
             self?.dismiss(animated: true)
-        })
+        }
         
         addChild(chatHistory)
         view.addSubview(chatHistory.view)
@@ -513,8 +513,8 @@ class ChatHistoryViewController: UIViewController {
 | `CometChatMessageHeader` | Navigation and chat history access |
 | `CometChatMessageList` | Display messages with AI responses |
 | `CometChatMessageComposer` | Send messages to AI agent |
-| `CometChatAIAssistantChatHistory` | Browse previous AI conversations |
-| `CometChatAiAssistantBubble` | AI message bubble styling |
+| `CometChatAIAssistanceChatHistory` | Browse previous AI conversations |
+| `CometChatAIAssistantBubble` | AI message bubble styling |
 
 ## Related Guides
 

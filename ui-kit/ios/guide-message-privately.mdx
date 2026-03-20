@@ -27,8 +27,8 @@ Before implementing this feature, ensure you have:
 | `MessageDataSource` | Supplies the `messagePrivatelyOption` in the options array |
 | `CometChatMessageListViewModel` | Manages UI state, including `hideMessagePrivatelyOption` |
 | `CometChatMessages` | Entry point for rendering or pushing the private chat interface |
-| `CometChatUIKit.getUser(uid:)` | Retrieves the `User` object for the selected message sender |
-| `CometChatUIKit.getConversationWith(user:)` | Creates or fetches the 1-on-1 conversation instance |
+| `CometChat.getUser(UID:onSuccess:onError:)` | Retrieves the `User` object for the selected message sender |
+| `CometChatUIEvents.openChat(user:group:)` | Opens the chat interface for a user or group |
 | `UIViewController` (Navigation) | Pushes or presents the private chat screen (`CometChatMessages`) |
 
 ## Integration Steps
@@ -63,20 +63,31 @@ import CometChatSDK
 import CometChatUIKitSwift
 
 func startPrivateChat(with selectedMessage: BaseMessage) {
-    // Get the sender's UID from the selected message
-    if let uid = selectedMessage.sender?.uid {
-        
-        // Fetch the user object
-        CometChatUIKit.getUser(uid: uid) { user in
-            
-            // Get or create the conversation
-            CometChatUIKit.getConversationWith(user: user) { conversation in
-                
-                // Navigate to the private chat screen
-                let messagesVC = CometChatMessages(conversation: conversation)
-                navigationController?.pushViewController(messagesVC, animated: true)
-            }
+    // Get the sender from the selected message
+    if let user = selectedMessage.sender {
+        // Open the private chat using CometChatUIEvents
+        DispatchQueue.main.async {
+            CometChatUIEvents.openChat(user: user, group: nil)
         }
+    }
+}
+
+// Alternative: Manual navigation with user fetch
+func startPrivateChatManual(with selectedMessage: BaseMessage) {
+    guard let uid = selectedMessage.sender?.uid else { return }
+    
+    // Fetch the user object
+    CometChat.getUser(UID: uid) { [weak self] user in
+        guard let user = user else { return }
+        
+        DispatchQueue.main.async {
+            // Navigate to the private chat screen
+            let messagesVC = CometChatMessages()
+            messagesVC.set(user: user)
+            self?.navigationController?.pushViewController(messagesVC, animated: true)
+        }
+    } onError: { error in
+        print("Error fetching user: \(error?.errorDescription ?? "")")
     }
 }
 ```
@@ -92,8 +103,8 @@ This automates the transition from group context to private conversation.
 | 1 | Long-press a group message in `CometChatMessageList` |
 | 2 | Options menu appears with **Message Privately** |
 | 3 | User taps **Message Privately** |
-| 4 | App fetches `User` via `CometChatUIKit.getUser(uid:)` |
-| 5 | Retrieves or creates conversation via `CometChatUIKit.getConversationWith(user:)` |
+| 4 | App gets `User` from `message.sender` |
+| 5 | Opens chat via `CometChatUIEvents.openChat(user:group:)` |
 | 6 | Pushes `CometChatMessages` onto the navigation stack |
 
 ## Customization Options
@@ -153,7 +164,7 @@ func getMessageOptions(for message: BaseMessage) -> [CometChatMessageOption] {
 
 | Error Type | Solution |
 |------------|----------|
-| Block state | Catch errors from `getUser`/`getConversationWith` and alert user |
+| Block state | Catch errors from `CometChat.getUser` and alert user |
 | Network failures | Present retry or toast on navigation errors |
 | Invalid data | Disable option if `sender.uid` is nil |
 
