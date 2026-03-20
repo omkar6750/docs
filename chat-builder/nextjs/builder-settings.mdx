@@ -1,228 +1,352 @@
 ---
-title: "CometChat Settings Guide"
+title: "UI Kit Builder Settings"
+description: "Comprehensive reference for all CometChatSettings options."
 ---
 
-The `CometChatSettings.ts` file defines configuration options for **[CometChat Builder](https://preview.cometchat.com/)**, giving developers full control over messaging capabilities, AI enhancements, UI layout, styling, and moderation tools.
+The `CometChatSettings` object controls everything the Next.js UI Kit Builder renders—messaging, AI helpers, calls, layout, theming, and agent tools.
 
-***
+<Info>
+  **For developers customizing their chat UI**: Edit `CometChatSettings.ts` to
+  enable/disable features like messaging, calls, AI copilot, and theming. See
+  [Integration Guide](/chat-builder/nextjs/integration) for setup.
+</Info>
 
-## **1. Chat Features**
+## Top-level structure
 
-### Core Messaging Experience
-
-These options enable essential messaging functionalities:
-
-```json
-"coreMessagingExperience": {
-  "typingIndicator": true,
-  "threadConversationAndReplies": true,
-  "photosSharing": true,
-  "videoSharing": true,
-  "audioSharing": true,
-  "fileSharing": true,
-  "editMessage": true,
-  "deleteMessage": true,
-  "messageDeliveryAndReadReceipts": true,
-  "userAndFriendsPresence": true
+```ts lines
+export interface CometChatSettings {
+  chatFeatures: { ... }
+  callFeatures: { ... }
+  layout: { ... }
+  style: { ... }
 }
 ```
 
-* **`typingIndicator`** → Displays when a user is typing.
-* **`threadConversationAndReplies`** → Enables threaded replies.
-* **Media Sharing**: `photosSharing`, `videoSharing`, `audioSharing`, `fileSharing`
-* **Editing**: `editMessage`, `deleteMessage`
-* **Status**: `messageDeliveryAndReadReceipts`, `userAndFriendsPresence`
+---
 
-***
+<Tip>
+All boolean settings follow the same pattern: `true` enables the feature and shows its UI elements, `false` hides them completely.
+</Tip>
 
-### Deeper User Engagement
+## 1. Chat Features (`chatFeatures`)
 
-Enhance user interaction with richer messaging options:
+### 1.1 Core Messaging Experience (`coreMessagingExperience`)
 
-```json
-"deeperUserEngagement": {
-  "mentions": true,
-  "reactions": true,
-  "messageTranslation": true,
-  "polls": true,
-  "collaborativeWhiteboard": false,
-  "collaborativeDocument": false,
-  "voiceNotes": false,
-  "emojis": true,
-  "stickers": true,
-  "userInfo": true,
-  "groupInfo": true
-}
-```
+Essential messaging features: typing indicators, media sharing, message actions, and presence.
 
-* **`mentions`** → Tag users using @mention.
-* **`reactions`** → Emoji reactions to messages.
-* **`messageTranslation`** → Instant translation of messages.
-* **`polls`** → Create and vote on polls.
-* **`collaborativeWhiteboard`**, **`collaborativeDocument`** → Real-time co-creation (currently disabled).
-* **`voiceNotes`** → Send recorded voice messages (currently disabled).
-* **`emojis`, `stickers`** → Express with visual elements.
-* **`userInfo`, `groupInfo`** → Enable viewing detailed user and group profiles.
+| Setting                                                                | Type    | What It Does                                                                          |
+| ---------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Typing indicator (`typingIndicator`)                                   | boolean | Shows "typing..." indicator when someone is composing a message                       |
+| Thread conversation & replies (`threadConversationAndReplies`)         | boolean | Enables threaded replies to specific messages, creating nested conversation threads    |
+| Photos sharing (`photosSharing`)                                       | boolean | Allows users to share images from device or camera                                    |
+| Video sharing (`videoSharing`)                                         | boolean | Allows users to share video files                                                     |
+| Audio sharing (`audioSharing`)                                         | boolean | Allows users to share audio files (mp3, wav, etc.)                                    |
+| File sharing (`fileSharing`)                                           | boolean | Allows users to share documents (PDF, DOC, etc.)                                      |
+| Edit messages (`editMessage`)                                          | boolean | Lets users modify their sent messages; edited messages show "(edited)" label           |
+| Delete messages (`deleteMessage`)                                      | boolean | Lets users remove their sent messages                                                  |
+| Message delivery and read receipts (`messageDeliveryAndReadReceipts`)  | boolean | Shows delivery (✓) and read (✓✓) status indicators on messages                       |
+| User & friends presence (`userAndFriendsPresence`)                     | boolean | Shows online/offline status dot next to user avatars                                   |
+| Conversation and Advanced Search (`conversationAndAdvancedSearch`)     | boolean | Enables search across messages, users, and conversations                               |
+| Quoted Replies (`quotedReplies`)                                       | boolean | Lets users quote a message when replying, showing the original above their response    |
+| Mark as Unread (`markAsUnread`)                                        | boolean | Lets users mark a conversation as unread to revisit later                              |
 
-***
+<Tip>
+  Empower users with a seamless chat experience—reply to specific messages with
+  quoted replies, mark conversations as unread for later, and search across all
+  chats instantly. Learn more about [Core
+  Features](/ui-kit/react/core-features).
+</Tip>
 
-### AI User Copilot
+### 1.2 Deeper User Engagement (`deeperUserEngagement`)
 
-AI-powered tools to boost communication efficiency:
+Interactive features: mentions, reactions, polls, voice notes, and collaborative tools.
 
-```json
-"aiUserCopilot": {
-  "conversationStarter": true,
-  "conversationSummary": true,
-  "smartReply": true
-}
-```
+| Setting                                              | Type    | What It Does                                                                          |
+| ---------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Mentions (`mentions`)                                | boolean | Lets users @mention specific people in a message to notify them                       |
+| Mention All (`mentionAll`)                           | boolean | Lets users type @all to notify every member in a group chat                           |
+| Reactions (`reactions`)                              | boolean | Lets users add emoji reactions (👍 ❤️ 😂 etc.) to messages                            |
+| Message Translation (`messageTranslation`)           | boolean | Translates messages to user's preferred language. Requires Dashboard setup            |
+| Polls (`polls`)                                      | boolean | Lets users create polls with multiple options for group voting. Requires Dashboard setup |
+| Collaborative Whiteboard (`collaborativeWhiteboard`) | boolean | Opens a shared whiteboard for real-time drawing and collaboration. Requires Dashboard setup |
+| Collaborative Document (`collaborativeDocument`)     | boolean | Creates shared documents for real-time collaborative editing. Requires Dashboard setup |
+| Voice Notes (`voiceNotes`)                           | boolean | Lets users record and send voice messages                                              |
+| Emojis (`emojis`)                                    | boolean | Shows emoji picker in composer for browsing and inserting emojis                       |
+| Stickers (`stickers`)                                | boolean | Lets users send sticker images from available packs. Requires Dashboard setup          |
+| User Info (`userInfo`)                               | boolean | Lets users tap on another user's avatar to view their profile                          |
+| Group Info (`groupInfo`)                             | boolean | Lets users tap on group header to view group details and member list                   |
+| Report Message (`reportMessage`)                     | boolean | Lets users flag inappropriate messages for review. Requires moderation setup           |
 
-* **`conversationStarter`** → AI-suggested chat openers.
-* **`conversationSummary`** → Summarize long threads automatically.
-* **`smartReply`** → AI-generated quick replies.
+<Tip>
+  Configure these features based on your app's requirements. Learn more about
+  [Extensions](/ui-kit/react/extensions).
+</Tip>
 
-***
+### 1.3 AI User Copilot (`aiUserCopilot`)
 
-### Group Management
+AI-powered features to help users start and navigate conversations.
 
-Enable users to manage groups and members:
+| Setting                                        | Type    | What It Does                                                                          |
+| ---------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Conversation Starter (`conversationStarter`)   | boolean | Shows AI-suggested opening messages when starting a new chat. Requires OpenAI API key |
+| Conversation Summary (`conversationSummary`)   | boolean | Generates an AI-powered summary of the conversation. Requires OpenAI API key          |
+| Smart Reply (`smartReply`)                     | boolean | Shows AI-suggested quick reply options based on conversation context. Requires OpenAI API key |
 
-```json
-"groupManagement": {
-  "createGroup": true,
-  "addMembersToGroups": true,
-  "joinLeaveGroup": true,
-  "deleteGroup": true,
-  "viewGroupMembers": true
-}
-```
+<Tip>
+AI User Copilot features require an OpenAI API key. Configure it in the [CometChat Dashboard](https://app.cometchat.com) under **Chat & Messaging > Settings**. Learn more about [AI Features](/ui-kit/react/ai-features).
+</Tip>
 
-* Create, join, leave, or delete groups.
-* View members and add new ones.
+### 1.4 User Management (`userManagement`)
 
-***
+| Setting                        | Type    | What It Does                                                                          |
+| ------------------------------ | ------- | ------------------------------------------------------------------------------------- |
+| Friends Only (`friendsOnly`)   | boolean | Restricts chat to friends list only; Users tab shows only friends                     |
 
-### Moderator Controls
+### 1.5 Group Management (`groupManagement`)
 
-Give moderators the tools to manage group integrity:
+Control what users can do with groups.
 
-```json
-"moderatorControls": {
-  "kickUsers": true,
-  "banUsers": true,
-  "promoteDemoteMembers": true
-}
-```
+| Setting                                        | Type    | What It Does                                                                          |
+| ---------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Create Group (`createGroup`)                   | boolean | Lets users create new public or private groups                                        |
+| Add Members to Groups (`addMembersToGroups`)   | boolean | Lets group admins/owners invite users to join the group                               |
+| Join/Leave Group (`joinLeaveGroup`)            | boolean | Lets users join public groups and leave groups they're in                              |
+| Delete Group (`deleteGroup`)                   | boolean | Lets group owners permanently delete a group and all its messages                     |
+| View Group Members (`viewGroupMembers`)        | boolean | Shows member list in group info                                                        |
 
-* Kick or ban misbehaving users.
-* Change user roles (admin/member).
+### 1.6 Moderation (`moderatorControls`)
 
-***
+Admin tools for managing group members and content.
 
-### Private Messaging within Groups
+| Setting                                            | Type    | What It Does                                                                          |
+| -------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Blocked message feedback (`moderation`)            | boolean | Enables blocked message feedback for blocked messages as per configured moderation rules. Requires Dashboard setup |
+| Report Message (`reportMessage`)                   | boolean | Lets users flag messages for moderator review in Dashboard                            |
+| Kick Users (`kickUsers`)                           | boolean | Lets admins/moderators remove a user from a group (they can rejoin)                   |
+| Ban Users (`banUsers`)                             | boolean | Lets admins/moderators permanently remove a user and prevent rejoining                |
+| Promote/Demote Members (`promoteDemoteMembers`)   | boolean | Lets group owners change member roles (member, moderator, admin)                      |
 
-One-on-one messaging inside group chats:
+<Tip>
+  To enable content moderation, set `moderation` and `reportMessage` to `true`,
+  then configure your moderation rules in the [CometChat
+  Dashboard](https://app.cometchat.com). See [Rules
+  Management](/moderation/getting-started#setting-up-moderation-rules) for setup
+  details.
+</Tip>
 
-```json
-"privateMessagingWithinGroups": {
-  "sendPrivateMessageToGroupMembers": true
-}
-```
+### 1.7 Private Messaging Within Groups (`privateMessagingWithinGroups`)
 
-* Allows sending private DMs to group participants directly from the group context.
+Allow direct messages between group members.
 
-***
+| Setting                                                                    | Type    | What It Does                                                                          |
+| -------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Send Private Message to Group Members (`sendPrivateMessageToGroupMembers`) | boolean | Lets users start a 1:1 chat with a group member from their profile                   |
 
-## **2. Call Features**
+### 1.8 In-App Sounds (`inAppSounds`)
 
-Control real-time voice and video communication:
+Control sound notifications for incoming and outgoing messages.
 
-```json
-"callFeatures": {
-  "voiceAndVideoCalling": {
-    "oneOnOneVoiceCalling": true,
-    "oneOnOneVideoCalling": true,
-    "groupVideoConference": true,
-    "groupVoiceConference": true
-  }
-}
-```
+| Setting                                            | Type    | What It Does                                                                          |
+| -------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Incoming Message Sound (`incomingMessageSound`)    | boolean | Plays a sound when a new message is received                                          |
+| Outgoing Message Sound (`outgoingMessageSound`)    | boolean | Plays a sound when a message is sent                                                  |
 
-* **One-on-One**: Voice and video calling.
-* **Group**: Video conferencing and voice-only calls.
+<Tip>
+These toggles control the default message sounds. To use custom audio files or manage sound playback programmatically, see the [Sound Manager](/ui-kit/react/sound-manager).
+</Tip>
 
-***
+---
 
-## **3. Layout Customization**
+## 2. Call Features (`callFeatures`)
 
-Customize how the chat UI looks and navigates:
+### 2.1 Voice and Video Calling (`voiceAndVideoCalling`)
 
-```json
-"layout": {
-  "withSideBar": true,
-  "tabs": ["chats", "groups", "users", "calls"],
-  "chatType": "user"
-}
-```
+Enable voice and video calling capabilities.
 
-* **`withSideBar`** → Show/hide the sidebar.
-* **`tabs`** → Define which sections (and order) are present in navigation.
-* **`chatType`** → Default view: `"user"` or `"group"` chat.
+| Setting                                          | Type    | What It Does                                                                          |
+| ------------------------------------------------ | ------- | ------------------------------------------------------------------------------------- |
+| 1:1 Voice Calling (`oneOnOneVoiceCalling`)       | boolean | Shows phone icon in 1:1 chat header for starting voice calls                         |
+| 1:1 Video Calling (`oneOnOneVideoCalling`)       | boolean | Shows video camera icon in 1:1 chat header for starting video calls                  |
+| Group Video Conference (`groupVideoConference`)  | boolean | Shows video camera icon in group chat header for starting group video calls           |
+| Group Voice Conference (`groupVoiceConference`)  | boolean | Shows phone icon in group chat header for starting group voice calls                  |
 
-***
+<Tip>
+  Learn more about [Call Features](/ui-kit/react/call-features#features).
+</Tip>
 
-## **4. Styling & Theme Customization**
+---
 
-Manage the look & feel of the chat experience.
+## 3. Layout (`layout`)
 
-```json
-"style": {
-  "theme": "system",
-  "color": {
-    "brandColor": "#df4343",
-    "primaryTextLight": "#df4343",
-    "primaryTextDark": "#FFFFFF",
-    "secondaryTextLight": "#727272",
-    "secondaryTextDark": "#989898"
+Control the overall UI structure and navigation.
+
+| Setting                      | Type     | What It Does                                                                          |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| With Sidebar (`withSideBar`) | boolean  | Shows navigation sidebar with tabs (Chats, Calls, Users, Groups) on the left side    |
+| Tabs (`tabs`)                | string[] | Array of tabs to show: `'chats'`, `'calls'`, `'users'`, `'groups'`                   |
+| Chat Type (`chatType`)       | string   | Default conversation type on load: `'user'` for 1:1 chats, `'group'` for group chats |
+
+<Tip>
+  Set `withSideBar: false` for embedded chat widgets or single-conversation
+  views where navigation isn't needed.
+</Tip>
+
+---
+
+## 4. Style (`style`)
+
+Customize colors, fonts, and theme appearance.
+
+### 4.1 Theme
+
+| Setting                                  | Type   | What It Does                                                                          |
+| ---------------------------------------- | ------ | ------------------------------------------------------------------------------------- |
+| Theme (`theme`)                          | string | Controls light/dark mode: `'light'`, `'dark'`, or `'system'` (matches device preference) |
+
+<Tip>
+  Use `theme: "system"` to automatically match the user's device preference.
+  Preview your `brandColor` in both light and dark modes for contrast.
+
+[Learn more about UI Kit Theming](/ui-kit/react/theme) for additional customizations.
+
+</Tip>
+
+### 4.2 Colors
+
+| Setting                                    | Type   | What It Does                                                                          |
+| ------------------------------------------ | ------ | ------------------------------------------------------------------------------------- |
+| Brand Color (`brandColor`)                 | string | Primary accent color (hex) for buttons, links, active states. Example: `"#6852D6"`   |
+| Primary Text Light (`primaryTextLight`)    | string | Main text color in light mode (hex). Example: `"#2B2B2B"`                             |
+| Primary Text Dark (`primaryTextDark`)      | string | Main text color in dark mode (hex). Example: `"#FFFFFF"`                              |
+| Secondary Text Light (`secondaryTextLight`)| string | Secondary text color in light mode (hex) for timestamps, subtitles. Example: `"#727272"` |
+| Secondary Text Dark (`secondaryTextDark`)  | string | Secondary text color in dark mode (hex) for timestamps, subtitles. Example: `"#989898"` |
+
+<Tip>
+  Match `brandColor` to your website's primary accent color. Use your site's
+  existing text colors for `primaryTextLight` and `primaryTextDark` to maintain
+  brand consistency.
+</Tip>
+
+### 4.3 Typography
+
+| Setting              | Type   | What It Does                                                                          |
+| -------------------- | ------ | ------------------------------------------------------------------------------------- |
+| Font (`font`)        | string | Font family: `'roboto'`, `'arial'`, `'inter'`, or `'times new roman'`                |
+| Size (`size`)        | string | Text size and spacing: `'default'`, `'compact'`, or `'comfortable'`                  |
+
+---
+
+## Settings Overview
+
+Below is the complete settings structure with default values. Update these in `CometChatSettings.ts` to customize your chat experience.
+
+```json lines
+{
+  "chatFeatures": {
+    "coreMessagingExperience": {
+      "typingIndicator": true,
+      "threadConversationAndReplies": true,
+      "photosSharing": true,
+      "videoSharing": true,
+      "audioSharing": true,
+      "fileSharing": true,
+      "editMessage": true,
+      "deleteMessage": true,
+      "messageDeliveryAndReadReceipts": true,
+      "userAndFriendsPresence": true,
+      "conversationAndAdvancedSearch": true,
+      "moderation": true,
+      "quotedReplies": false,
+      "markAsUnread": false
+    },
+    "deeperUserEngagement": {
+      "mentions": true,
+      "mentionAll": true,
+      "reactions": true,
+      "messageTranslation": true,
+      "polls": true,
+      "collaborativeWhiteboard": true,
+      "collaborativeDocument": true,
+      "voiceNotes": true,
+      "emojis": true,
+      "stickers": true,
+      "userInfo": true,
+      "groupInfo": true
+    },
+    "aiUserCopilot": {
+      "conversationStarter": false,
+      "conversationSummary": false,
+      "smartReply": false
+    },
+    "userManagement": {
+      "friendsOnly": false
+    },
+    "groupManagement": {
+      "createGroup": true,
+      "addMembersToGroups": true,
+      "joinLeaveGroup": true,
+      "deleteGroup": true,
+      "viewGroupMembers": true
+    },
+    "moderatorControls": {
+      "kickUsers": true,
+      "banUsers": true,
+      "promoteDemoteMembers": true,
+      "reportMessage": true
+    },
+    "privateMessagingWithinGroups": {
+      "sendPrivateMessageToGroupMembers": true
+    },
+    "inAppSounds": {
+      "incomingMessageSound": true,
+      "outgoingMessageSound": true
+    }
   },
-  "typography": {
-    "font": "Sans-serif",
-    "size": "Default"
+  "callFeatures": {
+    "voiceAndVideoCalling": {
+      "oneOnOneVoiceCalling": true,
+      "oneOnOneVideoCalling": true,
+      "groupVideoConference": true,
+      "groupVoiceConference": true
+    }
+  },
+  "layout": {
+    "withSideBar": true,
+    "tabs": ["chats", "calls", "users", "groups"],
+    "chatType": "user"
+  },
+  "style": {
+    "theme": "system",
+    "color": {
+      "brandColor": "#6852D6",
+      "primaryTextLight": "#141414",
+      "primaryTextDark": "#FFFFFF",
+      "secondaryTextLight": "#727272",
+      "secondaryTextDark": "#989898"
+    },
+    "typography": {
+      "font": "roboto",
+      "size": "default"
+    }
   }
 }
 ```
 
-### Theme
+---
 
-* **`theme`**: `"system"` (inherits from OS), `"light"`, or `"dark"`.
+## Next Steps
 
-### Colors
-
-* **`brandColor`** → Accent color used throughout UI.
-* **Text Colors**: Separate values for light and dark mode (`primaryText*`, `secondaryText*`).
-
-### Typography
-
-* **`font`** → Global font family.
-* **`size`** → `"Default"`, `"Compact"`, or `"Comfortable"`.
-
-***
-
-## **Summary**
-
-The `CometChatSettings.ts` file gives you **end-to-end configuration** of your CometChat-powered app—from feature toggles to layout and theming.
-
-Use this guide as your go-to reference when:
-
-* Customizing chat or call functionality
-* Enabling AI features
-* Managing group or user interactions
-* Personalizing the UI for your brand
-
-***
-
-## **Related Links**
-
-* [Directory Structure](/ui-kit/react/builder-dir-structure)
-* [Advanced Theming](/ui-kit/react/theme)
+<CardGroup cols={2}>
+  <Card
+    title="Directory Structure"
+    href="/chat-builder/nextjs/builder-dir-structure"
+  >
+    Understand the organization of the builder components and generated code.
+  </Card>
+  <Card
+    title="Customizations"
+    href="/chat-builder/nextjs/builder-customisations"
+  >
+    Modify component props, styling, and behavior for deeper customization.
+  </Card>
+</CardGroup>
