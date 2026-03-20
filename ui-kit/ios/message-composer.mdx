@@ -3,41 +3,19 @@ title: "Message Composer"
 description: "Enable users to write and send text, media, and custom messages"
 ---
 
-The `CometChatMessageComposer` component enables users to write and send messages including text, images, videos, audio, files, and custom messages. It supports attachments, voice recording, stickers, mentions, and AI-powered features.
-
-<Frame>
-  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" alt="CometChatMessageComposer showing the default message input field with attachment, voice recording, and send buttons" />
-</Frame>
-
 <Accordion title="AI Integration Quick Reference">
 ```json
 {
   "component": "CometChatMessageComposer",
   "package": "CometChatUIKitSwift",
   "import": "import CometChatUIKitSwift\nimport CometChatSDK",
-  "description": "Enables users to compose and send messages with support for text, media, attachments, voice recording, stickers, mentions, and AI features.",
   "inherits": "UIView",
-  "primaryOutput": {
-    "callback": "onSendButtonClick",
-    "type": "(BaseMessage) -> Void"
-  },
+  "description": "Rich text input for composing and sending text, media, attachments, mentions, voice notes, and custom messages.",
   "props": {
     "data": {
-      "user": {
-        "type": "User?",
-        "default": "nil",
-        "note": "User for direct messaging"
-      },
-      "group": {
-        "type": "Group?",
-        "default": "nil",
-        "note": "Group for group messaging"
-      },
-      "parentMessageId": {
-        "type": "Int?",
-        "default": "nil",
-        "note": "Parent message ID for thread replies"
-      }
+      "user": "User? - recipient user for direct messaging",
+      "group": "Group? - recipient group for group messaging",
+      "parentMessageId": "Int? - parent message ID for thread replies"
     },
     "callbacks": {
       "onSendButtonClick": "(BaseMessage) -> Void",
@@ -45,27 +23,18 @@ The `CometChatMessageComposer` component enables users to write and send message
       "onError": "(CometChatException) -> Void"
     },
     "visibility": {
-      "hideAttachmentButton": { "type": "Bool", "default": false },
-      "hideVoiceRecordingButton": { "type": "Bool", "default": false },
-      "hideStickersButton": { "type": "Bool", "default": false },
-      "hideSendButton": { "type": "Bool", "default": false },
-      "hideAIButton": { "type": "Bool", "default": false },
-      "hideHeaderView": { "type": "Bool", "default": false },
-      "hideFooterView": { "type": "Bool", "default": false },
-      "hideImageAttachmentOption": { "type": "Bool", "default": false },
-      "hideVideoAttachmentOption": { "type": "Bool", "default": false },
-      "hideAudioAttachmentOption": { "type": "Bool", "default": false },
-      "hideFileAttachmentOption": { "type": "Bool", "default": false },
-      "hidePollsOption": { "type": "Bool", "default": false },
-      "hideCollaborativeDocumentOption": { "type": "Bool", "default": false },
-      "hideCollaborativeWhiteboardOption": { "type": "Bool", "default": false }
+      "hideAttachmentButton": "Bool (default: false)",
+      "hideVoiceRecordingButton": "Bool (default: false)",
+      "hideStickersButton": "Bool (default: false)",
+      "hideSendButton": "Bool (default: false)",
+      "hideAIButton": "Bool (default: false)",
+      "hideHeaderView": "Bool (default: false)",
+      "hideFooterView": "Bool (default: false)"
     },
     "behavior": {
-      "disableTypingEvents": { "type": "Bool", "default": false },
-      "disableMentions": { "type": "Bool", "default": false },
-      "disableSoundForMessages": { "type": "Bool", "default": false },
-      "maxLine": { "type": "Int", "default": 5 },
-      "placeholderText": { "type": "String", "default": "Type a message..." }
+      "disableTypingEvents": "Bool (default: false)",
+      "disableMentions": "Bool (default: false)",
+      "placeholderText": "String (default: 'Type a message...')"
     },
     "viewSlots": {
       "headerView": "(User?, Group?) -> UIView",
@@ -73,49 +42,43 @@ The `CometChatMessageComposer` component enables users to write and send message
       "sendButtonView": "(User?, Group?) -> UIView",
       "auxillaryButtonView": "(User?, Group?) -> UIView",
       "attachmentOptions": "(User?, Group?, UIViewController?) -> [CometChatMessageComposerAction]"
-    },
-    "formatting": {
-      "textFormatters": "[CometChatTextFormatter]"
-    },
-    "styling": {
-      "mediaRecorderStyle": { "type": "MediaRecorderStyle", "default": "MediaRecorderStyle()" },
-      "attachmentSheetStyle": { "type": "AttachmentSheetStyle", "default": "AttachmentSheetStyle()" },
-      "suggestionsStyle": { "type": "SuggestionsStyle", "default": "SuggestionsStyle()" },
-      "aiOptionsStyle": { "type": "AIOptionsStyle", "default": "AIOptionsStyle()" },
-      "mentionStyle": { "type": "MentionStyle", "default": "MentionStyle()" }
     }
   },
   "methods": {
-    "set(textFormatter:)": "Sets a custom text formatter for the composer",
-    "setDisableMentionAll(_:)": "Disables or enables the @all mention feature",
-    "setMentionAllLabel(_:_:)": "Customizes the label for @all mentions"
+    "set(user:)": "Sets recipient user",
+    "set(group:)": "Sets recipient group",
+    "set(parentMessageId:)": "Sets parent message for threads",
+    "setInitialComposerText(_:)": "Pre-fills composer text",
+    "set(textFormatter:)": "Sets custom text formatter",
+    "setDisableMentionAll(_:)": "Disables @all mentions",
+    "setMentionAllLabel(_:_:)": "Customizes @all label"
   },
-  "events": [],
-  "sdkListeners": [],
-  "compositionExample": {
-    "description": "MessageComposer is typically used within CometChatMessages alongside MessageHeader and MessageList",
-    "components": ["CometChatMessageHeader", "CometChatMessageList", "CometChatMessageComposer"],
-    "flow": "User types message → onTextChangedListener fires → User taps send → onSendButtonClick fires → Message sent"
-  },
-  "types": {
-    "CometChatMessageComposerAction": {
-      "id": "String",
-      "text": "String",
-      "startIcon": "UIImage?",
-      "startIconTint": "UIColor?",
-      "textColor": "UIColor?",
-      "onActionClick": "() -> Void"
-    }
+  "styling": {
+    "globalStyle": "CometChatMessageComposer.style",
+    "instanceStyle": "MessageComposerStyle",
+    "subStyles": ["MediaRecorderStyle", "AttachmentSheetStyle", "SuggestionsStyle", "AIOptionsStyle", "MentionStyle"]
   }
 }
 ```
 </Accordion>
 
+| Field | Value |
+|-------|-------|
+| Component | `CometChatMessageComposer` |
+| Package | `CometChatUIKitSwift` |
+| Inherits | `UIView` |
+
+The `CometChatMessageComposer` component enables users to write and send messages including text, images, videos, audio, files, and custom messages. It supports attachments, voice recording, stickers, mentions, and AI-powered features.
+
+<Frame>
+  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" />
+</Frame>
+
 ---
 
 ## Where It Fits
 
-`CometChatMessageComposer` is the input component for sending messages. It's typically used within `CometChatMessages` alongside `CometChatMessageHeader` and `CometChatMessageList`.
+`CometChatMessageComposer` provides a rich text input with attachment, emoji, voice recording, sticker, and send controls. Wire it alongside `CometChatMessageHeader` and `CometChatMessageList` to build a standard chat view.
 
 ```swift lines
 import UIKit
@@ -124,34 +87,31 @@ import CometChatSDK
 
 class ChatViewController: UIViewController {
     
-    private var messageComposer: CometChatMessageComposer!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupMessageComposer()
-    }
-    
-    private func setupMessageComposer(for user: User) {
-        messageComposer = CometChatMessageComposer()
-        messageComposer.set(user: user)
         
-        // Handle send button click
-        messageComposer.set(onSendButtonClick: { [weak self] message in
-            print("Message sent: \(message.id)")
-        })
-        
-        // Handle text changes for typing indicators
-        messageComposer.set(onTextChangedListener: { [weak self] text in
-            print("User is typing: \(text)")
-        })
-        
-        view.addSubview(messageComposer)
+        CometChat.getUser(UID: "uid") { user in
+            DispatchQueue.main.async {
+                let header = CometChatMessageHeader()
+                header.set(user: user)
+                
+                let messageList = CometChatMessageList()
+                messageList.set(user: user)
+                
+                let composer = CometChatMessageComposer()
+                composer.set(user: user)
+                
+                // Add to view hierarchy and layout
+            }
+        } onError: { error in
+            print("Error: \(error?.errorDescription ?? "")")
+        }
     }
 }
 ```
 
 <Frame>
-  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" alt="CometChatMessageComposer showing integration within a chat view controller with user configuration" />
+  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" />
 </Frame>
 
 ---
@@ -160,14 +120,13 @@ class ChatViewController: UIViewController {
 
 ```swift lines
 import CometChatUIKitSwift
-import CometChatSDK
 
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 ```
 
 <Frame>
-  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" alt="CometChatMessageComposer showing minimal configuration with user set for direct messaging" />
+  <img src="/images/4d6dc597-h8F0Ugo204mAAAAABJRU5ErkJggg.png" />
 </Frame>
 
 ---
@@ -178,60 +137,52 @@ messageComposer.set(user: user)
 
 #### onSendButtonClick
 
-Fires when the send button is clicked. Use this to handle custom send actions.
+Fires when the send button is clicked. Overrides the default send behavior.
 
 ```swift lines
 import CometChatUIKitSwift
-import CometChatSDK
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(onSendButtonClick: { [weak self] message in
-    guard let self = self else { return }
-    print("Message sent with ID: \(message.id)")
+composer.set(onSendButtonClick: { message in
+    print("Custom send: \(message.id)")
 })
 ```
 
 #### onTextChangedListener
 
-Fires when the user types in the composer. Use this for typing indicators or text validation.
+Fires as the user types in the composer input.
 
 ```swift lines
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(onTextChangedListener: { [weak self] text in
-    guard let self = self else { return }
-    print("Current text: \(text)")
+composer.set(onTextChangedListener: { text in
+    print("Text changed: \(text)")
 })
 ```
 
 #### onError
 
-Fires when an error occurs while sending a message.
+Fires on internal errors.
 
 ```swift lines
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(onError: { error in
-    print("Error: \(error.errorDescription)")
+composer.set(onError: { error in
+    print("Composer error: \(error.errorDescription)")
 })
 ```
 
-### Actions Reference
+### SDK Events (Real-Time, Automatic)
 
-| Method | Description | Example |
-|--------|-------------|---------|
-| `set(onSendButtonClick:)` | Triggered when send button is clicked | Custom send handling |
-| `set(onTextChangedListener:)` | Triggered when text changes | Typing indicators |
-| `set(onError:)` | Triggered when an error occurs | Show error alert |
-| `set(user:)` | Sets the user for direct messaging | Configure recipient |
-| `set(group:)` | Sets the group for group messaging | Configure group |
-| `set(parentMessageId:)` | Sets parent message for thread replies | Thread replies |
-| `setInitialComposerText(_:)` | Sets initial text in composer | Pre-fill message |
+The component internally handles typing indicators and message sending. No manual SDK listener attachment needed.
 
 ---
 
@@ -239,183 +190,104 @@ messageComposer.set(onError: { error in
 
 | Slot | Signature | Replaces |
 |------|-----------|----------|
-| `headerView` | `(User?, Group?) -> UIView` | Header above composer |
-| `footerView` | `(User?, Group?) -> UIView` | Footer below composer |
+| `headerView` | `(User?, Group?) -> UIView` | Area above the composer input |
+| `footerView` | `(User?, Group?) -> UIView` | Area below the composer input |
 | `sendButtonView` | `(User?, Group?) -> UIView` | Send button |
-| `auxillaryButtonView` | `(User?, Group?) -> UIView` | Auxiliary button area |
-| `attachmentOptions` | `(User?, Group?, UIViewController?) -> [CometChatMessageComposerAction]` | Attachment menu options |
+| `auxillaryButtonView` | `(User?, Group?) -> UIView` | Sticker and AI button area |
+| `attachmentOptions` | `(User?, Group?, UIViewController?) -> [CometChatMessageComposerAction]` | Default attachment options list |
 
-### set(headerView:)
+### headerView
 
-Replaces the default header with a custom view above the composer.
+Custom view above the composer input.
 
-| | |
-|---|---|
-| Signature | `(User?, Group?) -> UIView` |
-| Replaces | Default header above composer |
+<Frame>
+  <img src="/images/184d7b90-composerHeader-87fd3273b37867353fc6cb9ba041abcf.png" />
+</Frame>
 
 ```swift lines
 import UIKit
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(headerView: { user, group in
-    let view = CustomHeaderView()
+composer.set(headerView: { user, group in
+    let view = UIView()
+    view.backgroundColor = UIColor.purple.withAlphaComponent(0.1)
+    
+    let label = UILabel()
+    label.text = "User has paused their notifications"
+    label.font = UIFont.systemFont(ofSize: 14)
+    view.addSubview(label)
+    
     return view
 })
 ```
 
-<Frame>
-  <img src="/images/184d7b90-composerHeader-87fd3273b37867353fc6cb9ba041abcf.png" alt="CometChatMessageComposer with custom header view showing a notification pause message above the input field" />
-</Frame>
+### footerView
 
-You can create a `CustomHeaderView` as a custom `UIView`:
-
-```swift lines
-import UIKit
-
-class CustomHeaderView: UIView {
-
-    private let iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "bell.slash.fill")
-        imageView.tintColor = .purple
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
-
-    private let messageLabel: UILabel = {
-        let label = UILabel()
-        label.text = "User has paused their notifications"
-        label.textColor = .black
-        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
-        return label
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupView() {
-        backgroundColor = UIColor.purple.withAlphaComponent(0.1)
-        layer.cornerRadius = 12
-
-        addSubview(iconImageView)
-        addSubview(messageLabel)
-
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 20),
-            iconImageView.heightAnchor.constraint(equalToConstant: 20),
-
-            messageLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
-            messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            messageLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
-        ])
-    }
-}
-```
-
-### set(footerView:)
-
-Replaces the default footer with a custom view below the composer.
-
-| | |
-|---|---|
-| Signature | `(User?, Group?) -> UIView` |
-| Replaces | Default footer below composer |
+Custom view below the composer input.
 
 ```swift lines
 import UIKit
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(footerView: { user, group in
-    let footerView = UIView()
-    footerView.backgroundColor = UIColor.systemGray6
+composer.set(footerView: { user, group in
+    let view = UIView()
     
     let label = UILabel()
     label.text = "Messages are end-to-end encrypted"
     label.font = UIFont.systemFont(ofSize: 12)
-    label.textColor = UIColor.secondaryLabel
-    label.textAlignment = .center
+    label.textColor = .secondaryLabel
+    view.addSubview(label)
     
-    footerView.addSubview(label)
-    label.translatesAutoresizingMaskIntoConstraints = false
-    NSLayoutConstraint.activate([
-        label.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
-        label.centerYAnchor.constraint(equalTo: footerView.centerYAnchor)
-    ])
-    
-    return footerView
+    return view
 })
 ```
 
-### set(sendButtonView:)
+### sendButtonView
 
-Replaces the default send button with a custom view.
-
-| | |
-|---|---|
-| Signature | `(User?, Group?) -> UIView` |
-| Replaces | Default send button |
+Replace the send button.
 
 ```swift lines
 import UIKit
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(sendButtonView: { user, group in
+composer.set(sendButtonView: { user, group in
     let button = UIButton(type: .system)
     button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
-    button.tintColor = UIColor.systemBlue
-    button.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
-    button.layer.cornerRadius = 20
+    button.tintColor = .systemBlue
     return button
 })
 ```
 
-{/* TODO: Add screenshot showing sendButtonView customization */}
+### auxillaryButtonView
 
-### set(auxillaryButtonView:)
-
-Replaces the auxiliary button area with a custom view. The auxiliary button is typically used for additional actions like AI features.
-
-| | |
-|---|---|
-| Signature | `(User?, Group?) -> UIView` |
-| Replaces | Default auxiliary button area |
+Replace the sticker and AI button area.
 
 ```swift lines
 import UIKit
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(auxillaryButtonView: { user, group in
+composer.set(auxillaryButtonView: { user, group in
     let stackView = UIStackView()
     stackView.axis = .horizontal
     stackView.spacing = 8
     
     let aiButton = UIButton(type: .system)
     aiButton.setImage(UIImage(systemName: "sparkles"), for: .normal)
-    aiButton.tintColor = UIColor.systemPurple
     
     let emojiButton = UIButton(type: .system)
     emojiButton.setImage(UIImage(systemName: "face.smiling"), for: .normal)
-    emojiButton.tintColor = UIColor.systemOrange
     
     stackView.addArrangedSubview(aiButton)
     stackView.addArrangedSubview(emojiButton)
@@ -424,73 +296,102 @@ messageComposer.set(auxillaryButtonView: { user, group in
 })
 ```
 
-{/* TODO: Add screenshot showing auxiliaryButtonView customization */}
+### attachmentOptions
 
-### set(attachmentOptions:)
-
-Customizes the attachment menu options with custom actions.
-
-| | |
-|---|---|
-| Signature | `(User?, Group?, UIViewController?) -> [CometChatMessageComposerAction]` |
-| Replaces | Default attachment menu options |
+Override the default attachment options.
 
 ```swift lines
 import UIKit
 import CometChatUIKitSwift
 
-let messageComposer = CometChatMessageComposer()
+let composer = CometChatMessageComposer()
+composer.set(user: user)
 
-messageComposer.set(attachmentOptions: { user, group, controller in
-    let photoAction = CometChatMessageComposerAction(
-        id: "photo",
-        text: "Photo",
-        startIcon: UIImage(systemName: "photo"),
-        startIconTint: UIColor.systemBlue,
-        textColor: UIColor.label,
-        onActionClick: {
-            print("Photo selected")
-        }
-    )
-    
-    let cameraAction = CometChatMessageComposerAction(
-        id: "camera",
-        text: "Camera",
-        startIcon: UIImage(systemName: "camera"),
-        startIconTint: UIColor.systemGreen,
-        textColor: UIColor.label,
-        onActionClick: {
-            print("Camera selected")
-        }
-    )
-    
-    let locationAction = CometChatMessageComposerAction(
-        id: "location",
-        text: "Location",
-        startIcon: UIImage(systemName: "location"),
-        startIconTint: UIColor.systemRed,
-        textColor: UIColor.label,
-        onActionClick: {
-            print("Location selected")
-        }
-    )
-    
-    let documentAction = CometChatMessageComposerAction(
-        id: "document",
-        text: "Document",
-        startIcon: UIImage(systemName: "doc"),
-        startIconTint: UIColor.systemIndigo,
-        textColor: UIColor.label,
-        onActionClick: {
-            print("Document selected")
-        }
-    )
-    
-    return [photoAction, cameraAction, locationAction, documentAction]
+composer.set(attachmentOptions: { user, group, controller in
+    return [
+        CometChatMessageComposerAction(
+            id: "photo",
+            text: "Photo",
+            startIcon: UIImage(systemName: "photo"),
+            startIconTint: .systemBlue,
+            onActionClick: { print("Photo selected") }
+        ),
+        CometChatMessageComposerAction(
+            id: "camera",
+            text: "Camera",
+            startIcon: UIImage(systemName: "camera"),
+            startIconTint: .systemGreen,
+            onActionClick: { print("Camera selected") }
+        ),
+        CometChatMessageComposerAction(
+            id: "location",
+            text: "Location",
+            startIcon: UIImage(systemName: "location"),
+            startIconTint: .systemRed,
+            onActionClick: { print("Location selected") }
+        )
+    ]
 })
 ```
 
-{/* TODO: Add screenshot showing attachmentOptions customization */}
+---
+
+## Common Patterns
+
+### Thread composer
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+composer.set(parentMessageId: parentMessage.id)
+```
+
+### Minimal composer — text only
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+composer.hideAttachmentButton = true
+composer.hideVoiceRecordingButton = true
+composer.hideStickersButton = true
+composer.hideAIButton = true
+```
+
+### Pre-filled text
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+composer.setInitialComposerText("Hello! ")
+composer.placeholderText = "Type a message..."
+```
+
+### Disable typing indicators
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+composer.disableTypingEvents = true
+```
+
+### Disable mentions
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+composer.disableMentions = true
+```
+
+### Custom send button action
+
+```swift lines
+let composer = CometChatMessageComposer()
+composer.set(user: user)
+
+composer.set(onSendButtonClick: { message in
+    print("Sending message: \(message)")
+})
+```
 
 ---
 
@@ -504,201 +405,77 @@ messageComposer.set(attachmentOptions: { user, group, controller in
 ### Global Level Styling
 
 ```swift lines
-import UIKit
 import CometChatUIKitSwift
 
-// Apply global styles that affect all CometChatMessageComposer instances
-CometChatMessageComposer.style.backgroundColor = UIColor.systemBackground
-CometChatMessageComposer.style.activeSendButtonImageBackgroundColor = UIColor.systemBlue
-CometChatMessageComposer.style.attachmentImageTint = UIColor.systemGray
-CometChatMessageComposer.style.voiceRecordingImageTint = UIColor.systemGray
-CometChatMessageComposer.style.stickerTint = UIColor.systemGray
-CometChatMessageComposer.style.aiImageTint = UIColor.systemPurple
+CometChatMessageComposer.style.backgroundColor = .systemBackground
+CometChatMessageComposer.style.activeSendButtonImageBackgroundColor = .systemBlue
+CometChatMessageComposer.style.attachmentImageTint = .systemGray
+CometChatMessageComposer.style.voiceRecordingImageTint = .systemGray
 ```
 
 ### Instance Level Styling
 
 ```swift lines
-import UIKit
 import CometChatUIKitSwift
 
-// Create a custom style for a specific instance
 var customStyle = MessageComposerStyle()
 customStyle.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
-customStyle.activeSendButtonImageBackgroundColor = UIColor.systemOrange
-customStyle.composeBoxBackgroundColor = UIColor.white
-customStyle.composeBoxBorderColor = UIColor.systemGray4
-customStyle.composeBoxBorderWidth = 1
+customStyle.activeSendButtonImageBackgroundColor = .systemOrange
+customStyle.composeBoxBackgroundColor = .white
+customStyle.composeBoxBorderColor = .systemGray4
 
-let messageComposer = CometChatMessageComposer()
-messageComposer.style = customStyle
+let composer = CometChatMessageComposer()
+composer.style = customStyle
 ```
 
 <Frame>
-  <img src="/images/26eef3a8-composer-style-5a5323348b7b81745af3c1995036d6e7.png" alt="CometChatMessageComposer with custom styling showing modified background color and orange send button" />
+  <img src="/images/26eef3a8-composer-style-5a5323348b7b81745af3c1995036d6e7.png" />
 </Frame>
 
 ### Key Style Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `backgroundColor` | `UIColor` | `CometChatTheme.backgroundColor01` | Background color |
-| `borderWidth` | `CGFloat` | `0` | Border width |
-| `borderColor` | `UIColor` | `.clear` | Border color |
-| `cornerRadius` | `CometChatCornerStyle?` | `nil` | Corner radius |
-| `placeHolderTextFont` | `UIFont` | `CometChatTypography.Body.regular` | Placeholder font |
-| `placeHolderTextColor` | `UIColor` | `CometChatTheme.textColorTertiary` | Placeholder color |
-| `textFiledColor` | `UIColor` | `CometChatTheme.textColorPrimary` | Input text color |
-| `textFiledFont` | `UIFont` | `CometChatTypography.Body.regular` | Input text font |
-| `sendButtonImage` | `UIImage?` | System send icon | Send button icon |
-| `sendButtonImageTint` | `UIColor` | `CometChatTheme.white` | Send button tint |
-| `activeSendButtonImageBackgroundColor` | `UIColor` | `CometChatTheme.primaryColor` | Active send button background |
-| `inactiveSendButtonImageBackgroundColor` | `UIColor` | `CometChatTheme.neutralColor300` | Inactive send button background |
-| `composeBoxBackgroundColor` | `UIColor` | `CometChatTheme.backgroundColor01` | Compose box background |
-| `composeBoxBorderColor` | `UIColor` | `CometChatTheme.borderColorDefault` | Compose box border color |
-| `composeBoxBorderWidth` | `CGFloat` | `1` | Compose box border width |
-| `attachmentImage` | `UIImage?` | System plus icon | Attachment button icon |
-| `attachmentImageTint` | `UIColor` | `CometChatTheme.iconColorSecondary` | Attachment icon tint |
-| `voiceRecordingImage` | `UIImage?` | System mic icon | Voice recording icon |
-| `voiceRecordingImageTint` | `UIColor` | `CometChatTheme.iconColorSecondary` | Voice recording tint |
+| Property | Type | Description |
+|----------|------|-------------|
+| `backgroundColor` | `UIColor` | Background color |
+| `borderWidth` | `CGFloat` | Border width |
+| `borderColor` | `UIColor` | Border color |
+| `cornerRadius` | `CometChatCornerStyle?` | Corner radius |
+| `placeHolderTextFont` | `UIFont` | Placeholder font |
+| `placeHolderTextColor` | `UIColor` | Placeholder color |
+| `textFiledColor` | `UIColor` | Input text color |
+| `textFiledFont` | `UIFont` | Input text font |
+| `sendButtonImage` | `UIImage?` | Send button icon |
+| `sendButtonImageTint` | `UIColor` | Send button tint |
+| `activeSendButtonImageBackgroundColor` | `UIColor` | Active send button background |
+| `inactiveSendButtonImageBackgroundColor` | `UIColor` | Inactive send button background |
+| `composeBoxBackgroundColor` | `UIColor` | Compose box background |
+| `composeBoxBorderColor` | `UIColor` | Compose box border color |
+| `composeBoxBorderWidth` | `CGFloat` | Compose box border width |
+| `attachmentImage` | `UIImage?` | Attachment button icon |
+| `attachmentImageTint` | `UIColor` | Attachment icon tint |
+| `voiceRecordingImage` | `UIImage?` | Voice recording icon |
+| `voiceRecordingImageTint` | `UIColor` | Voice recording tint |
 
-### Style Properties
+### Sub-Component Styles
 
-#### mediaRecorderStyle
-
-Customizes the appearance of the media recorder (voice recording) interface.
-
-| | |
-|---|---|
-| Type | `MediaRecorderStyle` |
-| Default | `MediaRecorderStyle()` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-let mediaRecorderStyle = MediaRecorderStyle()
-mediaRecorderStyle.backgroundColor = UIColor.systemBackground
-mediaRecorderStyle.recordButtonTint = UIColor.systemRed
-mediaRecorderStyle.timerTextColor = UIColor.label
-
-messageComposer.mediaRecorderStyle = mediaRecorderStyle
-```
-
-#### attachmentSheetStyle
-
-Customizes the appearance of the attachment options sheet.
-
-| | |
-|---|---|
-| Type | `AttachmentSheetStyle` |
-| Default | `AttachmentSheetStyle()` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-let attachmentSheetStyle = AttachmentSheetStyle()
-attachmentSheetStyle.backgroundColor = UIColor.systemBackground
-attachmentSheetStyle.iconTint = UIColor.systemBlue
-attachmentSheetStyle.titleColor = UIColor.label
-
-messageComposer.attachmentSheetStyle = attachmentSheetStyle
-```
-
-#### suggestionsStyle
-
-Customizes the appearance of the suggestions view (for mentions and other suggestions).
-
-| | |
-|---|---|
-| Type | `SuggestionsStyle` |
-| Default | `SuggestionsStyle()` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-let suggestionsStyle = SuggestionsStyle()
-suggestionsStyle.backgroundColor = UIColor.systemBackground
-suggestionsStyle.textColor = UIColor.label
-suggestionsStyle.separatorColor = UIColor.separator
-
-messageComposer.suggestionsStyle = suggestionsStyle
-```
-
-#### aiOptionsStyle
-
-Customizes the appearance of the AI options menu.
-
-| | |
-|---|---|
-| Type | `AIOptionsStyle` |
-| Default | `AIOptionsStyle()` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-let aiOptionsStyle = AIOptionsStyle()
-aiOptionsStyle.backgroundColor = UIColor.systemBackground
-aiOptionsStyle.iconTint = UIColor.systemPurple
-aiOptionsStyle.titleColor = UIColor.label
-
-messageComposer.aiOptionsStyle = aiOptionsStyle
-```
-
-#### mentionStyle
-
-Customizes the appearance of mentions in the composer.
-
-| | |
-|---|---|
-| Type | `MentionStyle` |
-| Default | `MentionStyle()` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-let mentionStyle = MentionStyle()
-mentionStyle.textColor = UIColor.systemBlue
-mentionStyle.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
-mentionStyle.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-
-messageComposer.mentionStyle = mentionStyle
-```
+| Property | Type | Description |
+|----------|------|-------------|
+| `mediaRecorderStyle` | `MediaRecorderStyle` | Voice recording interface |
+| `attachmentSheetStyle` | `AttachmentSheetStyle` | Attachment options sheet |
+| `suggestionsStyle` | `SuggestionsStyle` | Mentions suggestions view |
+| `aiOptionsStyle` | `AIOptionsStyle` | AI options menu |
+| `mentionStyle` | `MentionStyle` | Mentions appearance |
 
 ### Customization Matrix
 
-| What to change | Where | Property/API | Example |
-|----------------|-------|--------------|---------|
-| Background color | Style | `backgroundColor` | `UIColor.systemBackground` |
-| Send button color | Style | `activeSendButtonImageBackgroundColor` | `UIColor.systemBlue` |
-| Input text style | Style | `textFiledColor`, `textFiledFont` | Custom colors and fonts |
-| Compose box look | Style | `composeBoxBackgroundColor`, `composeBoxBorderColor` | Custom styling |
-| Attachment icon | Style | `attachmentImage`, `attachmentImageTint` | Custom icon |
-| Media recorder | Style | `mediaRecorderStyle` | Custom MediaRecorderStyle |
-| Attachment sheet | Style | `attachmentSheetStyle` | Custom AttachmentSheetStyle |
-| Suggestions | Style | `suggestionsStyle` | Custom SuggestionsStyle |
-| AI options | Style | `aiOptionsStyle` | Custom AIOptionsStyle |
-| Mentions | Style | `mentionStyle` | Custom MentionStyle |
-| Hide attachment | Property | `hideAttachmentButton` | `composer.hideAttachmentButton = true` |
-| Hide voice recording | Property | `hideVoiceRecordingButton` | `composer.hideVoiceRecordingButton = true` |
-| Hide AI button | Property | `hideAIButton` | `composer.hideAIButton = true` |
-| Hide header | Property | `hideHeaderView` | `composer.hideHeaderView = true` |
-| Hide footer | Property | `hideFooterView` | `composer.hideFooterView = true` |
-| Placeholder text | Property | `placeholderText` | `composer.placeholderText = "..."` |
-| Custom send button | View Slot | `set(sendButtonView:)` | See Custom View Slots |
-| Custom header | View Slot | `set(headerView:)` | See Custom View Slots |
-| Custom footer | View Slot | `set(footerView:)` | See Custom View Slots |
-| Custom auxiliary | View Slot | `set(auxillaryButtonView:)` | See Custom View Slots |
-| Custom attachments | View Slot | `set(attachmentOptions:)` | See Custom View Slots |
+| What to change | Where | Property/API |
+|----------------|-------|--------------|
+| Override send behavior | Callback | `set(onSendButtonClick:)` |
+| Track text input | Callback | `set(onTextChangedListener:)` |
+| Toggle visibility | Props | `hide<Feature>` boolean props |
+| Custom attachments | View Slot | `set(attachmentOptions:)` |
+| Replace UI sections | View Slot | `set(headerView:)`, `set(sendButtonView:)` |
+| Change colors, fonts | Style | `MessageComposerStyle` properties |
 
 ---
 
@@ -706,294 +483,41 @@ messageComposer.mentionStyle = mentionStyle
 
 All props are optional. Sorted alphabetically.
 
-### disableMentions
-
-Disables the @mention feature in the composer.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### disableSoundForMessages
-
-Disables sound when sending messages.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### disableTypingEvents
-
-Disables sending typing indicators when the user types.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### hideAttachmentButton
-
-Hides the attachment button.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### hideAIButton
-
-Hides the AI button in the composer.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideAIButton = true
-```
-
-### hideAudioAttachmentOption
-
-Hides the audio attachment option.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### hideCollaborativeDocumentOption
-
-Hides the collaborative document option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideCollaborativeDocumentOption = true
-```
-
-### hideCollaborativeWhiteboardOption
-
-Hides the collaborative whiteboard option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideCollaborativeWhiteboardOption = true
-```
-
-### hideFileAttachmentOption
-
-Hides the file attachment option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideFileAttachmentOption = true
-```
-
-### hideFooterView
-
-Hides the footer view below the composer.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideFooterView = true
-```
-
-### hideHeaderView
-
-Hides the header view above the composer.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideHeaderView = true
-```
-
-### hideImageAttachmentOption
-
-Hides the image attachment option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideImageAttachmentOption = true
-```
-
-### hidePollsOption
-
-Hides the polls option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hidePollsOption = true
-```
-
-### hideSendButton
-
-Hides the send button.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideSendButton = true
-```
-
-### hideStickersButton
-
-Hides the stickers button.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideStickersButton = true
-```
-
-### hideVideoAttachmentOption
-
-Hides the video attachment option in the attachment menu.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.hideVideoAttachmentOption = true
-```
-
-### hideVoiceRecordingButton
-
-Hides the voice recording button.
-
-| | |
-|---|---|
-| Type | `Bool` |
-| Default | `false` |
-
-### maxLine
-
-Sets the maximum number of lines for the composer input before scrolling.
-
-| | |
-|---|---|
-| Type | `Int` |
-| Default | `5` |
-
-### placeholderText
-
-Sets the placeholder text displayed in the composer input field when empty.
-
-| | |
-|---|---|
-| Type | `String` |
-| Default | `"Type a message..."` |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-messageComposer.placeholderText = "Write your message here..."
-```
-
-### textFormatters
-
-Array of text formatters for customizing text display (e.g., mentions).
-
-| | |
-|---|---|
-| Type | `[CometChatTextFormatter]` |
-| Default | `[]` |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `disableMentions` | `Bool` | `false` | Disables the @mention feature |
+| `disableSoundForMessages` | `Bool` | `false` | Disables sound when sending messages |
+| `disableTypingEvents` | `Bool` | `false` | Disables sending typing indicators |
+| `hideAIButton` | `Bool` | `false` | Hides the AI button |
+| `hideAttachmentButton` | `Bool` | `false` | Hides the attachment button |
+| `hideAudioAttachmentOption` | `Bool` | `false` | Hides the audio attachment option |
+| `hideCollaborativeDocumentOption` | `Bool` | `false` | Hides the collaborative document option |
+| `hideCollaborativeWhiteboardOption` | `Bool` | `false` | Hides the collaborative whiteboard option |
+| `hideFileAttachmentOption` | `Bool` | `false` | Hides the file attachment option |
+| `hideFooterView` | `Bool` | `false` | Hides the footer view |
+| `hideHeaderView` | `Bool` | `false` | Hides the header view |
+| `hideImageAttachmentOption` | `Bool` | `false` | Hides the image attachment option |
+| `hidePollsOption` | `Bool` | `false` | Hides the polls option |
+| `hideSendButton` | `Bool` | `false` | Hides the send button |
+| `hideStickersButton` | `Bool` | `false` | Hides the stickers button |
+| `hideVideoAttachmentOption` | `Bool` | `false` | Hides the video attachment option |
+| `hideVoiceRecordingButton` | `Bool` | `false` | Hides the voice recording button |
+| `maxLine` | `Int` | `5` | Maximum lines before scrolling |
+| `placeholderText` | `String` | `"Type a message..."` | Placeholder text |
+| `textFormatters` | `[CometChatTextFormatter]` | `[]` | Custom text formatters |
 
 ---
 
-## Text Formatter and Mention Methods
+## Methods
 
 ### set(textFormatter:)
 
 Sets a custom text formatter for the composer input.
 
 ```swift lines
-@discardableResult
-public func set(textFormatter: CometChatTextFormatter) -> Self
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `textFormatter` | `CometChatTextFormatter` | The text formatter to apply |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
+let composer = CometChatMessageComposer()
 let mentionFormatter = MentionTextFormatter(trackingCharacter: "@")
-messageComposer.set(textFormatter: mentionFormatter)
+composer.set(textFormatter: mentionFormatter)
 ```
 
 ### setDisableMentionAll(_:)
@@ -1001,21 +525,8 @@ messageComposer.set(textFormatter: mentionFormatter)
 Disables or enables the @all mention feature that notifies all group members.
 
 ```swift lines
-@discardableResult
-public func setDisableMentionAll(_ disable: Bool) -> Self
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `disable` | `Bool` | Whether to disable the @all mention feature |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-// Disable @all mentions
-messageComposer.setDisableMentionAll(true)
+let composer = CometChatMessageComposer()
+composer.setDisableMentionAll(true)
 ```
 
 ### setMentionAllLabel(_:_:)
@@ -1023,96 +534,14 @@ messageComposer.setDisableMentionAll(true)
 Customizes the label displayed for @all mentions in the suggestions list.
 
 ```swift lines
-@discardableResult
-public func setMentionAllLabel(_ title: String, _ subtitle: String) -> Self
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `title` | `String` | The title for the @all mention |
-| `subtitle` | `String` | The subtitle for the @all mention |
-
-```swift lines
-import CometChatUIKitSwift
-
-let messageComposer = CometChatMessageComposer()
-
-// Customize the @all mention label
-messageComposer.setMentionAllLabel("Everyone", "Notify all members in this group")
-```
-
----
-
-## Events
-
-The MessageComposer component does not emit any global UI events.
-
----
-
-## Common Patterns
-
-### Hide attachment options
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-messageComposer.hideImageAttachmentOption = true
-messageComposer.hideVideoAttachmentOption = true
-messageComposer.hideAudioAttachmentOption = true
-messageComposer.hideFileAttachmentOption = true
-```
-
-### Hide all auxiliary buttons
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-messageComposer.hideAttachmentButton = true
-messageComposer.hideVoiceRecordingButton = true
-messageComposer.hideStickersButton = true
-```
-
-### Disable typing indicators
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-messageComposer.disableTypingEvents = true
-```
-
-### Disable mentions
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-messageComposer.disableMentions = true
-```
-
-### Custom send button action
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-
-messageComposer.set(onSendButtonClick: { message in
-    // Custom send logic
-    print("Sending message: \(message)")
-})
-```
-
-### Disable message sounds
-
-```swift lines
-let messageComposer = CometChatMessageComposer()
-messageComposer.set(user: user)
-messageComposer.disableSoundForMessages = true
+let composer = CometChatMessageComposer()
+composer.setMentionAllLabel("Everyone", "Notify all members in this group")
 ```
 
 ---
 
 ## Related Components
 
-- [Message List](/ui-kit/ios/message-list) - Display messages in a conversation
-- [Message Header](/ui-kit/ios/message-header) - Display user/group details
-- [Messages](/ui-kit/ios/messages) - Parent component containing MessageComposer
-- [Mentions Formatter](/ui-kit/ios/mentions-formatter-guide) - Configure @mention formatting
+- [Message List](/ui-kit/ios/message-list) — Display messages in a conversation
+- [Message Header](/ui-kit/ios/message-header) — Display user/group details
+- [Mentions Formatter](/ui-kit/ios/mentions-formatter-guide) — Configure @mention formatting
