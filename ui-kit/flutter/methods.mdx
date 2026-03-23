@@ -3,7 +3,7 @@ title: "Methods"
 description: "Reference for CometChat Flutter UI Kit methods including init, login, logout, and message-sending wrappers."
 ---
 
-<Accordion title="AI Agent Component Spec">
+<Accordion title="AI Integration Quick Reference">
 
 | Field | Value |
 | --- | --- |
@@ -20,23 +20,29 @@ description: "Reference for CometChat Flutter UI Kit methods including init, log
 
 </Accordion>
 
-## Overview
+`CometChatUIKit` provides wrapper methods around the CometChat SDK for initialization, authentication, user management, date formatting, and sending messages — while automatically managing internal UI Kit events so that components like Message List and Conversations stay in sync.
 
-The UI Kit's core function is to extend the [Chat SDK](/sdk/flutter/overview), essentially translating the raw data and functionality provided by the underlying methods into visually appealing and easy-to-use UI components.
+## When to use this
 
-To effectively manage and synchronize the UI elements and data across all components in the UI Kit, we utilize internal events. These internal events enable us to keep track of changes in real-time and ensure that the UI reflects the most current state of data.
+- You need to initialize the CometChat UI Kit and SDK before rendering any UI components.
+- You need to log a user in or out of CometChat using an Auth Key (development) or Auth Token (production).
+- You need to create or update a CometChat user dynamically from your app.
+- You need to send text, media, custom, or interactive messages through the UI Kit so that the Message List and Conversations components update automatically.
+- You need to customize how dates and times are displayed across all UI Kit components.
 
-The CometChat UI Kit has thoughtfully encapsulated the critical [Chat SDK](/sdk/flutter/overview) methods within its wrapper to efficiently manage internal eventing. This layer of abstraction simplifies interaction with the underlying CometChat SDK, making it more user-friendly for developers.
+## Prerequisites
 
-## Methods
+- The `cometchat_chat_uikit` package added to your project.
+- Your CometChat App ID, Region, and Auth Key (or Auth Token) from the [CometChat dashboard](https://app.cometchat.com/).
+- `CometChatUIKit.init()` called before invoking any other UI Kit method.
 
-You can access the methods using the `CometChatUIKit` class. This class provides access to all the public methods exposed by the CometChat UI Kit.
+## API Reference
 
-### Init
+### Initialization
 
-As a developer, you need to invoke this method every time before you use any other methods provided by the UI Kit.
+#### Init
 
-This initialization is a critical step that ensures the UI Kit and Chat SDK function correctly and as intended in your application. Typical practice is to make this one of the first lines of code executed in your application's lifecycle when it comes to implementing CometChat.
+You must invoke this method before using any other methods provided by the UI Kit. This initialization ensures the UI Kit and Chat SDK function correctly in your application. Call this as one of the first lines of code in your application's lifecycle.
 
 <Warning>
 `CometChatUIKit.init()` must be called before rendering any UI Kit components or calling any SDK methods. Initialization must complete before login.
@@ -47,12 +53,12 @@ Auth Key is for development/testing only. In production, generate Auth Tokens on
 </Warning>
 
 <Note>
-Make sure you replace the **APP\_ID**, **REGION** and **AUTH\_KEY** with your CometChat App ID, Region and Auth Key in the below code. The `Auth Key` is an optional property of the `UIKitSettings` Class. It is intended for use primarily during proof-of-concept (POC) development or in the early stages of application development. You can use the [Auth Token](#login-using-auth-token) to log in securely.
+Replace `APP_ID`, `REGION`, and `AUTH_KEY` with values from the CometChat Dashboard. `Auth Key` is optional — use [Auth Token](#login-using-auth-token) for production.
 </Note>
 
-As a developer, the `UIKitSettings` is an important parameter of the `init()` function. It functions as a base settings object, housing properties such as `appId`, `region`, and `authKey`, contained within `UIKitSettings`.
+The `UIKitSettings` is an important parameter of the `init()` function. It serves as the base settings object, housing properties such as `appId`, `region`, and `authKey`.
 
-Here's the table format for the properties available in `UIKitSettings`:
+#### UIKitSettings Properties
 
 | Method                            | Type                          | Description                                                                                                                           |
 | --------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -69,13 +75,11 @@ Here's the table format for the properties available in `UIKitSettings`:
 | **clientHost**                    | `String`                      | Sets a custom client host URL                                                                                                         |
 | **dateTimeFormatterCallback**     | `DateTimeFormatterCallback`   | Sets a custom date/time formatter for consistent formatting across all UI components                                                  |
 
-***
-
-The concluding code block:
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
-```dart highlight={3-5}
+```dart
 UIKitSettings uiKitSettings = (UIKitSettingsBuilder()
   ..subscriptionType = CometChatSubscriptionType.allUsers
   ..autoEstablishSocketConnection = true
@@ -94,20 +98,24 @@ CometChatUIKit.init(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Creates a `UIKitSettings` object with your app ID, region, and auth key, then initializes the CometChat UI Kit. On success, the SDK and UI Kit are ready for use. On error, the callback provides failure details.
 
-### Login using Auth Key
+---
 
-Only the `UID` of a user is needed to log in. This simple authentication procedure is useful when you are creating a POC or if you are in the development phase. For production apps, we suggest you use [AuthToken](#login-using-auth-token) instead of Auth Key.
+### Authentication
+
+#### Login using Auth Key
+
+Only the `UID` of a user is needed to log in. This simple authentication procedure is useful when you are creating a POC or if you are in the development phase. For production apps, use [Auth Token](#login-using-auth-token) instead of Auth Key.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
-```dart highlight={1}
+```dart
 String uid = "user1";
 
 CometChatUIKit.login(
@@ -120,26 +128,26 @@ CometChatUIKit.login(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Logs in a user by their `UID` using the Auth Key configured during initialization. On success, the `User` object is returned. On error, the callback provides failure details.
 
-### Login using Auth Token
+---
+
+#### Login using Auth Token
 
 Production-safe authentication that does not expose the Auth Key in client code.
 
 1. [Create a User](https://api-explorer.cometchat.com/reference/creates-user) via the CometChat API when the user signs up in your app.
-
 2. [Create an Auth Token](https://api-explorer.cometchat.com/reference/create-authtoken) via the CometChat API for the new user and save the token in your database.
-
 3. Load the Auth Token in your client and pass it to the `loginWithAuthToken()` method.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
-```dart highlight={1}
+```dart
 String authToken = "AUTH_TOKEN";
 
 CometChatUIKit.loginWithAuthToken(
@@ -152,178 +160,191 @@ CometChatUIKit.loginWithAuthToken(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Logs in a user using a server-generated Auth Token instead of an Auth Key. This is the recommended approach for production apps because the Auth Key never appears in client code. On success, the `User` object is returned.
 
-### Logout
+---
 
-The CometChat UI Kit and Chat SDK effectively handle the session of the logged-in user within the framework. Before a new user logs in, it is crucial to clean this data to avoid potential conflicts or unexpected behavior. This can be achieved by invoking the `.logout()` function
+#### Logout
+
+The CometChat UI Kit and Chat SDK effectively handle the session of the logged-in user within the framework. Before a new user logs in, it is crucial to clean this data to avoid potential conflicts or unexpected behavior. This can be achieved by invoking the `logout()` function.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.logout(onSuccess: (s) {
-    // TODO("Not yet implemented")
-} , onError: (e) {
-    // TODO("Not yet implemented")
-});
+CometChatUIKit.logout(
+  onSuccess: (s) {
+    // Logout successful
+  },
+  onError: (e) {
+    // Handle logout error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Logs out the current user, clears the session data, and tears down the internal event system. Call this before logging in a different user to avoid conflicts.
 
-### Create User
+---
 
-As a developer, you can dynamically create users on CometChat using the `.createUser()` function. This can be extremely useful for situations where users are registered or authenticated by your system and then need to be created on CometChat.
+### User Management
+
+#### Create User
+
+You can dynamically create users on CometChat using the `createUser()` function. This is useful when users are registered or authenticated by your system and then need to be created on CometChat.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.createUser(userObject, onSuccess: (user) {
-  // TODO("Not yet implemented")
-}, onError: (e) {
-  // TODO("Not yet implemented")
-});
+User user = User(uid: "user_uid", name: "user_name");
+
+CometChatUIKit.createUser(
+  user,
+  onSuccess: (user) {
+    // User created successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Creates a new user on CometChat with the specified UID and name. On success, the created `User` object is returned. On error, the callback provides failure details.
 
-### Update User
+---
 
-As a developer, you can update user details using the `.updateUser()` function. This should ideally be achieved at your backend using the Restful APIs, but can also be done client-side when needed.
+#### Update User
+
+You can update user details using the `updateUser()` function. This should ideally be achieved at your backend using the Restful APIs, but can also be done client-side when needed.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.updateUser(userObject, onSuccess: (user) {
-  // TODO("Not yet implemented")
-}, onError: (e) {
-  // TODO("Not yet implemented")
-});
+User user = User(uid: "user_uid", name: "updated_name");
+
+CometChatUIKit.updateUser(
+  user,
+  onSuccess: (user) {
+    // User updated successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Updates an existing user's details on CometChat. On success, the updated `User` object is returned.
 
-### Get Logged In User
+---
 
-You can check if there is any existing session in the SDK and retrieve the details of the logged-in user using the `.getLoggedInUser()` function.
+#### Get Logged In User
+
+You can check if there is any existing session in the SDK and retrieve the details of the logged-in user using the `getLoggedInUser()` function.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.getLoggedInUser(onSuccess: (user) {
-  // TODO("Not yet implemented")
-}, onError: (e) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.getLoggedInUser(
+  onSuccess: (user) {
+    if (user != null) {
+      // User is logged in
+    } else {
+      // No user logged in
+    }
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Checks for an existing session in the SDK. Returns the logged-in user details or `null` if no user is logged in.
+
+---
 
 ### DateFormatter
 
-By providing a custom implementation of the DateTimeFormatterCallback, you can globally configure how time and date values are displayed across all UI components in the CometChat UI Kit. This ensures consistent formatting for labels such as "Today", "Yesterday", "X minutes ago", and more, throughout the entire application.
+By providing a custom implementation of the `DateTimeFormatterCallback`, you can globally configure how time and date values are displayed across all UI components in the CometChat UI Kit. This ensures consistent formatting for labels such as "Today", "Yesterday", "X minutes ago", and more, throughout the entire application.
 
 Each method in the interface corresponds to a specific case:
 
-* time(int? timestamp) → Custom full timestamp format
-* today(int? timestamp) → Called when a message is from today
-* yesterday(int? timestamp) → Called for yesterday’s messages
-* lastWeek(int? timestamp) → Messages from the past week
-* otherDays(int? timestamp) → Older messages
-* minute(int? timestamp) / hour(int? timestamp) → Exact time unit
-* minutes(int? diffInMinutesFromNow, int? timestamp) → e.g., "5 minutes ago"
-* hours(int? diffInHourFromNow, int? timestamp) → e.g., "2 hours ago"
+- `time(int? timestamp)` → Custom full timestamp format
+- `today(int? timestamp)` → Called when a message is from today
+- `yesterday(int? timestamp)` → Called for yesterday's messages
+- `lastWeek(int? timestamp)` → Messages from the past week
+- `otherDays(int? timestamp)` → Older messages
+- `minute(int? timestamp)` / `hour(int? timestamp)` → Exact time unit
+- `minutes(int? diffInMinutesFromNow, int? timestamp)` → e.g., "5 minutes ago"
+- `hours(int? diffInHourFromNow, int? timestamp)` → e.g., "2 hours ago"
+
+#### Usage
 
 <Tabs>
-
 <Tab title="Dart">
 ```dart
 import 'package:cometchat_chat_uikit/cometchat_chat_uikit.dart';
 import 'package:intl/intl.dart';
 
-/// Custom implementation of DateTimeFormatterCallback
-/// to format time and date display in the CometChat UI.
 class DateFormatter extends DateTimeFormatterCallback {
-  /// Formatter for displaying full time like "10:45 PM"
   final DateFormat fullTimeFormatter = DateFormat('hh:mm a');
-
-  /// Formatter for displaying date like "23 Jun 2025"
   final DateFormat dateFormatter = DateFormat('dd MMM yyyy');
 
-  /// Returns formatted time (e.g., "10:45 PM") for a given timestamp.
   @override
   String? time(int? timestamp) {
     if (timestamp == null) return null;
     return fullTimeFormatter.format(DateTime.fromMillisecondsSinceEpoch(timestamp));
   }
 
-  /// Returns a static label for messages sent today.
   @override
-  String? today(int? timestamp) {
-    return "Today";
-  }
+  String? today(int? timestamp) => "Today";
 
-  /// Returns a static label for messages sent yesterday.
   @override
-  String? yesterday(int? timestamp) {
-    return "Yesterday";
-  }
+  String? yesterday(int? timestamp) => "Yesterday";
 
-  /// Returns a static label for messages sent last week.
   @override
-  String? lastWeek(int? timestamp) {
-    return "Last Week";
-  }
+  String? lastWeek(int? timestamp) => "Last Week";
 
-  /// Returns formatted date (e.g., "23 Jun 2025") for other days.
   @override
   String? otherDays(int? timestamp) {
     if (timestamp == null) return null;
     return dateFormatter.format(DateTime.fromMillisecondsSinceEpoch(timestamp));
   }
 
-  /// Returns relative time in minutes (e.g., "5 mins ago").
   @override
   String? minutes(int? diffInMinutesFromNow, int? timestamp) {
     if (diffInMinutesFromNow == null) return null;
     return "$diffInMinutesFromNow mins ago";
   }
 
-  /// Returns relative time in hours (e.g., "2 hrs ago").
   @override
   String? hours(int? diffInHourFromNow, int? timestamp) {
     if (diffInHourFromNow == null) return null;
     return "$diffInHourFromNow hrs ago";
   }
 
-  /// (Optional) Returns formatted hour (e.g., "3 PM") if used by SDK.
   @override
   String? hour(int? timestamp) {
     if (timestamp == null) return null;
     return DateFormat('h a').format(DateTime.fromMillisecondsSinceEpoch(timestamp));
   }
 
-  /// (Optional) Returns formatted minute value (e.g., "09") if used by SDK.
   @override
   String? minute(int? timestamp) {
     if (timestamp == null) return null;
@@ -331,71 +352,47 @@ class DateFormatter extends DateTimeFormatterCallback {
   }
 }
 
-// Build CometChat UIKit settings
+// Apply the custom formatter during initialization
 UIKitSettings uiKitSettings = (UIKitSettingsBuilder()
-      // Set subscription type (e.g., receive messages from all users)
-      ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "your_region"
+  ..appId = "your_appID"
+  ..authKey = "your_authKey"
+  ..dateTimeFormatterCallback = DateFormatter()
+).build();
 
-      // Set your CometChat region
-      ..region = AppCredentials.region
-
-      // Automatically connect to socket server
-      ..autoEstablishSocketConnection = true
-
-      // CometChat App ID and Auth Key
-      ..appId = AppCredentials.appId
-      ..authKey = AppCredentials.authKey
-
-      // Enable calling feature
-      ..callingExtension = CometChatCallingExtension()
-
-      // Load default chat extensions (e.g., polls, stickers, reactions)
-      ..extensions = CometChatUIKitChatExtensions.getDefaultExtensions()
-
-      // Load default AI features (e.g., Smart Replies, Sentiment Analysis)
-      ..aiFeature = CometChatUIKitChatAIFeatures.getDefaultAiFeatures()
-
-      // Inject the custom date and time formatter
-      ..dateTimeFormatterCallback = DateFormatter()
-    )
-    .build();
-
-// Initialize CometChat UIKit with the configured settings
 CometChatUIKit.init(
   uiKitSettings: uiKitSettings,
-  
-  // Callback when initialization is successful
   onSuccess: (successMessage) async {
-    // On success 
+    // Initialization successful
   },
-  
-  // Callback when initialization fails
   onError: (e) {
-    shouldGoToHomeScreen.value = false;
-    if (kDebugMode) {
-      debugPrint("Initialization failed with error: ${e.details}");
-    }
+    // Handle error
   },
 );
-
-
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Configures a custom `DateTimeFormatterCallback` on `UIKitSettings` and passes it to `CometChatUIKit.init()`. This globally overrides how timestamps appear across all UI Kit components — today's messages show "Today", yesterday's show "Yesterday", recent messages show "X mins ago" or "X hrs ago", last week's show "Last Week", and older messages show the full date in "dd MMM yyyy" format.
+
+---
 
 ### Base Message
 
 #### Text Message
 
-Sends a text message in a 1:1 or group chat. Takes a `TextMessage` object.
+To send a text message to a single user or a group, use the `sendTextMessage()` function. This function requires a `TextMessage` object as its argument, which contains the necessary information for delivering the message.
+
+<Note>
+`CometChatUIKit.sendTextMessage()` automatically adds the message to the [MessageList](/ui-kit/flutter/message-list) and [Conversations](/ui-kit/flutter/conversations) components, handling all related cases for you. In contrast, `CometChat.sendTextMessage()` only sends the message without updating these UI Kit components.
+</Note>
+
+#### Usage
 
 <Tabs>
 <Tab title="1:1 Chat">
-```dart highlight={1-2}
+```dart
 String receiverID = "UID";
 String messageText = "Hello world!";
 
@@ -415,11 +412,9 @@ CometChatUIKit.sendTextMessage(
   },
 );
 ```
-
 </Tab>
-
 <Tab title="Group Chat">
-```dart highlight={1-2}
+```dart
 String receiverID = "GUID";
 String messageText = "Hello world!";
 
@@ -439,20 +434,26 @@ CometChatUIKit.sendTextMessage(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Creates a `TextMessage` targeting a user or group, then sends it through the UI Kit. The message automatically appears in the Message List and Conversations components.
+
+---
 
 #### Media Message
 
-Sends a media message in a 1:1 or group chat. Takes a `MediaMessage` object.
+To send a media message to a single user or a group, use the `sendMediaMessage()` function. This function requires a `MediaMessage` object as its argument, which contains the necessary information for delivering the message.
+
+<Note>
+`CometChatUIKit.sendMediaMessage()` automatically adds the message to the [MessageList](/ui-kit/flutter/message-list) and [Conversations](/ui-kit/flutter/conversations) components, handling all related cases for you. In contrast, `CometChat.sendMediaMessage()` only sends the message without updating these UI Kit components.
+</Note>
+
+#### Usage
 
 <Tabs>
 <Tab title="1:1 Chat">
-```dart highlight={1-2}
+```dart
 String receiverID = "UID";
 String filePath = "/path/to/file";
 
@@ -473,11 +474,9 @@ CometChatUIKit.sendMediaMessage(
   },
 );
 ```
-
 </Tab>
-
 <Tab title="Group Chat">
-```dart highlight={1-2}
+```dart
 String receiverID = "GUID";
 String filePath = "/path/to/file";
 
@@ -498,20 +497,30 @@ CometChatUIKit.sendMediaMessage(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Creates a `MediaMessage` with a file path and message type, then sends it through the UI Kit. The message automatically appears in the Message List and Conversations components.
+
+---
 
 #### Custom Message
 
-Sends a custom message (neither text nor media) in a 1:1 or group chat. Takes a `CustomMessage` object.
+To send a custom message (neither text nor media) to a single user or a group, use the `sendCustomMessage()` function. This function requires a `CustomMessage` object as its argument, which contains the necessary information for delivering the message.
+
+<Note>
+`CometChatUIKit.sendCustomMessage()` automatically adds the message to the [MessageList](/ui-kit/flutter/message-list) and [Conversations](/ui-kit/flutter/conversations) components, handling all related cases for you. In contrast, `CometChat.sendCustomMessage()` only sends the message without updating these UI Kit components.
+</Note>
+
+<Note>
+To display custom messages in the [MessageList](/ui-kit/flutter/message-list), you must create and register a new [MessageTemplate](/ui-kit/flutter/message-template) that defines how to render your custom message type.
+</Note>
+
+#### Usage
 
 <Tabs>
 <Tab title="1:1 Chat">
-```dart highlight={1,3-4}
+```dart
 String receiverID = "UID";
 Map<String, dynamic> customData = {
   "latitude": "50.6192171633316",
@@ -536,11 +545,9 @@ CometChatUIKit.sendCustomMessage(
   },
 );
 ```
-
 </Tab>
-
 <Tab title="Group Chat">
-```dart highlight={1,3-4}
+```dart
 String receiverID = "GUID";
 Map<String, dynamic> customData = {
   "latitude": "50.6192171633316",
@@ -565,133 +572,188 @@ CometChatUIKit.sendCustomMessage(
   },
 );
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Creates a `CustomMessage` with a custom type string and data payload, then sends it through the UI Kit. The message automatically appears in the Message List and Conversations components.
+
+---
 
 ### Interactive Message
 
 #### Form Message
 
-As a developer, if you need to send a Form message to a single user or a group, you'll need to utilize the `sendFormMessage()` function. This function requires a `FormMessage` object as its argument, which contains the necessary information to create a form bubble for that messages
+To send a Form message to a single user or a group, use the `sendFormMessage()` function. This function requires a `FormMessage` object as its argument, which contains the necessary information to create a form bubble for that message.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.sendFormMessage(formMessageObject, onSuccess: (p0) {
-  // TODO("Not yet implemented")
-}, onError: (p0) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.sendFormMessage(
+  formMessageObject,
+  onSuccess: (message) {
+    // Form message sent successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Sends a `FormMessage` that renders as an interactive form bubble in the chat. Users can fill out form fields and submit responses.
+
+---
 
 #### Card Message
 
-As a developer, if you need to send a Card message to a single user or a group, you'll need to utilize the `sendCardMessage()` function. This function requires a `CardMessage` object as its argument, which contains the necessary information to create a card bubble for the messages
+To send a Card message to a single user or a group, use the `sendCardMessage()` function. This function requires a `CardMessage` object as its argument, which contains the necessary information to create a card bubble for the message.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.sendCardMessage(cardMessageObject, onSuccess: (p0) {
-  // TODO("Not yet implemented")
-}, onError: (p0) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.sendCardMessage(
+  cardMessageObject,
+  onSuccess: (message) {
+    // Card message sent successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Sends a `CardMessage` that renders as an interactive card bubble in the chat with customizable actions.
+
+---
 
 #### Scheduler Message
 
-As a developer, if you need to send a Scheduler message to a single user or a group, you'll need to utilize the `sendSchedulerMessage()` function. This function requires a `SchedulerMessage` object as its argument, which contains the necessary information to create a SchedulerMessage bubble for the messages
+To send a Scheduler message to a single user or a group, use the `sendSchedulerMessage()` function. This function requires a `SchedulerMessage` object as its argument, which contains the necessary information to create a scheduler bubble for the message.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.sendSchedulerMessage(schedulerMessageObject, onSuccess: (p0) {
-  // TODO("Not yet implemented")
-}, onError: (p0) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.sendSchedulerMessage(
+  schedulerMessageObject,
+  onSuccess: (message) {
+    // Scheduler message sent successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Sends a `SchedulerMessage` that renders as an interactive scheduling bubble in the chat for booking appointments or meetings.
+
+---
 
 #### Custom Interactive Message
 
-As a developer, if you need to send a Interactive message to a single user or a group, you'll need to utilize the `sendCustomInteractiveMessage()` function. This function requires a `InteractiveMessage` object as its argument, which contains the necessary information to create a custom interactive message bubble for the messages
+To send a custom interactive message to a single user or a group, use the `sendCustomInteractiveMessage()` function. This function requires an `InteractiveMessage` object as its argument, which contains the necessary information to create a custom interactive message bubble.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.sendCustomInteractiveMessage(interactiveMessageObject, onSuccess: (p0) {
-  // TODO("Not yet implemented")
-}, onError: (p0) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.sendCustomInteractiveMessage(
+  interactiveMessageObject,
+  onSuccess: (message) {
+    // Custom interactive message sent successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Sends a custom `InteractiveMessage` that can be rendered with your own custom interactive UI.
+
+---
 
 ### Reactions
 
 #### Add Reaction
 
-As a developer, you can add a reaction to a message using the `addReaction()` function. This will update the UI of `CometChatMessageList` and `CometChatReactions` accordingly.
+You can add a reaction to a message using the `addReaction()` function. This will update the UI of `CometChatMessageList` and `CometChatReactions` accordingly.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.addReaction(messageId, "👍", onSuccess: (message) {
-  // TODO("Not yet implemented")
-}, onError: (e) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.addReaction(
+  messageId,
+  "👍",
+  onSuccess: (message) {
+    // Reaction added successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Adds a reaction emoji to the specified message. The UI Kit automatically updates the Message List and Reactions components to reflect the change.
+
+---
 
 #### Remove Reaction
 
-As a developer, you can remove a reaction from a message using the `removeReaction()` function. This will update the UI of `CometChatMessageList` and `CometChatReactions` accordingly.
+You can remove a reaction from a message using the `removeReaction()` function. This will update the UI of `CometChatMessageList` and `CometChatReactions` accordingly.
+
+#### Usage
 
 <Tabs>
 <Tab title="Dart">
 ```dart
-CometChatUIKit.removeReaction(messageId, "👍", onSuccess: (message) {
-  // TODO("Not yet implemented")
-}, onError: (e) {
-  // TODO("Not yet implemented")
-});
+CometChatUIKit.removeReaction(
+  messageId,
+  "👍",
+  onSuccess: (message) {
+    // Reaction removed successfully
+  },
+  onError: (e) {
+    // Handle error
+  },
+);
 ```
-
 </Tab>
-
 </Tabs>
 
-***
+> **What this does:** Removes a reaction emoji from the specified message. The UI Kit automatically updates the Message List and Reactions components to reflect the change.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Events" href="/ui-kit/flutter/events">
+    Listen and respond to UI Kit events.
+  </Card>
+  <Card title="Getting Started" href="/ui-kit/flutter/getting-started">
+    Set up CometChat Flutter UI Kit.
+  </Card>
+  <Card title="Message List" href="/ui-kit/flutter/message-list">
+    Display and customize chat messages.
+  </Card>
+  <Card title="Conversations" href="/ui-kit/flutter/conversations">
+    Manage conversation lists.
+  </Card>
+</CardGroup>
