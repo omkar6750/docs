@@ -105,7 +105,7 @@ Initialize CometChat in your app's entry file. Select your setup:
 <Tabs>
 <Tab title="Vite">
 
-```tsx {12-14} src/main.tsx
+```tsx lines highlight={12-14} src/main.tsx
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
@@ -143,15 +143,15 @@ CometChatUIKit.init(uiKitSettings)?.then(() => {
 
 <Tab title="CRA">
 
-```tsx {12-14} src/index.tsx
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
+```tsx lines highlight={12-14} src/index.tsx
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
 import {
   UIKitSettingsBuilder,
   CometChatUIKit,
 } from "@cometchat/chat-uikit-react";
-import { setupLocalization } from "./CometChat/utils/utils";
+import { setupLocalization } from "./CometChat/utils/utils.ts";
 import { CometChatProvider } from "./CometChat/context/CometChatContext";
 
 export const COMETCHAT_CONSTANTS = {
@@ -169,7 +169,7 @@ const uiKitSettings = new UIKitSettingsBuilder()
 
 CometChatUIKit.init(uiKitSettings)?.then(() => {
   setupLocalization();
-  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  createRoot(document.getElementById("root")!).render(
     <CometChatProvider>
       <App />
     </CometChatProvider>,
@@ -205,30 +205,29 @@ Log in the user after initialization — useful when login happens later in your
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```ts lines highlight={3}
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
 const UID = "YOUR_UID"; // Replace with your actual UID
 
 CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
-if (!user) {
-// If no user is logged in, proceed with login
-CometChatUIKit.login(UID)
-.then((user: CometChat.User) => {
-console.log("Login Successful:", { user });
-// Mount your app
-})
-.catch(console.log);
-} else {
-// If user is already logged in, mount your app
-}
+  if (!user) {
+    // If no user is logged in, proceed with login
+    CometChatUIKit.login(UID)
+      .then((user: CometChat.User) => {
+        console.log("Login Successful:", { user });
+        // Mount your app
+      })
+      .catch(console.log);
+  } else {
+    // If user is already logged in, mount your app
+  }
 });
-
-````
+```
 </Tab>
 
 <Tab title="JavaScript">
-```js
+```js lines highlight={3}
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
 const UID = "YOUR_UID"; // Replace with your actual UID
@@ -246,7 +245,7 @@ CometChatUIKit.getLoggedinUser().then((user) => {
     // If user is already logged in, mount your app
   }
 });
-````
+```
 
 </Tab>
 </Tabs>
@@ -257,7 +256,7 @@ Alternatively, log in the user immediately inside `CometChatUIKit.init()` — id
 
 <Tabs>
 <Tab title="TypeScript">
-```ts {12-14}
+```ts lines highlight={12-14}
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
@@ -275,48 +274,50 @@ export const COMETCHAT_CONSTANTS = {
 };
 
 const uiKitSettings = new UIKitSettingsBuilder()
-.setAppId(COMETCHAT_CONSTANTS.APP_ID)
-.setRegion(COMETCHAT_CONSTANTS.REGION)
-.setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-.subscribePresenceForAllUsers()
-.build();
+  .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+  .setRegion(COMETCHAT_CONSTANTS.REGION)
+  .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+  .subscribePresenceForAllUsers()
+  .build();
 
 CometChatUIKit.init(uiKitSettings)?.then(() => {
-setupLocalization();
+  setupLocalization();
 
-const UID = "YOUR_UID"; // Replace with your actual UID
+  const UID = "YOUR_UID"; // Replace with your actual UID
 
-CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
-if (!user) {
-CometChatUIKit.login(UID)
-.then((loggedUser: CometChat.User) => {
-console.log("Login Successful:", loggedUser);
-// Mount your app
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-
-<CometChatProvider>
-<App />
-</CometChatProvider>
-);
-})
-.catch((error) => console.error("Login Failed:", error));
-} else {
-// User already logged in, mount app directly
-console.log("User already logged in:", user);
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-<CometChatProvider>
-<App />
-</CometChatProvider>
-);
-}
+  CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
+    if (!user) {
+      CometChatUIKit.login(UID)
+        .then((loggedUser: CometChat.User) => {
+          console.log("Login Successful:", loggedUser);
+          // Mount your app
+          ReactDOM.createRoot(
+            document.getElementById("root") as HTMLElement,
+          ).render(
+            <CometChatProvider>
+              <App />
+            </CometChatProvider>,
+          );
+        })
+        .catch((error) => console.error("Login Failed:", error));
+    } else {
+      // User already logged in, mount app directly
+      console.log("User already logged in:", user);
+      ReactDOM.createRoot(
+        document.getElementById("root") as HTMLElement,
+      ).render(
+        <CometChatProvider>
+          <App />
+        </CometChatProvider>,
+      );
+    }
+  });
 });
-});
-
-````
+```
 </Tab>
 
 <Tab title="JavaScript">
-```js {12-14}
+```js lines highlight={12-14}
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
@@ -354,7 +355,7 @@ CometChatUIKit.init(uiKitSettings)?.then(() => {
           ReactDOM.createRoot(document.getElementById("root")).render(
             <CometChatProvider>
               <App />
-            </CometChatProvider>
+            </CometChatProvider>,
           );
         })
         .catch((error) => console.error("Login Failed:", error));
@@ -364,12 +365,12 @@ CometChatUIKit.init(uiKitSettings)?.then(() => {
       ReactDOM.createRoot(document.getElementById("root")).render(
         <CometChatProvider>
           <App />
-        </CometChatProvider>
+        </CometChatProvider>,
       );
     }
   });
 });
-````
+```
 
 </Tab>
 </Tabs>
@@ -388,7 +389,7 @@ Auth Key is perfect for prototyping. For production apps, switch to Auth Token f
 
 Render the chat UI by adding `CometChatApp` to your component:
 
-```javascript
+```javascript lines
 import CometChatApp from "./CometChat/CometChatApp";
 
 const App = () => {
@@ -411,15 +412,17 @@ You can also render the component with default user and group selection:
 
 <Tabs>
 <Tab title="TypeScript">
-```tsx
+```tsx lines highlight={12}
 import { useEffect, useState } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import CometChatApp from "./CometChat/CometChatApp";
 const App = () => {
-  const [selectedUser, setSelectedUser] =
-    useState<CometChat.User | undefined>(undefined);
-  const [selectedGroup, setSelectedGroup] =
-    useState<CometChat.Group | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = useState<CometChat.User | undefined>(
+    undefined,
+  );
+  const [selectedGroup, setSelectedGroup] = useState<
+    CometChat.Group | undefined
+  >(undefined);
   useEffect(() => {
     const UID = "cometchat-uid-2"; // Replace with your User ID
     CometChat.getUser(UID).then(setSelectedUser).catch(console.error);
@@ -440,7 +443,7 @@ export default App;
 </Tab>
 
 <Tab title="JavaScript">
-```jsx
+```jsx lines highlight={8}
 import { useEffect, useState } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import CometChatApp from "./CometChat/CometChatApp";

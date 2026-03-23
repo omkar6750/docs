@@ -100,7 +100,7 @@ Copy the `cometchat-app-react/src/CometChat` folder inside your `src/app` direct
 
 Directory Structure:
 
-```swift
+```swift lines
 src/app/
 ├── CometChat/
 └── CometChatNoSSR/
@@ -109,7 +109,7 @@ src/app/
 
 src/app/CometChatNoSSR/CometChatNoSSR.tsx
 
-```javascript {11-13}
+```javascript lines highlight={11-13}
 import React, { useEffect } from "react";
 import {
   CometChatUIKit,
@@ -180,31 +180,30 @@ Log in the user after initialization — useful when login happens later in your
 
 <Tabs>
 <Tab title="TypeScript">
-```ts
+```ts lines highlight={3}
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
 const UID = "YOUR_UID"; // Replace with your actual UID
 
 CometChatUIKit.getLoggedinUser().then((user: CometChat.User | null) => {
-if (!user) {
-// If no user is logged in, proceed with login
-CometChatUIKit.login(UID)
-.then((user: CometChat.User) => {
-console.log("Login Successful:", { user });
-// Mount your app
-})
-.catch(console.log);
-} else {
-// If user is already logged in, mount your app
-}
+  if (!user) {
+    // If no user is logged in, proceed with login
+    CometChatUIKit.login(UID)
+      .then((user: CometChat.User) => {
+        console.log("Login Successful:", { user });
+        // Mount your app
+      })
+      .catch(console.log);
+  } else {
+    // If user is already logged in, mount your app
+  }
 });
-
-````
+```
 
 </Tab>
 
 <Tab title="JavaScript">
-```js
+```js lines highlight={3}
 import { CometChatUIKit } from "@cometchat/chat-uikit-react";
 
 const UID = "YOUR_UID"; // Replace with your actual UID
@@ -222,7 +221,7 @@ CometChatUIKit.getLoggedinUser().then((user) => {
     // If user is already logged in, mount your app
   }
 });
-````
+```
 
 </Tab>
 
@@ -234,7 +233,7 @@ Alternatively, log in the user immediately inside `CometChatUIKit.init()` — id
 
 <Tabs>
 <Tab title="TypeScript">
-```ts {11-13}
+```ts lines highlight={11-13}
 import React, { useEffect } from "react";
 import {
   CometChatUIKit,
@@ -251,13 +250,13 @@ export const COMETCHAT_CONSTANTS = {
 };
 
 const CometChatNoSSR: React.FC = () => {
-useEffect(() => {
-const UIKitSettings = new UIKitSettingsBuilder()
-.setAppId(COMETCHAT_CONSTANTS.APP_ID)
-.setRegion(COMETCHAT_CONSTANTS.REGION)
-.setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-.subscribePresenceForAllUsers()
-.build();
+  useEffect(() => {
+    const UIKitSettings = new UIKitSettingsBuilder()
+      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+      .setRegion(COMETCHAT_CONSTANTS.REGION)
+      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+      .subscribePresenceForAllUsers()
+      .build();
 
     CometChatUIKit.init(UIKitSettings)
       ?.then(() => {
@@ -283,17 +282,15 @@ const UIKitSettings = new UIKitSettingsBuilder()
         });
       })
       .catch((error) => console.error("Initialization failed", error));
+  }, []);
 
-}, []);
-
-return (
-
-<div style={{ width: "100vw", height: "100vh" }}>
-<CometChatProvider>
-<CometChatApp />
-</CometChatProvider>
-</div>
-);
+  return (
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatProvider>
+        <CometChatApp />
+      </CometChatProvider>
+    </div>
+  );
 };
 
 export default CometChatNoSSR;
@@ -302,7 +299,7 @@ export default CometChatNoSSR;
 </Tab>
 
 <Tab title="JavaScript">
-```js {11-13}
+```js lines highlight={11-13}
 import React, { useEffect } from "react";
 import {
   CometChatUIKit,
@@ -319,13 +316,13 @@ export const COMETCHAT_CONSTANTS = {
 };
 
 const CometChatNoSSR = () => {
-useEffect(() => {
-const UIKitSettings = new UIKitSettingsBuilder()
-.setAppId(COMETCHAT_CONSTANTS.APP_ID)
-.setRegion(COMETCHAT_CONSTANTS.REGION)
-.setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-.subscribePresenceForAllUsers()
-.build();
+  useEffect(() => {
+    const UIKitSettings = new UIKitSettingsBuilder()
+      .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+      .setRegion(COMETCHAT_CONSTANTS.REGION)
+      .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+      .subscribePresenceForAllUsers()
+      .build();
 
     CometChatUIKit.init(UIKitSettings)
       ?.then(() => {
@@ -351,17 +348,15 @@ const UIKitSettings = new UIKitSettingsBuilder()
         });
       })
       .catch((error) => console.error("Initialization failed", error));
+  }, []);
 
-}, []);
-
-return (
-
-<div style={{ width: "100vw", height: "100vh" }}>
-<CometChatProvider>
-<CometChatApp />
-</CometChatProvider>
-</div>
-);
+  return (
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <CometChatProvider>
+        <CometChatApp />
+      </CometChatProvider>
+    </div>
+  );
 };
 
 export default CometChatNoSSR;
@@ -388,7 +383,7 @@ In this step, we’ll render the `CometChatApp` component and specifically disab
 1. **Create a Wrapper File**: Add a new file that houses the `CometChatApp` component.
 2. **Dynamically Import `CometChatNoSSR.tsx`**: In this file, use dynamic imports with `{ ssr: false }` to disable SSR only for the CometChat component, preventing SSR-related issues but preserving SSR for the rest of your code.
 
-```javascript
+```javascript lines
 "use client";
 import dynamic from "next/dynamic";
 
@@ -411,7 +406,7 @@ export default function CometChatAppWrapper() {
 
 Now, import and use the wrapper component in your project’s main entry file.
 
-```javascript
+```javascript lines
 import CometChatAppWrapper from "./CometChatAppWrapper";
 
 export default function Home() {
@@ -435,7 +430,7 @@ CometChat UI Kit Builder relies on browser APIs like `window`, `document`, and W
 
 You can also render the component with default user and group selection:
 
-```javascript {12-14}
+```javascript lines highlight={12-14}
 import React, { useEffect, useState } from "react";
 import {
   CometChatUIKit,
@@ -457,7 +452,7 @@ const CometChatNoSSR: React.FC = () => {
   const [user, setUser] = useState<CometChat.User | undefined>(undefined);
 
   const [selectedUser, setSelectedUser] = useState<CometChat.User | undefined>(
-    undefined
+    undefined,
   );
   const [selectedGroup, setSelectedGroup] = useState<
     CometChat.Group | undefined
@@ -504,7 +499,7 @@ const CometChatNoSSR: React.FC = () => {
         },
         (error) => {
           console.log("User fetching failed with error:", error);
-        }
+        },
       );
 
       /** Fetching Group */
@@ -564,7 +559,7 @@ npm run dev
 
 If you face any issues while integrating the builder in your app project, please check if you have the following configurations added to your `tsConfig.json`:
 
-```json
+```json lines
 {
   "compilerOptions": {
     "jsx": "react-jsx",
@@ -623,8 +618,3 @@ Return to the Builder to update your configuration, then re-export and replace t
   </Card>
 </CardGroup>
 
----
-
-```
-
-```
