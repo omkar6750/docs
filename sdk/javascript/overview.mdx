@@ -290,6 +290,58 @@ module.exports = {
 
 </Tabs>
 
+#### Ionic/Cordova
+
+For Ionic and Cordova applications, you can use the JavaScript SDK directly. Import the CometChat SDK in your component or service:
+
+<Tabs>
+<Tab title="app.component.ts">
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { CometChat } from '@cometchat/chat-sdk-javascript';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+})
+export class AppComponent implements OnInit {
+  
+  ngOnInit() {
+    this.initCometChat();
+  }
+
+  initCometChat() {
+    const appID = 'APP_ID';
+    const region = 'APP_REGION';
+    
+    const appSetting = new CometChat.AppSettingsBuilder()
+      .subscribePresenceForAllUsers()
+      .setRegion(region)
+      .autoEstablishSocketConnection(true)
+      .build();
+
+    CometChat.init(appID, appSetting).then(
+      () => {
+        console.log('CometChat initialized successfully');
+      },
+      (error) => {
+        console.log('CometChat initialization failed:', error);
+      }
+    );
+  }
+}
+```
+
+</Tab>
+
+</Tabs>
+
+<Note>
+
+The dedicated Ionic Cordova SDK has been deprecated. For new Ionic/Cordova applications, use the JavaScript SDK as shown above. Existing users of the Ionic SDK can refer to the [legacy documentation](/sdk/ionic-legacy/overview) for reference.
+
+</Note>
+
 ## Initialize CometChat
 
 The `init()` method initializes the settings required for CometChat. The `init()` method takes the below parameters:
@@ -305,7 +357,6 @@ The `AppSettings` class allows you to configure the following settings:
 * **overrideAdminHost(adminHost: string)**: This method takes the admin URL as input and uses this admin URL instead of the default admin URL. This can be used in case of dedicated deployment of CometChat.
 * **overrideClientHost(clientHost: string)**: This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
 * **setStorageMode(storageMode)**: This method allows you to configure how CometChat stores data locally. The storageMode parameter can be set to `CometChat.StorageMode.SESSION` to use session storage, which persists data only for the current browser session, or other available storage modes for different persistence behaviors.
-* **setSecureMediaMode(mode)**: This method sets the secure media access mode for handling media file URLs. See the [Secure Media Access](/sdk/javascript/secure-media-access) guide for details on available modes and configuration.
 
 You need to call `init()` before calling any other method from CometChat. We suggest you call the `init()` method on app startup, preferably in the `index.js` file.
 
