@@ -16,10 +16,50 @@ Ensure `CometChatUIKit.init()` has completed and the user is logged in before us
 Install the Calls SDK:
 
 ```bash
-npm install @cometchat/calls-sdk-javascript
+npm install @cometchat/calls-sdk-javascript@5.0.0-beta.1
 ```
 
-The Angular UIKit auto-detects the SDK and activates calling features. [cometchat-call-buttons](/ui-kit/angular/components/cometchat-call-buttons) renders in [cometchat-message-header](/ui-kit/angular/components/cometchat-message-header).
+Then enable calling in your `UIKitSettingsBuilder`:
+
+```typescript
+const settings = new UIKitSettingsBuilder()
+  .setAppId('APP_ID')
+  .setRegion('REGION')
+  .setAuthKey('AUTH_KEY')
+  .setCallingEnabled(true)
+  .build();
+```
+
+<Warning>
+  Both steps are required. Installing the Calls SDK alone is not enough — you must also call `.setCallingEnabled(true)` on the builder. Without it, call buttons remain hidden and the Calls SDK is not initialized.
+</Warning>
+
+When enabled, [cometchat-call-buttons](/components/cometchat-call-buttons) renders in [cometchat-message-header](/components/cometchat-message-header) and the trailing call button appears in [cometchat-call-logs](/components/cometchat-call-logs).
+
+### Custom Call App Settings
+
+By default the UIKit builds `CallAppSettings` from your `appId` and `region`. If you need custom configuration (e.g. a different region for the Calls SDK or additional settings), pass your own `CallAppSettings`:
+
+```typescript
+import { CometChatUIKitCalls } from '@cometchat/calls-sdk-javascript';
+
+const callAppSettings = new CometChatUIKitCalls.CallAppSettingsBuilder()
+  .setAppId('APP_ID')
+  .setRegion('REGION')
+  .build();
+
+const settings = new UIKitSettingsBuilder()
+  .setAppId('APP_ID')
+  .setRegion('REGION')
+  .setAuthKey('AUTH_KEY')
+  .setCallingEnabled(true)
+  .setCallAppSettings(callAppSettings)
+  .build();
+```
+
+<Info>
+  `setCallAppSettings` is optional. When omitted, the UIKit automatically creates settings from the `appId` and `region` you already provided.
+</Info>
 
 <Frame>
   <img src="/images/cf123e9d-calling_call_buttons_web_screens-a0a134d7d742a761689aaebe2d6e71c2.png" />
