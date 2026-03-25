@@ -113,13 +113,7 @@ CometChat.removeReaction(messageId, emoji)
 
 </Tabs>
 
-Both `addReaction()` and `removeReaction()` return a [`BaseMessage`](/sdk/reference/messages#basemessage) object with the updated reactions. Access the reaction data using getter methods:
-
-| Field | Getter | Return Type | Description |
-|-------|--------|-------------|-------------|
-| id | `getId()` | `number` | Unique message ID |
-| sender | `getSender()` | [`User`](/sdk/reference/entities#user) | The user who sent the message |
-| reactions | `getReactions()` | [`ReactionCount[]`](/sdk/reference/auxiliary#reactioncount) | Array of reaction counts on the message |
+Both `addReaction()` and `removeReaction()` return a [`BaseMessage`](/sdk/reference/messages#basemessage) object with the updated reactions.
 
 ## Fetch Reactions for a Message
 
@@ -170,8 +164,8 @@ let reactionRequest = new CometChat.ReactionRequestBuilder()
 .build();
 
 reactionRequest.fetchNext().then(
-    (messages: MessageReaction[]) => {
-      console.log("list fetched:", messages);
+    (reactions: CometChat.Reaction[]) => {
+      console.log("list fetched:", reactions);
     },
     (error: CometChat.CometChatException) => {
       console.log('list fetching failed with error:', error);
@@ -182,6 +176,8 @@ reactionRequest.fetchNext().then(
 </Tab>
 
 </Tabs>
+
+The `fetchNext()` method returns an array of [`Reaction`](/sdk/reference/auxiliary#reaction) objects representing individual user reactions on the message.
 
 Fetch Previous The `fetchPrevious()` method fetches the previous set of reactions for the message.
 
@@ -219,8 +215,8 @@ let reactionRequest = new CometChat.ReactionRequestBuilder()
 .build();
 
 reactionRequest.fetchPrevious().then(
-    (messages: MessageReaction[]) => {
-      console.log("list fetched:", messages);
+    (reactions: CometChat.Reaction[]) => {
+      console.log("list fetched:", reactions);
     },
     (error: CometChat.CometChatException) => {
       console.log('list fetching failed with error:', error);
@@ -275,14 +271,7 @@ CometChat.addMessageListener(listenerID, {
 
 </Tabs>
 
-Each reaction listener callback receives a [`ReactionEvent`](/sdk/reference/auxiliary#reactionevent) object. Access the event data using getter methods:
-
-| Field | Getter | Return Type | Description |
-|-------|--------|-------------|-------------|
-| reaction | `getReaction()` | `string` | The emoji reaction that was added or removed |
-| receiverId | `getReceiverId()` | `string` | UID or GUID of the receiver |
-| receiverType | `getReceiverType()` | `string` | Type of receiver (`user` or `group`) |
-| conversationId | `getConversationId()` | `string` | ID of the conversation |
+Each reaction listener callback receives a [`ReactionEvent`](/sdk/reference/auxiliary#reactionevent) object.
 
 ## Removing a Reaction Listener
 
@@ -330,6 +319,8 @@ message.getReactions()
 
 </Tabs>
 
+The `getReactions()` method returns an array of [`ReactionCount`](/sdk/reference/auxiliary#reactioncount) objects, each containing the reaction emoji, the total count of users who reacted with it, and whether the logged-in user used that reaction.
+
 ## Check if Logged-in User has Reacted on Message
 
 To check if the logged-in user has reacted on a particular message or not, You can use the `getReactedByMe()` method on any `ReactionCount` object instance. This method will return a boolean value, true if the logged-in user has reacted on that message, otherwise false.
@@ -356,6 +347,8 @@ reaction.getReactedByMe(); //Return true is logged-in user reacted on that messa
 </Tab>
 
 </Tabs>
+
+The `getReactedByMe()` method on a [`ReactionCount`](/sdk/reference/auxiliary#reactioncount) object returns a `boolean` — `true` if the logged-in user has reacted with that specific emoji, `false` otherwise.
 
 ## Update Message With Reaction Info
 
