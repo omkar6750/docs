@@ -31,22 +31,6 @@ Threaded messages (or threads) are messages started from a particular parent mes
 Any message type (Text, Media, or Custom) can be sent in a thread. Set the `parentMessageId` using `setParentMessageId()` to indicate which thread the message belongs to.
 
 <Tabs>
-<Tab title="User">
-```javascript
-let textMessage = new CometChat.TextMessage(UID, "Hello", CometChat.RECEIVER_TYPE.USER);
-textMessage.setParentMessageId(100);
-
-CometChat.sendMessage(textMessage).then(
-  message => {
-      console.log('Message sent successfully', message);
-  }, err => {
-      console.log('err', err);
-  }
-) 
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let receiverId = "UID",
@@ -67,6 +51,22 @@ CometChat.sendMessage(textMessage).then(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+let textMessage = new CometChat.TextMessage(UID, "Hello", CometChat.RECEIVER_TYPE.USER);
+textMessage.setParentMessageId(100);
+
+CometChat.sendMessage(textMessage).then(
+  message => {
+      console.log('Message sent successfully', message);
+  }, err => {
+      console.log('err', err);
+  }
+) 
+```
+
+</Tab>
+
 </Tabs>
 
 The above snippet sends "Hello" in the thread with `parentMessageId` 100. Media and Custom messages can also be sent in threads using `setParentMessageId()`.
@@ -76,35 +76,6 @@ The above snippet sends "Hello" in the thread with `parentMessageId` 100. Media 
 Use `MessageListener` to receive real-time thread messages. Check if the received message belongs to the active thread using `getParentMessageId()`.
 
 <Tabs>
-<Tab title="Message Listener">
-```javascript
-const listenerID = "UNIQUE_LISTENER_ID";
-const activeThreadId = 100;
-
-CometChat.addMessageListener(
-listenerID,
-new CometChat.MessageListener({
-  onTextMessageReceived: textMessage => {
-      if(textMessage.getParentMessageId() == activeThreadId) {
-          console.log("Text message received for active thread.", textMessage);
-      }
-  },
-  onMediaMessageReceived: mediaMessage => {
-      if(mediaMessage.getParentMessageId() == activeThreadId) {
-          console.log("Media message received for active thread.", mediaMessage);
-      }
-  },
-  onCustomMessageReceived: customMessage => {
-      if(customMessage.getParentMessageId() == activeThreadId) {
-          console.log("Custom message received for active thread.", customMessage);
-      }
-  }
-})
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 const listenerID: string = "UNIQUE_LISTENER_ID";
@@ -134,6 +105,35 @@ CometChat.addMessageListener(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+const listenerID = "UNIQUE_LISTENER_ID";
+const activeThreadId = 100;
+
+CometChat.addMessageListener(
+listenerID,
+new CometChat.MessageListener({
+  onTextMessageReceived: textMessage => {
+      if(textMessage.getParentMessageId() == activeThreadId) {
+          console.log("Text message received for active thread.", textMessage);
+      }
+  },
+  onMediaMessageReceived: mediaMessage => {
+      if(mediaMessage.getParentMessageId() == activeThreadId) {
+          console.log("Media message received for active thread.", mediaMessage);
+      }
+  },
+  onCustomMessageReceived: customMessage => {
+      if(customMessage.getParentMessageId() == activeThreadId) {
+          console.log("Custom message received for active thread.", customMessage);
+      }
+  }
+})
+);
+```
+
+</Tab>
+
 </Tabs>
 
 ### Fetch all the messages for any particular thread.
@@ -141,26 +141,6 @@ CometChat.addMessageListener(
 Use `MessagesRequestBuilder` with `setParentMessageId()` to fetch messages belonging to a specific thread. Call `fetchPrevious()` to get messages (max 100 per request).
 
 <Tabs>
-<Tab title="Fetch all message for a thread">
-```javascript
-let limit = 30;
-let parentMessageId = 1;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-                      .setLimit(limit)
-                      .setParentMessageId(parentMessageId)
-                      .build();
-     
-messagesRequest.fetchPrevious().then(
-  messages => {
-      console.log("Messages for thread fetched successfully", messages);
-  }, error => {
-      console.log("Message fetching failed with error:", error);
-  }
-);  
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let limit: number = 30,
@@ -177,6 +157,26 @@ messagesRequest.fetchPrevious().then(
       console.log("Message fetching failed with error:", error);
   }
 );
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let parentMessageId = 1;
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+                      .setLimit(limit)
+                      .setParentMessageId(parentMessageId)
+                      .build();
+     
+messagesRequest.fetchPrevious().then(
+  messages => {
+      console.log("Messages for thread fetched successfully", messages);
+  }, error => {
+      console.log("Message fetching failed with error:", error);
+  }
+);  
 ```
 
 </Tab>

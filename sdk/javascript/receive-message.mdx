@@ -29,28 +29,6 @@ Always remove listeners when they're no longer needed (e.g., on component unmoun
 </Warning>
 
 <Tabs>
-<Tab title="Message Listener">
-```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
-
-CometChat.addMessageListener(
-  listenerID,
-  new CometChat.MessageListener({
-    onTextMessageReceived: (textMessage) => {
-      console.log("Text message received successfully", textMessage);
-    },
-    onMediaMessageReceived: (mediaMessage) => {
-      console.log("Media message received successfully", mediaMessage);
-    },
-    onCustomMessageReceived: (customMessage) => {
-      console.log("Custom message received successfully", customMessage);
-    },
-  })
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let listenerID: string = "UNIQUE_LISTENER_ID";
@@ -73,6 +51,28 @@ CometChat.addMessageListener(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+let listenerID = "UNIQUE_LISTENER_ID";
+
+CometChat.addMessageListener(
+  listenerID,
+  new CometChat.MessageListener({
+    onTextMessageReceived: (textMessage) => {
+      console.log("Text message received successfully", textMessage);
+    },
+    onMediaMessageReceived: (mediaMessage) => {
+      console.log("Media message received successfully", mediaMessage);
+    },
+    onCustomMessageReceived: (customMessage) => {
+      console.log("Custom message received successfully", customMessage);
+    },
+  })
+);
+```
+
+</Tab>
+
 </Tabs>
 
 | Parameter | Description |
@@ -82,18 +82,18 @@ CometChat.addMessageListener(
 Remove the listener when you no longer need to receive messages:
 
 <Tabs>
-<Tab title="Remove Message Listener">
-```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
+<Tab title="TypeScript">
+```typescript
+let listenerID: string = "UNIQUE_LISTENER_ID";
 
 CometChat.removeMessageListener(listenerID);
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
-let listenerID: string = "UNIQUE_LISTENER_ID";
+<Tab title="JavaScript">
+```javascript
+let listenerID = "UNIQUE_LISTENER_ID";
 
 CometChat.removeMessageListener(listenerID);
 ```
@@ -126,30 +126,6 @@ Use `getLastDeliveredMessageId()` to get the ID of the last delivered message, t
 ### Fetch Missed Messages of a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
-```javascript
-let UID = "UID";
-let limit = 30;
-let latestId = await CometChat.getLastDeliveredMessageId();
-
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setUID(UID)
-  .setMessageId(latestId)
-  .setLimit(limit)
-  .build();
-
-messagesRequest.fetchNext().then(
-  (messages) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let UID: string = "UID",
@@ -174,19 +150,14 @@ messagesRequest.fetchNext().then(
 
 </Tab>
 
-</Tabs>
-
-### Fetch Missed Messages of a particular group conversation
-
-<Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
+let UID = "UID";
 let limit = 30;
 let latestId = await CometChat.getLastDeliveredMessageId();
 
 let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setGUID(GUID)
+  .setUID(UID)
   .setMessageId(latestId)
   .setLimit(limit)
   .build();
@@ -203,6 +174,11 @@ messagesRequest.fetchNext().then(
 
 </Tab>
 
+</Tabs>
+
+### Fetch Missed Messages of a particular group conversation
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID",
@@ -220,6 +196,30 @@ messagesRequest.fetchNext().then(
     console.log("Message list fetched:", messages);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let latestId = await CometChat.getLastDeliveredMessageId();
+
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setMessageId(latestId)
+  .setLimit(limit)
+  .build();
+
+messagesRequest.fetchNext().then(
+  (messages) => {
+    console.log("Message list fetched:", messages);
+  },
+  (error) => {
     console.log("Message fetching failed with error:", error);
   }
 );
@@ -246,28 +246,6 @@ Fetch unread messages by setting `setUnread(true)` on the builder.
 ### Fetch Unread Messages of a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
-```javascript
-let UID = "UID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setUID(UID)
-  .setUnread(true)
-  .setLimit(limit)
-  .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let UID: string = "UID",
@@ -291,17 +269,12 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-</Tabs>
-
-### Fetch Unread Messages of a particular group conversation
-
-<Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
+let UID = "UID";
 let limit = 30;
 let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setGUID(GUID)
+  .setUID(UID)
   .setUnread(true)
   .setLimit(limit)
   .build();
@@ -318,6 +291,11 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
+</Tabs>
+
+### Fetch Unread Messages of a particular group conversation
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID",
@@ -341,6 +319,28 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setUnread(true)
+  .setLimit(limit)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Message list fetched:", messages);
+  },
+  (error) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
 </Tabs>
 
 <Note>
@@ -356,7 +356,26 @@ Fetch the complete conversation history using `MessagesRequestBuilder` with `fet
 Set the UID using `setUID()` to fetch the conversation with a specific user.
 
 <Tabs>
-<Tab title="One-on-One Conversation">
+<Tab title="TypeScript">
+```typescript
+let UID: string = "UID",
+  limit: number = 30,
+  messagesRequest: CometChat.MessagesRequest =
+    new CometChat.MessagesRequestBuilder().setUID(UID).setLimit(limit).build();
+
+messagesRequest.fetchPrevious().then(
+  (messages: CometChat.BaseMessage[]) => {
+    console.log("Message list fetched:", messages);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
 ```javascript
 let UID = "UID";
 let limit = 30;
@@ -377,25 +396,6 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
-let UID: string = "UID",
-  limit: number = 30,
-  messagesRequest: CometChat.MessagesRequest =
-    new CometChat.MessagesRequestBuilder().setUID(UID).setLimit(limit).build();
-
-messagesRequest.fetchPrevious().then(
-  (messages: CometChat.BaseMessage[]) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 </Tabs>
 
 ### Fetch Message History of a particular group conversation
@@ -403,27 +403,6 @@ messagesRequest.fetchPrevious().then(
 Set the GUID using `setGUID()` to fetch messages from a group you've joined.
 
 <Tabs>
-<Tab title="Group Conversation">
-```javascript
-let GUID = "GUID";
-let limit = 30;
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setGUID(GUID)
-  .setLimit(limit)
-  .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID",
@@ -439,6 +418,27 @@ messagesRequest.fetchPrevious().then(
     console.log("Message list fetched:", messages);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setLimit(limit)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Message list fetched:", messages);
+  },
+  (error) => {
     console.log("Message fetching failed with error:", error);
   }
 );
@@ -478,29 +478,6 @@ The `Conversation & Advanced Search` is only available in `Advanced` & `Custom` 
 ### Search Messages in a particular one-on-one conversation
 
 <Tabs>
-<Tab title="One-on-One Conversation">
-```javascript
-let UID = "UID";
-let limit = 30;
-let searchKeyword = "Hello";
-let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setUID(UID)
-  .setLimit(limit)
-  .setSearchKeyword(searchKeyword)
-  .build();
-
-messagesRequest.fetchPrevious().then(
-  (messages) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let UID: string = "UID",
@@ -525,18 +502,13 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
-</Tabs>
-
-### Search Messages in a particular group conversation
-
-<Tabs>
-<Tab title="Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
+let UID = "UID";
 let limit = 30;
 let searchKeyword = "Hello";
 let messagesRequest = new CometChat.MessagesRequestBuilder()
-  .setGUID(GUID)
+  .setUID(UID)
   .setLimit(limit)
   .setSearchKeyword(searchKeyword)
   .build();
@@ -553,6 +525,11 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
+</Tabs>
+
+### Search Messages in a particular group conversation
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID",
@@ -577,6 +554,29 @@ messagesRequest.fetchPrevious().then(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+let limit = 30;
+let searchKeyword = "Hello";
+let messagesRequest = new CometChat.MessagesRequestBuilder()
+  .setGUID(GUID)
+  .setLimit(limit)
+  .setSearchKeyword(searchKeyword)
+  .build();
+
+messagesRequest.fetchPrevious().then(
+  (messages) => {
+    console.log("Message list fetched:", messages);
+  },
+  (error) => {
+    console.log("Message fetching failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
 </Tabs>
 
 ## Unread Message Count
@@ -588,16 +588,16 @@ Get the number of unread messages for users, groups, or all conversations.
 Use `getUnreadMessageCountForUser()` to get the unread count for a specific user.
 
 <Tabs>
-<Tab title="User">
-```javascript
+<Tab title="TypeScript">
+```typescript
+let UID: string = "UID";
 CometChat.getUnreadMessageCountForUser(UID);
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
-let UID: string = "UID";
+<Tab title="JavaScript">
+```javascript
 CometChat.getUnreadMessageCountForUser(UID);
 ```
 
@@ -608,13 +608,6 @@ CometChat.getUnreadMessageCountForUser(UID);
 To ignore messages from blocked users, set the boolean parameter to true:
 
 <Tabs>
-<Tab title="User">
-```javascript
-CometChat.getUnreadMessageCountForUser(UID, hideMessagesFromBlockedUsers);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let UID: string = "UID",
@@ -624,25 +617,16 @@ CometChat.getUnreadMessageCountForUser(UID, hideMessagesFromBlockedUsers);
 
 </Tab>
 
-</Tabs>
-
-<Tabs>
-<Tab title="Get Unread Count For User">
+<Tab title="JavaScript">
 ```javascript
-let UID = "UID";
-
-CometChat.getUnreadMessageCountForUser(UID).then(
-  (unreadMessageCountObject) => {
-    console.log("Unread message count fetched", unreadMessageCountObject);
-  },
-  (error) => {
-    console.log("Error in getting unread message count", error);
-  }
-);
+CometChat.getUnreadMessageCountForUser(UID, hideMessagesFromBlockedUsers);
 ```
 
 </Tab>
 
+</Tabs>
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let UID: string = "UID";
@@ -652,6 +636,22 @@ CometChat.getUnreadMessageCountForUser(UID).then(
     console.log("Unread message count fetched", unreadMessageCount);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Error in getting unread message count", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let UID = "UID";
+
+CometChat.getUnreadMessageCountForUser(UID).then(
+  (unreadMessageCountObject) => {
+    console.log("Unread message count fetched", unreadMessageCountObject);
+  },
+  (error) => {
     console.log("Error in getting unread message count", error);
   }
 );
@@ -668,16 +668,16 @@ Returns an object with the UID as key and unread message count as value.
 Use `getUnreadMessageCountForGroup()` to get the unread count for a specific group.
 
 <Tabs>
-<Tab title="Group">
-```javascript
+<Tab title="TypeScript">
+```typescript
+let GUID: string = "GUID";
 CometChat.getUnreadMessageCountForGroup(GUID);
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
-let GUID: string = "GUID";
+<Tab title="JavaScript">
+```javascript
 CometChat.getUnreadMessageCountForGroup(GUID);
 ```
 
@@ -688,13 +688,6 @@ CometChat.getUnreadMessageCountForGroup(GUID);
 To ignore messages from blocked users, set the boolean parameter to true:
 
 <Tabs>
-<Tab title="Group">
-```javascript
-CometChat.getUnreadMessageCountForGroup(GUID, hideMessagesFromBlockedUsers);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID",
@@ -704,25 +697,16 @@ CometChat.getUnreadMessageCountForGroup(GUID, hideMessagesFromBlockedUsers);
 
 </Tab>
 
-</Tabs>
-
-<Tabs>
-<Tab title="Get Unread Count For Group">
+<Tab title="JavaScript">
 ```javascript
-let GUID = "GUID";
-
-CometChat.getUnreadMessageCountForGroup(GUID).then(
-  (unreadMessageCountObject) => {
-    console.log("Unread message count fetched", unreadMessageCountObject);
-  },
-  (error) => {
-    console.log("Error in getting unread message count", error);
-  }
-);
+CometChat.getUnreadMessageCountForGroup(GUID, hideMessagesFromBlockedUsers);
 ```
 
 </Tab>
 
+</Tabs>
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let GUID: string = "GUID";
@@ -732,6 +716,22 @@ CometChat.getUnreadMessageCountForGroup(GUID).then(
     console.log("Unread message count fetched", unreadMessageCount);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Error in getting unread message count", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let GUID = "GUID";
+
+CometChat.getUnreadMessageCountForGroup(GUID).then(
+  (unreadMessageCountObject) => {
+    console.log("Unread message count fetched", unreadMessageCountObject);
+  },
+  (error) => {
     console.log("Error in getting unread message count", error);
   }
 );
@@ -748,15 +748,15 @@ Returns an object with the GUID as key and unread message count as value.
 Use `getUnreadMessageCount()` to get unread counts for all users and groups combined.
 
 <Tabs>
-<Tab title="All Conversation">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChat.getUnreadMessageCount();
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChat.getUnreadMessageCount();
 ```
 
@@ -767,13 +767,6 @@ CometChat.getUnreadMessageCount();
 To ignore messages from blocked users, set the boolean parameter to true:
 
 <Tabs>
-<Tab title="All Conversation">
-```javascript
-CometChat.getUnreadMessageCount(hideMessagesFromBlockedUsers);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let hideMessagesFromBlockedUsers: boolean = true;
@@ -782,23 +775,16 @@ CometChat.getUnreadMessageCount(hideMessagesFromBlockedUsers);
 
 </Tab>
 
-</Tabs>
-
-<Tabs>
-<Tab title="Get Unread Count For All Conversation">
+<Tab title="JavaScript">
 ```javascript
-CometChat.getUnreadMessageCount().then(
-  (unreadMessageCountObject) => {
-    console.log("Unread message count fetched", unreadMessageCountObject);
-  },
-  (error) => {
-    console.log("Error in getting unread message count", error);
-  }
-);
+CometChat.getUnreadMessageCount(hideMessagesFromBlockedUsers);
 ```
 
 </Tab>
 
+</Tabs>
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCount().then(
@@ -806,6 +792,20 @@ CometChat.getUnreadMessageCount().then(
     console.log("Unread message count fetched", unreadMessageCount);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Error in getting unread message count", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+CometChat.getUnreadMessageCount().then(
+  (unreadMessageCountObject) => {
+    console.log("Unread message count fetched", unreadMessageCountObject);
+  },
+  (error) => {
     console.log("Error in getting unread message count", error);
   }
 );
@@ -824,15 +824,15 @@ Returns an object with two keys:
 Use `getUnreadMessageCountForAllUsers()` to get unread counts for all user conversations.
 
 <Tabs>
-<Tab title="For All User Conversation">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChat.getUnreadMessageCountForAllUsers();
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChat.getUnreadMessageCountForAllUsers();
 ```
 
@@ -843,13 +843,6 @@ CometChat.getUnreadMessageCountForAllUsers();
 To ignore messages from blocked users, set the boolean parameter to true:
 
 <Tabs>
-<Tab title="For All User Conversation">
-```javascript
-CometChat.getUnreadMessageCountForAllUsers(hideMessagesFromBlockedUsers);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let hideMessagesFromBlockedUsers: boolean = true;
@@ -858,23 +851,16 @@ CometChat.getUnreadMessageCountForAllUsers(hideMessagesFromBlockedUsers);
 
 </Tab>
 
-</Tabs>
-
-<Tabs>
-<Tab title="Get Unread Count For All User Conversation">
+<Tab title="JavaScript">
 ```javascript
-CometChat.getUnreadMessageCountForAllUsers().then(
-  (unreadMessageCountObject) => {
-    console.log("Unread message count fetched", unreadMessageCountObject);
-  },
-  (error) => {
-    console.log("Error in getting unread message count", error);
-  }
-);
+CometChat.getUnreadMessageCountForAllUsers(hideMessagesFromBlockedUsers);
 ```
 
 </Tab>
 
+</Tabs>
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllUsers().then(
@@ -882,6 +868,20 @@ CometChat.getUnreadMessageCountForAllUsers().then(
     console.log("Unread message count fetched", unreadMessageCount);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Error in getting unread message count", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+CometChat.getUnreadMessageCountForAllUsers().then(
+  (unreadMessageCountObject) => {
+    console.log("Unread message count fetched", unreadMessageCountObject);
+  },
+  (error) => {
     console.log("Error in getting unread message count", error);
   }
 );
@@ -898,15 +898,15 @@ Returns an object with UIDs as keys and unread counts as values.
 Use `getUnreadMessageCountForAllGroups()` to get unread counts for all group conversations.
 
 <Tabs>
-<Tab title="For All Group Conversation">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChat.getUnreadMessageCountForAllGroups();
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChat.getUnreadMessageCountForAllGroups();
 ```
 
@@ -917,13 +917,6 @@ CometChat.getUnreadMessageCountForAllGroups();
 To ignore messages from blocked users, set the boolean parameter to true:
 
 <Tabs>
-<Tab title="For All Group Conversation">
-```javascript
-CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers);
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let hideMessagesFromBlockedUsers: boolean = true;
@@ -932,23 +925,16 @@ CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers);
 
 </Tab>
 
-</Tabs>
-
-<Tabs>
-<Tab title="Get Unread Count For All Group Conversation">
+<Tab title="JavaScript">
 ```javascript
-CometChat.getUnreadMessageCountForAllGroups().then(
-  (unreadMessageCountObject) => {
-    console.log("Unread message count fetched", unreadMessageCountObject);
-  },
-  (error) => {
-    console.log("Error in getting unread message count", error);
-  }
-);
+CometChat.getUnreadMessageCountForAllGroups(hideMessagesFromBlockedUsers);
 ```
 
 </Tab>
 
+</Tabs>
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 CometChat.getUnreadMessageCountForAllGroups().then(
@@ -956,6 +942,20 @@ CometChat.getUnreadMessageCountForAllGroups().then(
     console.log("Unread message count fetched", unreadMessageCount);
   },
   (error: CometChat.CometChatException) => {
+    console.log("Error in getting unread message count", error);
+  }
+);
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+CometChat.getUnreadMessageCountForAllGroups().then(
+  (unreadMessageCountObject) => {
+    console.log("Unread message count fetched", unreadMessageCountObject);
+  },
+  (error) => {
     console.log("Error in getting unread message count", error);
   }
 );

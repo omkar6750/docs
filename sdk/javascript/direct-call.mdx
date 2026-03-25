@@ -47,23 +47,6 @@ You can generate the token just before starting the call, or generate and store 
 Use the `generateToken()` method to create a call token:
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-const loggedInUser = await CometChat.getLoggedinUser();
-const authToken = loggedInUser.getAuthToken();
-const sessionId = "SESSION_ID"; // Random or from Call object in ringing flow
-
-CometChatCalls.generateToken(sessionId, authToken).then(
-  (callToken) => {
-    console.log("Call token generated:", callToken.token);
-    // Use callToken to start the session
-  },
-  (error) => {
-    console.log("Token generation failed:", error);
-  }
-);
-```
-</Tab>
 <Tab title="TypeScript">
 ```typescript
 const loggedInUser = await CometChat.getLoggedinUser();
@@ -76,6 +59,23 @@ CometChatCalls.generateToken(sessionId, authToken).then(
     // Use callToken to start the session
   },
   (error: CometChat.CometChatException) => {
+    console.log("Token generation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+const loggedInUser = await CometChat.getLoggedinUser();
+const authToken = loggedInUser.getAuthToken();
+const sessionId = "SESSION_ID"; // Random or from Call object in ringing flow
+
+CometChatCalls.generateToken(sessionId, authToken).then(
+  (callToken) => {
+    console.log("Call token generated:", callToken.token);
+    // Use callToken to start the session
+  },
+  (error) => {
     console.log("Token generation failed:", error);
   }
 );
@@ -96,58 +96,6 @@ Use the `startSession()` method to join a call session. This method requires:
 3. An HTML element where the call UI will be rendered
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-const callListener = new CometChatCalls.OngoingCallListener({
-  onUserJoined: (user) => {
-    console.log("User joined:", user);
-  },
-  onUserLeft: (user) => {
-    console.log("User left:", user);
-  },
-  onUserListUpdated: (userList) => {
-    console.log("User list updated:", userList);
-  },
-  onCallEnded: () => {
-    console.log("Call ended");
-  },
-  onCallEndButtonPressed: () => {
-    console.log("End call button pressed");
-    // Handle end call - see End Call Session section
-  },
-  onError: (error) => {
-    console.log("Call error:", error);
-  },
-  onMediaDeviceListUpdated: (deviceList) => {
-    console.log("Device list updated:", deviceList);
-  },
-  onUserMuted: (event) => {
-    console.log("User muted:", event);
-  },
-  onScreenShareStarted: () => {
-    console.log("Screen sharing started");
-  },
-  onScreenShareStopped: () => {
-    console.log("Screen sharing stopped");
-  },
-  onCallSwitchedToVideo: (event) => {
-    console.log("Call switched to video:", event);
-  },
-  onSessionTimeout: () => {
-    console.log("Session timed out");
-  }
-});
-
-const callSettings = new CometChatCalls.CallSettingsBuilder()
-  .enableDefaultLayout(true)
-  .setIsAudioOnlyCall(false)
-  .setCallListener(callListener)
-  .build();
-
-const htmlElement = document.getElementById("call-container");
-CometChatCalls.startSession(callToken, callSettings, htmlElement);
-```
-</Tab>
 <Tab title="TypeScript">
 ```typescript
 const callListener = new CometChatCalls.OngoingCallListener({
@@ -200,6 +148,58 @@ const htmlElement = document.getElementById("call-container") as HTMLElement;
 CometChatCalls.startSession(callToken, callSettings, htmlElement);
 ```
 </Tab>
+<Tab title="JavaScript">
+```javascript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onUserJoined: (user) => {
+    console.log("User joined:", user);
+  },
+  onUserLeft: (user) => {
+    console.log("User left:", user);
+  },
+  onUserListUpdated: (userList) => {
+    console.log("User list updated:", userList);
+  },
+  onCallEnded: () => {
+    console.log("Call ended");
+  },
+  onCallEndButtonPressed: () => {
+    console.log("End call button pressed");
+    // Handle end call - see End Call Session section
+  },
+  onError: (error) => {
+    console.log("Call error:", error);
+  },
+  onMediaDeviceListUpdated: (deviceList) => {
+    console.log("Device list updated:", deviceList);
+  },
+  onUserMuted: (event) => {
+    console.log("User muted:", event);
+  },
+  onScreenShareStarted: () => {
+    console.log("Screen sharing started");
+  },
+  onScreenShareStopped: () => {
+    console.log("Screen sharing stopped");
+  },
+  onCallSwitchedToVideo: (event) => {
+    console.log("Call switched to video:", event);
+  },
+  onSessionTimeout: () => {
+    console.log("Session timed out");
+  }
+});
+
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .enableDefaultLayout(true)
+  .setIsAudioOnlyCall(false)
+  .setCallListener(callListener)
+  .build();
+
+const htmlElement = document.getElementById("call-container");
+CometChatCalls.startSession(callToken, callSettings, htmlElement);
+```
+</Tab>
 </Tabs>
 
 | Parameter      | Description                                              |
@@ -243,53 +243,6 @@ Each listener requires a unique `listenerId` string. This ID is used to:
 - **Enable targeted removal** — Remove specific listeners without affecting others
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-const listenerId = "UNIQUE_LISTENER_ID";
-
-CometChatCalls.addCallEventListener(listenerId, {
-  onUserJoined: (user) => {
-    console.log("User joined:", user);
-  },
-  onUserLeft: (user) => {
-    console.log("User left:", user);
-  },
-  onUserListUpdated: (userList) => {
-    console.log("User list updated:", userList);
-  },
-  onCallEnded: () => {
-    console.log("Call ended");
-  },
-  onCallEndButtonPressed: () => {
-    console.log("End call button pressed");
-  },
-  onError: (error) => {
-    console.log("Call error:", error);
-  },
-  onMediaDeviceListUpdated: (deviceList) => {
-    console.log("Device list updated:", deviceList);
-  },
-  onUserMuted: (event) => {
-    console.log("User muted:", event);
-  },
-  onScreenShareStarted: () => {
-    console.log("Screen sharing started");
-  },
-  onScreenShareStopped: () => {
-    console.log("Screen sharing stopped");
-  },
-  onCallSwitchedToVideo: (event) => {
-    console.log("Call switched to video:", event);
-  },
-  onSessionTimeout: () => {
-    console.log("Session timed out");
-  }
-});
-
-// Remove listener when done
-CometChatCalls.removeCallEventListener(listenerId);
-```
-</Tab>
 <Tab title="TypeScript">
 ```typescript
 const listenerId: string = "UNIQUE_LISTENER_ID";
@@ -326,6 +279,53 @@ CometChatCalls.addCallEventListener(listenerId, {
     console.log("Screen sharing stopped");
   },
   onCallSwitchedToVideo: (event: any) => {
+    console.log("Call switched to video:", event);
+  },
+  onSessionTimeout: () => {
+    console.log("Session timed out");
+  }
+});
+
+// Remove listener when done
+CometChatCalls.removeCallEventListener(listenerId);
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+const listenerId = "UNIQUE_LISTENER_ID";
+
+CometChatCalls.addCallEventListener(listenerId, {
+  onUserJoined: (user) => {
+    console.log("User joined:", user);
+  },
+  onUserLeft: (user) => {
+    console.log("User left:", user);
+  },
+  onUserListUpdated: (userList) => {
+    console.log("User list updated:", userList);
+  },
+  onCallEnded: () => {
+    console.log("Call ended");
+  },
+  onCallEndButtonPressed: () => {
+    console.log("End call button pressed");
+  },
+  onError: (error) => {
+    console.log("Call error:", error);
+  },
+  onMediaDeviceListUpdated: (deviceList) => {
+    console.log("Device list updated:", deviceList);
+  },
+  onUserMuted: (event) => {
+    console.log("User muted:", event);
+  },
+  onScreenShareStarted: () => {
+    console.log("Screen sharing started");
+  },
+  onScreenShareStopped: () => {
+    console.log("Screen sharing stopped");
+  },
+  onCallSwitchedToVideo: (event) => {
     console.log("Call switched to video:", event);
   },
   onSessionTimeout: () => {
@@ -389,23 +389,6 @@ The Ringing flow requires calling methods from both the Chat SDK (`CometChat.end
 When the user clicks the end call button in the UI, the `onCallEndButtonPressed()` callback is triggered. You must call `CometChat.endCall()` inside this callback to properly terminate the call and notify other participants. On success, call `CometChat.clearActiveCall()` and `CometChatCalls.endSession()` to release resources.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-onCallEndButtonPressed: () => {
-  CometChat.endCall(sessionId).then(
-    (call) => {
-      console.log("Call ended successfully");
-      CometChat.clearActiveCall();
-      CometChatCalls.endSession();
-      // Close the calling screen
-    },
-    (error) => {
-      console.log("End call failed:", error);
-    }
-  );
-}
-```
-</Tab>
 <Tab title="TypeScript">
 ```typescript
 onCallEndButtonPressed: () => {
@@ -423,6 +406,23 @@ onCallEndButtonPressed: () => {
 }
 ```
 </Tab>
+<Tab title="JavaScript">
+```javascript
+onCallEndButtonPressed: () => {
+  CometChat.endCall(sessionId).then(
+    (call) => {
+      console.log("Call ended successfully");
+      CometChat.clearActiveCall();
+      CometChatCalls.endSession();
+      // Close the calling screen
+    },
+    (error) => {
+      console.log("End call failed:", error);
+    }
+  );
+}
+```
+</Tab>
 </Tabs>
 
 **Remote participant** (receives the `onCallEnded()` callback):
@@ -430,8 +430,8 @@ onCallEndButtonPressed: () => {
 Call `CometChat.clearActiveCall()` to clear the local call state, then call `CometChatCalls.endSession()` to release media resources.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 onCallEnded: () => {
   CometChat.clearActiveCall();
   CometChatCalls.endSession();
@@ -439,8 +439,8 @@ onCallEnded: () => {
 }
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 onCallEnded: () => {
   CometChat.clearActiveCall();
   CometChatCalls.endSession();
@@ -457,16 +457,16 @@ When using the Session Only flow (direct call without ringing), you only need to
 Call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback to release all media resources and disconnect from the call session.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 onCallEndButtonPressed: () => {
   CometChatCalls.endSession();
   // Close the calling screen
 }
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 onCallEndButtonPressed: () => {
   CometChatCalls.endSession();
   // Close the calling screen
@@ -488,13 +488,13 @@ These methods can only be called when a call session is active.
 Toggles between the front and rear camera during a video call. Only supported on mobile browsers.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.switchCamera();
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.switchCamera();
 ```
 </Tab>
@@ -512,13 +512,13 @@ Controls the local audio stream transmission. When muted, other participants can
 - `false` — Unmutes the microphone, resumes audio transmission
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.muteAudio(true);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.muteAudio(true);
 ```
 </Tab>
@@ -532,13 +532,13 @@ Controls the local video stream transmission. When paused, other participants se
 - `false` — Resumes the camera, continues video transmission
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.pauseVideo(true);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.pauseVideo(true);
 ```
 </Tab>
@@ -549,13 +549,13 @@ CometChatCalls.pauseVideo(true);
 Starts sharing your screen or a specific application window with other participants.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.startScreenShare();
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.startScreenShare();
 ```
 </Tab>
@@ -566,13 +566,13 @@ CometChatCalls.startScreenShare();
 Stops the current screen sharing session.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.stopScreenShare();
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.stopScreenShare();
 ```
 </Tab>
@@ -587,13 +587,13 @@ Changes the call UI layout mode dynamically during the call.
 - `CometChat.CALL_MODE.SPOTLIGHT` — Focus on the active speaker
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.setMode(CometChat.CALL_MODE.SPOTLIGHT);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.setMode(CometChat.CALL_MODE.SPOTLIGHT);
 ```
 </Tab>
@@ -604,14 +604,14 @@ CometChatCalls.setMode(CometChat.CALL_MODE.SPOTLIGHT);
 Returns a list of available audio input devices (microphones).
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 const audioInputDevices = CometChatCalls.getAudioInputDevices();
 console.log("Available microphones:", audioInputDevices);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 const audioInputDevices = CometChatCalls.getAudioInputDevices();
 console.log("Available microphones:", audioInputDevices);
 ```
@@ -623,14 +623,14 @@ console.log("Available microphones:", audioInputDevices);
 Returns a list of available audio output devices (speakers/headphones).
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 const audioOutputDevices = CometChatCalls.getAudioOutputDevices();
 console.log("Available speakers:", audioOutputDevices);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 const audioOutputDevices = CometChatCalls.getAudioOutputDevices();
 console.log("Available speakers:", audioOutputDevices);
 ```
@@ -642,14 +642,14 @@ console.log("Available speakers:", audioOutputDevices);
 Returns a list of available video input devices (cameras).
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 const videoInputDevices = CometChatCalls.getVideoInputDevices();
 console.log("Available cameras:", videoInputDevices);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 const videoInputDevices = CometChatCalls.getVideoInputDevices();
 console.log("Available cameras:", videoInputDevices);
 ```
@@ -661,13 +661,13 @@ console.log("Available cameras:", videoInputDevices);
 Sets the active audio input device (microphone) by device ID.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.setAudioInputDevice(deviceId);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.setAudioInputDevice(deviceId);
 ```
 </Tab>
@@ -678,13 +678,13 @@ CometChatCalls.setAudioInputDevice(deviceId);
 Sets the active audio output device (speaker/headphones) by device ID.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.setAudioOutputDevice(deviceId);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.setAudioOutputDevice(deviceId);
 ```
 </Tab>
@@ -695,13 +695,13 @@ CometChatCalls.setAudioOutputDevice(deviceId);
 Sets the active video input device (camera) by device ID.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.setVideoInputDevice(deviceId);
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.setVideoInputDevice(deviceId);
 ```
 </Tab>
@@ -712,13 +712,13 @@ CometChatCalls.setVideoInputDevice(deviceId);
 Upgrades an ongoing audio call to a video call. This enables the camera and starts transmitting video to other participants. The remote participant receives the `onCallSwitchedToVideo()` callback.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 CometChatCalls.switchToVideoCall();
 ```
 </Tab>
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 CometChatCalls.switchToVideoCall();
 ```
 </Tab>

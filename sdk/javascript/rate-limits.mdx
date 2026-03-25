@@ -40,30 +40,6 @@ CometChat includes rate limit information in response headers:
 When you exceed the rate limit, CometChat returns HTTP `429 Too Many Requests`. Implement exponential backoff to handle this gracefully:
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-async function callWithRetry(apiCall, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await apiCall();
-    } catch (error) {
-      if (error.code === "ERR_TOO_MANY_REQUESTS" && attempt < maxRetries - 1) {
-        const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-        console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      } else {
-        throw error;
-      }
-    }
-  }
-}
-
-// Usage
-const users = await callWithRetry(() =>
-  new CometChat.UsersRequestBuilder().setLimit(30).build().fetchNext()
-);
-```
-</Tab>
 <Tab title="TypeScript">
 ```typescript
 async function callWithRetry<T>(
@@ -88,6 +64,30 @@ async function callWithRetry<T>(
 
 // Usage
 const users: CometChat.User[] = await callWithRetry(() =>
+  new CometChat.UsersRequestBuilder().setLimit(30).build().fetchNext()
+);
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+async function callWithRetry(apiCall, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      if (error.code === "ERR_TOO_MANY_REQUESTS" && attempt < maxRetries - 1) {
+        const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
+// Usage
+const users = await callWithRetry(() =>
   new CometChat.UsersRequestBuilder().setLimit(30).build().fetchNext()
 );
 ```

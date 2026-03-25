@@ -96,30 +96,6 @@ The `getModerationStatus()` method returns one of the following values:
 When you send a text, image, or video message, check the initial moderation status:
 
 <Tabs>
-  <Tab title="JavaScript">
-    ```javascript
-    const textMessage = new CometChat.TextMessage(
-      receiverUID,
-      "Hello, how are you?",
-      CometChat.RECEIVER_TYPE.USER
-    );
-
-    CometChat.sendMessage(textMessage).then(
-      (message) => {
-        // Check moderation status
-        const status = message.getModerationStatus();
-        
-        if (status === CometChat.ModerationStatus.PENDING) {
-          console.log("Message is under moderation review");
-          // Show pending indicator in UI
-        }
-      },
-      (error) => {
-        console.log("Message sending failed:", error);
-      }
-    );
-    ```
-  </Tab>
   <Tab title="TypeScript">
     ```typescript
     const textMessage = new CometChat.TextMessage(
@@ -144,6 +120,30 @@ When you send a text, image, or video message, check the initial moderation stat
     );
     ```
   </Tab>
+  <Tab title="JavaScript">
+    ```javascript
+    const textMessage = new CometChat.TextMessage(
+      receiverUID,
+      "Hello, how are you?",
+      CometChat.RECEIVER_TYPE.USER
+    );
+
+    CometChat.sendMessage(textMessage).then(
+      (message) => {
+        // Check moderation status
+        const status = message.getModerationStatus();
+        
+        if (status === CometChat.ModerationStatus.PENDING) {
+          console.log("Message is under moderation review");
+          // Show pending indicator in UI
+        }
+      },
+      (error) => {
+        console.log("Message sending failed:", error);
+      }
+    );
+    ```
+  </Tab>
 </Tabs>
 
 ### Step 2: Listen for Moderation Results
@@ -151,20 +151,20 @@ When you send a text, image, or video message, check the initial moderation stat
 Register a message listener to receive moderation results in real-time:
 
 <Tabs>
-  <Tab title="JavaScript">
-    ```javascript
-    const listenerID = "MODERATION_LISTENER";
+  <Tab title="TypeScript">
+    ```typescript
+    const listenerID: string = "MODERATION_LISTENER";
 
     CometChat.addMessageListener(
       listenerID,
       new CometChat.MessageListener({
-        onMessageModerated: (message) => {
+        onMessageModerated: (message: CometChat.BaseMessage) => {
           if (
             message instanceof CometChat.TextMessage ||
             message instanceof CometChat.MediaMessage
           ) {
-            const status = message.getModerationStatus();
-            const messageId = message.getId();
+            const status: string = message.getModerationStatus();
+            const messageId: number = message.getId();
 
             switch (status) {
               case CometChat.ModerationStatus.APPROVED:
@@ -187,20 +187,20 @@ Register a message listener to receive moderation results in real-time:
     // CometChat.removeMessageListener(listenerID);
     ```
   </Tab>
-  <Tab title="TypeScript">
-    ```typescript
-    const listenerID: string = "MODERATION_LISTENER";
+  <Tab title="JavaScript">
+    ```javascript
+    const listenerID = "MODERATION_LISTENER";
 
     CometChat.addMessageListener(
       listenerID,
       new CometChat.MessageListener({
-        onMessageModerated: (message: CometChat.BaseMessage) => {
+        onMessageModerated: (message) => {
           if (
             message instanceof CometChat.TextMessage ||
             message instanceof CometChat.MediaMessage
           ) {
-            const status: string = message.getModerationStatus();
-            const messageId: number = message.getId();
+            const status = message.getModerationStatus();
+            const messageId = message.getId();
 
             switch (status) {
               case CometChat.ModerationStatus.APPROVED:

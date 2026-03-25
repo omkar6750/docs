@@ -41,35 +41,6 @@ AI Agents enable intelligent, automated interactions. They process user messages
 - Event flow: Run Start → Tool Call(s) → Text Message Stream → Run Finished
 
 <Tabs>
-  <Tab title="JavaScript">
-    ```javascript
-    const listnerId = "unique_listener_id";
-
-    // Adding the AIAssistantListener for real-time events
-    CometChat.addAIAssistantListener(listnerId, {
-      onAIAssistantEventReceived: (message) => {
-        console.log("AIAssistant event received successfully", message);
-      }
-    });
-
-    // Adding the MessageListener for persisted agentic messages
-    CometChat.addMessageListener(listnerId, {
-      onAIAssistantMessageReceived: (message) => {
-        console.log("AI Assistant message received successfully", message);
-      },
-      onAIToolResultReceived: (message) => {
-        console.log("AI Tool result message received successfully", message);
-      },
-      onAIToolArgumentsReceived: (message) => {
-        console.log("AI Tool argument message received successfully", message);
-      },
-    });
-
-    // Cleanup - always remove listeners when done
-    CometChat.removeAIAssistantListener(listnerId);
-    CometChat.removeMessageListener(listnerId);
-    ```
-  </Tab>
   <Tab title="TypeScript">
     ```typescript
     const listnerId: string = "unique_listener_id";
@@ -99,6 +70,35 @@ AI Agents enable intelligent, automated interactions. They process user messages
     CometChat.removeMessageListener(listnerId);
     ```
   </Tab>
+  <Tab title="JavaScript">
+    ```javascript
+    const listnerId = "unique_listener_id";
+
+    // Adding the AIAssistantListener for real-time events
+    CometChat.addAIAssistantListener(listnerId, {
+      onAIAssistantEventReceived: (message) => {
+        console.log("AIAssistant event received successfully", message);
+      }
+    });
+
+    // Adding the MessageListener for persisted agentic messages
+    CometChat.addMessageListener(listnerId, {
+      onAIAssistantMessageReceived: (message) => {
+        console.log("AI Assistant message received successfully", message);
+      },
+      onAIToolResultReceived: (message) => {
+        console.log("AI Tool result message received successfully", message);
+      },
+      onAIToolArgumentsReceived: (message) => {
+        console.log("AI Tool argument message received successfully", message);
+      },
+    });
+
+    // Cleanup - always remove listeners when done
+    CometChat.removeAIAssistantListener(listnerId);
+    CometChat.removeMessageListener(listnerId);
+    ```
+  </Tab>
 </Tabs>
 
 ### AI Moderation
@@ -111,51 +111,6 @@ AI Moderation automatically reviews messages for inappropriate content in real-t
 - Enable and configure rules in the CometChat Dashboard
 
 <Tabs>
-  <Tab title="JavaScript">
-    ```javascript
-    // Send message and check initial moderation status
-    const textMessage = new CometChat.TextMessage(
-      receiverUID,
-      "Hello, how are you?",
-      CometChat.RECEIVER_TYPE.USER
-    );
-
-    CometChat.sendMessage(textMessage).then(
-      (message) => {
-        const status = message.getModerationStatus();
-        
-        if (status === CometChat.ModerationStatus.PENDING) {
-          console.log("Message is under moderation review");
-        }
-      },
-      (error) => {
-        console.log("Message sending failed:", error);
-      }
-    );
-
-    // Listen for moderation results
-    const listenerID = "MODERATION_LISTENER";
-
-    CometChat.addMessageListener(
-      listenerID,
-      new CometChat.MessageListener({
-        onMessageModerated: (message) => {
-          const status = message.getModerationStatus();
-          const messageId = message.getId();
-
-          switch (status) {
-            case CometChat.ModerationStatus.APPROVED:
-              console.log(`Message ${messageId} approved`);
-              break;
-            case CometChat.ModerationStatus.DISAPPROVED:
-              console.log(`Message ${messageId} blocked`);
-              break;
-          }
-        }
-      })
-    );
-    ```
-  </Tab>
   <Tab title="TypeScript">
     ```typescript
     // Send message and check initial moderation status
@@ -187,6 +142,51 @@ AI Moderation automatically reviews messages for inappropriate content in real-t
         onMessageModerated: (message: CometChat.BaseMessage) => {
           const status: string = message.getModerationStatus();
           const messageId: number = message.getId();
+
+          switch (status) {
+            case CometChat.ModerationStatus.APPROVED:
+              console.log(`Message ${messageId} approved`);
+              break;
+            case CometChat.ModerationStatus.DISAPPROVED:
+              console.log(`Message ${messageId} blocked`);
+              break;
+          }
+        }
+      })
+    );
+    ```
+  </Tab>
+  <Tab title="JavaScript">
+    ```javascript
+    // Send message and check initial moderation status
+    const textMessage = new CometChat.TextMessage(
+      receiverUID,
+      "Hello, how are you?",
+      CometChat.RECEIVER_TYPE.USER
+    );
+
+    CometChat.sendMessage(textMessage).then(
+      (message) => {
+        const status = message.getModerationStatus();
+        
+        if (status === CometChat.ModerationStatus.PENDING) {
+          console.log("Message is under moderation review");
+        }
+      },
+      (error) => {
+        console.log("Message sending failed:", error);
+      }
+    );
+
+    // Listen for moderation results
+    const listenerID = "MODERATION_LISTENER";
+
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onMessageModerated: (message) => {
+          const status = message.getModerationStatus();
+          const messageId = message.getId();
 
           switch (status) {
             case CometChat.ModerationStatus.APPROVED:
