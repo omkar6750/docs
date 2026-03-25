@@ -4,6 +4,37 @@ sidebarTitle: "Overview"
 description: "Add real-time chat, voice, and video to your JavaScript application with the CometChat SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Accordion title="AI Integration Quick Reference">
+
+```bash
+npm install @cometchat/chat-sdk-javascript
+```
+
+```javascript
+import { CometChat } from "@cometchat/chat-sdk-javascript";
+
+// 1. Initialize (once at app startup)
+const appSettings = new CometChat.AppSettingsBuilder()
+  .setRegion("APP_REGION") // e.g. "us", "eu", "in"
+  .subscribePresenceForAllUsers()
+  .autoEstablishSocketConnection(true)
+  .build();
+
+await CometChat.init("APP_ID", appSettings);
+
+// 2. Login (check session first)
+const existing = await CometChat.getLoggedinUser();
+if (!existing) {
+  await CometChat.login("cometchat-uid-1", "AUTH_KEY"); // dev only — use Auth Token in production
+}
+```
+
+**Credentials:** App ID, Region, Auth Key from [CometChat Dashboard](https://app.cometchat.com)
+**Test UIDs:** `cometchat-uid-1` through `cometchat-uid-5`
+**SSR:** SDK requires browser APIs — initialize client-side only (`useEffect` / `mounted`)
+</Accordion>
+
 The CometChat JavaScript SDK enables you to add real-time messaging, voice, and video calling capabilities to any JavaScript application — whether it's a web app built with React, Angular, Vue, or vanilla JavaScript.
 
 ## What You Can Build
