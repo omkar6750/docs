@@ -17,22 +17,26 @@ Member scopes: `Admin` | `Moderator` | `Participant`
 Message categories: `message` | `custom` | `action` | `call`
 </Accordion>
 
-This guide covers the fundamental concepts you need to understand when building with CometChat.
+This page covers the core concepts you'll encounter when building with CometChat. Read this before diving into the SDK guides — it'll make everything else click faster.
 
-## CometChat Dashboard
+## Users
 
-The [CometChat Dashboard](https://app.cometchat.com) enables you to create new apps (projects) and manage your existing apps.
+A user is anyone who uses CometChat. Each user is uniquely identified by a UID (Unique User Identifier).
 
-- For every app, a unique App ID is generated. This App ID is required when integrating CometChat within your app.
-- Along with the App ID, you will need to create an Auth Key (from the Dashboard) which can be used for user authentication.
+- The UID is typically the primary ID of the user from your database
+- UID can be alphanumeric with underscore and hyphen only — spaces, punctuation, and other special characters are not allowed
 
-<Note>
-Ideally, create two apps — one for development and one for production. Use a single app regardless of the number of platforms. Do not create separate apps for every platform; if you do, your users on different platforms will not be able to communicate with each other.
-</Note>
+### User Roles
 
-## API Keys
+A role is a category for grouping similar users. For example, group premium users with the role "Premium" to filter users or enable/disable features conditionally.
 
-You can generate two types of keys from the dashboard:
+## Authentication
+
+CometChat does not handle user registration or friends management — you handle that in your app, then log users into CometChat programmatically.
+
+### API Keys
+
+You can generate two types of keys from the [CometChat Dashboard](https://app.cometchat.com):
 
 | Type | Privileges | Recommended Use |
 | --- | --- | --- |
@@ -43,14 +47,7 @@ You can generate two types of keys from the dashboard:
 Never expose your REST API Key in client-side code. Use Auth Tokens for production authentication.
 </Warning>
 
-## Users
-
-A user is anyone who uses CometChat. Each user is uniquely identified using a UID (Unique User Identifier).
-
-- The UID is typically the primary ID of the user from your database
-- UID can be alphanumeric with underscore and hyphen only — spaces, punctuation, and other special characters are not allowed
-
-## Auth Tokens
+### Auth Tokens
 
 Auth Tokens are secure, per-user credentials for production use:
 
@@ -58,9 +55,11 @@ Auth Tokens are secure, per-user credentials for production use:
 - Generate tokens server-side via the [REST API](https://api-explorer.cometchat.com/reference/create-authtoken)
 - Tokens can only be deleted via the Dashboard or REST API
 
-## Authentication Flow
+### Authentication Flow
 
-CometChat does not handle user management or friends management. You handle registration and login in your app, then log users into CometChat programmatically.
+<Note>
+Create your apps in the [CometChat Dashboard](https://app.cometchat.com) — each app gets a unique App ID required for SDK initialization. Ideally, create two apps — one for development and one for production. Use a single app regardless of the number of platforms; if you create separate apps per platform, your users won't be able to communicate across them.
+</Note>
 
 | Your App | Your Server | CometChat |
 | --- | --- | --- |
@@ -68,10 +67,6 @@ CometChat does not handle user management or friends management. You handle regi
 | User logs in | Verify credentials, retrieve user ID | Log in user programmatically with UID |
 | User sends friend request | Display request to potential friend | No action required |
 | User accepts friend request | Display users as friends | Add both users as friends via REST API |
-
-## User Roles
-
-A role is a category for grouping similar users. For example, group premium users with the role "Premium" to filter users or enable/disable features conditionally.
 
 ## Groups
 
