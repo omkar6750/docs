@@ -4,6 +4,7 @@ sidebarTitle: "Retrieve Groups"
 description: "Fetch, filter, and search groups using the CometChat JavaScript SDK. Includes pagination, tag-based filtering, joined-only groups, and online member counts."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
 <Accordion title="AI Integration Quick Reference">
 
 ```javascript
@@ -16,7 +17,7 @@ const groups = await request.fetchNext();
 const group = await CometChat.getGroup("GUID");
 
 // Fetch only joined groups
-const request = new CometChat.GroupsRequestBuilder()
+const joinedRequest = new CometChat.GroupsRequestBuilder()
   .setLimit(30).joinedOnly(true).build();
 
 // Get online member count
@@ -28,11 +29,13 @@ Fetch the list of [`Group`](/sdk/reference/entities#group) objects the logged-in
 
 ## Retrieve List of Groups
 
-Use `GroupsRequestBuilder` to fetch groups with filtering, searching, and pagination.
+*In other words, as a logged-in user, how do I retrieve the list of groups I've joined and groups that are available?*
 
-<Note>
-The list only includes public and password-protected groups. Private groups appear only if the user is a member.
-</Note>
+In order to fetch the list of groups, you can use the `GroupsRequest` class. To use this class i.e to create an object of the `GroupsRequest` class, you need to use the `GroupsRequestBuilder` class. The `GroupsRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
+
+Fetching using this builder will return [`Group`](/sdk/reference/entities#group) objects
+
+Use `GroupsRequestBuilder` to fetch groups with filtering, searching, and pagination.
 
 ### Set Limit
 
@@ -176,7 +179,31 @@ Relevant fields to access on returned groups:
 |-------|--------|-------------|-------------|
 | tags | `getTags()` | `string[]` | Tags associated with the group |
 
-After configuring the builder, call `build()` to get the `GroupsRequest` object, then call `fetchNext()` to retrieve groups. Call `fetchNext()` repeatedly on the same instance to paginate.
+Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the `GroupsRequest` class.
+
+Once you have the object of the `GroupsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of [`Group`](/sdk/reference/entities#group) objects containing n number of groups where n is the limit set in the builder class.
+
+The list of groups fetched will only have the public and password type groups. The private groups will only be available if the user is a member of the group.
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+let limit = 30;
+let groupsRequest = new CometChat.GroupsRequestBuilder()
+                  	.setLimit(limit)
+                  	.withTags(true)
+                  	.build(); 
+```
+
+</Tab>
+
+</Tabs>
+
+After configuring the builder, call `build()` to get the `GroupsRequest` object, then call `fetchNext()` to retrieve groups.
+
+<Note>
+The list only includes public and password-protected groups. Private groups appear only if the user is a member.
+</Note>
 
 <Tabs>
 <Tab title="TypeScript">
@@ -295,7 +322,9 @@ groupMemberCount => {
 
 </Tabs>
 
-Returns an object with GUIDs as keys and online member counts as values (e.g., `{ "cometchat-guid-1": 5 }`).
+Returns an object with GUIDs as keys and online member counts as values.
+
+`getOnlineGroupMemberCount()` resolves with a `{ guid: count }` object where each key is a group GUID and its value is the number of currently online members in that group.
 
 ---
 
