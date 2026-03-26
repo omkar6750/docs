@@ -4,7 +4,6 @@ sidebarTitle: "Standalone Calling"
 description: "Implement video and audio calling using only the CometChat Calls SDK without the Chat SDK. Covers authentication, token generation, session management, and call controls."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
 <Accordion title="AI Integration Quick Reference">
 
 ```javascript
@@ -23,9 +22,10 @@ CometChatCalls.startSession(callToken.token, callSettings, htmlElement);
 CometChatCalls.endSession();
 ```
 </Accordion>
-## Overview
 
-This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
+Standalone Calling lets you add voice and video calls using only the CometChat Calls SDK — no Chat SDK required. This is ideal when you already have your own messaging system and just need calling, or when you want the smallest possible SDK footprint.
+
+The key difference from the regular [Call Session](/sdk/javascript/direct-call) flow is authentication: instead of using `CometChat.getLoggedinUser()`, you obtain auth tokens directly from the CometChat REST API.
 
 <Note>
 Before you begin, ensure you have completed the [Calls SDK setup](/sdk/javascript/calling-setup).
@@ -247,13 +247,32 @@ Configure the call experience using the following `CallSettingsBuilder` methods:
 | `setMainVideoContainerSetting(MainVideoContainerSetting)` | Customizes the main video container. See [Video View Customization](/sdk/javascript/video-view-customisation). |
 | `setIdleTimeoutPeriod(number)` | Sets idle timeout in seconds. Warning appears 60 seconds before auto-termination. Default: `180` seconds. *v4.1.0+* |
 
+## End Call Session
+
+To end the call session and release all media resources (camera, microphone, network connections), call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback.
+
+<Tabs>
+<Tab title="TypeScript">
+```typescript
+onCallEndButtonPressed: () => {
+  CometChatCalls.endSession();
+  // Close the calling screen
+}
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+onCallEndButtonPressed: () => {
+  CometChatCalls.endSession();
+  // Close the calling screen
+}
+```
+</Tab>
+</Tabs>
+
 ## Call Listeners
 
 The `OngoingCallListener` provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
-
-<Warning>
-Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
-</Warning>
 
 You can register listeners in two ways:
 
@@ -263,6 +282,10 @@ You can register listeners in two ways:
 Each listener requires a unique `listenerId` string. This ID is used to:
 - **Prevent duplicate registrations** — Re-registering with the same ID replaces the existing listener
 - **Enable targeted removal** — Remove specific listeners without affecting others
+
+<Warning>
+Always remove listeners when they're no longer needed (e.g., on component unmount or page navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 <Tabs>
 <Tab title="TypeScript">
@@ -386,30 +409,7 @@ CometChatCalls.removeCallEventListener(listenerId);
 | `onCallSwitchedToVideo(event)` | Invoked when an audio call is upgraded to a video call. Contains `sessionId`, `initiator`, and `responder`. |
 | `onError(error)` | Invoked when an error occurs during the call session. |
 
-## End Call Session
-
-To end the call session and release all media resources (camera, microphone, network connections), call `CometChatCalls.endSession()` in the `onCallEndButtonPressed()` callback.
-
-<Tabs>
-<Tab title="TypeScript">
-```typescript
-onCallEndButtonPressed: () => {
-  CometChatCalls.endSession();
-  // Close the calling screen
-}
-```
-</Tab>
-<Tab title="JavaScript">
-```javascript
-onCallEndButtonPressed: () => {
-  CometChatCalls.endSession();
-  // Close the calling screen
-}
-```
-</Tab>
-</Tabs>
-
-## Methods
+## In-Call Methods
 
 These methods are available for performing custom actions during an active call session. Use them to build custom UI controls or implement specific behaviors based on your use case.
 
