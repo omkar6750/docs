@@ -4,32 +4,68 @@ sidebarTitle: "Session Timeout"
 description: "Handle idle session timeouts in CometChat calls, including automatic termination, user prompts, and the onSessionTimeout event."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
 <Accordion title="AI Integration Quick Reference">
 
+```javascript
+// Set custom timeout (in seconds)
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setIdleTimeoutPeriod(300) // 5 minutes
+  .setCallListener(new CometChatCalls.OngoingCallListener({
+    onSessionTimeout: () => {
+      console.log("Session timed out");
+      CometChatCalls.endSession();
+    }
+  }))
+  .build();
+```
+
 - Default idle timeout: 180 seconds (3 minutes) alone in a session
-- Warning dialog appears at 120 seconds with stay/leave options
-- Auto-terminates after 60 more seconds if no action taken
-- Listen for `onSessionTimeout` event to handle auto-termination
-- Customize timeout with `setIdleTimeoutPeriod(seconds)` in CallSettings (v4.1.0+)
+- Warning dialog appears 60 seconds before auto-termination
+- Listen for `onSessionTimeout` to handle auto-termination
+- Customize with `setIdleTimeoutPeriod(seconds)` in CallSettings (v4.1.0+)
 </Accordion>
 
 *Available since v4.1.0*
 
-## Overview
+The Calls SDK automatically terminates call sessions when a participant is alone for too long, preventing abandoned calls from consuming resources. You can customize the timeout duration and handle the termination event.
 
-The Calls SDK automatically handles idle session timeouts to prevent abandoned calls from consuming resources.
+## How It Works
 
-**Default behavior** (participant alone in session for 180 seconds):
+When a participant is alone in a session:
 
-1. At 120 seconds: Warning dialog appears with "Stay" or "Leave" options
-2. At 180 seconds: Call auto-terminates if no action taken
+1. A warning dialog appears 60 seconds before the timeout, with "Stay" or "Leave" options
+2. If no action is taken, the call auto-terminates and the `onSessionTimeout` event fires
 
-Customize the timeout period using `setIdleTimeoutPeriod(seconds)` in `CallSettingsBuilder`.
+The default timeout is 180 seconds (3 minutes).
 
-### Session Timeout Flow
+## Configuration
 
-The `onSessionTimeout` event fires when the call auto-terminates due to inactivity.
+Set a custom timeout period using `setIdleTimeoutPeriod()` in `CallSettingsBuilder`. The warning dialog will always appear 60 seconds before the configured timeout.
+
+```javascript
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setIdleTimeoutPeriod(300) // 5 minutes
+  .enableDefaultLayout(true)
+  .setCallListener(callListener)
+  .build();
+```
+
+## Handling the Timeout Event
+
+Listen for `onSessionTimeout` in your `OngoingCallListener` to clean up when the call auto-terminates:
+
+```javascript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onSessionTimeout: () => {
+    console.log("Session timed out due to inactivity");
+    CometChatCalls.endSession();
+    // Close the calling screen
+  },
+  // ... other listeners
+});
+```
+
+See [Call Session — Call Listeners](/sdk/javascript/direct-call#call-listeners) for the full list of events.
 
 ---
 
