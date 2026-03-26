@@ -215,3 +215,108 @@ It inherits all properties from `BaseMessage` and adds the following.
 | joinedAt | `getJoinedAt()` | `number` | Timestamp when the call was joined |
 | rawData | `getRawData()` | `Object` | Raw JSON data of the call message |
 | metadata | `getMetadata()` | `Object` | Custom metadata attached to the call message |
+
+---
+
+## AIAssistantMessage
+
+`AIAssistantMessage` extends [BaseMessage](#basemessage) and represents the full assistant reply persisted after an AI Agent run completes. It is received via the `onAIAssistantMessageReceived` callback of the [MessageListener](/sdk/javascript/all-real-time-listeners#message-listener).
+
+It inherits all properties from `BaseMessage` and adds the following.
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| assistantMessageData | `getAssistantMessageData()` | `AIAssistantMessageData` | The assistant message data containing runId, threadId, and text |
+
+### AIAssistantMessageData
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| runId | `getRunId()` | `string` | The run ID of the agent execution |
+| threadId | `getThreadId()` | `string` | The thread ID of the conversation |
+| text | `getText()` | `string` | The full text of the assistant's reply |
+
+---
+
+## AIToolResultMessage
+
+`AIToolResultMessage` extends [BaseMessage](#basemessage) and represents the output of a tool call made during an AI Agent run. It is received via the `onAIToolResultReceived` callback of the [MessageListener](/sdk/javascript/all-real-time-listeners#message-listener).
+
+It inherits all properties from `BaseMessage` and adds the following.
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| toolResultMessageData | `getToolResultMessageData()` | `AIToolResultMessageData` | The tool result data containing runId, threadId, text, and toolCallId |
+
+### AIToolResultMessageData
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| runId | `getRunId()` | `string` | The run ID of the agent execution |
+| threadId | `getThreadId()` | `string` | The thread ID of the conversation |
+| text | `getText()` | `string` | The text output of the tool |
+| toolCallId | `getToolCallId()` | `string` | The ID of the tool call this result belongs to |
+
+---
+
+## AIToolArgumentMessage
+
+`AIToolArgumentMessage` extends [BaseMessage](#basemessage) and represents the arguments passed to a tool during an AI Agent run. It is received via the `onAIToolArgumentsReceived` callback of the [MessageListener](/sdk/javascript/all-real-time-listeners#message-listener).
+
+It inherits all properties from `BaseMessage` and adds the following.
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| toolArgumentMessageData | `getToolArgumentMessageData()` | `AIToolArgumentMessageData` | The tool argument data containing runId, threadId, and toolCalls |
+
+### AIToolArgumentMessageData
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| runId | `getRunId()` | `string` | The run ID of the agent execution |
+| threadId | `getThreadId()` | `string` | The thread ID of the conversation |
+| toolCalls | `getToolCalls()` | `AIToolCall[]` | Array of tool calls with their arguments |
+
+### AIToolCall
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| id | `getId()` | `string` | Unique tool call ID |
+| type | `getType()` | `string` | Type of the tool call |
+| displayName | `getDisplayName()` | `string` | Display name of the tool |
+| executionText | `getExecutionText()` | `string` | Execution text for the tool |
+| function | `getFunction()` | `AIToolCallFunction` | The function details (name and arguments) |
+
+### AIToolCallFunction
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| name | `getName()` | `string` | Name of the function being called |
+| arguments | `getArguments()` | `string` | JSON string of the arguments passed to the function |
+
+---
+
+## AIAssistantBaseEvent
+
+`AIAssistantBaseEvent` is the base class for all real-time streaming events from an AI Agent run. It is received via the `onAIAssistantEventReceived` callback of the [AIAssistantListener](/sdk/javascript/all-real-time-listeners#ai-assistant-listener).
+
+The `type` field identifies the specific event (e.g., `"run_started"`, `"tool_call_started"`, `"text_message_content"`, `"run_finished"`).
+
+### Properties
+
+| Property | Getter | Return Type | Description |
+|----------|--------|-------------|-------------|
+| type | `getType()` | `string` | The event type identifier |
+| conversationId | `getConversationId()` | `string` | The conversation ID associated with the event |
+| messageId | `getMessageId()` | `string` | The message ID associated with the event |
+| parentMessageId | `getParentMessageId()` | `string` | The parent message ID (if in a thread) |
+| data | `getData()` | `object` | Additional event-specific data |
+| data.timestamp | `getTimestamp()` | `number` | Timestamp of the event |
+| data.runId | `getRunId()` | `string` | The run ID of the agent execution |
+| data.threadId | `getThreadId()` | `string` | The thread ID of the conversation |
