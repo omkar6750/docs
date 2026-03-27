@@ -1,6 +1,29 @@
 ---
 title: "Mentions"
+sidebarTitle: "Mentions"
+description: "Send messages with user mentions, retrieve mentioned users, and filter messages by mention metadata using the CometChat JavaScript SDK."
 ---
+
+
+{/* TL;DR for Agents and Quick Reference */}
+<Accordion title="AI Integration Quick Reference">
+
+```javascript
+let message = {}; // obtained from MessageListener or fetchPrevious/fetchNext
+
+// Send a message with a mention (use <@uid:UID> format)
+const msg = new CometChat.TextMessage("receiverUID", "Hello <@uid:cometchat-uid-1>", CometChat.RECEIVER_TYPE.USER);
+await CometChat.sendMessage(msg);
+
+// Get mentioned users from a message
+const mentionedUsers = message.getMentionedUsers();
+
+// Fetch messages with mention tag info
+const request = new CometChat.MessagesRequestBuilder()
+  .setUID("UID").setLimit(30).mentionsWithTagInfo(true).build();
+const messages = await request.fetchPrevious();
+```
+</Accordion>
 
 
 
@@ -61,10 +84,10 @@ CometChat.sendMessage(textMessage).then(
 
 <Tab title="TypeScript (User)">
 ```typescript
-let receiverID: string = "UID",
-  messageText: string = "Hello <@uid:cometchat-uid-1>";
-  receiverType: string = CometChat.RECEIVER_TYPE.USER,
-  textMessage: CometChat.TextMessage = new CometChat.TextMessage(receiverID, messageText, receiverType);
+let receiverID: string = "UID";
+let messageText: string = "Hello <@uid:cometchat-uid-1>";
+let receiverType: string = CometChat.RECEIVER_TYPE.USER;
+let textMessage: CometChat.TextMessage = new CometChat.TextMessage(receiverID, messageText, receiverType);
 
 CometChat.sendMessage(textMessage).then(
   (message: CometChat.TextMessage) => {
@@ -127,7 +150,7 @@ To get a list of messages in a conversation where users are mentioned along with
 let UID = "UID";
 let limit = 30;
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+let messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setLimit(limit)
   .mentionsWithTagInfo(true)
@@ -154,7 +177,7 @@ messagesRequest.fetchPrevious().then(
 let GUID = "GUID";
 let limit = 30;
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+let messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setLimit(limit)
   .mentionsWithTagInfo(true)
@@ -236,9 +259,24 @@ messagesRequest.fetchPrevious().then(
 
 </Tabs>
 
+Relevant fields to access on returned messages and their mentioned users:
+
+| Field | Getter | Return Type | Description |
+|-------|--------|-------------|-------------|
+| mentionedUsers | `getMentionedUsers()` | [`User[]`](/sdk/reference/entities#user) | Array of users mentioned in the message |
+| tags (on each mentioned user) | `getTags()` | `string[]` | Tags associated with the mentioned user |
+
 ## Mentions With Blocked Info
 
 To get a list of messages in a conversation where users are mentioned along with the blocked relationship of the mentioned users with the logged-in user.
+
+Relevant fields to access on returned messages and their mentioned users:
+
+| Field | Getter | Return Type | Description |
+|-------|--------|-------------|-------------|
+| mentionedUsers | `getMentionedUsers()` | [`User[]`](/sdk/reference/entities#user) | Array of users mentioned in the message |
+| blockedByMe (on each mentioned user) | `getBlockedByMe()` | `boolean` | Whether the logged-in user has blocked this mentioned user |
+| hasBlockedMe (on each mentioned user) | `getHasBlockedMe()` | `boolean` | Whether this mentioned user has blocked the logged-in user |
 
 <Tabs>
 <Tab title="User">
@@ -246,7 +284,7 @@ To get a list of messages in a conversation where users are mentioned along with
 let UID = "UID";
 let limit = 30;
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+let messagesRequest = new CometChat.MessagesRequestBuilder()
   .setUID(UID)
   .setLimit(limit)
   .mentionsWithBlockedInfo(true)
@@ -274,7 +312,7 @@ messagesRequest.fetchPrevious().then(
 let GUID = "GUID";
 let limit = 30;
 
-var messagesRequest = new CometChat.MessagesRequestBuilder()
+let messagesRequest = new CometChat.MessagesRequestBuilder()
   .setGUID(GUID)
   .setLimit(limit)
   .mentionsWithBlockedInfo(true)
@@ -366,3 +404,25 @@ To retrieve the list of users mentioned in the particular message, you can use t
 ```javascript
 message.getMentionedUsers()
 ```
+
+
+The getMentionedUsers() method returns an array of [`User`](/sdk/reference/entities#user) objects.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/javascript/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Reactions" icon="face-smile" href="/sdk/javascript/reactions">
+    Add emoji reactions to messages
+  </Card>
+  <Card title="Threaded Messages" icon="comments" href="/sdk/javascript/threaded-messages">
+    Organize conversations with message threads
+  </Card>
+</CardGroup>

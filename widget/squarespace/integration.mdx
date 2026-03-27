@@ -49,7 +49,7 @@ Add the CometChat Widget by pasting one small code snippet. It drops in like any
 
 ### Paste this into Footer (Code Injection)
 
-```html
+```html lines highlight={6-7,9}
 <div id="cometChatMount"></div>
 <script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
 
@@ -67,7 +67,7 @@ Add the CometChat Widget by pasting one small code snippet. It drops in like any
     },
 
     mount: "#cometChatMount",
-    width: "450px",
+    width: "400px",
     height: "80vh",
     isDocked: true,
   };
@@ -98,8 +98,7 @@ Add the CometChat Widget by pasting one small code snippet. It drops in like any
 
 ### Paste this into Footer (Code Injection)
 
-```html
-<!-- Add to Code Injection or Code Block -->
+```html lines highlight={7-9,12}
 <div id="cometChatMount"></div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
@@ -108,91 +107,87 @@ Add the CometChat Widget by pasting one small code snippet. It drops in like any
 const COMETCHAT_CONFIG = {
   appID: "YOUR_APP_ID",
   region: "YOUR_APP_REGION",      // e.g. "us", "eu", "in"
-  authKey: "YOUR_AUTH_KEY",
+  authKey: "YOUR_AUTH_KEY"
 };
 
-const WIDGET_SETTINGS = {
-  mount: "#cometChatMount",
-  width: "450px",
-  height: "80vh",
-  isDocked: true,
-  // dockedAlignment: "right",
-  // variantID: "YOUR_VARIANT_ID",
-  // chatType: "user",
-  // defaultChatID: "uid_or_guid",
-};
+const GUEST_ID_KEY = "cometchat_guest_id";
 
 function getSquarespaceMember() {
-  const name = "SiteUserInfo=";
-  const decodedCookie = decodeURIComponent(document.cookie);
-  const ca = decodedCookie.split(';');
-  
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i].trim();
-    if (c.indexOf(name) === 0) {
+  const cookieName = "SiteUserInfo=";
+  const cookies = decodeURIComponent(document.cookie).split(";");
+  for (let c of cookies) {
+    c = c.trim();
+    if (c.startsWith(cookieName)) {
       try {
-        const userData = JSON.parse(c.substring(name.length, c.length));
-        if (userData.authenticated) {
+        const data = JSON.parse(c.substring(cookieName.length));
+        if (data.authenticated) {
           return {
-            uid: userData.siteUserId,
-            name: userData.firstName || "Member",
-            avatar: userData.imageUrl || "",
-            isMember: true
+            uid: String(data.siteUserId),
+            name: data.firstName || "Member",
+            isMember: true,
           };
         }
-      } catch (e) {
-        console.error("Failed to parse Squarespace user cookie", e);
-      }
+      } catch {}
     }
   }
+
   return null;
 }
 
-const startWidget = () => {
+function resolveUser() {
   const member = getSquarespaceMember();
-  let userConfig;
+  if (member) return member;
 
-  if (member) {
-    // Logged-in Squarespace member
-    userConfig = {
-      mode: "uid",
-      uid: member.uid,
-      user: {
-        name: member.name,
-        avatar: member.avatar
-      }
-    };
-  } else {
-    // Guest user - generate persistent ID
-    let guestId = localStorage.getItem('cometchat_guest_id');
-    if (!guestId) {
-      guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('cometchat_guest_id', guestId);
-    }
-    userConfig = {
-      mode: "uid",
-      uid: guestId,
-      user: {
-        name: "Guest User"
-      }
-    };
+  let guestId = localStorage.getItem(GUEST_ID_KEY);
+  if (!guestId) {
+    guestId = `guest_${Math.random().toString(36).slice(2, 11)}`;
+    localStorage.setItem(GUEST_ID_KEY, guestId);
   }
 
-  // Merge all config and start
-  const fullConfig = {
-    ...COMETCHAT_CONFIG,
-    ...WIDGET_SETTINGS,
-    ...userConfig
+  return {
+    uid: guestId,
+    name: "Guest User",
+    isMember: false,
+  };
+}
+
+function initializeCometChat() {
+  const start = async () => {
+    try {
+      const user = resolveUser();
+      await CometChatApp.init(COMETCHAT_CONFIG);
+      const loggedInUser = await CometChatApp.CometChat.getLoggedinUser();
+      if (!loggedInUser || loggedInUser.uid !== user.uid) {
+        if (loggedInUser) {
+          await CometChatApp.logout();
+        }
+        const ccUser = new CometChatApp.CometChat.User(user.uid);
+        ccUser.setName(user.name);
+        try {
+          await CometChatApp.createOrUpdateUser(ccUser);
+        } catch {}
+        await CometChatApp.login({
+          uid: user.uid,
+          authKey: COMETCHAT_CONFIG.authKey,
+        });
+      }
+      CometChatApp.launch({
+        targetElementID: "cometChatMount",
+        isDocked: true,
+        width: "400px",
+        height: "80vh",
+      });
+    } catch {}
   };
 
-  CometChatApp.CometChatAuth.start(fullConfig);
-};
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", startWidget);
-} else {
-  startWidget();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
 }
+
+initializeCometChat();
 </script>
 ```
 
@@ -223,7 +218,7 @@ Full walkthrough: [How to properly log in and create users in CometChat](https:/
 
 ### Paste this into Footer (Code Injection)
 
-```html
+```html lines highlight={6-7,9}
 <div id="cometChatMount"></div>
 <script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
 
@@ -235,7 +230,7 @@ Full walkthrough: [How to properly log in and create users in CometChat](https:/
     authToken: "USER_AUTH_TOKEN",
 
     mount: "#cometChatMount",
-    width: "450px",
+    width: "400px",
     height: "80vh",
     isDocked: true,
   };

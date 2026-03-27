@@ -1,41 +1,90 @@
 ---
 title: "Video View Customisation"
+sidebarTitle: "Video View Customisation"
+description: "Customize the main video container in CometChat calls — aspect ratio, full screen button, name label, and network label positioning."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
+- **Class:** `CometChat.MainVideoContainerSetting`
+- **Apply via:** `CallSettingsBuilder.setMainVideoContainerSetting(videoSettings)`
+- **Customizable elements:** Aspect ratio, full screen button, name label, network label
+- **Position constants:** `POSITION_TOP_LEFT`, `POSITION_TOP_RIGHT`, `POSITION_BOTTOM_LEFT`, `POSITION_BOTTOM_RIGHT`
+- **Requires:** [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call) setup
+</Accordion>
 
-This section will guide you to customise the main video container.
+Customize the main video container in your call UI — aspect ratio, button positions, and label visibility. Create a `MainVideoContainerSetting` instance, configure it, and pass it to `CallSettingsBuilder.setMainVideoContainerSetting()`.
 
-## Implementation
+Before you begin, make sure you've set up [Ringing](/sdk/javascript/default-call) or [Call Session](/sdk/javascript/direct-call).
 
-Once you have decided to implement [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call) calling and followed the steps to implement them. Just few additional methods will help you quickly customize the main video container.
+## MainVideoContainerSetting
 
-Please make sure your callSettings is configured accordingly for [Default Calling](/sdk/javascript/default-call) or [Direct Calling](/sdk/javascript/direct-call).
+| Method | Description | Default |
+| ------ | ----------- | ------- |
+| `setMainVideoAspectRatio(aspectRatio)` | Aspect ratio of the main video. Values: `ASPECT_RATIO_CONTAIN`, `ASPECT_RATIO_COVER` | `ASPECT_RATIO_CONTAIN` |
+| `setFullScreenButtonParams(position, visibility)` | Position and visibility of the full screen button. | Bottom-right, visible |
+| `setNameLabelParams(position, visibility, backgroundColor)` | Position, visibility, and background color of the participant name label. | Bottom-left, visible, `rgba(27, 27, 27, 0.4)` |
+| `setNetworkLabelParams(position, visibility)` | Position and visibility of the network quality label. | Bottom-right, visible |
 
-## Main Video Container Setting
+### Position Constants
 
-The `MainVideoContainerSetting` Class is the required in case you want to customise the main video view. You need to pass the Object of the `MainVideoContainerSetting` Class in the `setMainVideoContainerSetting()` method of the `CallSettingsBuilder`.
+All position parameters accept one of these values from `CometChat.CallSettings`:
 
-| Setting                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `setMainVideoAspectRatio(aspectRatio: string)`                                       | This method is used to set the aspect ratio of main video. The default value is **contain.** <br /><br />Possible Values: <br />**1. CometChat.CallSettings. ASPECT\_RATIO\_CONTAIN\*\*\*\***<br />**2. CometChat.CallSettings. ASPECT\_RATIO\_COVER**                                                                                                                                                                                                                                                                                                           |
-| `setFullScreenButtonParams(position: string, visibility: boolean)`                   | This method is used to set the position & visibility parameter of the full screen button. By default the full screen button is visible in the **bottom-right** position. <br /><br />Possible Values for **POSITION:** <br />1. **CometChat.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChat.CallSettings. POSITION\_TOP\_RIGHT**<br />3. **CometChat.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChat.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false**                                             |
-| `setNameLabelParams(position: string, visibility: boolean, backgroundColor: string)` | This method is used to set the position, visibility & background color of the name label. By default the name label is visible in the **bottom-left** position with a background-color \*\*rgba(27, 27, 27, 0.4)\*\*<br /><br />Possible Values for **POSITION:** <br />1. **CometChat.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChat.CallSettings. POSITION\_TOP\_RIGHT**<br />3. **CometChat.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChat.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false** |
-| `setNetworkLabelParams(position: string, visibility: boolean)`                       | This method is used to set the position, visibility of the network label. By default the network label is visible in the **bottom-right** position.<br /><br />Possible Values for **POSITION:** <br />1. **CometChat.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChat.CallSettings. POSITION\_TOP\_RIGHT**<br />3. **CometChat.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChat.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false**                                                                  |
+- `POSITION_TOP_LEFT`
+- `POSITION_TOP_RIGHT`
+- `POSITION_BOTTOM_LEFT`
+- `POSITION_BOTTOM_RIGHT`
 
-Example:
+### Example
 
 <Tabs>
 <Tab title="TypeScript">
 ```typescript
-let videoSettings = new CometChat.MainVideoContainerSetting();
+let videoSettings: CometChat.MainVideoContainerSetting = new CometChat.MainVideoContainerSetting();
 
-videoSettings.setMainVideoAspectRatio(CometChat.CallSettings.ASPECT_RATIO_CONTAIN);	
+videoSettings.setMainVideoAspectRatio(CometChat.CallSettings.ASPECT_RATIO_CONTAIN);
 videoSettings.setFullScreenButtonParams(CometChat.CallSettings.POSITION_BOTTOM_RIGHT, true);
 videoSettings.setNameLabelParams(CometChat.CallSettings.POSITION_BOTTOM_LEFT, true, "rgba(27, 27, 27, 0.4)");
-videoSettings.setNetworkLabelParams(CometChat.CallSettings.POSITION_BOTTOM_RIGHT, true); 
+videoSettings.setNetworkLabelParams(CometChat.CallSettings.POSITION_BOTTOM_RIGHT, true);
+
+// Pass to CallSettingsBuilder
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setMainVideoContainerSetting(videoSettings)
+  // ... other settings
+  .build();
 ```
-
 </Tab>
+<Tab title="JavaScript">
+```javascript
+let videoSettings = new CometChat.MainVideoContainerSetting();
 
+videoSettings.setMainVideoAspectRatio(CometChat.CallSettings.ASPECT_RATIO_CONTAIN);
+videoSettings.setFullScreenButtonParams(CometChat.CallSettings.POSITION_BOTTOM_RIGHT, true);
+videoSettings.setNameLabelParams(CometChat.CallSettings.POSITION_BOTTOM_LEFT, true, "rgba(27, 27, 27, 0.4)");
+videoSettings.setNetworkLabelParams(CometChat.CallSettings.POSITION_BOTTOM_RIGHT, true);
+
+// Pass to CallSettingsBuilder
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setMainVideoContainerSetting(videoSettings)
+  // ... other settings
+  .build();
+```
+</Tab>
 </Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/javascript/default-call">
+    Implement default audio/video calling.
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/javascript/direct-call">
+    Implement direct calling without call events.
+  </Card>
+  <Card title="Virtual Background" icon="image" href="/sdk/javascript/virtual-background">
+    Add virtual background and blur effects.
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/javascript/recording">
+    Record calls for playback.
+  </Card>
+</CardGroup>
