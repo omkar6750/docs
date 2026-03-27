@@ -23,20 +23,154 @@ import { CometChatCompactMessageComposer } from "@cometchat/chat-uikit-react";
 ```
 </Info>
 
+{/* AI Agent Component Spec */}
+<Info>
+**AI Agent Component Spec**
+
+**Package:** `@cometchat/chat-uikit-react`
+**Import:** `import { CometChatCompactMessageComposer } from "@cometchat/chat-uikit-react";`
+**Minimal JSX:** `<CometChatCompactMessageComposer user={chatUser} />`
+**Required setup:** `CometChatUIKit.init()` + `CometChatUIKit.login()`
+**Key props:** `user` (CometChat.User), `group` (CometChat.Group), `onSendButtonClick` ((message: CometChat.BaseMessage) => void), `enableRichTextEditor` (boolean), `placeholderText` (string)
+**CSS class:** `.cometchat-compact-message-composer`
+**Events:** `ccMessageSent`, `ccMessageEdited`, `ccReplyToMessage`
+</Info>
+
+<Accordion title="AI Integration Quick Reference">
+```json
+{
+  "component": "CometChatCompactMessageComposer",
+  "package": "@cometchat/chat-uikit-react",
+  "import": "import { CometChatCompactMessageComposer } from \"@cometchat/chat-uikit-react\";",
+  "description": "Compact single-line message input with optional rich text formatting (bold, italic, underline, strikethrough, code, links, lists, blockquotes), attachments, mentions, voice recording, and message editing support.",
+  "primaryOutput": {
+    "prop": "onSendButtonClick",
+    "type": "(message: CometChat.BaseMessage) => void"
+  },
+  "props": {
+    "data": {
+      "user": { "type": "CometChat.User", "default": "undefined" },
+      "group": { "type": "CometChat.Group", "default": "undefined" },
+      "parentMessageId": { "type": "number", "default": "undefined" },
+      "initialComposerText": { "type": "string", "default": "\"\"" },
+      "placeholderText": { "type": "string", "default": "\"Type a message...\"" }
+    },
+    "callbacks": {
+      "onSendButtonClick": "(message: CometChat.BaseMessage) => void",
+      "onTextChange": "(text: string) => void",
+      "onError": "(error: CometChat.CometChatException) => void"
+    },
+    "visibility": {
+      "hideImageAttachmentOption": { "type": "boolean", "default": false },
+      "hideVideoAttachmentOption": { "type": "boolean", "default": false },
+      "hideAudioAttachmentOption": { "type": "boolean", "default": false },
+      "hideFileAttachmentOption": { "type": "boolean", "default": false },
+      "hidePollsOption": { "type": "boolean", "default": false },
+      "hideCollaborativeDocumentOption": { "type": "boolean", "default": false },
+      "hideCollaborativeWhiteboardOption": { "type": "boolean", "default": false },
+      "hideAttachmentButton": { "type": "boolean", "default": false },
+      "hideVoiceRecordingButton": { "type": "boolean", "default": false },
+      "hideEmojiKeyboardButton": { "type": "boolean", "default": false },
+      "hideStickersButton": { "type": "boolean", "default": false },
+      "hideSendButton": { "type": "boolean", "default": false }
+    },
+    "richText": {
+      "enableRichTextEditor": { "type": "boolean", "default": false },
+      "hideRichTextFormattingOptions": { "type": "boolean", "default": false },
+      "showToolbarOnSelection": { "type": "boolean", "default": false },
+      "enterKeyBehavior": { "type": "EnterKeyBehavior", "default": "EnterKeyBehavior.SendMessage" }
+    },
+    "behavior": {
+      "disableTypingEvents": { "type": "boolean", "default": false },
+      "disableMentions": { "type": "boolean", "default": false },
+      "disableMentionAll": { "type": "boolean", "default": false },
+      "mentionAllLabel": { "type": "string", "default": "\"all\"" },
+      "disableSoundForMessage": { "type": "boolean", "default": false },
+      "showScrollbar": { "type": "boolean", "default": false }
+    },
+    "viewSlots": {
+      "headerView": "JSX.Element",
+      "auxiliaryButtonView": "JSX.Element",
+      "sendButtonView": "JSX.Element"
+    },
+    "formatting": {
+      "textFormatters": {
+        "type": "CometChatTextFormatter[]",
+        "default": "default formatters from data source"
+      },
+      "attachmentOptions": {
+        "type": "CometChatMessageComposerAction[]",
+        "note": "Custom attachment options list (replaces defaults)"
+      }
+    }
+  },
+  "events": [
+    {
+      "name": "ccMessageSent",
+      "payload": "{ message: CometChat.BaseMessage, status: string }",
+      "description": "Triggers when a message is sent with status: inProgress, success, or error"
+    },
+    {
+      "name": "ccMessageEdited",
+      "payload": "{ message: CometChat.BaseMessage, status: string }",
+      "description": "Triggers when a message is edited with status: inProgress, success, or error"
+    },
+    {
+      "name": "ccReplyToMessage",
+      "payload": "{ message: CometChat.BaseMessage, status: string }",
+      "description": "Triggers when a user replies to a message with status: inProgress, success, or error"
+    }
+  ],
+  "compositionExample": {
+    "description": "Compact message composer wired with message header and list for complete chat view",
+    "components": [
+      "CometChatMessageHeader",
+      "CometChatMessageList",
+      "CometChatCompactMessageComposer"
+    ],
+    "flow": "Pass user or group prop to composer -> onSendButtonClick fires with CometChat.BaseMessage -> message appears in MessageList"
+  }
+}
+```
+</Accordion>
+
 ## Overview
 
-CometChatCompactMessageComposer is a compact, single-line message input component designed for chat applications. It provides a streamlined interface with optional rich text formatting capabilities, supporting bold, italic, underline, strikethrough, code, links, lists, and blockquotes — similar to messaging experiences in Slack.
+`CometChatCompactMessageComposer` is a [Component](/ui-kit/react/components-overview#components) that provides a compact, single-line message input with optional rich text formatting capabilities. It supports bold, italic, underline, strikethrough, code, links, lists, and blockquotes — similar to messaging experiences in Slack.
+
+This is a compact variant of [CometChatMessageComposer](/ui-kit/react/message-composer). It shares a similar props API but provides a streamlined, single-line interface with rich text formatting controls.
+
+Wire it alongside `CometChatMessageHeader` and `CometChatMessageList` to build a standard chat view.
 
 Features such as **Rich Text Formatting**, **Attachments**, **Message Editing**, **Mentions**, **Link Previews**, and **Voice Recording** are supported.
 
 <Frame>
-  <img src="/images/single-line-composer-overview.png" />
+  <img src="/images/compact-message-composer.png" />
 </Frame>
 
+<Note>
+**Before using this component:** Ensure `CometChatUIKit.init(UIKitSettings)` has completed and the user is logged in via `CometChatUIKit.login("UID")`. See [React.js Integration](/ui-kit/react/react-js-integration).
+</Note>
 
 <Note>
 **Available via:** [UI Kits](/ui-kit/react/overview) | [SDK](/sdk/javascript/overview)
 </Note>
+
+---
+
+## Minimal Render
+
+```tsx
+import { CometChatCompactMessageComposer } from "@cometchat/chat-uikit-react";
+
+function CompactComposerDemo() {
+  return <CometChatCompactMessageComposer user={chatUser} />;
+}
+
+export default CompactComposerDemo;
+```
+
+---
 
 ## Usage
 
@@ -95,13 +229,26 @@ export function CompactComposerDemo() {
 
 </Tabs>
 
-### Actions
+**Expected result:**
+- The `CometChatCompactMessageComposer` component renders a compact, single-line message input
+- The input supports typing, sending messages, attachments, emoji, stickers, and voice recording
+- Clicking the send button dispatches the message to the specified `user`
+
+---
+
+## Actions and Events
+
+### Callback Props
 
 [Actions](/ui-kit/react/components-overview#actions) dictate how a component functions. They are divided into two types: Predefined and User-defined. You can override either type, allowing you to tailor the behavior of the component to fit your specific needs.
 
-##### 1. OnSendButtonClick
+#### onSendButtonClick
 
-The `OnSendButtonClick` event gets activated when the send message button is clicked. It has a predefined function of sending messages entered in the composer. However, you can override this action with the following code snippet.
+Fires when the send message button is clicked. Overrides the default send behavior.
+
+```tsx
+onSendButtonClick?: (message: CometChat.BaseMessage) => void
+```
 
 <Tabs>
 <Tab title="TypeScript">
@@ -170,9 +317,13 @@ export function CompactComposerDemo() {
 
 </Tabs>
 
-##### 2. onError
+#### onError
 
-This action doesn't change the behavior of the component but rather listens for any errors that occur in the CompactMessageComposer component.
+Fires on internal errors (network failure, auth issue, SDK exception). This action doesn't change the behavior of the component but rather listens for any errors that occur in the CompactMessageComposer component.
+
+```tsx
+onError?: (error: CometChat.CometChatException) => void
+```
 
 <Tabs>
 <Tab title="TypeScript">
@@ -235,9 +386,13 @@ export function CompactComposerDemo() {
 
 </Tabs>
 
-##### 3. onTextChange
+#### onTextChange
 
-This event is triggered as the user starts typing in the CompactMessageComposer.
+Fires as the user types in the composer input.
+
+```tsx
+onTextChange?: (text: string) => void
+```
 
 <Tabs>
 <Tab title="TypeScript">
@@ -306,7 +461,7 @@ export function CompactComposerDemo() {
 
 </Tabs>
 
-##### 4. Custom Mentions Request Builders
+#### Custom Mentions Request Builders
 
 You can customize how mentioned users and group members are fetched by providing custom request builders.
 
@@ -427,57 +582,102 @@ CompactMessageComposer component does not have any available filters.
 
 ***
 
-### Events
+### Global UI Events
 
-[Events](/ui-kit/react/components-overview#events) are emitted by a `Component`. By using event you can extend existing functionality. Being global events, they can be applied in Multiple Locations and are capable of being Added or Removed.
+[Events](/ui-kit/react/components-overview#events) are emitted by a `Component`. By using events you can extend existing functionality. Being global events, they can be applied in multiple locations and are capable of being added or removed.
 
-The list of events emitted by the CompactMessageComposer component is as follows.
+`CometChatMessageEvents` emits events subscribable from anywhere in the application. Add listeners and remove them on cleanup.
 
-| Event               | Description                                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **ccMessageEdited** | Triggers whenever a loggedIn user edits any message from the list of messages. It will have three states such as: inProgress, success and error. |
-| **ccReplyToMessage** | Triggers whenever a loggedIn user replies to any message from the list of messages. It will have three states such as: inProgress, success and error. |
-| **ccMessageSent**   | Triggers whenever a loggedIn user sends any message. It will have three states such as: inProgress, success and error.                           |
+| Event | Fires when | Payload |
+| --- | --- | --- |
+| **ccMessageSent** | A message is sent | `{ message: CometChat.BaseMessage, status: string }` |
+| **ccMessageEdited** | A message is edited | `{ message: CometChat.BaseMessage, status: string }` |
+| **ccReplyToMessage** | A user replies to a message | `{ message: CometChat.BaseMessage, status: string }` |
 
-Adding `CometChatMessageEvents` Listener's
+Each event has three states: `inProgress`, `success`, and `error`.
+
+When to use: sync external UI with message state changes. For example, update a notification badge when messages are sent, or trigger analytics when a message is edited.
 
 <Tabs>
-<Tab title="JavaScript">
-```js
+<Tab title="TypeScript">
+```tsx
+import React, { useEffect } from "react";
 import { CometChatMessageEvents } from "@cometchat/chat-uikit-react";
 
-const ccMessageEdited = CometChatMessageEvents.ccMessageEdited.subscribe(() => {
-  // Your Code
-});
+function useCompactComposerEvents() {
+  useEffect(() => {
+    const ccMessageEdited = CometChatMessageEvents.ccMessageEdited.subscribe(
+      (item) => {
+        console.log("Message edited:", item);
+      }
+    );
 
-const ccReplyToMessage = CometChatMessageEvents.ccReplyToMessage.subscribe(() => {
-  // Your Code
-});
+    const ccReplyToMessage = CometChatMessageEvents.ccReplyToMessage.subscribe(
+      (item) => {
+        console.log("Reply to message:", item);
+      }
+    );
 
-const ccMessageSent = CometChatMessageEvents.ccMessageSent.subscribe(() => {
-  // Your Code
-});
+    const ccMessageSent = CometChatMessageEvents.ccMessageSent.subscribe(
+      (item) => {
+        console.log("Message sent:", item);
+      }
+    );
+
+    // Cleanup on unmount
+    return () => {
+      ccMessageEdited?.unsubscribe();
+      ccReplyToMessage?.unsubscribe();
+      ccMessageSent?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
 </Tab>
 
-</Tabs>
-
-***
-
-Removing `CometChatMessageEvents` Listener's
-
-<Tabs>
 <Tab title="JavaScript">
-```js
-ccMessageEdited?.unsubscribe();
-ccReplyToMessage?.unsubscribe();
-ccMessageSent?.unsubscribe();
+```jsx
+import React, { useEffect } from "react";
+import { CometChatMessageEvents } from "@cometchat/chat-uikit-react";
+
+function useCompactComposerEvents() {
+  useEffect(() => {
+    const ccMessageEdited = CometChatMessageEvents.ccMessageEdited.subscribe(
+      (item) => {
+        console.log("Message edited:", item);
+      }
+    );
+
+    const ccReplyToMessage = CometChatMessageEvents.ccReplyToMessage.subscribe(
+      (item) => {
+        console.log("Reply to message:", item);
+      }
+    );
+
+    const ccMessageSent = CometChatMessageEvents.ccMessageSent.subscribe(
+      (item) => {
+        console.log("Message sent:", item);
+      }
+    );
+
+    // Cleanup on unmount
+    return () => {
+      ccMessageEdited?.unsubscribe();
+      ccReplyToMessage?.unsubscribe();
+      ccMessageSent?.unsubscribe();
+    };
+  }, []);
+}
 ```
 
 </Tab>
 
 </Tabs>
+
+<Note>
+In React 18 StrictMode, `useEffect` runs twice on mount in development. The component handles listener cleanup internally, but any additional listeners added alongside the component need cleanup in the `useEffect` return function to avoid duplicate event handling.
+</Note>
 
 ***
 
@@ -526,6 +726,8 @@ import { CometChatCompactMessageComposer } from "@cometchat/chat-uikit-react";
 
 </Tabs>
 
+**Expected result:** The composer input uses the "SF Pro" font, button icons turn pink (#f19fa1), and the send button background changes to red (#e5484d). See screenshot above.
+
 ***
 
 ### Functionality
@@ -548,38 +750,38 @@ import { CometChatCompactMessageComposer } from "@cometchat/chat-uikit-react";
 
 Below is a list of customizations along with corresponding code snippets
 
-| Property                          | Description                                                                             | Code                                              |
-| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| **Initial Composer Text**         | The initial text pre-filled in the message input when the component mounts.             | `initialComposerText="Hello"`                     |
-| **Disable Typing Events**         | Disables the typing indicator for the current message composer.                         | `disableTypingEvents={true}`                      |
-| **Disable Mentions**              | Disables the mentions functionality in the message composer.                            | `disableMentions={true}`                          |
-| **Disable Mention All**           | Controls whether group mentions like @all appear in suggestions.                        | `disableMentionAll={true}`                        |
-| **Mention All Label**             | Allows setting a custom alias label for group mentions (@channel, @everyone, etc.).     | `mentionAllLabel="all"`                           |
-| **Mentions Users Request Builder** | Provides a custom UsersRequestBuilder to control how the mentioned users list is fetched. | `mentionsUsersRequestBuilder={usersRequestBuilder}` |
-| **Mentions Group Members Request Builder** | Provides a custom GroupMembersRequestBuilder to customize how mentioned group members are retrieved. | `mentionsGroupMembersRequestBuilder={groupMembersRequestBuilder}` |
-| **Enable Rich Text Editor**       | Master switch to enable rich text formatting. When false, the composer works as plain text only. | `enableRichTextEditor={true}`                     |
-| **Show Toolbar On Selection**     | Shows a floating toolbar when text is selected (Slack-style). Ignored on mobile devices. | `showToolbarOnSelection={true}`                   |
-| **Hide Rich Text Formatting Options** | Hides the rich text formatting toolbar. Keyboard shortcuts still work.               | `hideRichTextFormattingOptions={true}`             |
-| **Hide Image Attachment Option**  | Hides the image attachment option in the message composer.                              | `hideImageAttachmentOption={true}`                |
-| **Hide Video Attachment Option**  | Hides the video attachment option in the message composer.                              | `hideVideoAttachmentOption={true}`                |
-| **Hide Audio Attachment Option**  | Hides the audio attachment option in the message composer.                              | `hideAudioAttachmentOption={true}`                |
-| **Hide File Attachment Option**   | Hides the file attachment option in the message composer.                               | `hideFileAttachmentOption={true}`                 |
-| **Hide Polls Option**             | Hides the polls option in the message composer.                                         | `hidePollsOption={true}`                          |
-| **Hide Collaborative Document**   | Hides the collaborative document option in the message composer.                        | `hideCollaborativeDocumentOption={true}`          |
-| **Hide Collaborative Whiteboard** | Hides the collaborative whiteboard option in the message composer.                      | `hideCollaborativeWhiteboardOption={true}`        |
-| **Hide Attachment Button**        | Hides the attachment button in the message composer.                                    | `hideAttachmentButton={true}`                     |
-| **Hide Voice Recording Button**   | Hides the voice recording button in the message composer.                               | `hideVoiceRecordingButton={true}`                 |
-| **Hide Emoji Keyboard Button**    | Hides the emoji keyboard button in the message composer.                                | `hideEmojiKeyboardButton={true}`                  |
-| **Hide Stickers Button**          | Hides the stickers button in the message composer.                                      | `hideStickersButton={true}`                       |
-| **Hide Send Button**              | Hides the send button in the message composer.                                          | `hideSendButton={true}`                           |
-| **Show Scrollbar**                | Controls the visibility of the scrollbar in the composer.                               | `showScrollbar={true}`                            |
-| **Placeholder Text**              | The placeholder text displayed in the message input when it is empty.                   | `placeholderText="Type a message..."`             |
-| **User**                          | Specifies the recipient of the message (user object).                                   | `user={chatUser}`                                 |
-| **Group**                         | Specifies the group to send messages to. Used if the `user` prop is not provided.       | `group={chatGroup}`                               |
-| **Parent Message ID**             | Specifies the ID of the parent message for threading or replying to a specific message. | `parentMessageId={12345}`                         |
-| **Enter Key Behavior**            | Determines the behavior of the Enter key (e.g., send message or add a new line).        | `enterKeyBehavior={EnterKeyBehavior.SendMessage}` |
-| **Disable Sound for Message**     | Disables sound for incoming messages.                                                   | `disableSoundForMessage={true}`                   |
-| **Custom Sound for Message**      | Specifies a custom audio sound for incoming messages.                                   | `customSoundForMessage="sound.mp3"`               |
+| Property | Type | Default | Description | Code |
+| --- | --- | --- | --- | --- |
+| **user** | `CometChat.User` | `undefined` | Specifies the recipient of the message (user object). | `user={chatUser}` |
+| **group** | `CometChat.Group` | `undefined` | Specifies the group to send messages to. Used if the `user` prop is not provided. | `group={chatGroup}` |
+| **parentMessageId** | `number` | `undefined` | Specifies the ID of the parent message for threading or replying to a specific message. | `parentMessageId={12345}` |
+| **initialComposerText** | `string` | `""` | The initial text pre-filled in the message input when the component mounts. | `initialComposerText="Hello"` |
+| **placeholderText** | `string` | `"Type a message..."` | The placeholder text displayed in the message input when it is empty. | `placeholderText="Type a message..."` |
+| **disableTypingEvents** | `boolean` | `false` | Disables the typing indicator for the current message composer. | `disableTypingEvents={true}` |
+| **disableMentions** | `boolean` | `false` | Disables the mentions functionality in the message composer. | `disableMentions={true}` |
+| **disableMentionAll** | `boolean` | `false` | Controls whether group mentions like @all appear in suggestions. | `disableMentionAll={true}` |
+| **mentionAllLabel** | `string` | `"all"` | Allows setting a custom alias label for group mentions (@channel, @everyone, etc.). | `mentionAllLabel="all"` |
+| **mentionsUsersRequestBuilder** | `CometChat.UsersRequestBuilder` | `undefined` | Provides a custom UsersRequestBuilder to control how the mentioned users list is fetched. | `mentionsUsersRequestBuilder={usersRequestBuilder}` |
+| **mentionsGroupMembersRequestBuilder** | `CometChat.GroupMembersRequestBuilder` | `undefined` | Provides a custom GroupMembersRequestBuilder to customize how mentioned group members are retrieved. | `mentionsGroupMembersRequestBuilder={groupMembersRequestBuilder}` |
+| **enableRichTextEditor** | `boolean` | `false` | Master switch to enable rich text formatting. When false, the composer works as plain text only. | `enableRichTextEditor={true}` |
+| **showToolbarOnSelection** | `boolean` | `false` | Shows a floating toolbar when text is selected (Slack-style). Ignored on mobile devices. | `showToolbarOnSelection={true}` |
+| **hideRichTextFormattingOptions** | `boolean` | `false` | Hides the rich text formatting toolbar. Keyboard shortcuts still work. | `hideRichTextFormattingOptions={true}` |
+| **hideImageAttachmentOption** | `boolean` | `false` | Hides the image attachment option in the message composer. | `hideImageAttachmentOption={true}` |
+| **hideVideoAttachmentOption** | `boolean` | `false` | Hides the video attachment option in the message composer. | `hideVideoAttachmentOption={true}` |
+| **hideAudioAttachmentOption** | `boolean` | `false` | Hides the audio attachment option in the message composer. | `hideAudioAttachmentOption={true}` |
+| **hideFileAttachmentOption** | `boolean` | `false` | Hides the file attachment option in the message composer. | `hideFileAttachmentOption={true}` |
+| **hidePollsOption** | `boolean` | `false` | Hides the polls option in the message composer. | `hidePollsOption={true}` |
+| **hideCollaborativeDocumentOption** | `boolean` | `false` | Hides the collaborative document option in the message composer. | `hideCollaborativeDocumentOption={true}` |
+| **hideCollaborativeWhiteboardOption** | `boolean` | `false` | Hides the collaborative whiteboard option in the message composer. | `hideCollaborativeWhiteboardOption={true}` |
+| **hideAttachmentButton** | `boolean` | `false` | Hides the attachment button in the message composer. | `hideAttachmentButton={true}` |
+| **hideVoiceRecordingButton** | `boolean` | `false` | Hides the voice recording button in the message composer. | `hideVoiceRecordingButton={true}` |
+| **hideEmojiKeyboardButton** | `boolean` | `false` | Hides the emoji keyboard button in the message composer. | `hideEmojiKeyboardButton={true}` |
+| **hideStickersButton** | `boolean` | `false` | Hides the stickers button in the message composer. | `hideStickersButton={true}` |
+| **hideSendButton** | `boolean` | `false` | Hides the send button in the message composer. | `hideSendButton={true}` |
+| **showScrollbar** | `boolean` | `false` | Controls the visibility of the scrollbar in the composer. | `showScrollbar={true}` |
+| **enterKeyBehavior** | `EnterKeyBehavior` | `EnterKeyBehavior.SendMessage` | Determines the behavior of the Enter key (e.g., send message or add a new line). | `enterKeyBehavior={EnterKeyBehavior.SendMessage}` |
+| **disableSoundForMessage** | `boolean` | `false` | Disables sound for incoming messages. | `disableSoundForMessage={true}` |
+| **customSoundForMessage** | `string` | `undefined` | Specifies a custom audio sound for incoming messages. | `customSoundForMessage="sound.mp3"` |
 
 ***
 
@@ -687,6 +889,18 @@ On mobile devices, only the fixed toolbar is supported. The floating selection t
 
 ***
 
+## Custom View Slots
+
+Each slot replaces a section of the default UI. Slots that accept parameters receive the relevant data for customization.
+
+| Slot | Type | Replaces |
+| --- | --- | --- |
+| `headerView` | `JSX.Element` | Area above the composer input |
+| `auxiliaryButtonView` | `JSX.Element` | Sticker and AI button area |
+| `sendButtonView` | `JSX.Element` | Send button |
+| `attachmentOptions` | `CometChatMessageComposerAction[]` | Default attachment options list (replaces defaults) |
+| `textFormatters` | `CometChatTextFormatter[]` | Text formatting in composer |
+
 ### Advanced
 
 For advanced-level customization, you can set custom views to the component. This lets you tailor each aspect of the component to fit your exact needs and application aesthetics. You can create and define your views, layouts, and UI elements and then incorporate those into the component.
@@ -786,13 +1000,17 @@ function getAttachments() {
 
 </Tabs>
 
+**Expected result:** The default attachment options (image, video, audio, file, polls, etc.) are replaced with four custom options. The action sheet styling is customized with transparent background and custom icon colors.
+
 ***
 
 #### AuxiliaryButtonView
 
 You can insert a custom view into the CompactMessageComposer component to add additional functionality using the following method.
 
-Please note that the CompactMessageComposer Component utilizes the AuxiliaryButton to provide sticker and AI functionality. Overriding the AuxiliaryButton will subsequently replace the sticker functionality.
+<Note>
+The CompactMessageComposer Component utilizes the AuxiliaryButton to provide sticker and AI functionality. Overriding the AuxiliaryButton will subsequently replace the sticker functionality.
+</Note>
 
 <Tabs>
 <Tab title="TypeScript">
@@ -874,6 +1092,8 @@ const sendButtonView = (
 
 </Tabs>
 
+**Expected result:** The default send button is replaced with a custom button. The CSS overrides give the button a light purple background (#edeafa) with a purple icon (#6852d6).
+
 ***
 
 #### HeaderView
@@ -949,6 +1169,8 @@ const getHeaderView = () => {
 </Tab>
 
 </Tabs>
+
+**Expected result:** A custom header bar appears above the composer input with an icon and notification text ("User has paused their notifications"), styled with a light purple background and rounded corners.
 
 ***
 
@@ -1098,6 +1320,25 @@ export function CompactComposerDemo() {
 </Tab>
 
 </Tabs>
+
+***
+
+<AccordionGroup>
+<Accordion title="Common Failure Modes">
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Component doesn't render | `CometChatUIKit.init()` not called or not awaited | Ensure init completes before rendering. See [Methods](/ui-kit/react/methods) |
+| Component renders but shows no data | User not logged in | Call `CometChatUIKit.login("UID")` after init |
+| Callback not firing | Wrong prop name or signature | Check the Actions section for exact prop name and parameter types |
+| Custom view not appearing | Returning `null` or `undefined` from view prop | Ensure view function returns valid JSX |
+| SSR hydration error | Component uses browser APIs on server | Wrap in `useEffect` or dynamic import with `ssr: false`. See [Next.js Integration](/ui-kit/react/next-js-integration) |
+| CSS has no effect | CSS file not imported in app entry | Add `import "./App.css";` in `App.tsx` |
+| Selectors don't match | Using CSS Modules (hashed class names) | Move rules to a global stylesheet, not `*.module.css` |
+| Rich text toolbar not showing | `enableRichTextEditor` not set to `true` | Add `enableRichTextEditor={true}` prop |
+
+</Accordion>
+</AccordionGroup>
 
 ---
 
