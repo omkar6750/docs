@@ -4,7 +4,6 @@ sidebarTitle: "Change Scope"
 description: "Learn how to change group member roles (admin, moderator, participant) and receive real-time scope change events using the CometChat JavaScript SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
 <Accordion title="AI Integration Quick Reference">
 
 ```javascript
@@ -18,7 +17,7 @@ CometChat.addGroupListener("listener", new CometChat.GroupListener({
 ```
 </Accordion>
 
-You can change the role of a group member between admin, moderator, and participant.
+Promote or demote group members between admin, moderator, and participant roles. Only admins can change member scopes, and only the group owner can change admin scopes.
 
 ## Change Scope of a Group Member
 
@@ -31,7 +30,7 @@ let GUID: string = "GUID";
 let UID: string = "UID";
 
 
-CometChat.updateGroupMemberScope(GUID, UID, CometChat.GroupMemberScope.Admin).then(
+CometChat.updateGroupMemberScope(GUID, UID, CometChat.GROUP_MEMBER_SCOPE.ADMIN).then(
   (response: boolean) => {
       console.log("Group member scope changed", response);
   }, (error: CometChat.CometChatException) => {
@@ -86,7 +85,7 @@ CometChat.addGroupListener(
   listenerID,
   new CometChat.GroupListener({
       onGroupMemberScopeChanged: (message: CometChat.Action, changedUser: CometChat.User, newScope: string, oldScope: string, changedGroup: CometChat.Group) => {
-          console.log("User joined", { message, changedUser, newScope, oldScope, changedGroup });
+          console.log("Scope changed", { message, changedUser, newScope, oldScope, changedGroup });
       }
   })
 );
@@ -102,7 +101,7 @@ CometChat.addGroupListener(
 listenerID,
 new CometChat.GroupListener({
   onGroupMemberScopeChanged: (message, changedUser, newScope, oldScope, changedGroup) => {
-    console.log("User joined", {message, changedUser, newScope, oldScope, changedGroup});
+    console.log("Scope changed", {message, changedUser, newScope, oldScope, changedGroup});
   }
 })
 );
