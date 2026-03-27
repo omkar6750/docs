@@ -56,6 +56,53 @@ A user must exist in CometChat before they can log in.
 - **During development:** Create users from the [CometChat Dashboard](https://app.cometchat.com). Five test users are already available with UIDs `cometchat-uid-1` through `cometchat-uid-5`.
 - **In production:** Call the [Create User REST API](https://api-explorer.cometchat.com/reference/creates-user) when a user signs up in your app.
 
+You can also create users from the client side using `createUser()` (development only):
+
+<Tabs>
+<Tab title="TypeScript">
+```typescript
+let authKey: string = "AUTH_KEY";
+let uid: string = "user1";
+let name: string = "Kevin";
+
+let user: CometChat.User = new CometChat.User(uid);
+user.setName(name);
+
+CometChat.createUser(user, authKey).then(
+  (user: CometChat.User) => {
+    console.log("User created:", user);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+let authKey = "AUTH_KEY";
+let uid = "user1";
+let name = "Kevin";
+
+let user = new CometChat.User(uid);
+user.setName(name);
+
+CometChat.createUser(user, authKey).then(
+  (user) => {
+    console.log("User created:", user);
+  },
+  (error) => {
+    console.log("Error:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+<Warning>
+`createUser()` with Auth Key is for development only. In production, create users server-side via the [REST API](https://api-explorer.cometchat.com/reference/creates-user). See [User Management](/sdk/javascript/user-management) for full details.
+</Warning>
+
 ### Check for an Existing Session
 
 The SDK persists the logged-in user's session locally. Before calling `login()`, always check whether a session already exists — this avoids unnecessary login calls and keeps your app responsive.
