@@ -7,9 +7,12 @@ description: "Implement a complete calling workflow with ringing, incoming/outgo
 **Quick Reference** - Initiate a call and listen for events:
 
 ```javascript
-// Initiate a video call
+// Initiate a video call (default 45s no-answer timeout)
 const call = new CometChat.Call("RECEIVER_ID", CometChat.CALL_TYPE.VIDEO, CometChat.RECEIVER_TYPE.USER);
 await CometChat.initiateCall(call);
+
+// Initiate with custom timeout (60 seconds)
+await CometChat.initiateCall(call, 60);
 
 // Accept an incoming call
 await CometChat.acceptCall(sessionId);
@@ -130,6 +133,92 @@ CometChat.initiateCall(call).then(
 | `callType`     | `CometChat.CALL_TYPE.AUDIO` or `CometChat.CALL_TYPE.VIDEO`                  |
 
 On success, a `Call` object is returned containing the call details including a unique `sessionId` required for starting the call session.
+
+By default, an unanswered call automatically cancels after 45 seconds. You can customize this duration by passing an optional `timeout` parameter (in seconds) as the second argument to `initiateCall()`.
+
+<Tabs>
+<Tab title="User Call (JavaScript)">
+```javascript
+const receiverID = "UID";
+const callType = CometChat.CALL_TYPE.VIDEO;
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+
+const call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Group Call (JavaScript)">
+```javascript
+const receiverID = "GUID";
+const callType = CometChat.CALL_TYPE.VIDEO;
+const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+const call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="User Call (TypeScript)">
+```typescript
+const receiverID: string = "UID";
+const callType: string = CometChat.CALL_TYPE.VIDEO;
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+const call: CometChat.Call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall: CometChat.Call) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="Group Call (TypeScript)">
+```typescript
+const receiverID: string = "GUID";
+const callType: string = CometChat.CALL_TYPE.VIDEO;
+const receiverType: string = CometChat.RECEIVER_TYPE.GROUP;
+
+const call: CometChat.Call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall: CometChat.Call) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+| Parameter  | Type     | Description                                                                                                     |
+| ---------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `call`     | `Call`   | The call object created with receiver ID, call type, and receiver type.                                         |
+| `timeout`  | `number` | Optional. The ringing duration in seconds before an unanswered call is automatically cancelled. Default: `45`.   |
 
 <Accordion title="Response">
 **On Success** — `initiateCall()` returns a `Call` object with session details:
