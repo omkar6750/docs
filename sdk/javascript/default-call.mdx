@@ -110,6 +110,60 @@ CometChat.initiateCall(call).then(
 
 On success, a `Call` object is returned containing the call details including a unique `sessionId` required for starting the call session.
 
+### Initiate Call with Timeout
+
+By default, an unanswered 1:1 call automatically cancels after 45 seconds. You can customize this duration by passing an optional `timeout` parameter (in seconds) as the second argument to `initiateCall()`.
+
+<Note>
+The `timeout` parameter only applies to 1:1 user calls. Group calls are not affected by this setting.
+</Note>
+
+<Tabs>
+<Tab title="JavaScript">
+```javascript
+const receiverID = "UID";
+const callType = CometChat.CALL_TYPE.VIDEO;
+const receiverType = CometChat.RECEIVER_TYPE.USER;
+
+const call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+<Tab title="TypeScript">
+```typescript
+const receiverID: string = "UID";
+const callType: string = CometChat.CALL_TYPE.VIDEO;
+const receiverType: string = CometChat.RECEIVER_TYPE.USER;
+
+const call: CometChat.Call = new CometChat.Call(receiverID, callType, receiverType);
+
+// Set a custom timeout of 60 seconds
+CometChat.initiateCall(call, 60).then(
+  (outgoingCall: CometChat.Call) => {
+    console.log("Call initiated with 60s timeout:", outgoingCall);
+  },
+  (error: CometChat.CometChatException) => {
+    console.log("Call initiation failed:", error);
+  }
+);
+```
+</Tab>
+</Tabs>
+
+| Parameter  | Type     | Description                                                                                                     |
+| ---------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `call`     | `Call`   | The call object created with receiver ID, call type, and receiver type.                                         |
+| `timeout`  | `number` | Optional. The ringing duration in seconds before an unanswered call is automatically cancelled. Default: `45`.   |
+
 ## Call Listeners
 
 Register the `CallListener` to receive real-time call events. Each listener requires a unique `listenerId` string to prevent duplicate registrations and enable targeted removal.
