@@ -534,20 +534,22 @@ When you receive a real-time reaction event, you'll want to update the correspon
 <Tabs>
 <Tab title="Dart">
 ```dart
-// The message to which the reaction is related
-BaseMessage message = ...;
+// Pass the message and Reaction from your listener (e.g. onMessageReactionAdded)
+Future<void> refreshMessageWithReaction(
+  BaseMessage message,
+  Reaction messageReaction,
+) async {
+  // The received reaction event action type: reactionAdded or reactionRemoved
+  var action = ReactionAction.reactionAdded;
 
-// The reaction event data received in real-time
-Reaction messageReaction = ...;
-
-// The received reaction event real-time action type. Can be ReactionAction.reactionAdded or ReactionAction.reactionRemoved
-var action = ReactionAction.reactionAdded;
-
-BaseMessage? modifiedBaseMessage = await CometChatHelper.updateMessageWithReactionInfo(
-  message, 
-  messageReaction, 
-  action
-); 
+  BaseMessage? modifiedBaseMessage =
+      await CometChatHelper.updateMessageWithReactionInfo(
+    message,
+    messageReaction,
+    action,
+  );
+  // Use modifiedBaseMessage?.reactions to refresh your UI
+}
 ```
 </Tab>
 </Tabs>
