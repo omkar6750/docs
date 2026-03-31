@@ -1,10 +1,42 @@
 ---
 title: "Recording"
+sidebarTitle: "Recording"
+description: "Learn how to implement call recording for voice and video calls in your Flutter application using the CometChat SDK."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
+```dart
+// Enable recording button in call settings
+CallSettings callSettings = (CallSettingsBuilder()
+  ..showCallRecordButton = true
+  ..startRecordingOnCallStart = false // Optional: auto-start recording
+  ..listener = this
+).build();
 
-This section will guide you to implement call recording feature for the voice and video calls.
+// Start recording manually
+CometChatCalls.startRecording(onSuccess: (success) {
+  debugPrint("Recording started");
+}, onError: (error) {
+  debugPrint("Error: $error");
+});
+
+// Stop recording
+CometChatCalls.stopRecording(onSuccess: (success) {
+  debugPrint("Recording stopped");
+}, onError: (error) {
+  debugPrint("Error: $error");
+});
+```
+
+**Recordings are available on the [CometChat Dashboard](https://app.cometchat.com) → Calls section.**
+</Accordion>
+
+Record voice and video calls for playback, compliance, or archival purposes. Recording is built on top of the [Call Session](/sdk/flutter/direct-call) — you add recording listeners to your call settings and optionally control recording programmatically.
+
+<Note>
+**Available via:** SDK | [Dashboard](https://app.cometchat.com)
+</Note>
 
 ## Implementation
 
@@ -63,6 +95,29 @@ debugPrint("Error $error");
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `String` message confirming that recording has started:
+
+<span id="start-recording-response" style={{scrollMarginTop: '100px'}}></span>
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Recording started successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+<span id="start-recording-error" style={{scrollMarginTop: '100px'}}></span>
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to start recording."` |
+| `details` | string | Additional technical details | `"An error occurred while attempting to start the call recording."` |
+
+</Accordion>
+
 ### Stop Recording
 
 You can use the stopRecording() method to stop call recording.
@@ -80,3 +135,49 @@ debugPrint("Error $error");
 </Tab>
 
 </Tabs>
+
+<Accordion title="Response">
+**On Success** — A `String` message confirming that recording has stopped:
+
+<span id="stop-recording-response" style={{scrollMarginTop: '100px'}}></span>
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Recording stopped successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+<span id="stop-recording-error" style={{scrollMarginTop: '100px'}}></span>
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to stop recording."` |
+| `details` | string | Additional technical details | `"An error occurred while attempting to stop the call recording."` |
+
+</Accordion>
+
+## Downloading Recordings
+
+Call recordings are available on the [CometChat Dashboard](https://app.cometchat.com) under the Calls section. Click the three-dot menu and select "View Recordings".
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement ringing call flows with accept/reject functionality
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/flutter/call-logs">
+    Retrieve and display call history for users and groups
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/flutter/direct-call">
+    Start call sessions without the ringing flow
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Install and initialize the Calls SDK
+  </Card>
+</CardGroup>

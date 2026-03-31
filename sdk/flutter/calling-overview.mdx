@@ -1,7 +1,24 @@
 ---
 title: "Calling"
 sidebarTitle: "Overview"
+description: "Implement voice and video calling in your Flutter application with CometChat's calling SDK, supporting ringing calls, direct calls, and standalone calling."
 ---
+
+<Accordion title="AI Integration Quick Reference">
+
+Choose your calling approach:
+- **Ringing** → [Default Call](/sdk/flutter/default-call) — Full call flow with notifications, accept/reject
+- **Call Session** → [Direct Call](/sdk/flutter/direct-call) — Session-based calling with custom UI
+- **Standalone** → [Standalone Calling](/sdk/flutter/standalone-calling) — Calls SDK only, no Chat SDK needed
+
+```yaml
+# Install Calls SDK
+dependencies:
+  cometchat_calls_sdk: ^4.2.2
+```
+
+**Features:** Recording, Presenter Mode, Video View Customization, Call Logs, Session Timeout
+</Accordion>
 
 ## Overview
 
@@ -19,55 +36,48 @@ dependencies:
 
 For detailed setup instructions, see the [Calls SDK Setup](/sdk/flutter/calling-setup) guide.
 
-## Choose Your Implementation
+## Choose Your Approach
 
-CometChat offers three approaches to implement calling:
+### Ringing (Full Call Flow)
 
-<CardGroup cols={3}>
-  <Card title="Ringing" icon="phone-volume" href="/sdk/flutter/default-call">
-    Complete calling flow with incoming/outgoing call UI, accept/reject functionality, and call notifications.
-  </Card>
-  <Card title="Call Session" icon="video" href="/sdk/flutter/direct-call">
-    Direct call session management. Use with Ringing flow or for custom call initiation logic.
-  </Card>
-  <Card title="Standalone Calling" icon="phone-flip" href="/sdk/flutter/standalone-calling">
-    Calls SDK only implementation without the Chat SDK dependency.
-  </Card>
-</CardGroup>
-
-### Ringing
-
-Use this when you need a complete calling experience with:
-- Incoming and outgoing call UI
-- Call accept/reject/cancel functionality
-- Call notifications via push notifications
-- Integration with CometChat messaging
+The complete calling experience — incoming/outgoing call UI, accept/reject/cancel, push notifications, and integration with CometChat messaging. Use this when you want CometChat to handle the entire call lifecycle.
 
 **Flow:** Initiate call → Receiver gets notified → Accept/Reject → Start session
 
-[Get started with Ringing →](/sdk/flutter/default-call)
+<Card title="Get started with Ringing" icon="phone-volume" href="/sdk/flutter/default-call">
+  Implement the complete ringing call flow
+</Card>
 
-### Call Session
+### Call Session (Session Management)
 
-Use this when you need to:
-- Start a call session after the Ringing flow completes
-- Implement custom call initiation logic with your own UI
-- Join participants to a shared session using a session ID
+Manages the actual call session — generating tokens, starting/ending sessions, configuring the call UI, and handling in-call events. The Ringing flow uses this under the hood after a call is accepted. You can also use it directly if you want to build your own call initiation logic.
 
 **Flow:** Generate token → Start session → Manage call → End session
 
-[Get started with Call Session →](/sdk/flutter/direct-call)
+<Card title="Get started with Call Session" icon="video" href="/sdk/flutter/direct-call">
+  Start and manage call sessions
+</Card>
 
-### Standalone Calling
+### Standalone Calling (No Chat SDK)
 
-Use this when you want:
-- Calling functionality without the Chat SDK
-- Your own user authentication system
-- Minimal SDK footprint
+Calling without the Chat SDK. You handle user authentication via the REST API and use only the Calls SDK. Ideal when you need voice/video but not the full chat infrastructure.
 
 **Flow:** Get auth token via REST API → Generate call token → Start session
 
-[Get started with Standalone Calling →](/sdk/flutter/standalone-calling)
+<Card title="Get started with Standalone Calling" icon="phone-flip" href="/sdk/flutter/standalone-calling">
+  Implement calling without the Chat SDK
+</Card>
+
+### How They Relate
+
+```mermaid
+flowchart LR
+    A[Ringing Flow] -->|call accepted| B[Call Session]
+    C[Custom UI] -->|your logic| B
+    D[Standalone] -->|REST API auth| B
+```
+
+All three approaches converge on the Call Session layer to manage the actual media connection. The difference is how you get there — CometChat's ringing flow, your own UI, or standalone without the Chat SDK.
 
 ## Features
 
@@ -86,5 +96,24 @@ Use this when you want:
   </Card>
   <Card title="Session Timeout" icon="clock" href="/sdk/flutter/session-timeout">
     Configure automatic call termination when participants are inactive.
+  </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Install and configure the calling SDK
+  </Card>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement ringing calls with accept/reject
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/flutter/direct-call">
+    Start direct call sessions without ringing
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/flutter/call-logs">
+    Retrieve and display call history
   </Card>
 </CardGroup>

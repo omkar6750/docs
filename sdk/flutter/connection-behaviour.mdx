@@ -1,8 +1,36 @@
 ---
 title: "Connection Behaviour"
+sidebarTitle: "Connection Behaviour"
+description: "Understand how CometChat SDK manages WebSocket connections in auto and manual modes, including background behavior and reconnection handling."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
+```dart
+// Auto Mode (default) - SDK manages connection automatically
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = true  // Default behavior
+).build();
+
+// Manual Mode - You control the connection
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "REGION"
+  ..autoEstablishSocketConnection = false  // Manual control
+).build();
+
+// Manual mode methods
+CometChat.connect(onSuccess: (msg) {}, onError: (e) {});  // Establish connection
+CometChat.disconnect(onSuccess: (msg) {}, onError: (e) {}); // Break connection
+CometChat.ping(onSuccess: () {}, onError: (e) {});  // Keep alive in background
+```
+
+**Connection Modes:**
+- **Auto Mode:** SDK manages WebSocket automatically (foreground=connected, background=disconnected)
+- **Manual Mode:** You control connect/disconnect; call `ping()` every 30s to keep background connection alive
+</Accordion>
 
 ## Default SDK behaviour on login
 
@@ -17,6 +45,8 @@ This makes sure that the logged in user starts receiving real-time messages sent
 When the app is reopened, and the init() method is called, the web-socket connection to the server is established automatically.
 
 This is the default behaviour of the CometChat SDKs. However, if you wish to take control of the web-socket connection i.e if you wish to connect and disconnect to the web-socket server manually, you can refer to the Managing Web-socket Connection section.
+
+You'd want manual control when you need to conserve resources by connecting only when the user is actively chatting, or when you need precise control over when real-time events start flowing.
 
 ## Auto Mode
 
@@ -90,6 +120,25 @@ CometChat.init(appId, appSettings, onSuccess: (String successMessage) {
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `String` message confirming SDK initialization:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Initialization completed successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"SDK initialization failed."` |
+| `details` | string | Additional technical details | `"Please verify your App ID and region, then try again."` |
+
+</Accordion>
+
 You can manage the connection to the web-socket server using the `connect()` and `disconnect()` methods provided by the SDK.
 
 ## Connect to the web-socket server
@@ -113,6 +162,25 @@ CometChat.connect(
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `String` message confirming the WebSocket connection was established:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Web socket connection successful"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_LOGGED_IN"` |
+| `message` | string | Human-readable error message | `"No active user session."` |
+| `details` | string | Additional technical details | `"Please log in before establishing a WebSocket connection."` |
+
+</Accordion>
+
 ## Disconnect from the web-socket server
 
 You can use the `disconnect()` method provided by the `CometChat` class to break the established connection. Once the connection is broken, you will stop receiving all the real-time events for the logged in user.
@@ -133,6 +201,25 @@ CometChat.disconnect(
 </Tab>
 
 </Tabs>
+
+<Accordion title="Response">
+**On Success** — A `String` message confirming the WebSocket connection was disconnected:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Web socket disconnection successful"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_LOGGED_IN"` |
+| `message` | string | Human-readable error message | `"No active user session."` |
+| `details` | string | Additional technical details | `"Please log in before disconnecting the WebSocket connection."` |
+
+</Accordion>
 
 ## Maintain long-standing background connection
 
@@ -161,6 +248,44 @@ CometChat.ping(
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A confirmation that the ping was sent successfully (no return value):
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation | `"ping successful"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_LOGGED_IN"` |
+| `message` | string | Human-readable error message | `"No active user session."` |
+| `details` | string | Additional technical details | `"Please log in before sending a ping to the server."` |
+
+</Accordion>
+
 ## Reconnection
 
 If manual mode is enabled and the app is in the foreground, the SDK will automatically reconnect the WebSocket if the internet connection is lost. However, if the app is in the background and the WebSocket is disconnected or you called `CometChat.disconnect()`, then you will need to call the `CometChat.connect()` method to create a new WebSocket connection.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Connection Status" icon="signal" href="/sdk/flutter/connection-status">
+    Monitor real-time WebSocket connection status with listeners
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/flutter/setup">
+    Configure CometChat SDK initialization and settings
+  </Card>
+  <Card title="Real-Time Listeners" icon="tower-broadcast" href="/sdk/flutter/real-time-listeners">
+    Learn about all available real-time event listeners
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication-overview">
+    Implement user login and logout functionality
+  </Card>
+</CardGroup>

@@ -1,0 +1,110 @@
+---
+title: "Installation"
+sidebarTitle: "Installation"
+description: "Add the CometChat Flutter SDK to your project and configure platform-specific requirements for iOS and Android."
+---
+
+<Accordion title="AI Integration Quick Reference">
+
+```yaml
+# pubspec.yaml
+dependencies:
+  cometchat_sdk: ^4.0.33
+```
+
+```dart
+import 'package:cometchat_sdk/cometchat_sdk.dart';
+```
+
+**Key Points:**
+- Add `cometchat_sdk` to your `pubspec.yaml` and run `flutter pub get`
+- iOS: Update Podfile with simulator architecture exclusions, set deployment target to 11+, disable Bitcode
+- Android: Requires API Level 21+, AndroidX compatibility
+- Import `package:cometchat_sdk/cometchat_sdk.dart` wherever you need the SDK
+
+</Accordion>
+
+## Add the CometChat Dependency
+
+Add the CometChat SDK to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  cometchat_sdk: ^4.0.33
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+## Platform Configuration
+
+### iOS
+
+1. Add the following to your Podfile inside the iOS section of your app:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |build_configuration|
+      build_configuration.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64 i386'
+    end
+  end
+end
+```
+
+2. Set the deployment target to `11` or higher.
+
+3. Navigate to your iOS folder in terminal and run `pod install`. For Apple Silicon systems, use a Rosetta terminal.
+
+4. In Xcode, set **Enable Bitcode** to **No** in your project's Build Settings.
+
+<Frame>
+  <img src="/images/d36654d9-uqw7o892u1k2jfoi48c3mpcr3mfz8ha80dlt89198cy33d4xxfkqkic9gof95zj2-e78adc70b09a7dec13c4af65e00c0232.png" />
+</Frame>
+
+### Android
+
+- Minimum API Level: **21**
+- AndroidX compatibility is required
+
+No additional configuration is needed for Android beyond ensuring these requirements are met.
+
+## Import the SDK
+
+Import the CometChat SDK in your Dart files:
+
+```dart
+import 'package:cometchat_sdk/cometchat_sdk.dart';
+```
+
+## Get Your Credentials
+
+Before initializing the SDK, get your credentials from the [CometChat Dashboard](https://app.cometchat.com):
+
+1. Sign up or log in
+2. Create a new app (or use an existing one)
+3. Go to **API & Auth Keys** and note your:
+   - App ID
+   - Region
+   - Auth Key
+
+<Warning>
+**Auth Key** is for development and testing only. In production, generate **Auth Tokens** on your server using the REST API. Never expose Auth Keys in production client code.
+</Warning>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup & Initialization" icon="play" href="/sdk/flutter/setup">
+    Configure and initialize the SDK in your Flutter app
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication-overview">
+    Learn how to authenticate users with Auth Keys and Auth Tokens
+  </Card>
+</CardGroup>

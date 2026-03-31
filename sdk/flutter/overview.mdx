@@ -1,8 +1,99 @@
 ---
-title: "Overview"
+title: "Flutter SDK"
+sidebarTitle: "Overview"
+description: "Add real-time chat, voice, and video to your Flutter application with the CometChat SDK."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Accordion title="AI Integration Quick Reference">
 
+```yaml
+# Install (pubspec.yaml)
+cometchat_sdk: ^4.0.33
+```
+
+```dart
+import 'package:cometchat_sdk/cometchat_sdk.dart';
+
+// 1. Initialize (once at app startup)
+AppSettings appSettings = (AppSettingsBuilder()
+  ..subscriptionType = CometChatSubscriptionType.allUsers
+  ..region = "APP_REGION" // e.g. "us", "eu", "in"
+  ..autoEstablishSocketConnection = true
+).build();
+
+CometChat.init("APP_ID", appSettings,
+  onSuccess: (msg) => debugPrint("Init success"),
+  onError: (e) => debugPrint("Init failed: ${e.message}"),
+);
+
+// 2. Login (check session first)
+CometChat.getLoggedInUser(
+  onSuccess: (user) {
+    if (user == null) {
+      CometChat.login("cometchat-uid-1", "AUTH_KEY", // dev only — use Auth Token in production
+        onSuccess: (user) => debugPrint("Login success"),
+        onError: (e) => debugPrint("Login failed"),
+      );
+    }
+  },
+  onError: (e) => debugPrint("Error: ${e.message}"),
+);
+```
+
+**Credentials:** App ID, Region, Auth Key from [CometChat Dashboard](https://app.cometchat.com)
+**Test UIDs:** `cometchat-uid-1` through `cometchat-uid-5`
+</Accordion>
+
+<Warning>
+`CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
+</Warning>
+
+The CometChat Flutter SDK lets you add real-time messaging, voice, and video calling to any Flutter application — iOS, Android, Web, or Desktop.
+
+## Requirements
+
+| Requirement | Minimum Version |
+|-------------|-----------------|
+| Android API Level | 21 |
+| iOS | 11 |
+| Flutter SDK | 1.2 |
+
+Requires AndroidX compatibility. For iOS, see [platform setup instructions](#add-the-cometchat-dependency) below.
+
+## Getting Started
+
+<Steps>
+  <Step title="Get your credentials">
+    [Sign up for CometChat](https://app.cometchat.com) and create an app. Note your App ID, Region, and Auth Key from the Dashboard.
+  </Step>
+  <Step title="Install and initialize">
+    Add the SDK to your project and initialize it with your credentials. See [Installation](/sdk/flutter/installation) and [Setup SDK](/sdk/flutter/setup).
+  </Step>
+  <Step title="Authenticate users">
+    Log in users with Auth Key (development) or Auth Token (production). See [Authentication](/sdk/flutter/authentication-overview).
+  </Step>
+  <Step title="Start building">
+    Send your first message, make a call, or manage users and groups.
+  </Step>
+</Steps>
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Messaging" icon="comments" href="/sdk/flutter/send-message">
+    1:1 and group chat, threads, reactions, typing indicators, read receipts, file sharing, and interactive messages.
+  </Card>
+  <Card title="Voice & Video Calling" icon="phone" href="/sdk/flutter/calling-overview">
+    Ringing flows, direct call sessions, standalone calling, recording, and screen sharing.
+  </Card>
+  <Card title="Users" icon="user" href="/sdk/flutter/users-overview">
+    Create, retrieve, and manage users. Track online/offline presence and block/unblock users.
+  </Card>
+  <Card title="Groups" icon="users" href="/sdk/flutter/groups-overview">
+    Public, private, and password-protected groups with member management, roles, and ownership transfer.
+  </Card>
+</CardGroup>
 
 This guide demonstrates how to add chat to a Flutter application. Before you begin, we strongly recommend you read the [Key Concepts](/sdk/flutter/key-concepts) guide.
 
@@ -10,7 +101,7 @@ This guide demonstrates how to add chat to a Flutter application. Before you beg
 
 1. [Get your application keys](overview#get-your-application-keys)
 2. [Add the CometChat dependency](overview#add-the-cometchat-dependency)
-3. [Initialise CometChat](overview#initialise-cometchat)
+3. [Initialize CometChat](overview#initialize-cometchat)
 4. [Register and Login your user](overview#register-and-login-your-user)
 
 #### I want to explore a sample app
@@ -26,15 +117,6 @@ Follow the steps mentioned in the `README.md` file to run the sample app
 1. Create a new app
 2. Head over to the **API Keys** section and note the **Auth Key**, **App ID** & **Region**
 
-<Note>
-Minimum Requirements
-
-* Android API Level 21
-* AndroidX Compatibility
-* iOS 11 or higher
-* Flutter SDK 1.2 or higher
-
-</Note>
 
 ### Add the CometChat Dependency
 
@@ -94,7 +176,7 @@ import 'package:cometchat_sdk/cometchat_sdk.dart';
 
 </Tabs>
 
-### Initialise CometChat
+### Initialize CometChat
 
 The `init()` method initializes the settings required for CometChat. The `init()` method takes the below parameters:
 
@@ -136,6 +218,25 @@ CometChat.init(appId, appSettings,
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `String` message confirming SDK initialization:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"Initialization completed successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"SDK initialization failed."` |
+| `details` | string | Additional technical details | `"Please verify your App ID and region, then try again."` |
+
+</Accordion>
+
 Make sure you replace the `APP_ID` with your CometChat **App ID** and `region` with your **App Region** in the above code.
 
 ### Register and Login your User
@@ -152,7 +253,7 @@ User user = User( uid: "usr1", name: "Kevin" );//Replace with name and uid of us
 
 CometChat.createUser(user,  authKey,
 	onSuccess: (User user){
-		debugPrint("Create User succesful ${user}");
+		debugPrint("Create User successful ${user}");
 	}, onError: (CometChatException e){
 		debugPrint("Create User Failed with exception ${e.message}");
 	}
@@ -162,6 +263,40 @@ CometChat.createUser(user,  authKey,
 </Tab>
 
 </Tabs>
+
+<Accordion title="Response">
+**On Success** — A `User` object containing the details of the newly created user:
+
+<span id="overview-create-user-object" style={{scrollMarginTop: '100px'}}></span>
+
+**User Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the user | `"usr1"` |
+| `name` | string | Display name of the user | `"Kevin"` |
+| `link` | string | Profile link | `null` |
+| `avatar` | string | Avatar URL | `null` |
+| `metadata` | object | Custom metadata | `{}` |
+| `status` | string | Online status | `"offline"` |
+| `role` | string | User role | `"default"` |
+| `statusMessage` | string | Status message | `null` |
+| `tags` | array | User tags | `[]` |
+| `hasBlockedMe` | boolean | Whether this user has blocked the current user | `false` |
+| `blockedByMe` | boolean | Whether the current user has blocked this user | `false` |
+| `lastActiveAt` | number | Epoch timestamp of last activity | `0` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_UID_NOT_FOUND"` |
+| `message` | string | Human-readable error message | `"The specified UID does not exist."` |
+| `details` | string | Additional technical details | `"Please verify the UID and try again."` |
+
+</Accordion>
 
 Make sure that `UID` and `name` are specified as these are mandatory fields to create a user.
 
@@ -195,4 +330,100 @@ await CometChat.login(UID, authKey,
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `User` object containing the details of the logged-in user:
+
+<span id="overview-login-user-object" style={{scrollMarginTop: '100px'}}></span>
+
+**User Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the user | `"user_id"` |
+| `name` | string | Display name of the user | `"Andrew Joseph"` |
+| `link` | string | Profile link | `null` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
+| `metadata` | object | Custom metadata | `{}` |
+| `status` | string | Online status | `"online"` |
+| `role` | string | User role | `"default"` |
+| `statusMessage` | string | Status message | `null` |
+| `tags` | array | User tags | `[]` |
+| `hasBlockedMe` | boolean | Whether this user has blocked the current user | `false` |
+| `blockedByMe` | boolean | Whether the current user has blocked this user | `false` |
+| `lastActiveAt` | number | Epoch timestamp of last activity | `1745554700` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_UID_NOT_FOUND"` |
+| `message` | string | Human-readable error message | `"The specified UID does not exist."` |
+| `details` | string | Additional technical details | `"Please verify the UID and try again."` |
+
+</Accordion>
+
 We recommend you call the CometChat `login()` method once your user logs into your app. The `login()` method needs to be called only once.
+
+---
+
+## Sample Apps
+
+Explore working examples with full source code:
+
+<CardGroup cols={2}>
+  <Card title="Flutter Chat App" icon="mobile" href="https://github.com/cometchat-pro/flutter-chat-app/">
+    Flutter sample app
+  </Card>
+</CardGroup>
+
+## UI Kits
+
+Skip the UI work — use pre-built, customizable components:
+
+<CardGroup cols={2}>
+  <Card title="Flutter UI Kit" icon="mobile" href="/ui-kit/flutter/overview">
+    Flutter UI Kit
+  </Card>
+</CardGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Key Concepts" icon="lightbulb" href="/sdk/flutter/key-concepts">
+    UIDs, GUIDs, auth tokens, and core SDK concepts
+  </Card>
+  <Card title="Message Structure" icon="sitemap" href="/sdk/flutter/message-structure-and-hierarchy">
+    Message categories, types, and hierarchy
+  </Card>
+  <Card title="Changelog" icon="clock-rotate-left" href="/sdk/flutter/changelog">
+    Latest SDK version and release notes
+  </Card>
+  <Card title="Upgrading from V3" icon="arrow-up" href="/sdk/flutter/upgrading-from-v3-guide">
+    Migration guide for V3 users
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/sdk/flutter/installation">
+    Add the CometChat SDK to your Flutter project
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/flutter/setup">
+    Detailed initialization and configuration options
+  </Card>
+  <Card title="Key Concepts" icon="lightbulb" href="/sdk/flutter/key-concepts">
+    Understand core CometChat concepts and terminology
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/flutter/authentication-overview">
+    Learn about Auth Keys vs Auth Tokens for production
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/flutter/send-message">
+    Start sending text, media, and custom messages
+  </Card>
+  <Card title="Calling" icon="phone" href="/sdk/flutter/calling-overview">
+    Add voice and video calling to your app
+  </Card>
+</CardGroup>

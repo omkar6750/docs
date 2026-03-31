@@ -1,8 +1,48 @@
 ---
-title: "Ban/Kick Member From A Group"
+title: "Ban Or Kick Member From A Group"
+sidebarTitle: "Kick & Ban Members"
+description: "Learn how to kick, ban, and unban members from groups using the CometChat Flutter SDK, including real-time event handling."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
+```dart
+// Kick a member from group
+CometChat.kickGroupMember(
+  guid: "GROUP_ID",
+  uid: "USER_ID",
+  onSuccess: (String message) => debugPrint("Kicked: $message"),
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+
+// Ban a member from group
+CometChat.banGroupMember(
+  guid: "GROUP_ID",
+  uid: "USER_ID",
+  onSuccess: (String message) => debugPrint("Banned: $message"),
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+
+// Unban a member
+CometChat.unbanGroupMember(
+  guid: "GROUP_ID",
+  uid: "USER_ID",
+  onSuccess: (String message) => debugPrint("Unbanned: $message"),
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+
+// Fetch banned members
+BannedGroupMembersRequest request = (BannedGroupMembersRequestBuilder(guid: "GUID")
+  ..limit = 30
+).build();
+request.fetchNext(
+  onSuccess: (List<GroupMember> members) => debugPrint("Banned: $members"),
+  onError: (CometChatException e) => debugPrint("Error: ${e.message}"),
+);
+```
+</Accordion>
+
+Remove members from a group by kicking or banning them. Kicked users can rejoin; banned users cannot until they're unbanned. Only admins and moderators can perform these actions.
 
 There are certain actions that can be performed on the group members:
 
@@ -12,6 +52,10 @@ There are certain actions that can be performed on the group members:
 4. Update the scope of the member of the group
 
 All of the above actions can only be performed by the **Admin** or the **Moderator** of the group.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 ## Kick a Group Member
 
@@ -36,16 +80,37 @@ CometChat.kickGroupMember(guid: guid,uid: uid,
 
 The `kickGroupMember()` takes following parameters:
 
-| Parameter | Description                                           |
-| --------- | ----------------------------------------------------- |
-| `UID`     | The UID of the user to be kicked                      |
-| `GUID`    | The GUID of the group from which user is to be kicked |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `guid` | `String` | The GUID of the group from which user is to be kicked |
+| `uid` | `String` | The UID of the user to be kicked |
+| `onSuccess` | `Function(String)` | Callback triggered on successful kick |
+| `onError` | `Function(CometChatException)` | Callback triggered on error |
 
 The kicked user will be no longer part of the group and can not perform any actions in the group, but the kicked user can rejoin the group.
 
+<Accordion title="Response">
+**On Success** — A `String` message confirming the member was kicked:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"cometchat-uid-3 kicked successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_A_MEMBER"` |
+| `message` | string | Human-readable error message | `"The user is not a member of this group."` |
+| `details` | string | Additional technical details | `"Please verify the user ID and group ID and try again."` |
+
+</Accordion>
+
 ## Ban a Group Member
 
-The Admin or Moderator of the group can ban a member from the group using the `banGroupMember()` method.
+The Admin or Moderator of the group can ban a member from the group using the `banGroupMember()` method. Unlike kicked users, banned users cannot rejoin until unbanned.
 
 <Tabs>
 <Tab title="Dart">
@@ -66,12 +131,33 @@ CometChat.banGroupMember(guid: guid,uid: uid,
 
 The `banGroupMember()` method takes the following parameters:
 
-| Parameter | Description                                             |
-| --------- | ------------------------------------------------------- |
-| `UID`     | The `UID` of the user to be banned                      |
-| `GUID`    | The `GUID` of the group from which user is to be banned |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `guid` | `String` | The GUID of the group from which user is to be banned |
+| `uid` | `String` | The UID of the user to be banned |
+| `onSuccess` | `Function(String)` | Callback triggered on successful ban |
+| `onError` | `Function(CometChatException)` | Callback triggered on error |
 
-The banned user will be no longer part of the group and can not perform any actions in the group. A banned user cannot rejoin the group same group without being unbanned.
+The banned user will be no longer part of the group and can not perform any actions in the group. A banned user cannot rejoin the same group without being unbanned.
+
+<Accordion title="Response">
+**On Success** — A `String` message confirming the member was banned:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"cometchat-uid-3 banned successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_A_MEMBER"` |
+| `message` | string | Human-readable error message | `"The user is not a member of this group."` |
+| `details` | string | Additional technical details | `"Please verify the user ID and group ID and try again."` |
+
+</Accordion>
 
 ## Unban a Banned Group Member from a Group
 
@@ -97,12 +183,33 @@ CometChat.unbanGroupMember(guid: guid,uid: uid,
 
 The `unbanGroupMember()` method takes the following parameters
 
-| Parameter | Description                                          |
-| --------- | ---------------------------------------------------- |
-| `UID`     | The UID of the user to be unbanned                   |
-| `GUID`    | The UID of the group from which user is to be banned |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `guid` | `String` | The GUID of the group from which user is to be unbanned |
+| `uid` | `String` | The UID of the user to be unbanned |
+| `onSuccess` | `Function(String)` | Callback triggered on successful unban |
+| `onError` | `Function(CometChatException)` | Callback triggered on error |
 
 The unbanned user can now rejoin the group.
+
+<Accordion title="Response">
+**On Success** — A `String` message confirming the member was unbanned:
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `message` | string | Success confirmation message | `"cometchat-uid-3 unbanned successfully"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_A_MEMBER"` |
+| `message` | string | Human-readable error message | `"The user is not a member of this group."` |
+| `details` | string | Additional technical details | `"Please verify the user ID and group ID and try again."` |
+
+</Accordion>
 
 ## Get List of Banned Members for a Group
 
@@ -170,15 +277,53 @@ bannedGroupMembersRequest.fetchNext( onSuccess: (List<GroupMember> groupMembers)
 
 </Tabs>
 
+<Accordion title="Response">
+**On Success** — A `List<GroupMember>` containing the banned group members for the specified group (each item is a `GroupMember` object):
+
+<span id="banned-group-members-groupmember-object" style={{scrollMarginTop: '100px'}}></span>
+
+**GroupMember Object (per item in array):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the user | `"cometchat-uid-3"` |
+| `name` | string | Display name of the user | `"Kevin Hart"` |
+| `link` | string | Profile link | `null` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
+| `metadata` | object | Custom metadata | `{}` |
+| `status` | string | Online status | `"offline"` |
+| `role` | string | User role | `"default"` |
+| `statusMessage` | string | Status message | `null` |
+| `tags` | array | User tags | `[]` |
+| `hasBlockedMe` | boolean | Whether this user has blocked the current user | `false` |
+| `blockedByMe` | boolean | Whether the current user has blocked this user | `false` |
+| `lastActiveAt` | number | Epoch timestamp of last activity | `1745554700` |
+| `scope` | string | Member scope in the group | `"participant"` |
+| `joinedAt` | number | Epoch timestamp when the member joined the group | `1745550000` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_NOT_A_MEMBER"` |
+| `message` | string | Human-readable error message | `"The user is not a member of this group."` |
+| `details` | string | Additional technical details | `"Please verify the group ID and try again."` |
+
+</Accordion>
+
 ## Real-Time Group Member Kicked/Banned Events
 
 *In other words, as a member of a group, how do I know when someone is banned/kicked when my app is running?*
 
-In order to get real-time events for the kick/ban/unban group members you need to override the following methods of the `GroupListener` class.
+Implement these `GroupListener` methods to receive real-time notifications:
 
-1. `onGroupMemberKicked()` - Triggered when any group member has been kicked.
-2. `onGroupMemberBanned()` - Triggered when any group member has been banned.
-3. `onGroupMemberUnbanned()` - Triggered when any group member has been unbanned.
+| Method | Triggered When |
+|--------|----------------|
+| `onGroupMemberKicked()` | A member is kicked |
+| `onGroupMemberBanned()` | A member is banned |
+| `onGroupMemberUnbanned()` | A member is unbanned |
 
 <Tabs>
 <Tab title="Dart">
@@ -207,29 +352,62 @@ void onGroupMemberUnbanned(Action action, User unbannedUser, User unbannedBy, Gr
 
 </Tabs>
 
+<Warning>
+Always remove group listeners when they're no longer needed (e.g., in the `dispose()` method). Failing to remove listeners can cause memory leaks and duplicate event handling.
+
+```dart
+CometChat.removeGroupListener("group_Listener_id");
+```
+</Warning>
+
 ## Missed Group Member Kicked/Banned Events
 
 *In other words, as a member of a group, how do I know when someone is banned/kicked when my app is not running?*
 
 When you retrieve the list of previous messages if a member has been kicked/banned/unbanned from any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
 
-For group member kicked event, the details can be obtained using the below fields of the `Action` class-
+**Kicked event:**
 
-1. `action` - `kicked`
-2. `actionBy` - User object containing the details of the user who has kicked the member
-3. `actionOn` - User object containing the details of the member that has been kicked
-4. `actionFor` - Group object containing the details of the Group from which the member was kicked
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"kicked"` | The action type |
+| `actionBy` | User | The user who kicked the member |
+| `actionOn` | User | The member who was kicked |
+| `actionFor` | Group | The group from which the member was kicked |
 
-For group member banned event, the details can be obtained using the below fields of the `Action` class-
+**Banned event:**
 
-1. `action` - `banned`
-2. `actionBy` - User object containing the details of the user who has banned the member
-3. `actionOn` - User object containing the details of the member that has been banned
-4. `actionFor` - Group object containing the details of the Group from which the member was banned
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"banned"` | The action type |
+| `actionBy` | User | The user who banned the member |
+| `actionOn` | User | The member who was banned |
+| `actionFor` | Group | The group from which the member was banned |
 
-For group member unbanned event, the details can be obtained using the below fields of the `Action` class-
+**Unbanned event:**
 
-1. `action` - `unbanned`
-2. `actionBy` - User object containing the details of the user who has unbanned the member
-3. `actionOn` - User object containing the details of the member that has been unbanned
-4. `actionFor` - Group object containing the details of the Group from which the member was unbanned
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"unbanned"` | The action type |
+| `actionBy` | User | The user who unbanned the member |
+| `actionOn` | User | The member who was unbanned |
+| `actionFor` | Group | The group from which the member was unbanned |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Add Members" icon="user-plus" href="/sdk/flutter/group-add-members">
+    Add new members to your groups
+  </Card>
+  <Card title="Change Member Scope" icon="user-gear" href="/sdk/flutter/group-change-member-scope">
+    Update member roles and permissions
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/flutter/retrieve-group-members">
+    Fetch the list of members in a group
+  </Card>
+  <Card title="Leave a Group" icon="right-from-bracket" href="/sdk/flutter/leave-group">
+    Allow members to leave a group
+  </Card>
+</CardGroup>

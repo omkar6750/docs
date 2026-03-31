@@ -1,6 +1,40 @@
 ---
 title: "Standalone Calling"
+sidebarTitle: "Standalone Calling"
+description: "Implement video and audio calling using only the CometChat Calls SDK without the Chat SDK for applications that need calling capabilities without full chat infrastructure."
 ---
+
+<Accordion title="AI Integration Quick Reference">
+
+```dart
+// 1. Generate call token (requires user auth token from REST API)
+CometChatCalls.generateToken(sessionId, userAuthToken,
+  onSuccess: (GenerateToken token) {
+    // Use token.token to start session
+  },
+  onError: (e) {},
+);
+
+// 2. Configure and start call session
+CallSettings callSettings = (CallSettingsBuilder()
+  ..defaultLayout = true
+  ..setAudioOnlyCall = false
+  ..listener = this
+).build();
+
+CometChatCalls.startSession(generatedToken, callSettings,
+  onSuccess: (Widget? callingWidget) {
+    // Display callingWidget in your UI
+  },
+  onError: (e) {},
+);
+
+// 3. End session
+CometChatCalls.endSession(onSuccess: (s) {}, onError: (e) {});
+```
+
+**Prerequisites:** [Calls SDK Setup](/sdk/flutter/calling-setup), User Auth Token from [REST API](/rest-api/auth-tokens/create)
+</Accordion>
 
 ## Overview
 
@@ -59,6 +93,29 @@ CometChatCalls.generateToken(
 | `sessionId`     | A unique session ID for the call. Generate this yourself or use a shared ID for participants to join the same call. |
 | `userAuthToken` | The user auth token obtained from the CometChat REST API.                  |
 
+<Accordion title="Response">
+**On Success** — A `GenerateToken` object containing the call token for the session:
+
+<span id="standalone-generate-token-object" style={{scrollMarginTop: '100px'}}></span>
+
+**GenerateToken Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `token` | string | The generated call token used to start a session | `"v1.us-west-2.calls.a]..."` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to generate the call token."` |
+| `details` | string | Additional technical details | `"The session ID or auth token provided is invalid."` |
+
+</Accordion>
+
 ## Start Call Session
 
 Use the `startSession()` method to join a call session. This method requires a call token (generated in the previous step) and a `CallSettings` object that configures the call UI and behavior.
@@ -84,6 +141,29 @@ CometChatCalls.startSession(
   },
 );
 ```
+
+<Accordion title="Response">
+**On Success** — A `Widget?` representing the call UI to be displayed in your application:
+
+<span id="standalone-start-session-widget-object" style={{scrollMarginTop: '100px'}}></span>
+
+**Widget Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `callingWidget` | Widget? | A Flutter widget containing the call UI. Display this widget in your screen to show the call interface. | `Widget` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to start the call session."` |
+| `details` | string | Additional technical details | `"The call token provided is invalid or expired."` |
+
+</Accordion>
 
 ### Call Settings
 
@@ -413,3 +493,23 @@ CometChatCalls.endSession(
   },
 );
 ```
+
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement ringing call flows using the Chat SDK
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Add call recording to your voice and video calls
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Set up the CometChat Calls SDK in your Flutter app
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/flutter/direct-call">
+    Implement direct calling with the Chat SDK integration
+  </Card>
+</CardGroup>

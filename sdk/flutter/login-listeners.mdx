@@ -1,17 +1,80 @@
 ---
 title: "Login Listeners"
+sidebarTitle: "Login Listeners"
+description: "Listen for real-time login and logout events using CometChat's LoginListener in your Flutter application."
 ---
 
+{/* TL;DR for Agents and Quick Reference */}
+<Accordion title="AI Integration Quick Reference">
 
+```dart
+// Add login listener
+CometChat.addLoginListener("UNIQUE_LISTENER_ID", LoginListenerClass());
+
+// Implement LoginListener mixin
+class LoginListenerClass with LoginListener {
+  @override
+  void loginSuccess(User user) {
+    debugPrint("Login success: ${user.name}");
+  }
+  
+  @override
+  void loginFailure(CometChatException e) {
+    debugPrint("Login failed: ${e.message}");
+  }
+  
+  @override
+  void logoutSuccess() {
+    debugPrint("Logout success");
+  }
+  
+  @override
+  void logoutFailure(CometChatException e) {
+    debugPrint("Logout failed: ${e.message}");
+  }
+}
+
+// Remove listener when done
+CometChat.removeLoginListener("UNIQUE_LISTENER_ID");
+```
+</Accordion>
 
 The CometChat SDK provides you with real-time updates for the `login` and `logout` events. This can be achieved using the `LoginListener` class provided. LoginListener consists of 4 events that can be triggered. These are as follows:
 
-| Callback Method                     | Information                                                                                                                                                      |
+| Delegate Method                     | Information                                                                                                                                                      |
 | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| loginSuccess(User user)             | Informs you that the login was successful and provides you with a user object containing the data for the user that logged in                                    |
-| loginFailure(CometChatException e)  | Informs you about the failure while logging in the user and provides you with the reason for the failure wrapped in an object of the `CometChatException` class  |
+| loginSuccess(User user)             | Informs you that the login was successful and provides you with a user object containing the data for the user that logged in.                                   |
+| loginFailure(CometChatException e)  | Informs you about the failure while logging in the user and provides you with the reason for the failure wrapped in an object of the [`CometChatException`](/sdk/flutter/error-codes) class. |
 | logoutSuccess()                     | Informs you about the user being logged out successfully.                                                                                                        |
-| logoutFailure(CometChatException e) | Informs you about the failure while logging out the user. The reason for the failure can be obtained from the object of the `CometChatException` class provided. |
+| logoutFailure(CometChatException e) | Informs you about the failure while logging out the user. The reason for the failure can be obtained from the object of the [`CometChatException`](/sdk/flutter/error-codes) class.          |
+
+### loginSuccess
+
+Triggered when a user successfully logs in.
+
+| Parameter | Type   | Description                                      |
+| --------- | ------ | ------------------------------------------------ |
+| `user`    | `User` | The user object containing the logged-in user's data |
+
+### loginFailure
+
+Triggered when a login attempt fails.
+
+| Parameter | Type                  | Description                                      |
+| --------- | --------------------- | ------------------------------------------------ |
+| `e`       | `CometChatException`  | The exception object containing the error details (code, message, details) |
+
+### logoutSuccess
+
+Triggered when the user successfully logs out. This callback takes no parameters.
+
+### logoutFailure
+
+Triggered when a logout attempt fails.
+
+| Parameter | Type                  | Description                                      |
+| --------- | --------------------- | ------------------------------------------------ |
+| `e`       | `CometChatException`  | The exception object containing the error details (code, message, details) |
 
 To add the `LoginListener`, you need to use the `addLoginListener()` method provided by the SDK which takes a unique identifier for the listener and object of the `LoginListener` class itself.
 
@@ -50,7 +113,11 @@ void loginFailure(CometChatException e) {
 
 </Tabs>
 
-In order to stop receiving events related to login and logout you need to use the `removeLoginListener()` method provided by the SDK and pas the ID of the listener that needs to be removed.
+In order to stop receiving events related to login and logout you need to use the `removeLoginListener()` method provided by the SDK and pass the ID of the listener that needs to be removed.
+
+<Warning>
+Always remove login listeners when they're no longer needed (e.g., on widget disposal or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 <Tabs>
 <Tab title="Dart">
@@ -61,3 +128,22 @@ CometChat.removeLoginListener("UNIQUE_LISTENER_ID");
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication Overview" icon="key" href="/sdk/flutter/authentication-overview">
+    Learn about login methods and authentication flows
+  </Card>
+  <Card title="Connection Status" icon="signal" href="/sdk/flutter/connection-status">
+    Monitor the SDK connection state in real time
+  </Card>
+  <Card title="Real-Time Listeners" icon="tower-broadcast" href="/sdk/flutter/real-time-listeners">
+    Explore all available real-time event listeners
+  </Card>
+  <Card title="Session Timeout" icon="clock" href="/sdk/flutter/session-timeout">
+    Configure session timeout behavior
+  </Card>
+</CardGroup>
