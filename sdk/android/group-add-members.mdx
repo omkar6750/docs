@@ -1,5 +1,5 @@
 ---
-title: "Add Members To A Group"
+title: "Add Members"
 sidebarTitle: "Add Members"
 description: "Add members to groups with specific roles using the Android SDK"
 ---
@@ -23,18 +23,9 @@ CometChat.addMembersToGroup("GUID", members, null,
 **Note:** Only admins and moderators can add members. The result HashMap contains UID as key and "success" or error message as value.
 </Accordion>
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/android/overview)
-</Note>
-
 ## Add Members to Group
 
-You can add members to the group using the `addMembersToGroup()` method. This method takes the below parameters:
-
-1. `GUID` - GUID of the group users are to be added to.
-2. `List<GroupMember> members` - This is a list of `GroupMember` objects. In order to add members, you need to create an object of the `GroupMember` class. The `UID` and the scope of the `GroupMember` are mandatory.
-3. `List<String> bannedMembers` - This is the list of `UIDs` that need to be banned from the group. This can be set to `null` if there are no members to be banned.
-4. Callback
+Use `addMembersToGroup()` with the group GUID, a list of `GroupMember` objects, and an optional list of UIDs to ban.
 
 <Tabs>
 <Tab title="Java">
@@ -83,17 +74,11 @@ In the `onSuccess()` method of the `CallbackListener`, you will receive a HashMa
 
 ## Real-Time Group Member Added Events
 
-How do I know when someone is added to the group while my app is running?
+When a member is added to a group, existing members receive a real-time event in `onMemberAddedToGroup()` of the `GroupListener` class.
 
 <Note>
-
-When a group member is added by another member, this event is triggered. When a user joins a group on their own, the joined event is triggered.
-
+When a member is added by another user, `onMemberAddedToGroup()` fires. When a user joins on their own, `onGroupMemberJoined()` fires instead.
 </Note>
-
-To receive real-time events whenever a new member is added to a group, implement the `onMemberAddedToGroup()` method of the `GroupListener` class.
-
-* `onMemberAddedToGroup()` - This method is triggered when any user is added to the group, informing the logged-in user of the other members added to the group.
 
 <Tabs>
 <Tab title="Java">
@@ -123,11 +108,7 @@ CometChat.addGroupListener("UNIQUE_ID", object : CometChat.GroupListener() {
 
 ## Member Added to Group event in Message History
 
-How do I know when someone is added to the group while my app is not running?
-
-When you retrieve the list of previous messages, if a member has been added to any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of the `BaseMessage` class.
-
-For the group member added event, in the `Action` object received, the following fields can help you get the relevant information-
+When fetching message history, if a member was added to a group the logged-in user is part of, the list will contain an `Action` message with these fields:
 
 1. `action` - `added`
 2. `actionOn` - User object containing the details of the user who was added to the group

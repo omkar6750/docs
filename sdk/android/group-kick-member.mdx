@@ -1,5 +1,5 @@
 ---
-title: "Ban/Kick Member From A Group"
+title: "Kick/Ban Member"
 sidebarTitle: "Kick Member"
 description: "Kick, ban, and unban group members using the Android SDK"
 ---
@@ -23,18 +23,7 @@ CometChat.unbanGroupMember("UID", "GUID", callback)
 **Note:** Only admins and moderators can kick, ban, or unban members.
 </Accordion>
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/android/overview)
-</Note>
-
-There are certain actions that can be performed on the group members:
-
-1. Kick a member from the group
-2. Ban a member from the group
-3. Unban a member from the group
-4. Update the scope of the member of the group
-
-All of the above actions can only be performed by the **Admin** or the **Moderator** of the group.
+Admins and moderators can kick, ban, or unban group members. Kicked users can rejoin; banned users cannot until unbanned.
 
 ## Kick a Group Member
 
@@ -194,15 +183,11 @@ The unbanned user can now rejoin the group.
 
 ## Get List of Banned Members for a Group
 
-To fetch the list of banned group members for a group, use the `BannedGroupMembersRequest` class. To create an object of the `BannedGroupMembersRequest` class, you need to use the `BannedGroupMembersRequestBuilder` class. The `BannedGroupMembersRequestBuilder` class allows you to set the parameters based on which the banned group members are fetched.
-
-The `BannedGroupMembersRequestBuilder` class allows you to set the following parameters:
-
-The `GUID` of the group for which the banned members are to be fetched must be specified in the constructor of the `GroupMembersRequestBuilder` class.
+Use `BannedGroupMembersRequestBuilder` with the group GUID to fetch banned members.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of banned members that should be fetched in a single iteration.
+Set the number of banned members to fetch per request.
 
 <Tabs>
 <Tab title="Java">
@@ -227,7 +212,7 @@ val bannedGroupMembersRequest = BannedGroupMembersRequestBuilder(GUID)
 
 ### Set Search Keyword
 
-This method allows you to set the search string based on which the banned group members are to be fetched.
+Filter banned members by a search string.
 
 <Tabs>
 <Tab title="Java">
@@ -250,9 +235,9 @@ val bannedGroupMembersRequest = BannedGroupMembersRequestBuilder(GUID)
 
 </Tabs>
 
-Finally, once all the parameters are set on the builder class, call the `build()` method to get the object of the `BannedGroupMembersRequest` class.
+### Fetch Banned Members
 
-Once you have the object of the `BannedGroupMembersRequest` class, call the `fetchNext()` method. This method returns a list of `GroupMember` objects containing n number of banned members where n is the limit set in the builder class.
+After configuring the builder, call `build()` then `fetchNext()` to retrieve banned members.
 
 <Tabs>
 <Tab title="Java">
@@ -301,13 +286,7 @@ bannedGroupMembersRequest?.fetchNext(object :CometChat.CallbackListener<List<Gro
 
 ## Real-Time Group Member Kicked/Banned Events
 
-How do I know when someone is banned or kicked while my app is running?
-
-To receive real-time events for kick/ban/unban group member actions, override the following methods of the `GroupListener` class.
-
-1. `onGroupMemberKicked()` - Triggered when any group member has been kicked.
-2. `onGroupMemberBanned()` - Triggered when any group member has been banned.
-3. `onGroupMemberUnbanned()` - Triggered when any group member has been unbanned.
+When a member is kicked, banned, or unbanned, group members receive real-time events via the `GroupListener` class.
 
 <Tabs>
 <Tab title="Java">
@@ -350,11 +329,7 @@ CometChat.addGroupListener(MainActivity::class.java.simpleName, object : GroupLi
 
 ## Missed Group Member Kicked/Banned Events
 
-How do I know when someone is banned or kicked while my app is not running?
-
-When you retrieve the list of previous messages, if a member has been kicked/banned/unbanned from any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of the `BaseMessage` class.
-
-For group member kicked event, the details can be obtained using the below fields of the `Action` class-
+When fetching message history, kick/ban/unban actions appear as `Action` messages with these fields:
 
 1. `action` - `kicked`
 2. `actionBy` - User object containing the details of the user who has kicked the member

@@ -23,23 +23,15 @@ CometChat.getConversation("UID_or_GUID", "user", callback)
 ```
 </Accordion>
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/android/overview)
-</Note>
-
 Conversations provide the last messages for every one-on-one and group conversation the logged-in user is a part of. This makes it easy for you to build a **Recent Chat** list.
 
 ## Retrieve List of Conversations
 
-How do I retrieve the latest conversations that I've been a part of?
-
-To fetch the list of conversations, use the `ConversationsRequest` class. To create an object of the `ConversationsRequest` class, you need to use the `ConversationsRequestBuilder` class. The `ConversationsRequestBuilder` class allows you to set the parameters based on which the conversations are fetched.
-
-The `ConversationsRequestBuilder` class allows you to set the following parameters:
+Use `ConversationsRequestBuilder` to configure filters, then call `fetchNext()` to retrieve up to 50 conversations per request.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of conversations that should be fetched in a single iteration.
+Set the number of conversations to fetch per request.
 
 <Tabs>
 <Tab title="Java (Set Limit)">
@@ -64,12 +56,7 @@ val conversationRequest = ConversationsRequestBuilder()
 
 ### Set Conversation Type
 
-This method can be used to fetch user or group conversations specifically. The `conversationType` variable can hold one of the below two values:
-
-* user - Only fetches user conversation.
-* group - Only fetches group conversations.
-
-If none is set, the list of conversations will include both user and group conversations.
+Filter by conversation type: `user` for one-on-one or `group` for group conversations. If not set, both types are returned.
 
 <Tabs>
 <Tab title="Java">
@@ -96,7 +83,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### With User and Group Tags
 
-This method can be used to fetch the user/group tags in the `Conversation` Object. By default the value is false.
+Use `withUserAndGroupTags(true)` to include user/group tags in the response. Default is `false`.
 
 <Tabs>
 <Tab title="Java">
@@ -123,7 +110,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### Set User Tags
 
-This method fetches user conversations that have the specified tags.
+Fetch user conversations where the user has specific tags.
 
 <Tabs>
 <Tab title="Java">
@@ -153,6 +140,8 @@ conversationsRequest = ConversationsRequestBuilder()
 </Tabs>
 
 ### Set Group Tags
+
+Fetch group conversations where the group has specific tags.
 
 <Tabs>
 <Tab title="Java">
@@ -185,7 +174,13 @@ This method fetches group conversations that have the specified tags.
 
 ### With Tags
 
-This method makes sure that the tags associated with the conversations are returned along with the other details of the conversations. The default value for this parameter is `false`
+Use `withTags(true)` to include conversation tags in the response. Default is `false`.
+
+When `withTags(true)` is set, each conversation's `tags` field will be populated. Access tags using `getTags()`.
+
+| Additional Field | Getter | Return Type | Description |
+| --- | --- | --- | --- |
+| tags | `getTags()` | `List<String>` | Tags associated with the conversation |
 
 <Tabs>
 <Tab title="Java">
@@ -212,7 +207,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### Set Tags
 
-This method helps you fetch the conversations based on the specified tags.
+Fetch conversations that have specific tags.
 
 <Tabs>
 <Tab title="Java">
@@ -243,7 +238,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### Include Blocked Users
 
-This method helps you fetch the conversations of users whom the logged-in user has blocked.
+Use `includeBlockedUsers(true)` to include conversations with users you've blocked.
 
 <Tabs>
 <Tab title="Java">
@@ -270,7 +265,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### With Blocked Info
 
-This method helps you fetch the conversations of users whom the logged-in user has blocked.
+Use `withBlockedInfo(true)` to include blocked user information in the response.
 
 <Tabs>
 <Tab title="Java">
@@ -297,7 +292,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### Search Conversations
 
-This method helps you search a conversation based on User or Group name.
+Use `setSearchKeyword()` to search conversations by user or group name.
 
 <Note>
 
@@ -330,7 +325,7 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 ### Unread Conversations
 
-This method helps you fetch unread conversations.
+Use `setUnread(true)` to fetch only conversations with unread messages.
 
 <Note>
 
@@ -361,11 +356,9 @@ val conversationsRequest = ConversationsRequestBuilder()
 
 </Tabs>
 
-Finally, once all the parameters are set to the builder class, you need to call the `build()` method to get the object of the `ConversationsRequest` class.
+### Fetch Conversations
 
-Once you have the object of the `ConversationsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `Conversation` objects containing X number of conversations depending on the limit set.
-
-A Maximum of only 50 Conversations can be fetched at once.
+After configuring the builder, call `build()` to create the request, then `fetchNext()` to retrieve conversations. Maximum 50 per request. Call `fetchNext()` repeatedly on the same object to paginate.
 
 <Tabs>
 <Tab title="Java">
@@ -375,38 +368,33 @@ ConversationsRequest conversationsRequest = new ConversationsRequest.Conversatio
 conversationsRequest.fetchNext(new CometChat.CallbackListener<List<Conversation>>() {
   @Override
   public void onSuccess(List<Conversation> conversations) {
-    // Hanlde list of conversations
-
+    // Handle list of conversations
   }
 
   @Override
   public void onError(CometChatException e) {
-    // Hanlde failure
+    // Handle failure
   }
 });
 ```
-
 </Tab>
-
 <Tab title="Kotlin">
 ```kotlin
 var conversationRequest: ConversationsRequest? = null
-val LIMIT:Int=30
+val LIMIT: Int = 30
 
 conversationRequest = ConversationsRequest.ConversationsRequestBuilder().setLimit(LIMIT).build()
 conversationRequest?.fetchNext(object : CometChat.CallbackListener<List<Conversation>>() {
   override fun onSuccess(p0: List<Conversation>?) {
-    //Handle List of Conversations
+    // Handle List of Conversations
   }
 
   override fun onError(p0: CometChatException?) {
-    //Handle Failure
+    // Handle Failure
   }
 })
 ```
-
 </Tab>
-
 </Tabs>
 
 The `Conversation` object consists of the following fields:
@@ -421,18 +409,13 @@ The `Conversation` object consists of the following fields:
 
 ## Tag Conversation
 
-How do I tag a conversation?
+Use `tagConversation()` to add tags to a conversation.
 
-To tag a specific conversation, use the `tagConversation()` method. The `tagConversation()` method accepts three parameters.
-
-1. `conversationWith`: UID/GUID of the user/group whose conversation you want to fetch.
-
-2. `conversationType`: The `conversationType` variable can hold one of the below two values:
-
-   1. user - Only fetches user conversation.
-   2. group - Only fetches group conversations.
-
-3. `tags`: The `tags` variable will be a list of tags you want to add to a conversation.
+| Parameter | Description |
+| --- | --- |
+| `conversationWith` | UID or GUID of the user/group |
+| `conversationType` | `user` or `group` |
+| `tags` | List of tags to add |
 
 <Tabs>
 <Tab title="Java">
@@ -489,15 +472,12 @@ The tags for conversations are one-way. This means that if user A tags a convers
 
 ## Retrieve Single Conversation
 
-How do I retrieve a specific conversation?
+Use `getConversation()` to fetch a specific conversation.
 
-To fetch a specific conversation, use the `getConversation` method. The `getConversation` method accepts two parameters.
-
-1. `conversationWith`: UID/GUID of the user/group whose conversation you want to fetch.
-2. `conversationType`: The `conversationType` variable can hold one of the below two values:
-
-* user - Only fetches user conversation.
-* group - Only fetches group conversations.
+| Parameter | Description |
+| --- | --- |
+| `conversationWith` | UID or GUID of the user/group |
+| `conversationType` | `user` or `group` |
 
 <Tabs>
 <Tab title="Java">
@@ -538,7 +518,7 @@ CometChat.getConversation(conversationWith, conversationType, new CometChat.Call
 
 ## Convert Messages to Conversations
 
-As per our [Receive Messages](/sdk/android/receive-messages) guide, for real-time messages, you will always receive `Message` objects and not `Conversation` objects. Thus, you will need a mechanism to convert the `Message` object to a `Conversation` object. You can use the `getConversationFromMessage` method for this purpose.
+Use `CometChatHelper.getConversationFromMessage()` to convert a received message into a `Conversation` object. Useful for updating your Recent Chats list when receiving real-time messages.
 
 <Tabs>
 <Tab title="Java">

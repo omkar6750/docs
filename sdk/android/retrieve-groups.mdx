@@ -24,19 +24,13 @@ CometChat.getGroup("GUID", callback)
 ```
 </Accordion>
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/android/overview)
-</Note>
-
 ## Retrieve List of Groups
 
-How do I retrieve the list of groups I've joined and groups that are available?
-
-To fetch the list of groups, use the `GroupsRequest` class. To create an object of the `GroupsRequest` class, you need to use the `GroupsRequestBuilder` class. The `GroupsRequestBuilder` class allows you to set the parameters based on which the groups are fetched.
+Use `GroupsRequestBuilder` to configure filters, then call `fetchNext()` to retrieve groups.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of groups that should be fetched in a single iteration.
+Set the number of groups to fetch per request.
 
 <Tabs>
 <Tab title="Java">
@@ -61,7 +55,7 @@ val groupsRequest = GroupsRequestBuilder()
 
 ### Set Search Keyword
 
-This method allows you to set the search string based on which the groups are to be fetched.
+Filter groups by a search string.
 
 <Tabs>
 <Tab title="Java">
@@ -86,7 +80,7 @@ val groupsRequest = GroupsRequestBuilder()
 
 ### Joined Only
 
-This method tells CometChat to only return the groups that the user has joined or is a part of.
+Return only groups the logged-in user has joined.
 
 <Tabs>
 <Tab title="Java">
@@ -111,7 +105,7 @@ val groupsRequest = GroupsRequestBuilder()
 
 ### Set Tags
 
-This method accepts a list of tags based on which the list of groups is to be fetched. The list fetched will only contain the groups that have been tagged with the specified tags.
+Filter groups by tags. Only groups tagged with the specified tags are returned.
 
 <Tabs>
 <Tab title="Java">
@@ -144,7 +138,7 @@ val groupsRequest = GroupsRequestBuilder()
 
 ### With Tags
 
-This property when set to true will fetch tags data along with the list of groups.
+Include tag data in the response when set to `true`.
 
 <Tabs>
 <Tab title="Java">
@@ -169,11 +163,9 @@ val groupsRequest = GroupsRequestBuilder()
 
 </Tabs>
 
-Finally, once all the parameters are set on the builder class, call the `build()` method to get the object of the `GroupsRequest` class.
+### Fetch Groups
 
-Once you have the object of the `GroupsRequest` class, call the `fetchNext()` method. This method returns a list of `Group` objects containing N number of groups depending on the limit set.
-
-The list of groups fetched will only include public and password type groups. Private groups are only included if the user is a member of that private group.
+After configuring the builder, call `build()` then `fetchNext()` to retrieve groups. Public and password-protected groups are always included. Private groups only appear if the user is a member.
 
 <Tabs>
 <Tab title="Java">
@@ -219,9 +211,7 @@ override fun onError(e: CometChatException) {
 
 ## Retrieve Particular Group Details
 
-How do I retrieve information for a specific group?
-
-To get the information of a group, use the `getGroup()` method.
+Use `getGroup()` to fetch details for a specific group by GUID.
 
 <Tabs>
 <Tab title="Java">
@@ -268,9 +258,9 @@ override fun onError(p0: CometChatException?) {
 
 On success, the `Group` object containing the details of the group is returned.
 
-## Get online group member count
+## Get Online Group Member Count
 
-To get the total count of online users in particular groups, you can use the `getOnlineGroupMemberCount()` method.
+Use `getOnlineGroupMemberCount()` to get the count of online members for specific groups.
 
 <Tabs>
 <Tab title="Java">

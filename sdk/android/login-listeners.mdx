@@ -84,7 +84,92 @@ CometChat.addLoginListener("UNIQUE_ID", object : LoginListener() {
 
 </Tabs>
 
-In order to stop receiving events related to login and logout you need to use the `removeLoginListener()` method provided by the SDK and pas the ID of the listener that needs to be removed.
+In order to stop receiving events related to login and logout you need to use the `removeLoginListener()` method provided by the SDK and pass the ID of the listener that needs to be removed.
+
+### Android Activity/Fragment Example
+
+Register the listener in `onCreate()` and remove it in `onDestroy()` to follow the Android lifecycle:
+
+<Tabs>
+<Tab title="Java">
+```java
+public class MainActivity extends AppCompatActivity {
+
+    private static final String LISTENER_ID = "LOGIN_LISTENER";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        CometChat.addLoginListener(LISTENER_ID, new CometChat.LoginListener() {
+            @Override
+            public void loginSuccess(User user) {
+                Log.d("LoginListener", "loginSuccess: " + user.getName());
+                // Initialize user-specific data, navigate to main screen, etc.
+            }
+
+            @Override
+            public void loginFailure(CometChatException e) {
+                Log.d("LoginListener", "loginFailure: " + e.getMessage());
+            }
+
+            @Override
+            public void logoutSuccess() {
+                Log.d("LoginListener", "logoutSuccess");
+                // Clean up resources, navigate to login screen, etc.
+            }
+
+            @Override
+            public void logoutFailure(CometChatException e) {
+                Log.d("LoginListener", "logoutFailure: " + e.getMessage());
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        CometChat.removeLoginListener(LISTENER_ID);
+    }
+}
+```
+</Tab>
+<Tab title="Kotlin">
+```kotlin
+class MainActivity : AppCompatActivity() {
+
+    private val LISTENER_ID = "LOGIN_LISTENER"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        CometChat.addLoginListener(LISTENER_ID, object : LoginListener() {
+            override fun loginSuccess(user: User) {
+                Log.d("LoginListener", "loginSuccess: ${user.name}")
+                // Initialize user-specific data, navigate to main screen, etc.
+            }
+
+            override fun loginFailure(e: CometChatException) {
+                Log.d("LoginListener", "loginFailure: ${e.message}")
+            }
+
+            override fun logoutSuccess() {
+                Log.d("LoginListener", "logoutSuccess")
+                // Clean up resources, navigate to login screen, etc.
+            }
+
+            override fun logoutFailure(e: CometChatException) {
+                Log.d("LoginListener", "logoutFailure: ${e.message}")
+            }
+        })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        CometChat.removeLoginListener(LISTENER_ID)
+    }
+}
+```
+</Tab>
+</Tabs>
 
 <Tabs>
 <Tab title="Java">

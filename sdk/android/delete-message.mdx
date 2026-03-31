@@ -1,5 +1,5 @@
 ---
-title: "Delete A Message"
+title: "Delete Message"
 sidebarTitle: "Delete Message"
 description: "Delete messages using the CometChat Android SDK."
 ---
@@ -24,20 +24,14 @@ CometChat.addMessageListener("LISTENER_ID", object : CometChat.MessageListener()
 ```
 </Accordion>
 
-<Note>
-**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [UI Kits](/ui-kit/android/overview)
-</Note>
+Deleting a message is straightforward. Receiving delete events has two parts:
 
-While [deleting a message](/sdk/android/delete-message#delete-a-message) is straightforward, receiving events for deleted messages with CometChat has two parts:
-
-1. Adding a listener to receive [real-time message deletes](/sdk/android/delete-message#real-time-message-delete-events) when your app is running.
-2. Calling a method to retrieve [missed message delete events](/sdk/android/delete-message#missed-message-delete-events)-me when your app was not running.
+1. Adding a listener for [real-time deletes](#real-time-message-delete-events) when your app is running
+2. Fetching [missed deletes](#missed-message-delete-events) when your app was offline
 
 ## Delete a Message
 
-How do I delete a message?
-
-To delete a message, use the `deleteMessage()` method. This method takes the message ID of the message to be deleted. For more details on message properties, see [Message Structure & Hierarchy](/sdk/android/message-structure-and-hierarchy).
+Use `deleteMessage()` with the message ID.
 
 <Tabs>
 <Tab title="Java">
@@ -78,6 +72,11 @@ CometChat.deleteMessage(messageId,object : CometChat.CallbackListener<BaseMessag
 
 </Tabs>
 
+| Field | Getter | Return Type | Description |
+|-------|--------|-------------|-------------|
+| deletedAt | `getDeletedAt()` | `long` | Timestamp when the message was deleted |
+| deletedBy | `getDeletedBy()` | `String` | UID of the user who deleted the message |
+
 Once the message is deleted, In the `onSuccess()` callback, you get an object of the `BaseMessage` class, with the `deletedAt` field set with the timestamp of the time the message was deleted. Also, the `deletedBy` field is set. These two fields can be used to identify if the message is deleted while iterating through a list of messages.
 
 By default, CometChat allows certain roles to delete a message.
@@ -91,9 +90,7 @@ By default, CometChat allows certain roles to delete a message.
 
 ## Real-time Message Delete Events
 
-How do I know when someone deletes a message while my app is running?
-
-To receive real-time events for a message being deleted, override the `onMessageDeleted()` method of the `MessageListener` class. For more information on message listeners, see [Real-Time Listeners](/sdk/android/real-time-listeners).
+Use `onMessageDeleted` in `MessageListener` to receive real-time delete events.
 
 <Tabs>
 <Tab title="Java">
@@ -121,6 +118,11 @@ CometChat.addMessageListener(listenerID, object : CometChat.MessageListener() {
 
 </Tabs>
 
+| Field | Getter | Return Type | Description |
+|-------|--------|-------------|-------------|
+| deletedAt | `getDeletedAt()` | `long` | Timestamp when the message was deleted |
+| deletedBy | `getDeletedBy()` | `String` | UID of the user who deleted the message |
+
 <Warning>
 Always remove listeners when they're no longer needed (e.g., in `onDestroy()` or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
 
@@ -131,9 +133,7 @@ CometChat.removeMessageListener("LISTENER_ID")
 
 ## Missed Message Delete Events
 
-How do I know if someone deleted a message while my app was not running?
-
-When you retrieve the list of previous messages, for the messages that were deleted, the `deletedAt` and the `deletedBy` fields will be set. For example, if the total number of messages for a conversation is 100, and the message with message ID 50 was deleted, the message with ID 50 will have the `deletedAt` and the `deletedBy` fields set whenever it is pulled from the history. Additionally, the 101st message will be an `Action` message informing you that the message with ID 50 has been deleted.
+When fetching message history, deleted messages have `deletedAt` and `deletedBy` fields set. Additionally, an `Action` message is created when a message is deleted.
 
 For the message deleted event, in the `Action` object received, the following fields can help you get the relevant information-
 

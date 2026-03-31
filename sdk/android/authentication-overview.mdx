@@ -33,32 +33,50 @@ CometChat.logout(object : CometChat.CallbackListener<String>() {
 **Get from:** [CometChat Dashboard](https://app.cometchat.com) → Your App → API & Auth Keys
 </Accordion>
 
-### Create User
+After [initializing](/sdk/android/setup) the SDK, the next step is to authenticate your user. CometChat provides two login methods — Auth Key for quick development, and Auth Token for production — both accessed through the `login()` method.
 
-Before you log in a user, you must add the user to CometChat.
+## Before You Log In
 
-1. **For proof of concept/MVPs**: Create the user using the [CometChat Dashboard](https://app.cometchat.com).
-2. **For production apps**: Use the CometChat [Create User API](https://api-explorer.cometchat.com/reference/creates-user) to create the user when your user signs up in your app.
+### Create a User
+
+A user must exist in CometChat before they can log in.
+
+- **During development:** Create users from the [CometChat Dashboard](https://app.cometchat.com). Five test users are already available with UIDs `cometchat-uid-1` through `cometchat-uid-5`.
+- **In production:** Call the [Create User REST API](https://api-explorer.cometchat.com/reference/creates-user) when a user signs up in your app.
 
 <Note>
-Sample Users
-
 We have set up 5 users for testing with UIDs: `cometchat-uid-1`, `cometchat-uid-2`, `cometchat-uid-3`, `cometchat-uid-4`, and `cometchat-uid-5`.
-
 </Note>
 
-Once initialization is successful, you need to log the user into CometChat using the `login()` method.
+### Check for an Existing Session
 
-We recommend calling the CometChat `login()` method once your user logs into your app. The `login()` method only needs to be called once.
+The SDK persists the logged-in user's session locally. Before calling `login()`, always check whether a session already exists — this avoids unnecessary login calls.
+
+<Tabs>
+<Tab title="Java">
+```java
+if (CometChat.getLoggedInUser() != null) {
+    // User is already logged in — proceed to your app
+}
+```
+</Tab>
+<Tab title="Kotlin">
+```kotlin
+if (CometChat.getLoggedInUser() != null) {
+    // User is already logged in — proceed to your app
+}
+```
+</Tab>
+</Tabs>
+
+If `getLoggedInUser()` returns `null`, no active session exists and you need to call `login()`.
 
 <Warning>
 `CometChat.init()` must be called before any other SDK method. Calling `login()`, `sendMessage()`, or registering listeners before `init()` will fail.
 </Warning>
 
 <Warning>
-
-The CometChat SDK maintains the session of the logged-in user within the SDK. You do not need to call the login method for every session. Use the `CometChat.getLoggedInUser()` method to check if there is any existing session in the SDK. This method should return the details of the logged-in user. If this method returns `null`, it means there is no session present within the SDK and you need to log the user into CometChat.
-
+The CometChat SDK maintains the session of the logged-in user within the SDK. You do not need to call the login method for every session. Use `CometChat.getLoggedInUser()` to check for an existing session first.
 </Warning>
 
 ## Login using Auth Key
@@ -211,6 +229,89 @@ CometChat.logout(object : CometChat.CallbackListener<String>() {
 </Tab>
 
 </Tabs>
+
+---
+
+## Login Listener
+
+You can listen for login and logout events in real time using `LoginListener`. This is useful for updating UI state or triggering side effects when the auth state changes.
+
+| Callback | Description |
+| --- | --- |
+| `loginSuccess(User user)` | User logged in successfully. Provides the `User` object. |
+| `loginFailure(CometChatException e)` | Login failed. Provides the exception with the reason. |
+| `logoutSuccess()` | User logged out successfully. |
+| `logoutFailure(CometChatException e)` | Logout failed. Provides the exception with the reason. |
+
+### Add a Listener
+
+<Tabs>
+<Tab title="Java">
+```java
+CometChat.addLoginListener("UNIQUE_ID", new CometChat.LoginListener() {
+    @Override
+    public void loginSuccess(User user) {
+        Log.d("LoginListener", "loginSuccess " + user.toString());
+    }
+
+    @Override
+    public void loginFailure(CometChatException e) {
+        Log.d("LoginListener", "loginFailure " + e.getMessage());
+    }
+
+    @Override
+    public void logoutSuccess() {
+        Log.d("LoginListener", "logoutSuccess");
+    }
+
+    @Override
+    public void logoutFailure(CometChatException e) {
+        Log.d("LoginListener", "logoutFailure " + e.getMessage());
+    }
+});
+```
+</Tab>
+<Tab title="Kotlin">
+```kotlin
+CometChat.addLoginListener("UNIQUE_ID", object : LoginListener() {
+    override fun loginSuccess(user: User) {
+        Log.d("LoginListener", "loginSuccess $user")
+    }
+
+    override fun loginFailure(e: CometChatException) {
+        Log.d("LoginListener", "loginFailure " + e.message)
+    }
+
+    override fun logoutSuccess() {
+        Log.d("LoginListener", "logoutSuccess")
+    }
+
+    override fun logoutFailure(e: CometChatException) {
+        Log.d("LoginListener", "logoutFailure " + e.message)
+    }
+})
+```
+</Tab>
+</Tabs>
+
+### Remove a Listener
+
+<Tabs>
+<Tab title="Java">
+```java
+CometChat.removeLoginListener("UNIQUE_ID");
+```
+</Tab>
+<Tab title="Kotlin">
+```kotlin
+CometChat.removeLoginListener("UNIQUE_ID")
+```
+</Tab>
+</Tabs>
+
+<Warning>
+Always remove login listeners when they're no longer needed (e.g., in `onDestroy()`). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 ---
 
