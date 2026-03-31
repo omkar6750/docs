@@ -278,7 +278,7 @@ CometChat.markAsRead(message.getId(), message.getSender().getUid(),CometChatCons
 
 <Tab title="Java (Group)">
 ```java
-CometChat.markAsRead(message.getId(), message.getReceiverUid(), CometChatConstants.RECEIVER_TYPE_USER, message.getSender().getUid(), new CometChat.CallbackListener<Void>() {
+CometChat.markAsRead(message.getId(), message.getReceiverUid(), CometChatConstants.RECEIVER_TYPE_GROUP, message.getSender().getUid(), new CometChat.CallbackListener<Void>() {
   @Override
     public void onSuccess(Void unused) {
     Log.e(TAG, "markAsRead : " + "Success");
@@ -311,7 +311,7 @@ CometChat.markAsRead(message.id, message.sender.uid, CometChatConstants.RECEIVER
 
 <Tab title="Kotlin (Group)">
 ```kotlin
-CometChat.markAsRead(message.id, message.receiverUID, CometChatConstants.RECEIVER_TYPE_GROUP, message.sender.uid, object : CallbackListener<Void?>() {
+CometChat.markAsRead(message.id, message.receiverUid, CometChatConstants.RECEIVER_TYPE_GROUP, message.sender.uid, object : CallbackListener<Void?>() {
     override fun onSuccess(unused: Void?) {
         Log.e(TAG, "markAsRead : " + "Success")
     }
@@ -391,31 +391,27 @@ Starting v3, the `markAsRead()` method working with v2.x is deprecated and will 
 
 ## Mark Messages as Unread
 
-The Mark as Unread feature allows users to designate specific messages or conversations as unread, even if they have been previously viewed.
+Use `markMessageAsUnread()` to mark a message as unread. All messages below that message in the conversation will contribute to the unread count. On success, returns an updated `Conversation` object.
 
-This feature is valuable for users who want to revisit and respond to important messages or conversations later, ensuring they don't forget or overlook them.
-
-You can mark the messages for a particular conversation as unread using the `markAsUnread()` method. This method takes the below parameters as input:
-
-| Parameter | Information                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| message   | To mark a message as unread, pass a non-null BaseMessage instance to the markAsUnread() function. All messages below that message in the conversation will contribute to the unread messages count. **Example:** When User B sends User A a total of 10 messages, and User A invokes the markAsUnread() method on the fifth message, all messages located below the fifth message within the conversation list will be designated as unread. This results in a notification indicating there are 5 unread messages in the conversation list. |
-| listener  | The callback listener that will be called on success or error. This should be a non-null `CallbackListener` instance.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Parameter | Information |
+| --------- | ----------- |
+| `message` | A non-null `BaseMessage` instance. All messages below this message in the conversation will be marked as unread. |
+| `listener` | A non-null `CallbackListener<Conversation>` instance. |
 
 <Tabs>
 <Tab title="Java (User)">
 ```java
 BaseMessage message = messageInstance;
 
-CometChat.markAsUnread(message, new CometChat.CallbackListener<Void>() {
+CometChat.markMessageAsUnread(message, new CometChat.CallbackListener<Conversation>() {
     @Override
-    public void onSuccess(Void unused) {
-        Log.e("TAG", "markAsUnread: onSuccess");
+    public void onSuccess(Conversation conversation) {
+        Log.e("TAG", "markMessageAsUnread: onSuccess");
     }
 
     @Override
     public void onError(CometChatException e) {
-        Log.e("TAG", "markAsUnread: onError: " + e);
+        Log.e("TAG", "markMessageAsUnread: onError: " + e);
     }
 });
 ```
@@ -426,13 +422,13 @@ CometChat.markAsUnread(message, new CometChat.CallbackListener<Void>() {
 ```kotlin
 val message: BaseMessage = messageInstance
 
-CometChat.markAsUnread(message, object : CometChat.CallbackListener<Void>() {
-    override fun onSuccess(unused: Void) {
-        Log.e("TAG", "markAsUnread: onSuccess")
+CometChat.markMessageAsUnread(message, object : CometChat.CallbackListener<Conversation>() {
+    override fun onSuccess(conversation: Conversation) {
+        Log.e("TAG", "markMessageAsUnread: onSuccess")
     }
 
     override fun onError(e: CometChatException) {
-        Log.e("TAG", "markAsUnread: onError: $e")
+        Log.e("TAG", "markMessageAsUnread: onError: $e")
     }
 })
 ```
@@ -443,15 +439,15 @@ CometChat.markAsUnread(message, object : CometChat.CallbackListener<Void>() {
 ```java
 BaseMessage message = messageInstance;
 
-CometChat.markAsUnread(message, new CometChat.CallbackListener<Void>() {
+CometChat.markMessageAsUnread(message, new CometChat.CallbackListener<Conversation>() {
     @Override
-    public void onSuccess(Void unused) {
-        Log.e("TAG", "markAsUnread: onSuccess");
+    public void onSuccess(Conversation conversation) {
+        Log.e("TAG", "markMessageAsUnread: onSuccess");
     }
 
     @Override
     public void onError(CometChatException e) {
-        Log.e("TAG", "markAsUnread: onError: " + e);
+        Log.e("TAG", "markMessageAsUnread: onError: " + e);
     }
 });
 ```
@@ -462,13 +458,13 @@ CometChat.markAsUnread(message, new CometChat.CallbackListener<Void>() {
 ```kotlin
 val message: BaseMessage = messageInstance
 
-CometChat.markAsUnread(message, object : CometChat.CallbackListener<Void>() {
-    override fun onSuccess(unused: Void) {
-        Log.e("TAG", "markAsUnread: onSuccess")
+CometChat.markMessageAsUnread(message, object : CometChat.CallbackListener<Conversation>() {
+    override fun onSuccess(conversation: Conversation) {
+        Log.e("TAG", "markMessageAsUnread: onSuccess")
     }
 
     override fun onError(e: CometChatException) {
-        Log.e("TAG", "markAsUnread: onError: $e")
+        Log.e("TAG", "markMessageAsUnread: onError: $e")
     }
 })
 ```
@@ -617,7 +613,7 @@ The following features will be available only if the **Enhanced Messaging Status
 * `onMessagesReadByAll` event,
 * `deliveredAt` field in a group message,
 * `readAt` field in a group message.
-* `markAsUnread` method.
+* `markMessageAsUnread` method.
 
 </Info>
 
@@ -705,7 +701,7 @@ The nested `User` object in `sender` contains:
     Listen for receipt events to update your UI with delivery/read indicators (checkmarks) in real-time.
   </Accordion>
   <Accordion title="Enable Enhanced Messaging Status">
-    Enable "Enhanced Messaging Status" in Dashboard for group message receipts and advanced features like `markAsUnread`.
+    Enable "Enhanced Messaging Status" in Dashboard for group message receipts and advanced features like `markMessageAsUnread`.
   </Accordion>
 </AccordionGroup>
 
