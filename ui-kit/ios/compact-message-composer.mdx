@@ -219,8 +219,8 @@ Below is a list of customizations along with corresponding code snippets:
 | setPlaceholder | Sets the placeholder text for the input field. | `set(placeholder: "Type a message...")` |
 | setMaxLines | Maximum lines allowed to increase in the input field. | `set(maxLines: Int)` |
 | setTextFormatter | Assigns the list of text formatters (e.g., mentions). | `set(textFormatter: [CometChatTextFormatter])` |
-| setEnableRichTextFormatting | Master switch to enable or disable rich text formatting (bold, italic, etc.). | `enableRichTextFormatting = true` |
-| setRichTextFormattingOptionsVisibility | Controls the visibility of the rich text formatting toolbar. | `showRichTextFormattingOptions = true` |
+| setEnableRichTextFormatting | Master switch to enable or disable rich text formatting (bold, italic, etc.). Default `true`. | `enableRichTextFormatting = true` |
+| setRichTextFormattingOptionsVisibility | Controls the visibility of the rich text formatting toolbar. Default `true`. | `showRichTextFormattingOptions = true` |
 | setDisableTypingEvents | Used to disable/enable typing events, default false. | `disable(typingEvents: true)` |
 | setDisableSoundForMessages | Used to toggle sound for outgoing messages. | `disable(soundForMessages: true)` |
 | setCustomSoundForMessages | Used to give custom sounds to outgoing messages. | `customSoundForMessage = URL` |
@@ -234,14 +234,10 @@ Below is a list of customizations along with corresponding code snippets:
 
 ## Rich Text Formatting
 
-The CompactMessageComposer includes a built-in rich text editor. However, rich text formatting is disabled by default. Both the formatting toolbar and markdown syntax parsing (e.g., typing `**bold**`) are inactive until explicitly enabled.
+The CompactMessageComposer includes a built-in rich text editor. `enableRichTextFormatting` and `showRichTextFormattingOptions` are `true` by default, so rich text formatting and the formatting toolbar are enabled out of the box.
 
-To fully leverage rich text formatting, you need to enable the following properties:
-
-- `enableRichTextFormatting = true` — Master switch that activates formatting. Without this, even manually typed markdown syntax like `**text**` will be sent as plain text.
-- `showRichTextFormattingOptions = true` — Shows the formatting toolbar below the input field.
-
-If `enableRichTextFormatting` is set to `false` (the default), all formatting is disabled. Markdown syntax typed in the composer will be sent as plain text, and the toolbar will not appear regardless of other settings.
+- `enableRichTextFormatting` — Master switch that activates formatting. When set to `false`, even manually typed markdown syntax like `**text**` will be sent as plain text.
+- `showRichTextFormattingOptions` — Controls the visibility of the formatting toolbar below the input field.
 
 ### Supported Format Types
 
@@ -263,20 +259,20 @@ If `enableRichTextFormatting` is set to `false` (the default), all formatting is
 <Tabs>
 <Tab title="Swift">
 ```swift
-// Enable rich text formatting
-compactComposer.enableRichTextFormatting = true
+// Disable rich text formatting
+compactComposer.enableRichTextFormatting = false
 
-// Show the formatting toolbar
-compactComposer.showRichTextFormattingOptions = true
+// Hide the formatting toolbar
+compactComposer.showRichTextFormattingOptions = false
 ```
 </Tab>
 </Tabs>
 
 | enableRichTextFormatting | showRichTextFormattingOptions | Result |
 | ------------------------ | ---------------------------- | ------ |
-| false | — | Plain text, no formatting |
+| true (default) | true (default) | Toolbar visible below input, full formatting support |
 | true | false | No toolbar, markdown syntax is still parsed on send |
-| true | true | Toolbar visible below input, full formatting support |
+| false | — | Plain text, no formatting |
 
 ---
 
@@ -455,10 +451,6 @@ class ChatViewController: UIViewController {
         let compactComposer = CometChatCompactMessageComposer()
         compactComposer.set(user: user)
         compactComposer.set(controller: self)
-
-        // Enable rich text formatting
-        compactComposer.enableRichTextFormatting = true
-        compactComposer.showRichTextFormattingOptions = true
 
         // Customize
         compactComposer.set(placeholder: "Type a message...")
