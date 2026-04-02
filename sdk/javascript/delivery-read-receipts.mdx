@@ -390,51 +390,6 @@ CometChat.markConversationAsRead(conversationWith, conversationType).then(
 </Tab>
 </Tabs>
 
-## Mark as Unread
-
-Use `markMessageAsUnread()` to mark a message as unread. All messages below that message will contribute to the unread count.
-
-<Note>
-You cannot mark your own messages as unread. This method only works for messages received from other users.
-</Note>
-
-<Tabs>
-<Tab title="TypeScript">
-```typescript
-CometChat.markMessageAsUnread(message).then(
-  (conversation: CometChat.Conversation) => {
-    console.log("Marked as unread successfully", conversation);
-    console.log("Unread count:", conversation.getUnreadMessageCount());
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Error marking as unread:", error);
-  }
-);
-```
-</Tab>
-
-</Tabs>
-
-In case you would like to be notified of an error if the receipts fail to go through you can use `.then(successCallback, failureCallback).` On success, this method returns an updated [`Conversation`](/sdk/reference/entities#conversation) object with the updated unread message count and other conversation data.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-CometChat.markMessageAsUnread(message).then(
-  (conversation) => {
-    console.log("Marked as unread successfully", conversation);
-    console.log("Unread count:", conversation.getUnreadMessageCount());
-  },
-  (error) => {
-    console.log("Error marking as unread:", error);
-  }
-);
-```
-</Tab>
-</Tabs>
-
-On success, returns an updated [`Conversation`](/sdk/reference/entities#conversation) object with the new unread message count.
-
 ## Real-Time Receipt Events
 
 Register a `MessageListener` to receive delivery and read receipt events.
@@ -486,42 +441,6 @@ You will receive events in the form of [`MessageReceipt`](/sdk/reference/auxilia
 | `readAt`       | The timestamp of the time when the message was read. This will only be present when the receiptType is read.                              |
 
 The `markAsDelivered()` and `markAsRead()` methods are fire-and-forget — they do not return a [`MessageReceipt`](/sdk/reference/auxiliary#messagereceipt) object. Use the listener callbacks above to receive delivery and read confirmations.
-
-### Missed Receipts
-
-You will receive message receipts when you load offline messages. While fetching messages in bulk, the message object will have two fields i.e. `deliveredAt` and `readAt` which hold the timestamp for the time the message was delivered and read respectively. Using these two variables, the delivery and read status for a message can be obtained.
-
-However, for a group message, if you wish to fetch the `deliveredAt` and `readAt` fields of individual member of the group you can use the below-described method.
-
-### Receipt History for a Single Message
-
-To fetch the message receipts, you can use the `getMessageReceipts()` method.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let listenerID = "UNIQUE_LISTENER_ID";
-
-CometChat.addMessageListener(
-  listenerID,
-  new CometChat.MessageListener({
-    onMessagesDelivered: (messageReceipt) => {
-      console.log("Message delivered:", messageReceipt);
-    },
-    onMessagesRead: (messageReceipt) => {
-      console.log("Message read:", messageReceipt);
-    },
-    onMessagesDeliveredToAll: (messageReceipt) => {
-      console.log("Message delivered to all group members:", messageReceipt);
-    },
-    onMessagesReadByAll: (messageReceipt) => {
-      console.log("Message read by all group members:", messageReceipt);
-    }
-  })
-);
-```
-</Tab>
-</Tabs>
 
 You will receive a list of [`MessageReceipt`](/sdk/reference/auxiliary#messagereceipt) objects.
 
