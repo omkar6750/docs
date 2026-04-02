@@ -43,6 +43,25 @@ CometChat.initiateCall(call: newCall, onSuccess: { call in
 }
 ```
 </Tab>
+<Tab title="Swift (with Timeout)">
+```swift
+let receiverID = "UID"
+let receiverType: CometChat.ReceiverType = .user // or .group
+let callType: CometChat.CallType = .video // or .audio
+
+let newCall = Call(receiverId: receiverID, callType: callType, receiverType: receiverType)
+
+// Set a custom timeout of 30 seconds (default is 45 seconds)
+CometChat.initiateCall(call: newCall, timeout: 30, onSuccess: { call in
+    guard let call = call else { return }
+    // Call initiated, show outgoing call UI
+    // Store call.sessionID for later use
+    print("Call initiated successfully")
+}) { error in
+    print("Call initiation failed: \(error?.errorDescription ?? "")")
+}
+```
+</Tab>
 <Tab title="Objective-C">
 ```objc
 NSString *receiverID = @"UID";
@@ -64,6 +83,7 @@ Call *newCall = [[Call alloc] initWithReceiverId:receiverID callType:CallTypeVid
 | `receiverID` | The UID or GUID of the recipient |
 | `receiverType` | The type of the receiver: `.user` or `.group` |
 | `callType` | The type of the call: `.audio` or `.video` |
+| `timeout` | Optional. The timeout duration in seconds for the call to be answered before it's automatically cancelled. Defaults to 45 seconds. |
 
 ## Call Listeners
 

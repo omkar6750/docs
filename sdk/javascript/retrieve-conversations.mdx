@@ -97,31 +97,6 @@ Relevant fields to access on returned conversations:
 
 ### With User and Group Tags
 
-This method can be used to fetch the user/group tags in the `Conversation` Object. By default the value is `false`.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let conversationType = "group";
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .setConversationType(conversationType)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-Default limit is 30, maximum is 50.
-</Note>
-
-When conversations are fetched successfully, the response includes an array of [`Conversation`](/sdk/reference/entities#conversation) objects filtered by the specified type.
-
-### With User and Group Tags
-
 Use `withUserAndGroupTags(true)` to include user/group tags in the response. Default is `false`.
 
 <Tabs>
@@ -145,26 +120,6 @@ Relevant fields to access on returned conversations:
 | Field | Getter | Return Type | Description |
 |-------|--------|-------------|-------------|
 | conversationWith tags | `getConversationWith().getTags()` | `string[]` | Tags associated with the user or group in the conversation |
-
-### Set User Tags
-
-This method fetches user conversations that have the specified tags.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .withUserAndGroupTags(true)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-When conversations are fetched successfully, the response includes `tags` arrays on the `conversationWith` objects.
 
 ### Set User Tags
 
@@ -195,27 +150,6 @@ Relevant fields to access on returned conversations:
 
 ### Set Group Tags
 
-This method fetches group conversations that have the specified tags.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let userTags = ["tag1"];
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .setUserTags(userTags)
-  .build();   
-```
-
-</Tab>
-
-</Tabs>
-
-When conversations are fetched successfully, the response includes only user conversations where the user has the specified tags.
-
-### Set Group Tags
-
 Fetch group conversations where the group has specific tags.
 
 <Tabs>
@@ -243,27 +177,6 @@ Relevant fields to access on returned conversations:
 
 ### With Tags
 
-This method makes sure that the tags associated with the conversations are returned along with the other details of the conversations. The default value for this parameter is `false`
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let groupTags = ["tag1"];
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .setGroupTags(groupTags)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-When conversations are fetched successfully, the response includes only group conversations where the group has the specified tags.
-
-### With Tags
-
 Use `withTags(true)` to include conversation tags in the response. Default is `false`.
 
 <Tabs>
@@ -286,23 +199,6 @@ Relevant fields to access on returned conversations:
 |-------|--------|-------------|-------------|
 | tags | `getTags()` | `string[]` | Tags associated with the conversation |
 
-### Set Tags
-
-This method helps you fetch the conversations based on the specified tags.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .withTags(true)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
 ### Set Tags
 
 Fetch conversations that have specific tags.
@@ -328,24 +224,6 @@ Relevant fields to access on returned conversations:
 |-------|--------|-------------|-------------|
 | tags | `getTags()` | `string[]` | Tags associated with the conversation |
 
-### Include Blocked Users
-
-This method helps you fetch the conversations of users whom the logged-in user has blocked.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let tags = ["archivedChat"];
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .setTags(tags)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
 ### Include Blocked Users
 
 Use `setIncludeBlockedUsers(true)` to include conversations with users you've blocked.
@@ -517,6 +395,7 @@ let conversationRequest = new CometChat.ConversationsRequestBuilder()
 </Tab>
 
 </Tabs>
+
 ### Only Agentic Conversations
 
 Use `setOnlyAgentic(true)` to fetch only AI agent conversations.
@@ -542,31 +421,6 @@ The `setHideAgentic()` and `setOnlyAgentic()` methods are mutually exclusive. Yo
 </Note>
 
 When conversations are fetched successfully, the response will include only conversations with AI agents. Agent users have `role: "@agentic"` and include agent-specific metadata.
-Finally, once all the parameters are set to the builder class, you need to call the `build()` method to get the object of the `ConversationsRequest` class.
-
-Once you have the object of the `ConversationsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of [`Conversation`](/sdk/reference/entities#conversation) objects containing X number of users depending on the limit set.
-
-A Maximum of only 50 Conversations can be fetched at once.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let limit = 30;
-let conversationRequest = new CometChat.ConversationsRequestBuilder()
-  .setLimit(limit)
-  .setOnlyAgentic(true)
-  .build();
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-`setHideAgentic()` and `setOnlyAgentic()` are mutually exclusive — use only one per request.
-</Note>
-
-When conversations are fetched successfully, the response includes only AI agent conversations. Agent users have `role: "@agentic"`.
 
 ### Fetch Conversations
 
@@ -664,47 +518,6 @@ Relevant fields to access on returned conversation:
 
 ## Retrieve Single Conversation
 
-*In other words, as a logged-in user, how do I retrieve a specific conversation?*
-
-To fetch a specific conversation, you can use the `getConversation` method. The `getConversation` method accepts two parameters.
-
-1. `conversationWith`: UID/GUID of the user/group whose conversation you want to fetch.
-
-2. `conversationType`: The `conversationType` variable can hold one of the below two values:
-
-   1. user - Only fetches user conversation.
-   2. group - Only fetches group conversations.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let tags = ["archivedChat"];
-
-let conversationWith = "UID";
-let conversationType = "user";
-
-CometChat.tagConversation(conversationWith, conversationType, tags).then(
-  (conversation) => {
-    console.log("conversation", conversation);
-  },
-  (error) => {
-    console.log("error while fetching a conversation", error);
-  }
-);
-```
-
-</Tab>
-
-</Tabs>
-
-<Note>
-Conversation tags are one-way. If user A tags a conversation with user B, that tag only applies for user A.
-</Note>
-
-When the conversation is tagged successfully, the response returns a [`Conversation`](/sdk/reference/entities#conversation) object with the `tags` field.
-
-## Retrieve Single Conversation
-
 Use `getConversation()` to fetch a specific conversation.
 
 | Parameter | Description |
@@ -735,32 +548,6 @@ CometChat.getConversation(conversationWith, conversationType).then(
 When the conversation is fetched successfully, the response will return a single [`Conversation`](/sdk/reference/entities#conversation) object (not an array).
 
 The `getConversation()` method returns a single [`Conversation`](/sdk/reference/entities#conversation) object.
-
-## Convert Messages to Conversations
-
-As per our [receive messages](/sdk/javascript/receive-message) guide, for real-time messages, you will always receive `Message` objects and not [`Conversation`](/sdk/reference/entities#conversation) objects. Thus, you will need a mechanism to convert the Message object to the `Conversation` object. You can use the `getConversationFromMessage(BaseMessage message)` of the `CometChatHelper` class.
-
-<Tabs>
-<Tab title="JavaScript">
-```javascript
-let conversationWith = "UID";
-let conversationType = "user";
-
-CometChat.getConversation(conversationWith, conversationType).then(
-  (conversation) => {
-    console.log("conversation", conversation);
-  },
-  (error) => {
-    console.log("error while fetching a conversation", error);
-  }
-);
-```
-
-</Tab>
-
-</Tabs>
-
-When the conversation is fetched successfully, the response returns a single [`Conversation`](/sdk/reference/entities#conversation) object.
 
 ## Convert Messages to Conversations
 
@@ -811,7 +598,13 @@ The `getConversationFromMessage()` method returns a [`Conversation`](/sdk/refere
   <Card title="Delete Conversation" icon="trash" href="/sdk/javascript/delete-conversation">
     Remove conversations from the logged-in user's list
   </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/javascript/receive-message">
+    Listen for incoming messages to update conversation lists in real time
+  </Card>
   <Card title="Typing Indicators" icon="keyboard" href="/sdk/javascript/typing-indicators">
     Show real-time typing status in conversations
+  </Card>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/javascript/delivery-read-receipts">
+    Track message delivery and read status per conversation
   </Card>
 </CardGroup>

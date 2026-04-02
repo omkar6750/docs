@@ -16,6 +16,7 @@ description: "Implement APNs push notifications with CometChat UIKit for iOS, in
 - CometChat dashboard setup (enable push, add APNs Device + APNs VoIP providers) with screenshots.
 - APNs + PushKit/CallKit wiring (tokens, delegates, CallKit).
 - Incoming message/call handling and deep links.
+- Badge count and grouped notifications.
 - Payload customization and testing.
 
 {/* ## What you need first
@@ -1171,7 +1172,101 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 4. Trigger an incoming call; CallKit UI should show caller info. Accept should join the call; Decline should reject via CometChat and end CallKit.
 5. Rotate tokens (reinstall or toggle VoIP) to ensure re-registration works.
 
-## 6. Troubleshooting
+## 6. Badge count and grouped notifications
+
+CometChat's Enhanced Push Notification payload includes an `unreadMessageCount` field (a string) representing the total unread messages across all conversations for the logged-in user. Use this to set the app icon badge and enrich local notifications.
+
+### 6.1 Enable unread badge count on the CometChat Dashboard
+
+<Steps>
+  <Step title="Navigate to Push Notification Preferences">
+    Go to **CometChat Dashboard → Notifications → Settings → Preferences → Push Notification Preferences**.
+  </Step>
+  <Step title="Enable Unread Badge Count">
+    Scroll to the bottom and enable the **Unread Badge Count** toggle.
+  </Step>
+</Steps>
+
+This ensures CometChat includes the `unreadMessageCount` field in every push payload sent to your app.
+
+### 6.2 Clear badge count when app becomes active
+
+Add the following to your `SceneDelegate.swift` to reset the badge when the user opens the app:
+
+```swift
+func sceneDidBecomeActive(_ scene: UIScene) {
+    // Clear badge count when user opens the app
+    UIApplication.shared.applicationIconBadgeNumber = 0
+    print("Badge count cleared")
+}
+```
+
+### 6.3 Update badge count from push notifications
+
+Update your `AppDelegate+PN.swift` to handle badge count updates in both foreground and background states:
+
+<Tabs>
+  <Tab title="Foreground notifications">
+```swift
+func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+) {
+    let userInfo = notification.request.content.userInfo
+    print("Will present notification: \(userInfo)")
+    
+    if CometChatPNHelper.shouldPresentNotification(userInfo: userInfo) == false {
+        completionHandler([])
+        return
+    }
+    
+    // Update badge count from payload
+    if let unreadCountString = userInfo["unreadMessageCount"] as? String,
+       let unreadCount = Int(unreadCountString) {
+        if unreadCount >= 0 {
+            UIApplication.shared.applicationIconBadgeNumber = unreadCount
+            print("Badge count updated (foreground): \(unreadCount)")
+        }
+    } else {
+        print("No unreadMessageCount in payload")
+    }
+    
+    completionHandler([.banner, .badge, .sound])
+}
+```
+  </Tab>
+  <Tab title="Background notifications">
+```swift
+func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+) {
+    print("Received remote notification: \(userInfo)")
+    
+    // Update badge count from payload
+    if let unreadCountString = userInfo["unreadMessageCount"] as? String,
+       let unreadCount = Int(unreadCountString) {
+        if unreadCount >= 0 {
+            UIApplication.shared.applicationIconBadgeNumber = unreadCount
+            print("Badge count updated (background): \(unreadCount)")
+        }
+    } else {
+        print("No unreadMessageCount in payload")
+    }
+    
+    completionHandler(.newData)
+}
+```
+  </Tab>
+</Tabs>
+
+<Note>
+The `unreadMessageCount` field is sent as a string in the payload. Always parse it to an integer and validate it's non-negative before updating the badge.
+</Note>
+
+## 7. Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |

@@ -1,7 +1,7 @@
 ---
 title: "Receive Messages"
 sidebarTitle: "Receive Messages"
-description: "Receive real-time messages, fetch missed and unread messages, retrieve message history, search messages, and get unread counts using the CometChat JavaScript SDK."
+description: "Receive real-time messages, fetch unread messages, retrieve message history, search messages, and get unread counts using the CometChat JavaScript SDK."
 ---
 
 <Accordion title="AI Integration Quick Reference">
@@ -18,7 +18,7 @@ description: "Receive real-time messages, fetch missed and unread messages, retr
 Receiving messages with CometChat has two parts:
 
 1. Adding a [real-time listener](#real-time-messages) to receive messages while your app is running
-2. Fetching [missed](#missed-messages), [unread](#unread-messages), or [historical](#message-history) messages when your app starts up or the user scrolls back
+2. Fetching [unread](#unread-messages), or [historical](#message-history) messages when your app starts up or the user scrolls back
 
 <Note>
 The TypeScript and JavaScript APIs are identical — the only difference is type annotations (e.g., `: string`, `: CometChat.BaseMessage[]`). The Real-Time Messages section shows both for reference. The remaining sections use TypeScript only to keep things concise — just drop the type annotations for plain JavaScript.
@@ -89,62 +89,6 @@ Always remove listeners when they're no longer needed (e.g., on component unmoun
 <Warning>
 As a sender, you will not receive your own message in a real-time event. However, if a user is logged in on multiple devices, they will receive the event on the other devices.
 </Warning>
-
-## Missed Messages
-
-Fetch messages that arrived while your app was offline. Use `getLastDeliveredMessageId()` to find where you left off, then call `fetchNext()` to get everything after that point. Call `fetchNext()` repeatedly on the same request object to paginate.
-
-<Tabs>
-<Tab title="One-on-One">
-```typescript
-let UID: string = "UID";
-let limit: number = 30;
-let latestId: number = await CometChat.getLastDeliveredMessageId();
-
-let messagesRequest: CometChat.MessagesRequest =
-  new CometChat.MessagesRequestBuilder()
-    .setUID(UID)
-    .setMessageId(latestId)
-    .setLimit(limit)
-    .build();
-
-messagesRequest.fetchNext().then(
-  (messages: CometChat.BaseMessage[]) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-</Tab>
-
-<Tab title="Group">
-```typescript
-let GUID: string = "GUID";
-let limit: number = 30;
-let latestId: number = await CometChat.getLastDeliveredMessageId();
-
-let messagesRequest: CometChat.MessagesRequest =
-  new CometChat.MessagesRequestBuilder()
-    .setGUID(GUID)
-    .setMessageId(latestId)
-    .setLimit(limit)
-    .build();
-
-messagesRequest.fetchNext().then(
-  (messages: CometChat.BaseMessage[]) => {
-    console.log("Message list fetched:", messages);
-  },
-  (error: CometChat.CometChatException) => {
-    console.log("Message fetching failed with error:", error);
-  }
-);
-```
-</Tab>
-</Tabs>
-
-The `fetchNext()` method returns an array of [`BaseMessage`](/sdk/reference/messages#basemessage) objects (which may be [`TextMessage`](/sdk/reference/messages#textmessage), [`MediaMessage`](/sdk/reference/messages#mediamessage), or other subclasses).
 
 ## Unread Messages
 
@@ -437,7 +381,7 @@ CometChat.getUnreadMessageCountForAllGroups(true);
 
 ## Get Message Details
 
-Use `getMessageDetails()` to fetch a specific message by its ID. Returns the full message object ([`TextMessage`](/sdk/reference/messages#textmessage), [`MediaMessage`](/sdk/reference/messages#mediamessage), [`CustomMessage`](/sdk/reference/messages#custommessage), or [`InteractiveMessage`](/sdk/reference/messages#interactivemessage)).
+Use `getMessageDetails()` to fetch a specific message by its ID. Returns the full message object ([`TextMessage`](/sdk/reference/messages#textmessage), [`MediaMessage`](/sdk/reference/messages#mediamessage), or [`CustomMessage`](/sdk/reference/messages#custommessage)).
 
 <Tabs>
 <Tab title="TypeScript">
@@ -474,7 +418,7 @@ CometChat.getMessageDetails(messageId).then(
 |-----------|------|-------------|
 | `messageId` | `string` | The ID of the message to fetch |
 
-Returns a [`BaseMessage`](/sdk/reference/messages#basemessage) object (which may be a [`TextMessage`](/sdk/reference/messages#textmessage), [`MediaMessage`](/sdk/reference/messages#mediamessage), [`CustomMessage`](/sdk/reference/messages#custommessage), or [`InteractiveMessage`](/sdk/reference/messages#interactivemessage)).
+Returns a [`BaseMessage`](/sdk/reference/messages#basemessage) object (which may be a [`TextMessage`](/sdk/reference/messages#textmessage), [`MediaMessage`](/sdk/reference/messages#mediamessage), or [`CustomMessage`](/sdk/reference/messages#custommessage)).
 
 ---
 
