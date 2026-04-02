@@ -19,6 +19,7 @@ Reference implementation of iOS UIKit, FCM and Push Notification Setup.
 - Firebase/FCM + CometChat provider wiring (credentials, Podfile, capabilities).
 - Token registration/rotation with CometChat Push Notifications (FCM iOS provider).
 - Incoming message/call handling and deep links.
+- Badge count and grouped notifications.
 - Payload customization and testing.
 
 {/* ## What you need first
@@ -302,7 +303,96 @@ final class CometChatFCMHelper {
 - Sets the notification delegate early and registers for APNs on the main queue (Apple requirement).  
 - Keeps all push setup in a reusable singleton to call from tests, scenes, or multi-target setups.
 
-## 7. Testing checklist
+## 7. Badge count and grouped notifications
+
+CometChat's Enhanced Push Notification payload includes an `unreadMessageCount` field (a string) representing the total unread messages across all conversations for the logged-in user. Use this to set the app icon badge and enrich local notifications.
+
+### 7.1 Enable unread badge count on the CometChat Dashboard
+
+<Steps>
+  <Step title="Navigate to Push Notification Preferences">
+    Go to **CometChat Dashboard → Notifications → Settings → Preferences → Push Notification Preferences**.
+  </Step>
+  <Step title="Enable Unread Badge Count">
+    Scroll to the bottom and enable the **Unread Badge Count** toggle.
+  </Step>
+</Steps>
+
+This ensures CometChat includes the `unreadMessageCount` field in every push payload sent to your app.
+
+### 7.2 Clear badge count when app becomes active
+
+Add the following to your `SceneDelegate.swift` to reset the badge when the user opens the app:
+
+```swift
+func sceneDidBecomeActive(_ scene: UIScene) {
+    // Clear badge count when user opens the app
+    UIApplication.shared.applicationIconBadgeNumber = 0
+    print("Badge count cleared")
+}
+```
+
+### 7.3 Update badge count from push notifications
+
+Update your `AppDelegate.swift` to handle badge count updates in both foreground and background states:
+
+<Tabs>
+  <Tab title="Foreground notifications">
+```swift
+func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+) {
+    let userInfo = notification.request.content.userInfo
+    print("Will present notification: \(userInfo)")
+    
+    // Update badge count from payload
+    if let unreadCountString = userInfo["unreadMessageCount"] as? String,
+       let unreadCount = Int(unreadCountString) {
+        if unreadCount >= 0 {
+            UIApplication.shared.applicationIconBadgeNumber = unreadCount
+            print("Badge count updated (foreground): \(unreadCount)")
+        }
+    } else {
+        print("No unreadMessageCount in payload")
+    }
+    
+    completionHandler([.banner, .badge, .sound])
+}
+```
+  </Tab>
+  <Tab title="Background notifications">
+```swift
+func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+) {
+    print("Received remote notification: \(userInfo)")
+    
+    // Update badge count from payload
+    if let unreadCountString = userInfo["unreadMessageCount"] as? String,
+       let unreadCount = Int(unreadCountString) {
+        if unreadCount >= 0 {
+            UIApplication.shared.applicationIconBadgeNumber = unreadCount
+            print("Badge count updated (background): \(unreadCount)")
+        }
+    } else {
+        print("No unreadMessageCount in payload")
+    }
+    
+    completionHandler(.newData)
+}
+```
+  </Tab>
+</Tabs>
+
+<Note>
+The `unreadMessageCount` field is sent as a string in the payload. Always parse it to an integer and validate it's non-negative before updating the badge.
+</Note>
+
+## 8. Testing checklist
 
 1. `FirebaseApp.configure()` runs; FCM token logs after login; registration with CometChat succeeds.
 2. Message from another user:
@@ -311,7 +401,7 @@ final class CometChatFCMHelper {
 3. Rotate the FCM token (`didReceiveRegistrationToken`) and confirm re-registration.
 4. VoIP: VoIP token registers; incoming call shows CallKit; Accept/Decline controls the CometChat call.
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom | Quick checks |
 | --- | --- |
