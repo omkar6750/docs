@@ -43,6 +43,8 @@ CometChat.delete(messageId: 12345, onSuccess: { (message) in
 
 The deleted message object is returned with `deletedAt` (timestamp) and `deletedBy` (UID of deleter) fields set.
 
+The `delete()` method returns a [`BaseMessage`](/sdk/reference/messages#basemessage) object.
+
 <Note>
 This is a soft delete — message content is still available on the object. Check `deletedAt > 0` to identify deleted messages.
 </Note>
@@ -56,7 +58,7 @@ This is a soft delete — message content is still available on the object. Chec
 
 ## Real-time Message Delete Events
 
-Use `onMessageDeleted` in `CometChatMessageDelegate` to receive real-time delete events.
+The `onMessageDeleted` callback receives a [`BaseMessage`](/sdk/reference/messages#basemessage) object with the `deletedAt` and `deletedBy` fields set.
 
 ```swift
 extension YourViewController: CometChatMessageDelegate {
@@ -74,9 +76,9 @@ CometChat.messagedelegate = self
 
 ## Missed Message Delete Events
 
-When fetching message history, deleted messages have `deletedAt` and `deletedBy` fields set. Additionally, an `ActionMessage` is added to history indicating the deletion.
+When fetching message history, deleted messages have `deletedAt` and `deletedBy` fields set. Additionally, an [`Action`](/sdk/reference/messages#action) message is added to history indicating the deletion.
 
-The `ActionMessage` object contains:
+The [`Action`](/sdk/reference/messages#action) object contains:
 - `action` — `deleted`
 - `actionOn` — The deleted message object
 - `actionBy` — User who deleted the message
