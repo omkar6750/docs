@@ -1,187 +1,121 @@
 ---
 title: "Connection Status"
-description: "Guide to monitoring WebSocket connection status using the CometChat iOS SDK CometChatConnectionDelegate."
+sidebarTitle: "Connection Status"
+description: "Monitor real-time WebSocket connection status and respond to connectivity changes using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Add listener:** `CometChat.addConnectionListener("UNIQUE_ID", self as CometChatConnectionDelegate)`
-- **Remove listener:** `CometChat.removeConnectionListener("UNIQUE_ID")`
-- **Delegate methods:** `connecting()`, `connected()`, `disconnected()`
-- **Related:** [Setup](/sdk/ios/setup) · [WebSocket Connection](/sdk/ios/web-socket-connection-behaviour) · [Overview](/sdk/ios/overview)
-</Info>
-
-CometChat SDK provides you with a mechanism to get real-time status of the connection to CometChat web-socket servers. This can be achieved by registering for the events using the `CometChatConnectionDelegate` class.
-
-Connection Status provides you with the below 3 methods to get the status of the connection to CometChat web-socket servers:
-
-| Delegate Method | Information                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| connecting      | This method is triggered when CometChat SDK is trying to establish a connection to the web-socket server.                                        |
-| connected       | This method is called when CometChat SDK has successfully established a connection and now is connected.                                         |
-| disconnected    | This method is called when the CometChat SDK gets disconnected due to any issue while maintaining the connection like network fluctuations, etc. |
-
-Once the connection is broken, the disconnected callback is triggered, the SDK automatically tries to establish the connection again, thus going into the connecting state and triggering the `connecting` method. Once the attempt to connect is successful, the `connected` method is triggered thus letting the developer know that the connection is established and is active.
-
-In order to use the Delegate methods you must add protocol conformance `CometChatConnectionDelegate` as `CometChat.conectiondelegate = self` . Here is the example of CometChatConnectionDelegate:
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-extension AppDelegate: CometChatConnectionDelegate {
+// Get current status: "connecting" | "connected" | "disconnected"
+let status = CometChat.getConnectionStatus?.value
 
-	func connecting() {
-    
-  	print("connecting")
-  }
-    
-  func connected() {
-        
-    print("connected")  
-  }
-    
-  func disconnected() {
-  
-  	print("disconnected")
-  }
-}
+// Listen for connection changes
+// Conform to CometChatConnectionDelegate
+CometChat.addConnectionListener("LISTENER_ID", self as CometChatConnectionDelegate)
+
+func connecting() { print("Connecting...") }
+func connected() { print("Connected") }
+func disconnected() { print("Disconnected") }
+
+// Cleanup
+CometChat.removeConnectionListener("LISTENER_ID")
 ```
-
-</Tab>
-
-<Tab title="Objective C">
-```objc
-@interface ViewController ()<CometChatConnectionDelegate>
-
-@end
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
-    [CometChat connectiondelegate:self];
-}
-
-- (void)connecting() {
-    
-    NSLog(@"Connecting");
-}
-
-- (void)connected() {
-    
-    NSLog(@"Connected");
-}
-
-- (void)disconnected() {
-    
-    NSLog(@"Disconnected");
-}
-```
-
-</Tab>
-
-</Tabs>
-
-<Accordion title="Sample Payload - CometChatConnectionDelegate Events">
-
-**connecting() Event:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| (none) | Void | No parameters passed to this callback |
-
-**Event Trigger:** SDK is attempting to establish WebSocket connection
-
-| Scenario | Description |
-| -------- | ----------- |
-| Initial connection | After login, SDK tries to connect |
-| Reconnection | After disconnection, SDK auto-reconnects |
-| Network recovery | When network becomes available again |
-
-**connected() Event:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| (none) | Void | No parameters passed to this callback |
-
-**Event Trigger:** WebSocket connection successfully established
-
-| Effect | Description |
-| ------ | ----------- |
-| Real-time events | Start receiving messages, typing indicators, presence |
-| Status | Connection is active and stable |
-
-**disconnected() Event:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| (none) | Void | No parameters passed to this callback |
-
-**Event Trigger:** WebSocket connection lost
-
-| Cause | Description |
-| ----- | ----------- |
-| Network issues | WiFi/cellular connection lost |
-| Server issues | CometChat server temporarily unavailable |
-| Manual disconnect | `CometChat.disconnect()` called |
-
-**Connection Flow:**
-
-| Step | Event | Description |
-| ---- | ----- | ----------- |
-| 1 | disconnected() | Connection breaks |
-| 2 | connecting() | SDK auto-reconnects |
-| 3 | connected() | Reconnection successful |
-
 </Accordion>
 
-<Note>
+The CometChat SDK maintains a WebSocket connection to CometChat servers for real-time events. You can check the current connection state and listen for changes, useful for showing connectivity indicators in your UI or queuing operations while offline.
 
-We recommend you to add the Connection Status delegate in your AppDelegate and in your app's first view controller that opens when you log in.
+When the connection drops, the SDK automatically attempts to reconnect, cycling through `disconnected` -> `connecting` -> `connected`.
 
-</Note>
+## Connection States
 
-You can also get the current connection status by using `getConnectionStatus` property provided by CometChat SDK
+| Value | Callback | Description |
+|-------|----------|-------------|
+| `"connected"` | `connected()` | SDK has an active connection to CometChat servers |
+| `"connecting"` | `connecting()` | SDK is attempting to establish or re-establish a connection |
+| `"disconnected"` | `disconnected()` | SDK is disconnected due to network issues or other errors |
+
+## Get Current Status
+
+Use `getConnectionStatus` to check the current connection state at any time:
 
 <Tabs>
 <Tab title="Swift">
 ```swift
 var connectionStatus = CometChat.getConnectionStatus?.value
 ```
-
 </Tab>
-
 </Tabs>
 
-<Accordion title="Sample Payload - getConnectionStatus">
+## Listen for Connection Changes
 
-**Method:**
+Register a `CometChatConnectionDelegate` to receive real-time connection state updates. We recommend adding this in your `AppDelegate` and in your app's first view controller after login.
 
-| Method | Return Type | Description |
-| ------ | ----------- | ----------- |
-| CometChat.getConnectionStatus?.value | String? | Current WebSocket connection status |
+<Tabs>
+<Tab title="Swift">
+```swift
+extension AppDelegate: CometChatConnectionDelegate {
 
-**Response:**
+    func connecting() {
+        print("connecting")
+    }
+    
+    func connected() {
+        print("connected")  
+    }
+    
+    func disconnected() {
+        print("disconnected")
+    }
+}
+```
+</Tab>
+<Tab title="Objective C">
+```objc
+@interface ViewController ()<CometChatConnectionDelegate>
+@end
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| connectionStatus | String? | Current status. Example: `"disconnected"` |
+@implementation ViewController
 
-**Possible Values:**
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [CometChat connectiondelegate:self];
+}
 
-| Value | Description |
-| ----- | ----------- |
-| `"connecting"` | SDK is trying to establish WebSocket connection |
-| `"connected"` | Successfully connected to WebSocket server |
-| `"disconnected"` | Not connected to WebSocket server |
+- (void)connecting {
+    NSLog(@"Connecting");
+}
 
-</Accordion>
+- (void)connected {
+    NSLog(@"Connected");
+}
 
-The `CometChat.getConnectionStatus` method will return either of the below 3 values:
+- (void)disconnected {
+    NSLog(@"Disconnected");
+}
+```
+</Tab>
+</Tabs>
 
-1. connecting
-2. connected
-3. disconnected
+<Warning>
+Always remove connection listeners when they're no longer needed. Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="WebSocket Management" icon="plug" href="/sdk/ios/web-socket-connection-behaviour">
+    Manage WebSocket connection behavior
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/ios/setup">
+    Install and initialize the CometChat SDK
+  </Card>
+  <Card title="Authentication" icon="right-to-bracket" href="/sdk/ios/authentication-overview">
+    Authenticate users with the CometChat SDK
+  </Card>
+  <Card title="Overview" icon="book" href="/sdk/ios/overview">
+    Overview of the CometChat iOS SDK
+  </Card>
+</CardGroup>

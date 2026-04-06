@@ -1,87 +1,47 @@
 ---
 title: "Typing Indicators"
-description: "Guide to sending and receiving typing indicators using the CometChat iOS SDK for real-time typing status."
+sidebarTitle: "Typing Indicators"
+description: "Send and receive real-time typing indicators using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Start typing:** `CometChat.startTyping(indicator:)` — pass `TypingIndicator(receiverID:receiverType:)`
-- **End typing:** `CometChat.endTyping(indicator:)`
-- **Listen for typing:** `onTypingStarted(_:)`, `onTypingEnded(_:)` in message listener delegate
-- **Receiver types:** `.user`, `.group`
-- **Related:** [Send Message](/sdk/ios/send-message) · [Receive Message](/sdk/ios/receive-message) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+```swift
+// Start typing indicator
+let typing = TypingIndicator(receiverID: "UID", receiverType: .user)
+CometChat.startTyping(indicator: typing)
 
-## Key Characteristics
+// Stop typing indicator
+CometChat.endTyping(indicator: typing)
 
-| Characteristic | Description |
-|----------------|-------------|
-| Fire-and-forget | No success/failure callbacks |
-| Transient | Not persisted, receiver must be online |
-| Real-time only | No history or missed events |
-| Supports metadata | Can send custom data with indicator |
-
----
+// Listen for typing events
+extension VC: CometChatMessageDelegate {
+  func onTypingStarted(_ typingDetails: TypingIndicator) { }
+  func onTypingEnded(_ typingDetails: TypingIndicator) { }
+}
+```
+</Accordion>
 
 ## Send a Typing Indicator
 
-*In other words, as a sender, how do I let the recipient(s) know that I'm typing?*
+### Start Typing
 
-### Start Typing (User)
+Use `startTyping()` with a `TypingIndicator` object to notify the receiver that you're typing.
 
 <Tabs>
-<Tab title="Swift">
+<Tab title="Swift (User)">
 ```swift
 let typingIndicator = TypingIndicator(receiverID: "cometchat-uid-2", receiverType: .user)
 CometChat.startTyping(indicator: typingIndicator)
 ```
 </Tab>
-<Tab title="Objective C">
+<Tab title="Objective-C (User)">
 ```objc
 TypingIndicator *typingIndicator = [[TypingIndicator alloc]initWithReceiverID:@"cometchat-uid-2" receiverType:ReceiverTypeUser metadata:nil];
 [CometChat startTypingWithIndicator:typingIndicator];
 ```
 </Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - Start Typing (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.startTyping(indicator:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| metadata | `[String: Any]?` | `nil` |
-
-</Tab>
-<Tab title="Sent">
-
-**Indicator Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTypingStarted(_:)` | Called with TypingIndicator object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-### Start Typing (Group)
-
-<Tabs>
-<Tab title="Swift">
+<Tab title="Swift (Group)">
 ```swift
 let typingIndicator = TypingIndicator(receiverID: "group-guid-1", receiverType: .group)
 CometChat.startTyping(indicator: typingIndicator)
@@ -89,135 +49,26 @@ CometChat.startTyping(indicator: typingIndicator)
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Start Typing (Group)">
-<Tabs>
-<Tab title="Request">
+`startTyping()` returns `void` — the typing indicator is sent as a fire-and-forget operation.
 
-**Method:** `CometChat.startTyping(indicator:)`
+### Stop Typing
 
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"group-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `.group` |
-| metadata | `[String: Any]?` | `nil` |
-
-</Tab>
-<Tab title="Sent">
-
-**Indicator Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"group-guid-1"` |
-| receiverType | `String` | `"group"` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTypingStarted(_:)` | Called with TypingIndicator object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-### Start Typing with Metadata
+Use `endTyping()` to notify the receiver that you've stopped typing.
 
 <Tabs>
-<Tab title="Swift">
-```swift
-let typingIndicator = TypingIndicator(receiverID: "cometchat-uid-2", receiverType: .user)
-typingIndicator.metadata = ["isVoiceTyping": true, "language": "en"]
-CometChat.startTyping(indicator: typingIndicator)
-```
-</Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - Start Typing with Metadata">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.startTyping(indicator:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| metadata | `[String: Any]` | `["isVoiceTyping": true, "language": "en"]` |
-
-</Tab>
-<Tab title="Sent">
-
-**Indicator Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-| metadata | `[String: Any]` | `["isVoiceTyping": true, "language": "en"]` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-<Note>
-You can use the `metadata` field of the `TypingIndicator` class to pass additional data along with the typing indicators. This data will be received at the receiver end and can be obtained using the `metadata` property.
-</Note>
-
----
-
-### End Typing (User)
-
-<Tabs>
-<Tab title="Swift">
+<Tab title="Swift (User)">
 ```swift
 let typingIndicator = TypingIndicator(receiverID: "cometchat-uid-2", receiverType: .user)
 CometChat.endTyping(indicator: typingIndicator)
 ```
 </Tab>
-<Tab title="Objective C">
+<Tab title="Objective-C (User)">
 ```objc
 TypingIndicator *typingIndicator = [[TypingIndicator alloc]initWithReceiverID:@"cometchat-uid-2" receiverType:ReceiverTypeUser metadata:nil];
 [CometChat endTypingWithIndicator:typingIndicator];
 ```
 </Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - End Typing (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.endTyping(indicator:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-
-</Tab>
-<Tab title="Sent">
-
-**Indicator Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTypingEnded(_:)` | Called with TypingIndicator object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-### End Typing (Group)
-
-<Tabs>
-<Tab title="Swift">
+<Tab title="Swift (Group)">
 ```swift
 let typingIndicator = TypingIndicator(receiverID: "group-guid-1", receiverType: .group)
 CometChat.endTyping(indicator: typingIndicator)
@@ -225,59 +76,28 @@ CometChat.endTyping(indicator: typingIndicator)
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - End Typing (Group)">
-<Tabs>
-<Tab title="Request">
+`endTyping()` returns `void` — the typing indicator is sent as a fire-and-forget operation.
 
-**Method:** `CometChat.endTyping(indicator:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"group-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `.group` |
-
-</Tab>
-<Tab title="Sent">
-
-**Indicator Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"group-guid-1"` |
-| receiverType | `String` | `"group"` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTypingEnded(_:)` | Called with TypingIndicator object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
----
+<Note>
+Use the `metadata` property of `TypingIndicator` to pass additional custom data. Retrieve it with `metadata` on the receiver side.
+</Note>
 
 ## Real-time Typing Indicators
 
-*In other words, as a recipient, how do I know when someone is typing?*
-
-To receive typing indicators, implement `CometChatMessageDelegate`:
+Use `onTypingStarted` and `onTypingEnded` in `CometChatMessageDelegate` to receive typing events.
 
 <Tabs>
 <Tab title="Swift">
 ```swift
 extension YourViewController: CometChatMessageDelegate {
-    
+
     func onTypingStarted(_ typingDetails: TypingIndicator) {
         print("User started typing")
-        print("Sender UID: \(typingDetails.sender?.uid ?? "")")
-        print("Sender Name: \(typingDetails.sender?.name ?? "")")
+        print("Sender: \(typingDetails.sender?.name ?? "")")
         print("Receiver ID: \(typingDetails.receiverID)")
         print("Receiver Type: \(typingDetails.receiverType)")
-        print("Metadata: \(typingDetails.metadata ?? [:])")
     }
-    
+
     func onTypingEnded(_ typingDetails: TypingIndicator) {
         print("User stopped typing")
         print("Sender: \(typingDetails.sender?.name ?? "")")
@@ -288,7 +108,7 @@ extension YourViewController: CometChatMessageDelegate {
 CometChat.messagedelegate = self
 ```
 </Tab>
-<Tab title="Objective C">
+<Tab title="Objective-C">
 ```objc
 @interface ViewController ()<CometChatMessageDelegate>
 @end
@@ -313,49 +133,7 @@ CometChat.messagedelegate = self
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Receive Typing Started">
-<Tabs>
-<Tab title="Delegate Payload">
-
-**Method:** `onTypingStarted(_ typingDetails: TypingIndicator)`
-
-**TypingIndicator Object:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| sender.uid | `String` | `"cometchat-uid-1"` |
-| sender.name | `String` | `"John Doe"` |
-| sender.avatar | `String` | `"https://example.com/avatar.png"` |
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `ReceiverType` | `.user` |
-| metadata | `[String: Any]?` | `nil` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-<Accordion title="Sample Payloads - Receive Typing Ended">
-<Tabs>
-<Tab title="Delegate Payload">
-
-**Method:** `onTypingEnded(_ typingDetails: TypingIndicator)`
-
-**TypingIndicator Object:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| sender.uid | `String` | `"cometchat-uid-1"` |
-| sender.name | `String` | `"John Doe"` |
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `ReceiverType` | `.user` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
----
-
-## TypingIndicator Object Properties
+The received `TypingIndicator` object contains:
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -364,24 +142,19 @@ CometChat.messagedelegate = self
 | `receiverType` | `ReceiverType` | `.user` or `.group` |
 | `metadata` | `[String: Any]?` | Custom data sent with indicator |
 
----
-
-## Receiver Types
-
-| Type | Value | Description |
-|------|-------|-------------|
-| User | `.user` | One-on-one conversation |
-| Group | `.group` | Group conversation |
-
----
-
-## Delegate Methods
-
-| Method | Description |
-|--------|-------------|
-| `onTypingStarted(_:)` | Called when user starts typing |
-| `onTypingEnded(_:)` | Called when user stops typing |
-
 <Note>
 Typing indicators are transient and not persisted. The receiver must be online to receive them.
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/ios/delivery-read-receipts">
+    Track when messages are delivered and read
+  </Card>
+  <Card title="Transient Messages" icon="bolt" href="/sdk/ios/transient-messages">
+    Send ephemeral real-time messages like live reactions
+  </Card>
+</CardGroup>

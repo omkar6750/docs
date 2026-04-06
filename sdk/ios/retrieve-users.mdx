@@ -1,23 +1,30 @@
 ---
 title: "Retrieve Users"
-description: "Guide to fetching user details and lists using the CometChat iOS SDK UsersRequest builder with search and filtering."
+sidebarTitle: "Retrieve Users"
+description: "Fetch, filter, search, and sort users using the CometChat iOS SDK. Includes pagination, role-based filtering, tag support, and online status filtering."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Get logged-in user:** `CometChat.getLoggedInUser()`
-- **Get specific user:** `CometChat.getUser(UID:onSuccess:onError:)`
-- **Build request:** `UsersRequest.UsersRequestBuilder().set(limit:).build()`
-- **Fetch users:** `usersRequest.fetchNext(onSuccess:onError:)`
-- **Filters:** `.set(searchKeyword:)`, `.set(status:)`, `.set(roles:)`, `.set(tags:)`
-- **Related:** [User Management](/sdk/ios/user-management) · [Block Users](/sdk/ios/block-users) · [Users Overview](/sdk/ios/users-overview)
-</Info>
+```swift
+// Fetch users list
+let request = UsersRequest.UsersRequestBuilder()
+    .set(limit: 30).build()
+request.fetchNext(onSuccess: { users in }, onError: { error in })
 
-## Retrieve Logged In User Details
+// Get specific user details
+CometChat.getUser(UID: "UID", onSuccess: { user in }, onError: { error in })
 
-You can get the details of the logged-in user using the `getLoggedInUser()` method. This method can also be used to check if the user is logged in or not. If the method returns `nil`, it indicates that the user is not logged in and you need to log the user into CometChat SDK.
+// Get logged-in user
+let me = CometChat.getLoggedInUser()
+```
+</Accordion>
+
+The CometChat SDK provides methods to retrieve the logged-in user, fetch filtered user lists, and look up individual users by UID. All user methods return `User` objects.
+
+## Get the Logged-In User
+
+Use `getLoggedInUser()` to get the current user's details. Returns `nil` if no user is logged in.
 
 <Tabs>
 <Tab title="Swift">
@@ -32,102 +39,15 @@ User *user = [CometChat getLoggedInUser];
 </Tab>
 </Tabs>
 
-This method will return a `User` object containing all the information related to the logged-in user.
-
-<Accordion title="Sample Payload">
-
-**Success Response ([User](#user-object) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the user. Example: `"cometchat-uid-2"` |
-| name | String? | Display name of the user. Example: `"George Alan"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Role assigned to the user for access control. Example: `"moderator"` |
-| status | [UserStatus](#userstatus-enum) | Current online status of the user. Example: `.online` |
-| statusMessage | String? | Custom status message set by the user. Example: `nil` |
-| lastActiveAt | Double | Unix timestamp of the user's last activity. Example: `1772088145.0` |
-| hasBlockedMe | Bool | Indicates if this user has blocked the logged-in user. Example: `false` |
-| blockedByMe | Bool | Indicates if the logged-in user has blocked this user. Example: `false` |
-| deactivatedAt | Double | Unix timestamp when user was deactivated (0 if active). Example: `0.0` |
-| tags | [String] | Array of tags associated with the user. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary for additional user info. Example: `[:]` |
-
-<Note>Returns `nil` if no user is logged in. Use this to check login state.</Note>
-
-</Accordion>
+This method returns a `User` object containing all the information related to the logged-in user.
 
 ## Retrieve List of Users
 
-In order to fetch the list of users, you can use the `UsersRequest` class. To use this class i.e to create an object of the UsersRequest class, you need to use the `UsersRequestBuilder` class. The `UsersRequestBuilder` class allows you to set the parameters based on which the users are to be fetched.
-
-### UsersRequestBuilder Methods
-
-| Method | Type | Description |
-|--------|------|-------------|
-| `set(limit:)` | Int | Number of users to fetch per request (1-100) |
-| `set(searchKeyword:)` | String | Search string to filter users |
-| `searchIn(_:)` | [String] | Properties to search in: "uid", "name" |
-| `set(status:)` | [UserStatus](#userstatus-enum) | Filter by `.online` or `.offline` |
-| `hideBlockedUsers(_:)` | Bool | Exclude blocked users from results |
-| `set(roles:)` | [String] | Filter by user roles |
-| `friendsOnly(_:)` | Bool | Return only friends |
-| `set(tags:)` | [String] | Filter by user tags |
-| `withTags(_:)` | Bool | Include tags in response |
-| `setUIDs(_:)` | [String] | Fetch specific users by UID (max 25) |
-| `sortBy(_:)` | String | Sort by property: "name", "status" |
-| `sortOrder(_:)` | SortOrder | `.asc` or `.desc` |
-
-<Accordion title="Sample Payload - UsersRequestBuilder">
-
-**Builder Configuration:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of users to fetch per request. Range: 1-100. Example: `30` |
-| searchKeyword | String | Search string to filter users by UID or name. Example: `"john"` |
-| searchIn | [String] | Properties to search in. Example: `["uid", "name"]` |
-| status | [UserStatus](#userstatus-enum) | Filter by online status. Example: `.online` or `.offline` |
-| hideBlockedUsers | Bool | Whether to exclude blocked users from results. Example: `true` |
-| roles | [String] | Filter users by their assigned roles. Example: `["admin", "moderator"]` |
-| friendsOnly | Bool | Return only users who are friends. Example: `true` |
-| tags | [String] | Filter users by tags. Example: `["premium", "verified"]` |
-| withTags | Bool | Include tags data in response. Example: `true` |
-| UIDs | [String] | Fetch specific users by UID (max 25). Example: `["user1", "user2"]` |
-| sortBy | String | Property to sort by. Example: `"name"` |
-| sortOrder | SortOrder | Sort direction. Example: `.asc` or `.desc` |
-
-**Search In Values:**
-
-| Value | Description |
-| ----- | ----------- |
-| "uid" | Search in user UID field |
-| "name" | Search in user display name field |
-| ["uid", "name"] | Search in both UID and name (default) |
-
-**Sort Order:**
-
-| Sort Pattern | Description |
-| ------------ | ----------- |
-| status => name => UID | Default sorting order when no sortBy specified |
-| name => UID | Sorting order when sortBy is "name" |
-
-**Common Filter Combinations:**
-
-| Use Case | Builder Configuration |
-| -------- | --------------------- |
-| Fetch online users only | `.set(status: .online).set(limit: 30)` |
-| Search users by name | `.set(searchKeyword: "john").searchIn(["name"])` |
-| Fetch friends only, sorted | `.friendsOnly(true).sortBy("name").sortOrder(.asc)` |
-| Fetch users with tags | `.set(tags: ["premium", "verified"]).withTags(true)` |
-| Fetch specific users | `.setUIDs(["user1", "user2", "user3"])` |
-
-</Accordion>
+Use `UsersRequestBuilder` to fetch users with filtering, searching, and pagination.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of users that should be fetched in a single iteration.
+Sets the number of users to fetch per request.
 
 <Tabs>
 <Tab title="Swift">
@@ -141,7 +61,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Set Search Keyword
 
-This method allows you to set the search string based on which the users are to be fetched.
+Filters users by a search string.
 
 <Tabs>
 <Tab title="Swift">
@@ -156,7 +76,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Search In
 
-This method allows you to define in which user property should the searchKeyword be searched. This method only works in combination with `setSearchKeyword()`. By default the keyword is searched in both UID & Name.
+Specifies which user properties to search. Works with `set(searchKeyword:)`. By default, searches both UID and name.
 
 <Tabs>
 <Tab title="Swift">
@@ -172,22 +92,14 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 </Tab>
 </Tabs>
 
-**Search In Values:**
-
-| Value | Description |
-| ----- | ----------- |
-| "uid" | Search in user UID |
-| "name" | Search in user name |
-| ["uid", "name"] | Search in both (default) |
-
 ### Set Status
 
-The status based on which the users are to be fetched. The status parameter can contain one of the below two values:
+Filters users by online status:
 
-* CometChat.UserStatus.online - will return the list of only online users.
-* CometChat.UserStatus.offline - will return the list of only offline users.
+- `CometChat.UserStatus.online` — Only online users
+- `CometChat.UserStatus.offline` — Only offline users
 
-If this parameter is not set, will return all the available users.
+If not set, returns all users.
 
 <Tabs>
 <Tab title="Swift">
@@ -202,7 +114,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Hide Blocked Users
 
-This method is used to determine if the blocked users should be returned as a part of the user list. if set to true, the user list will not contain the users blocked by the logged-in user.
+When `true`, excludes users blocked by the logged-in user from the results.
 
 <Tabs>
 <Tab title="Swift">
@@ -217,7 +129,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Set Roles
 
-This method allows you to fetch the users based on multiple roles.
+Filters users by specified roles.
 
 <Tabs>
 <Tab title="Swift">
@@ -232,7 +144,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Friends Only
 
-This property when set to true will return only the friends of the logged-in user.
+When `true`, returns only friends of the logged-in user.
 
 <Tabs>
 <Tab title="Swift">
@@ -247,7 +159,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Set Tags
 
-This method accepts a list of tags based on which the list of users is to be fetched. The list fetched will only contain the users that have been tagged with the specified tags.
+Filters users by specified tags.
 
 <Tabs>
 <Tab title="Swift">
@@ -262,7 +174,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### With Tags
 
-This property when set to true will fetch tags data along with the list of users.
+When `true`, includes tag data in the returned user objects.
 
 <Tabs>
 <Tab title="Swift">
@@ -277,7 +189,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Set UIDs
 
-This method accepts a list of UIDs based on which the list of users is fetched. A maximum of 25 users can be fetched.
+Fetches specific users by their UIDs. Maximum 25 users per request.
 
 <Tabs>
 <Tab title="Swift">
@@ -294,7 +206,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 
 ### Sort By
 
-This method allows you to sort the User List by a specific property of User. By default the User List is sorted by `status => name => UID` . If `name` is pass to the `sortBy()` method the user list will be sorted by `name => UID`.
+Sorts the user list by a specific property. Default sort order: `status → name → UID`. Pass `"name"` to sort by `name → UID`.
 
 <Tabs>
 <Tab title="Swift">
@@ -309,16 +221,9 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 </Tab>
 </Tabs>
 
-**Sort Order:**
-
-| Default Sort | Description |
-| ------------ | ----------- |
-| status => name => UID | Default sorting order |
-| name => UID | When sortBy is "name" |
-
 ### Sort By Order
 
-This method allows you to sort the User List in a specific order. By default the user list is sorted in ascending order.
+Sets the sort order. Default is ascending. Use `.desc` for descending.
 
 <Tabs>
 <Tab title="Swift">
@@ -332,9 +237,7 @@ let usersRequest = UsersRequest.UsersRequestBuilder()
 </Tab>
 </Tabs>
 
-Finally, once all the parameters are set to the builder class, you need to call the build() method to get the object of the UsersRequest class.
-
-Once you have the object of the `UsersRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `User` objects containing n number of users where n is the limit set in the builder class.
+After configuring the builder, call `build()` to get the `UsersRequest` object, then call `fetchNext()` to retrieve users.
 
 <Tabs>
 <Tab title="Swift">
@@ -378,44 +281,9 @@ UsersRequest *userRequest = [[[UsersRequestBuilder alloc]initWithLimit:limit] bu
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of users to fetch in this request. Example: `30` |
-
-**Success Response (Array of [User](#user-object) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the user. Example: `"cometchat-uid-1"` |
-| name | String? | Display name of the user. Example: `"Andrew Joseph"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Role assigned to the user for access control. Example: `"admin"` |
-| status | [UserStatus](#userstatus-enum) | Current online status of the user. Example: `.offline` |
-| statusMessage | String? | Custom status message set by the user. Example: `nil` |
-| lastActiveAt | Double | Unix timestamp of the user's last activity. Example: `1772017498.0` |
-| hasBlockedMe | Bool | Indicates if this user has blocked the logged-in user. Example: `false` |
-| blockedByMe | Bool | Indicates if the logged-in user has blocked this user. Example: `false` |
-| deactivatedAt | Double | Unix timestamp when user was deactivated (0 if active). Example: `0.0` |
-| tags | [String] | Array of tags associated with the user. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary for additional user info. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code identifying the error type. Example: `"ERR_INVALID_LIMIT"` |
-| errorDescription | String | Human-readable description of the error. Example: `"Invalid limit value provided"` |
-
-</Accordion>
-
 ## Retrieve Particular User Details
 
-To get the information of a user, you can use the `getUser()` method.
+Use `getUser()` to fetch a specific user's details by UID.
 
 <Tabs>
 <Tab title="Swift">
@@ -448,80 +316,27 @@ NSString *UID = @"cometchat-uid-1";
 </Tab>
 </Tabs>
 
-The `getUser()` method takes the following parameters:
-
 | Parameter | Description                                                   |
 | --------- | ------------------------------------------------------------- |
 | UID       | The `UID` of the user for whom the details are to be fetched. |
 
-<Accordion title="Sample Payload">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the user to fetch. Example: `"cometchat-uid-2"` |
-
-**Success Response ([User](#user-object) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the user. Example: `"cometchat-uid-2"` |
-| name | String? | Display name of the user. Example: `"George Alan"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Role assigned to the user for access control. Example: `"moderator"` |
-| status | [UserStatus](#userstatus-enum) | Current online status of the user. Example: `.online` |
-| statusMessage | String? | Custom status message set by the user. Example: `nil` |
-| lastActiveAt | Double | Unix timestamp of the user's last activity. Example: `1772104307.0` |
-| hasBlockedMe | Bool | Indicates if this user has blocked the logged-in user. Example: `false` |
-| blockedByMe | Bool | Indicates if the logged-in user has blocked this user. Example: `false` |
-| deactivatedAt | Double | Unix timestamp when user was deactivated (0 if active). Example: `0.0` |
-| tags | [String] | Array of tags associated with the user. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary for additional user info. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code identifying the error type. Example: `"ERR_UID_NOT_FOUND"` |
-| errorDescription | String | Human-readable description of the error. Example: `"User with the specified UID does not exist"` |
-
-</Accordion>
+It returns a `User` object containing the details of the user.
 
 ---
 
-## User Object
+## Next Steps
 
-The `User` object represents a CometChat user with all their profile information. See [Users Overview](/sdk/ios/users-overview) for complete details.
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the user (required, not editable after creation) |
-| name | String? | Display name of the user (required) |
-| avatar | String? | URL to the user's avatar image |
-| link | String? | URL to the user's profile page |
-| role | String? | Role assigned to the user for access control |
-| status | [UserStatus](#userstatus-enum) | Current online status: `.online` or `.offline` |
-| statusMessage | String? | Custom status message set by the user |
-| lastActiveAt | Double | Unix timestamp of the user's last activity |
-| hasBlockedMe | Bool | Indicates if this user has blocked the logged-in user |
-| blockedByMe | Bool | Indicates if the logged-in user has blocked this user |
-| deactivatedAt | Double | Unix timestamp when user was deactivated (0 if active) |
-| tags | [String] | Array of tags associated with the user |
-| metadata | [String: Any]? | Custom metadata dictionary for additional user info |
-
-## UserStatus Enum
-
-| Value | Raw Value | Description |
-|-------|-----------|-------------|
-| .online | 0 | User is currently online and active |
-| .offline | 1 | User is currently offline |
-
-## Common Error Codes
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_NOT_LOGGED_IN | User is not logged in | Login first using `CometChat.login()` |
-| ERR_UID_NOT_FOUND | User with specified UID does not exist | Verify the UID is correct |
-| ERR_INVALID_LIMIT | Invalid limit value provided | Use a limit between 1-100 |
+<CardGroup cols={2}>
+  <Card title="User Presence" icon="circle-dot" href="/sdk/ios/user-presence">
+    Track and subscribe to user online/offline status
+  </Card>
+  <Card title="Block Users" icon="ban" href="/sdk/ios/block-users">
+    Block and unblock users from your application
+  </Card>
+  <Card title="User Management" icon="users-gear" href="/sdk/ios/user-management">
+    Create, update, and delete users programmatically
+  </Card>
+  <Card title="Retrieve Conversations" icon="comments" href="/sdk/ios/retrieve-conversations">
+    Fetch conversation lists for your chat UI
+  </Card>
+</CardGroup>

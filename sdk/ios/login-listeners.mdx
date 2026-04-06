@@ -3,14 +3,13 @@ title: "Login Listeners"
 description: "Guide to monitoring login and logout events using the CometChat iOS SDK CometChatLoginDelegate."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
 - **Set delegate:** `CometChat.logindelegate = self` (conform to `CometChatLoginDelegate`)
 - **Delegate methods:** `onLoginSuccess(user:)`, `onLoginFailed(error:)`, `onLogoutSuccess()`, `onLogoutFailed(error:)`
 - **Related:** [Authentication](/sdk/ios/authentication-overview) · [Connection Status](/sdk/ios/connection-status) · [Setup](/sdk/ios/setup)
-</Info>
+
+</Accordion>
 
 CometChat SDK provides you with a mechanism to get real-time status whenever a user logs into CometChat or logs out from CometChat.
 
@@ -23,7 +22,7 @@ Login Listener provides you with the below 4 methods:
 | onLogoutSuccess()                          | This method is called when the user successfully logs out from the CometChat SDK. It does not return anything.                              |
 | onLogoutFailed(error: CometChatException?) | This method is triggered when the user could not successfully log out of the CometChat SDK. It returns an Object of the CometChatException. |
 
-In order to use the Delegate methods you must add protocol conformance `CometChatLoginDelegate` as `CometChat.logindelegate = self` . Here is the example of CometChatLoginDelegate:
+In order to use the Delegate methods you must add protocol conformance `CometChatLoginDelegate` as `CometChat.logindelegate = self`:
 
 <Tabs>
 <Tab title="Swift">
@@ -33,15 +32,15 @@ extension AppDelegate: CometChatLoginDelegate {
 	func onLoginSuccess(user: User) {
        print("Login Success")
     }
-    
+
     func onLoginFailed(error: CometChatException?) {
         print("Login Failed")
     }
-    
+
     func onLogoutSuccess() {
         print("Logout Success")
     }
-    
+
     func onLogoutFailed(error: CometChatException?) {
         print("Logout Failed")
     }
@@ -60,27 +59,27 @@ extension AppDelegate: CometChatLoginDelegate {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     [CometChat logindelegate:self];
 }
 
 - (void)onLoginSuccess(user : User) {
-    
+
     NSLog(@"onLoginSuccess");
 }
 
 - (void)onLoginFailed(error : CometChatException) {
-    
+
     NSLog(@"onLoginFailed");
 }
 
 - (void)onLogoutSuccess() {
-    
+
     NSLog(@"onLogoutSuccess");
 }
 
 - (void)onLogoutFailed(error : CometChatException) {
-    
+
     NSLog(@"onLogoutFailed");
 }
 ```
@@ -97,94 +96,11 @@ extension AppDelegate: CometChatLoginDelegate {
 
 This method is triggered when the user successfully logs into the CometChat SDK. It returns a `User` object containing all information about the logged-in user.
 
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Trigger:** `CometChat.login(UID:authKey:)` or `CometChat.login(authToken:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| UID | `String` | `"cometchat-uid-1"` |
-| authKey | `String` | `"AUTH_KEY"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Delegate Method:** `onLoginSuccess(user: User)`
-
-**Parameter Type:** `User`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-1"` |
-| name | `String` | `"John Doe"` |
-| avatar | `String` | `"https://data-us.cometchat.io/avatars/cometchat-uid-1.png"` |
-| link | `String?` | `"https://example.com/profile/john"` |
-| role | `String` | `"default"` |
-| metadata | `[String: Any]` | `["department": "Engineering", "level": 5]` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-| statusMessage | `String?` | `"Available"` |
-| lastActiveAt | `Double` | `1708934400.0` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-| tags | `[String]` | `["premium", "verified"]` |
-| deactivatedAt | `Double` | `0.0` |
-| authToken | `String?` | `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."` |
-| createdAt | `Double?` | `1700000000.0` |
-| updatedAt | `Double?` | `1708934400.0` |
-
-</Tab>
-<Tab title="Error Response">
-
-**N/A** — This delegate method only fires on success.
-
-For login failures, see [onLoginFailed(error:)](#onloginfailederror-cometchatexception).
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ### onLoginFailed(error: CometChatException?)
 
 This method is triggered when the user could not successfully log into the CometChat SDK. It returns a `CometChatException` object with error details.
-
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Trigger:** `CometChat.login(UID:authKey:)` with invalid credentials
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| UID | `String` | `"invalid_user"` |
-| authKey | `String` | `"AUTH_KEY"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**N/A** — This delegate method only fires on failure.
-
-For login success, see [onLoginSuccess(user:)](#onloginsuccessuser-user).
-
-</Tab>
-<Tab title="Error Response">
-
-**Delegate Method:** `onLoginFailed(error: CometChatException?)`
-
-**Parameter Type:** `CometChatException?`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_UID_NOT_FOUND"` |
-| errorDescription | `String` | `"The UID 'invalid_user' does not exist."` |
-| details | `String?` | `"Verify the UID is registered in your CometChat app."` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
@@ -192,76 +108,27 @@ For login success, see [onLoginSuccess(user:)](#onloginsuccessuser-user).
 
 This method is called when the user successfully logs out from the CometChat SDK. It does not return any data.
 
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Trigger:** `CometChat.logout()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | No request parameters |
-
-</Tab>
-<Tab title="Success Response">
-
-**Delegate Method:** `onLogoutSuccess()`
-
-**Return Type:** `Void` (no payload)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | This delegate method receives no parameters |
-
-Success is indicated by the method being called. `CometChat.getLoggedInUser()` will return `nil` after successful logout.
-
-</Tab>
-<Tab title="Error Response">
-
-**N/A** — This delegate method only fires on success.
-
-For logout failures, see [onLogoutFailed(error:)](#onlogoutfailederror-cometchatexception).
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ### onLogoutFailed(error: CometChatException?)
 
 This method is triggered when the user could not successfully log out of the CometChat SDK. It returns a `CometChatException` object with error details.
 
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
+---
 
-**Trigger:** `CometChat.logout()` when no user is logged in
+## Next Steps
 
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | No request parameters |
-
-</Tab>
-<Tab title="Success Response">
-
-**N/A** — This delegate method only fires on failure.
-
-For logout success, see [onLogoutSuccess()](#onlogoutsuccess).
-
-</Tab>
-<Tab title="Error Response">
-
-**Delegate Method:** `onLogoutFailed(error: CometChatException?)`
-
-**Parameter Type:** `CometChatException?`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"Cannot logout - no user is currently logged in."` |
-| details | `String?` | `nil` |
-
-</Tab>
-</Tabs>
-</Accordion>
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/sdk/ios/authentication-overview">
+    Login and authentication guide
+  </Card>
+  <Card title="Connection Status" icon="signal" href="/sdk/ios/connection-status">
+    Monitor the SDK connection state in real time
+  </Card>
+  <Card title="All Real-Time Delegates" icon="tower-broadcast" href="/sdk/ios/all-real-time-delegates-listeners">
+    Complete reference for all SDK event delegates
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/ios/setup">
+    SDK installation and initialization guide
+  </Card>
+</CardGroup>

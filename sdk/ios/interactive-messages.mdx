@@ -1,19 +1,32 @@
 ---
 title: "Interactive Messages"
-description: "Guide to creating and sending interactive messages (forms, cards, schedulers) using the CometChat iOS SDK."
+sidebarTitle: "Interactive Messages"
+description: "Create and send interactive messages (forms, cards, schedulers) using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Create interactive:** `InteractiveMessage()` — set `receiverUid`, `receiverType`, `type`, `interactiveData`
-- **Send interactive:** `CometChat.sendInteractiveMessage(message:onSuccess:onError:)`
-- **Types:** Form, Card, Scheduler, Custom Interactive
-- **Interaction goal:** Set `interactionGoal` to define completion criteria
-- **Related:** [Send Message](/sdk/ios/send-message) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+| Method | Description |
+| --- | --- |
+| `sendInteractiveMessage(message:)` | Send an interactive message |
+| `InteractiveMessage()` | Create an interactive message object |
+| `InteractionGoal()` | Define completion criteria |
 
+```swift
+let interMessage = InteractiveMessage()
+interMessage.messageCategory = .interactive
+interMessage.type = "form"
+interMessage.receiverType = .user
+interMessage.receiverUid = "cometchat-uid-2"
+interMessage.interactiveData = ["title": "Contact Form", "formFields": [...]]
+
+CometChat.sendInteractiveMessage(message: interMessage, onSuccess: { msg in }, onError: { err in })
+
+// Listen for interactive events (CometChatMessageDelegate)
+func onInteractiveMessageReceived(_ message: InteractiveMessage) { }
+func onInteractionGoalCompleted(_ message: InteractiveMessage) { }
+```
+</Accordion>
 ## InteractiveMessage Properties
 
 | Property | Type | Description |
@@ -117,67 +130,6 @@ CometChat.sendInteractiveMessage(message: interMessage, onSuccess: { message in
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Form Message">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendInteractiveMessage(message:)`
-
-**Message Parameters:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| type | `String` | `"form"` |
-| messageCategory | `CometChat.MessageCategory` | `.interactive` |
-| allowSenderInteraction | `Bool` | `true` |
-
-**Interaction Goal:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| elementIds | `[String]` | `["submit_btn"]` |
-| interactionType | `InteractionGoalType` | `.anyOf` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Base Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38227` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-2"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageCategory | `CometChat.MessageCategory` | `4` (`.interactive`) |
-| sentAt | `Int` | `1772028517` |
-
-**Interactive Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| type | `String` | `"form"` |
-| allowSenderInteraction | `Bool` | `true` |
-| interactiveData | `[String: Any]` | Form JSON structure |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** CometChatException
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_BAD_REQUEST"` |
-| errorDescription | `String` | `"Failed to validate the data sent with the request."` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ## Send Card Interactive Message
@@ -229,52 +181,6 @@ CometChat.sendInteractiveMessage(message: interMessage, onSuccess: {...}, onErro
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Card Message">
-<Tabs>
-<Tab title="Request">
-
-**Message Parameters:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| type | `String` | `"card"` |
-| messageCategory | `CometChat.MessageCategory` | `.interactive` |
-| allowSenderInteraction | `Bool` | `true` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Base Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38229` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-2"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageCategory | `CometChat.MessageCategory` | `4` (`.interactive`) |
-| sentAt | `Int` | `1772028521` |
-
-**Interactive Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| type | `String` | `"card"` |
-| allowSenderInteraction | `Bool` | `true` |
-
-**Interaction Goal:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| elementIds | `[String]` | `["buy_btn", "details_btn"]` |
-| interactionType | `InteractionGoalType` | `.anyOf` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ## Send Scheduler Interactive Message
@@ -311,42 +217,6 @@ CometChat.sendInteractiveMessage(message: interMessage, onSuccess: {...}, onErro
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Scheduler Message">
-<Tabs>
-<Tab title="Request">
-
-**Message Parameters:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| type | `String` | `"scheduler"` |
-| messageCategory | `CometChat.MessageCategory` | `.interactive` |
-| allowSenderInteraction | `Bool` | `true` |
-
-**Scheduler Data:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| title | `String` | `"Schedule a Meeting"` |
-| duration | `Int` | `30` |
-| bufferTime | `Int` | `5` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** CometChatException
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_BAD_REQUEST"` |
-| errorDescription | `String` | `"Failed to validate the data sent with the request."` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
@@ -389,38 +259,6 @@ CometChat.sendInteractiveMessage(message: interMessage, onSuccess: {...}, onErro
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Group Form">
-<Tabs>
-<Tab title="Request">
-
-**Message Parameters:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `.group` |
-| type | `String` | `"form"` |
-| messageCategory | `CometChat.MessageCategory` | `.interactive` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Base Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38228` |
-| conversationId | `String` | `"group_cometchat-guid-1"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `1` (`.group`) |
-| messageCategory | `CometChat.MessageCategory` | `4` (`.interactive`) |
-| sentAt | `Int` | `1772028520` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
@@ -470,29 +308,22 @@ class YourClass: CometChatMessageDelegate {
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Event Listeners">
-<Tabs>
-<Tab title="onInteractiveMessageReceived">
 
-**Method:** `onInteractiveMessageReceived(_ message: InteractiveMessage)`
+---
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| message | `InteractiveMessage` | The interactive message object |
-| message.type | `String?` | `form`, `card`, `scheduler`, or custom |
-| message.interactiveData | `[String: Any]?` | JSON structure of content |
-| message.interactionGoal | `InteractionGoal?` | Goal definition |
+## Next Steps
 
-</Tab>
-<Tab title="onInteractionGoalCompleted">
-
-**Method:** `onInteractionGoalCompleted(_ message: InteractiveMessage)`
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| message | `InteractiveMessage` | Message with completed goal |
-| message.interactions | `[Interaction]?` | User interactions performed |
-
-</Tab>
-</Tabs>
-</Accordion>
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/ios/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/ios/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Reactions" icon="face-smile" href="/sdk/ios/reactions">
+    Add emoji reactions to messages
+  </Card>
+  <Card title="Mentions" icon="at" href="/sdk/ios/mentions">
+    Mention specific users in messages
+  </Card>
+</CardGroup>

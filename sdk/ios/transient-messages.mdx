@@ -1,19 +1,23 @@
 ---
 title: "Transient Messages"
-description: "Guide to sending real-time only transient messages using the CometChat iOS SDK that are not persisted."
+sidebarTitle: "Transient Messages"
+description: "Send and receive ephemeral real-time messages that are not stored on the server using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Send transient:** `CometChat.sendTransientMessage(message:)` — pass `TransientMessage(receiverID:receiverType:data:)`
-- **Receive transient:** `onTransientMessageReceived(_:)` in message listener delegate
-- **Note:** Transient messages are NOT saved — receiver must be online
-- **Use cases:** Live location sharing, real-time indicators, ephemeral data
-- **Related:** [Send Message](/sdk/ios/send-message) · [Typing Indicators](/sdk/ios/typing-indicators) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+```swift
+// Send transient message to user
+let data: [String: Any] = ["LIVE_REACTION": "heart"]
+let msg = TransientMessage(receiverID: "UID", receiverType: .user, data: data)
+CometChat.sendTransientMessage(message: msg)
 
+// Listen for transient messages (CometChatMessageDelegate)
+func onTransisentMessageReceived(_ message: TransientMessage) {
+    print("Transient:", message.data)
+}
+```
+</Accordion>
 ## Key Characteristics
 
 | Characteristic | Description |
@@ -58,39 +62,6 @@ TransientMessage *transientMessage = [[TransientMessage alloc] initWithReceiverI
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Transient Message (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTransientMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| data | `[String: Any]` | `["LIVE_REACTION": "heart", "timestamp": 1772028567.875231]` |
-
-</Tab>
-<Tab title="Sent">
-
-**Message Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-| data | `[String: Any]` | `["LIVE_REACTION": "heart", "timestamp": 1772028567.875231]` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTransisentMessageReceived(_:)` | Called with TransientMessage object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ## Send Transient Message (Group)
@@ -105,39 +76,6 @@ CometChat.sendTransientMessage(message: transientMessage)
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Transient Message (Group)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTransientMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `.group` |
-| data | `[String: Any]` | `["LIVE_REACTION": "thumbsup", "timestamp": 1772028570.0602489]` |
-
-</Tab>
-<Tab title="Sent">
-
-**Message Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-guid-1"` |
-| receiverType | `String` | `"group"` |
-| data | `[String: Any]` | `["LIVE_REACTION": "thumbsup", "timestamp": 1772028570.0602489]` |
-
-**Receiver Will Get:**
-
-| Delegate Method | Description |
-|-----------------|-------------|
-| `onTransisentMessageReceived(_:)` | Called with TransientMessage object |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ## Send Live Reaction
@@ -151,34 +89,6 @@ CometChat.sendTransientMessage(message: transientMessage)
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Live Reaction">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTransientMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| data.LIVE_REACTION | `String` | `"heart"` |
-| data.type | `String` | `"live_reaction"` |
-
-</Tab>
-<Tab title="Sent">
-
-**Message Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-| data | `[String: Any]` | `["LIVE_REACTION": "heart", "type": "live_reaction"]` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ### Common Live Reactions
 
@@ -211,37 +121,6 @@ CometChat.sendTransientMessage(message: transientMessage)
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Live Location">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTransientMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| data.type | `String` | `"live_location"` |
-| data.latitude | `Double` | `37.7749` |
-| data.longitude | `Double` | `-122.4194` |
-| data.accuracy | `Double` | `10.0` |
-| data.timestamp | `Double` | `1772028575.777206` |
-
-</Tab>
-<Tab title="Sent">
-
-**Message Sent:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `String` | `"user"` |
-| data | `[String: Any]` | Location data dictionary |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ### Live Location Data Properties
 
@@ -300,27 +179,9 @@ CometChat.messagedelegate = self
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Receive Transient Message">
-<Tabs>
-<Tab title="Delegate Payload">
-
-**Method:** `onTransisentMessageReceived(_ message: TransientMessage)`
-
-**TransientMessage Object:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| sender.uid | `String` | `"cometchat-uid-1"` |
-| sender.name | `String` | `"John Doe"` |
-| receiverID | `String` | `"cometchat-uid-2"` |
-| receiverType | `ReceiverType` | `.user` |
-| data | `[String: Any]` | `["LIVE_REACTION": "heart"]` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
+
+The received object is a [`TransientMessage`](/sdk/reference/auxiliary#transientmessage).
 
 ## TransientMessage Object Properties
 
@@ -334,3 +195,16 @@ CometChat.messagedelegate = self
 <Note>
 Transient messages are NOT persisted and cannot be retrieved later. The receiver must be online to receive them. There are no delivery/read receipts for transient messages.
 </Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/ios/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/ios/send-message">
+    Send text, media, and custom messages
+  </Card>
+</CardGroup>

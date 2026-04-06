@@ -1,39 +1,49 @@
 ---
 title: "User Management"
-description: "Guide to creating and updating users programmatically using the CometChat iOS SDK for user synchronization."
+sidebarTitle: "User Management"
+description: "Create, update, and manage CometChat users programmatically using the iOS SDK. Includes user creation, profile updates, and the User class reference."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Create user:** `CometChat.createUser(user:apiKey:onSuccess:onError:)` — pass `User(uid:name:)`
-- **Update user:** `CometChat.updateUser(user:apiKey:onSuccess:onError:)`
-- **Update logged-in user:** `CometChat.updateCurrentUserDetails(user:onSuccess:onError:)`
-- **User properties:** `uid`, `name`, `avatar`, `link`, `role`, `metadata`, `tags`
-- **Note:** User creation requires API key (server-side recommended for production)
-- **Related:** [Retrieve Users](/sdk/ios/retrieve-users) · [Users Overview](/sdk/ios/users-overview) · [Authentication](/sdk/ios/authentication-overview)
-</Info>
+```swift
+// Create a user
+let user = User(uid: "user1", name: "Kevin")
+CometChat.createUser(user: user, apiKey: "AUTH_KEY",
+    onSuccess: { user in }, onError: { error in })
 
-When a user logs into your app, you need to programmatically login the user into CometChat. But before you log in the user to CometChat, you need to create the user.
+// Update a user
+let updateUser = User(uid: "user1", name: "Kevin Fernandez")
+CometChat.updateUser(user: updateUser, apiKey: "AUTH_KEY",
+    onSuccess: { user in }, onError: { error in })
 
-Summing up-
+// Update logged-in user (no auth key needed)
+CometChat.updateCurrentUserDetails(user: currentUser,
+    onSuccess: { user in }, onError: { error in })
+```
 
-**When a user registers in your app**
+**Note:** User creation/deletion should ideally happen on your backend via the [REST API](https://api-explorer.cometchat.com).
+</Accordion>
 
-1. You add the user details in your database
-2. You create a user in CometChat
+Users must exist in CometChat before they can log in. This page covers creating, updating, and deleting users.
 
-**When a user logs into your app**
+The typical flow:
+1. User registers in your app → Create user in CometChat
+2. User logs into your app → [Log user into CometChat](/sdk/ios/authentication-overview)
 
-1. You log in the user to your app
-2. You [log in the user to CometChat](/sdk/ios/authentication-overview) (programmatically)
+<Note>
+User deletion is only available via the [REST API](https://api-explorer.cometchat.com/reference/delete-user) — there is no client-side SDK method for it.
+</Note>
 
-## Creating a user
+## Creating a User
 
-Ideally, user creation should take place at your backend. You can refer our Rest API to learn more about [Creating a user](https://api-explorer.cometchat.com/reference/creates-user) and use the appropriate code sample based on your backend language.
+User creation should ideally happen on your backend via the [REST API](https://api-explorer.cometchat.com/reference/creates-user).
 
-However, if you wish to create users on the fly, you can use the `createUser()` method. This method takes a `User` object and the `Auth Key` as input parameters and returns the created `User` object if the request is successful.
+<Warning>
+**Security:** Never expose your `Auth Key` in client-side production code. User creation and updates using `Auth Key` should ideally happen on your backend server. Use client-side creation only for prototyping or development.
+</Warning>
+
+For client-side creation (development only), use `createUser()`:
 
 <Tabs>
 <Tab title="Swift">
@@ -49,50 +59,15 @@ CometChat.createUser(user: newUser, apiKey: authKey, onSuccess: { (User) in
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String | Unique identifier for the new user. Must be alphanumeric with underscore/hyphen only. Example: `"user1"` |
-| name | String | Display name for the new user. Example: `"Kevin"` |
-| apiKey | String | Your CometChat API key for authentication. Example: `"AUTH_KEY"` |
-
-**Success Response ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the created user. Example: `"user1"` |
-| name | String? | Display name of the created user. Example: `"Kevin"` |
-| avatar | String? | URL to the user's avatar image (nil for new users). Example: `nil` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Default role assigned to the user. Example: `"default"` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Initial online status (offline for new users). Example: `.offline` |
-| statusMessage | String? | Custom status message. Example: `nil` |
-| lastActiveAt | Double | Unix timestamp of last activity (0 for new users). Example: `0.0` |
-| hasBlockedMe | Bool | Block status (false for new users). Example: `false` |
-| blockedByMe | Bool | Block status (false for new users). Example: `false` |
-| deactivatedAt | Double | Deactivation timestamp (0 for active users). Example: `0.0` |
-| tags | [String] | Array of tags (empty for new users). Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code identifying the error type. Example: `"ERR_UID_ALREADY_EXISTS"` |
-| errorDescription | String | Human-readable description of the error. Example: `"User with the specified UID already exists"` |
-
-</Accordion>
-
 <Warning>
 UID can be alphanumeric with underscore and hyphen. Spaces, punctuation and other special characters are not allowed.
 </Warning>
 
-## Updating a user
+## Updating a User
 
-Updating a user similar to creating a user should ideally be achieved at your backend using the Restful APIs. For more information, you can check the [update a user](https://api-explorer.cometchat.com/reference/update-user) section. However, this can be achieved on the fly as well using the `updateUser()` method. This method takes a `User` object and the Auth Key as inputs and returns the updated `User` object on successful execution of the request.
+Like creation, user updates should ideally happen on your backend via the [REST API](https://api-explorer.cometchat.com/reference/update-user).
+
+For client-side updates (development only), use `updateUser()`:
 
 <Tabs>
 <Tab title="Swift">
@@ -108,54 +83,11 @@ CometChat.updateUser(user: newUser1, apiKey: authKey, onSuccess: { (User) in
 </Tab>
 </Tabs>
 
-Please make sure the `User` object provided to the `updateUser()` method has the `UID` of the user to be updated set.
+Ensure the `User` object has the correct `UID` set.
 
-<Accordion title="Sample Payload">
+## Updating Logged-in User
 
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String | Unique identifier of the user to update. Example: `"cometchat-uid-3"` |
-| name | String | New display name for the user. Example: `"Nancy Grace"` |
-| avatar | String? | New avatar URL (optional). Example: `nil` |
-| link | String? | New profile link URL (optional). Example: `nil` |
-| role | String? | New role for the user (optional). Example: `nil` |
-| statusMessage | String? | New status message (optional). Example: `nil` |
-| metadata | [String: Any]? | New metadata dictionary (optional). Example: `nil` |
-| tags | [String]? | New tags array (optional). Example: `nil` |
-| apiKey | String | Your CometChat API key for authentication. Example: `"AUTH_KEY"` |
-
-**Success Response ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the updated user. Example: `"cometchat-uid-3"` |
-| name | String? | Updated display name of the user. Example: `"Nancy Grace"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Role assigned to the user. Example: `"default"` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status of the user. Example: `.online` |
-| statusMessage | String? | Custom status message. Example: `nil` |
-| lastActiveAt | Double | Unix timestamp of last activity. Example: `1772104307.0` |
-| hasBlockedMe | Bool | Block status. Example: `false` |
-| blockedByMe | Bool | Block status. Example: `false` |
-| deactivatedAt | Double | Deactivation timestamp. Example: `0.0` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code identifying the error type. Example: `"ERR_UID_NOT_FOUND"` |
-| errorDescription | String | Human-readable description of the error. Example: `"User with the specified UID does not exist"` |
-
-</Accordion>
-
-## Updating logged-in user
-
-Updating a logged-in user is similar to updating a user. The only difference being this method does not require an AuthKey. This method takes a `User` object as input and returns the updated `User` object on the successful execution of the request.
+Use `updateCurrentUserDetails()` to update the current user without an Auth Key. Note: You cannot update the user's role with this method.
 
 <Tabs>
 <Tab title="Swift">
@@ -170,80 +102,44 @@ CometChat.updateCurrentUserDetails(user: currentUser, onSuccess: { user in
 </Tab>
 </Tabs>
 
-By using the `updateCurrentUserDetails()` method one can only update the logged-in user irrespective of the UID passed. Also, it is not possible to update the role of a logged-in user.
+The method updates the logged-in user irrespective of the UID passed.
 
-<Accordion title="Sample Payload">
+## Deleting a User
 
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String | UID of the logged-in user (ignored, uses actual logged-in user). Example: `"cometchat-uid-2"` |
-| name | String | New display name for the user. Example: `"Updated Name"` |
-| avatar | String? | New avatar URL (optional). Example: `nil` |
-| link | String? | New profile link URL (optional). Example: `nil` |
-| statusMessage | String? | New status message (optional). Example: `"Available"` |
-| metadata | [String: Any]? | New metadata dictionary (optional). Example: `nil` |
-| tags | [String]? | New tags array (optional). Example: `nil` |
-
-**Success Response ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the updated user. Example: `"cometchat-uid-2"` |
-| name | String? | Updated display name of the user. Example: `"Updated Name"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| link | String? | URL to the user's profile page. Example: `nil` |
-| role | String? | Role assigned to the user (cannot be updated via this method). Example: `"moderator"` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status of the user. Example: `.online` |
-| statusMessage | String? | Updated custom status message. Example: `"Available"` |
-| lastActiveAt | Double | Unix timestamp of last activity. Example: `1772104307.0` |
-| hasBlockedMe | Bool | Block status. Example: `false` |
-| blockedByMe | Bool | Block status. Example: `false` |
-| deactivatedAt | Double | Deactivation timestamp (0 if active). Example: `0.0` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code identifying the error type. Example: `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | String | Human-readable description of the error. Example: `"User is not logged in"` |
-
-</Accordion>
-
-## Deleting a user
-
-Deleting a user can only be achieved via the Restful APIs. For more information please check the [delete a user](https://api-explorer.cometchat.com/reference/delete-user) section.
+User deletion is only available via the [REST API](https://api-explorer.cometchat.com/reference/delete-user).
 
 ## User Class
 
-| Field | Editable | Information |
-| ----- | -------- | ----------- |
-| uid | specified on user creation. Not editable after that | Unique identifier of the user |
-| name | Yes | Display name of the user |
-| avatar | Yes | URL to profile picture of the user |
-| link | Yes | URL to profile page |
-| role | Yes | User role of the user for role-based access control |
-| metadata | Yes | Additional information about the user as Dictionary |
-| status | No | Status of the user. Could be either online/offline |
-| statusMessage | Yes | Any custom status message that needs to be set for a user |
-| lastActiveAt | No | The Unix timestamp of the time the user was last active. |
-| hasBlockedMe | No | A boolean that determines if the user has blocked the logged in user |
-| blockedByMe | No | A boolean that determines if the logged-in user has blocked the user |
-| tags | Yes | A list of tags to identify specific users |
+| Field         | Editable                                            | Information                                                          |
+| ------------- | --------------------------------------------------- | -------------------------------------------------------------------- |
+| uid           | specified on user creation. Not editable after that | Unique identifier of the user                                        |
+| name          | Yes                                                 | Display name of the user                                             |
+| avatar        | Yes                                                 | URL to profile picture of the user                                   |
+| link          | Yes                                                 | URL to profile page                                                  |
+| role          | Yes                                                 | User role of the user for role-based access control                  |
+| metadata      | Yes                                                 | Additional information about the user as Dictionary                  |
+| status        | No                                                  | Status of the user. Could be either online/offline                   |
+| statusMessage | Yes                                                 | Any custom status message that needs to be set for a user            |
+| lastActiveAt  | No                                                  | The Unix timestamp of the time the user was last active.             |
+| hasBlockedMe  | No                                                  | A boolean that determines if the user has blocked the logged in user |
+| blockedByMe   | No                                                  | A boolean that determines if the logged in user has blocked the user |
+| tags          | Yes                                                 | A list of tags to identify specific users                            |
 
 ---
 
-## Common Error Codes
+## Next Steps
 
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_UID_ALREADY_EXISTS | User with specified UID already exists | Use a different UID |
-| ERR_INVALID_API_KEY | Invalid API key provided | Verify API key from Dashboard |
-| ERR_INVALID_UID | UID contains invalid characters | Use alphanumeric, underscore, hyphen only |
-| ERR_UID_NOT_FOUND | User with specified UID does not exist | Verify the UID is correct |
-| ERR_EMPTY_UID | UID is empty or null | Provide a valid UID |
-| ERR_EMPTY_NAME | Name is empty or null | Provide a valid name |
-| ERR_NOT_LOGGED_IN | User is not logged in | Login first using `CometChat.login()` |
+<CardGroup cols={2}>
+  <Card title="Retrieve Users" icon="users" href="/sdk/ios/retrieve-users">
+    Fetch and filter user lists with pagination.
+  </Card>
+  <Card title="User Presence" icon="circle-dot" href="/sdk/ios/user-presence">
+    Monitor real-time online/offline status.
+  </Card>
+  <Card title="Block Users" icon="ban" href="/sdk/ios/block-users">
+    Block and unblock users.
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/ios/authentication-overview">
+    Log users into CometChat.
+  </Card>
+</CardGroup>

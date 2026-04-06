@@ -1,46 +1,38 @@
 ---
 title: "Kick Member From A Group"
-description: "Guide to kicking, banning, and unbanning group members using the CometChat iOS SDK (admin/moderator only)."
+sidebarTitle: "Kick & Ban Members"
+description: "Learn how to kick, ban, and unban group members, fetch banned member lists, and receive real-time events using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Kick member:** `CometChat.kickGroupMember(UID:GUID:onSuccess:onError:)`
-- **Ban member:** `CometChat.banGroupMember(UID:GUID:onSuccess:onError:)`
-- **Unban member:** `CometChat.unbanGroupMember(UID:GUID:onSuccess:onError:)`
-- **Fetch banned:** `BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid:).build()`
-- **Permission:** Only admin or moderator can perform these actions
-- **Related:** [Add Members](/sdk/ios/group-add-members) · [Change Member Scope](/sdk/ios/group-change-member-scope) · [Groups Overview](/sdk/ios/groups-overview)
-</Info>
+```swift
+// Kick a member
+CometChat.kickGroupMember(UID: "UID", GUID: "GUID", onSuccess: { response in }, onError: { error in })
 
-There are certain actions that can be performed on the group members:
+// Ban a member
+CometChat.banGroupMember(UID: "UID", GUID: "GUID", onSuccess: { response in }, onError: { error in })
 
-1. Kick a member from the group
-2. Ban a member from the group
-3. Unban a member from the group
-4. Update the scope of the member of the group
+// Unban a member
+CometChat.unbanGroupMember(UID: "UID", GUID: "GUID", onSuccess: { response in }, onError: { error in })
 
-<Warning>All the above-mentioned actions can only be performed by the **Admin** or the **Moderator** of the group.</Warning>
+// Fetch banned members
+let request = BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid: "GUID")
+    .set(limit: 30).build()
+request.fetchNext(onSuccess: { members in }, onError: { error in })
+```
+</Accordion>
 
-### Kick vs Ban Comparison
-
-| Action | Can Rejoin? | Appears in Banned List? |
-|--------|-------------|-------------------------|
-| Kick | Yes | No |
-| Ban | No | Yes (until unbanned) |
-
----
+Remove members from a group by kicking or banning them. Kicked users can rejoin; banned users cannot until they're unbanned. Only admins and moderators can perform these actions.
 
 ## Kick a Group Member
 
-The Admin or Moderator of the group can kick a member out of the group using the `kickGroupMember()` method.
+Admins or Moderators can remove a member using `kickGroupMember()`. The kicked user can rejoin the group later.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| UID | String | The UID of the user to be kicked |
-| GUID | String | The GUID of the group from which user is to be kicked |
+| Parameter | Description |
+|-----------|-------------|
+| `UID` | The UID of the user to be kicked |
+| `GUID` | The GUID of the group from which user is to be kicked |
 
 <Tabs>
 <Tab title="Swift">
@@ -71,49 +63,14 @@ NSString *GUID = @"cometchat-guid-1";
 
 The kicked user will be no longer part of the group and can not perform any actions in the group, but the kicked user can rejoin the group.
 
-<Accordion title="Sample Payload - Kick Member">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the user to kick. Example: `"cometchat-uid-2"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
-
-**Success Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| response | String | Success message. Example: `"cometchat-uid-2 is kicked from the group successfully."` |
-
-**After Kick:**
-
-| Effect | Description |
-| ------ | ----------- |
-| Membership | User is removed from the group |
-| Rejoin | User CAN rejoin the group |
-| Banned List | User does NOT appear in banned list |
-| Event | Other members receive `onGroupMemberKicked` event |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_NOT_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"The user with UID cometchat-uid-2 is not a member of the group"` |
-
-</Accordion>
-
----
-
 ## Ban a Group Member
 
-The Admin or Moderator of the group can ban a member from the group using the `banGroupMember()` method.
+Admins or Moderators can ban a member using `banGroupMember()`. Unlike kicked users, banned users cannot rejoin until unbanned.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| UID | String | The UID of the user to be banned |
-| GUID | String | The GUID of the group from which user is to be banned |
+| Parameter | Description |
+|-----------|-------------|
+| `UID` | The UID of the user to be banned |
+| `GUID` | The GUID of the group from which user is to be banned |
 
 <Tabs>
 <Tab title="Swift">
@@ -144,49 +101,14 @@ NSString *GUID = @"cometchat-guid-1";
 
 The banned user will be no longer part of the group and can not perform any actions in the group. A banned user cannot rejoin the same group without being unbanned.
 
-<Accordion title="Sample Payload - Ban Member">
+## Unban a Group Member
 
-**Request Parameters:**
+Admins or Moderators can unban a previously banned member using `unbanGroupMember()`.
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the user to ban. Example: `"cometchat-uid-2"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
-
-**Success Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| response | String | Success message. Example: `"cometchat-uid-2 is banned from the group successfully."` |
-
-**After Ban:**
-
-| Effect | Description |
-| ------ | ----------- |
-| Membership | User is removed from the group |
-| Rejoin | User CANNOT rejoin until unbanned |
-| Banned List | User appears in banned members list |
-| Event | Other members receive `onGroupMemberBanned` event |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_CANNOT_BAN_OWNER"` |
-| errorDescription | String | Human-readable error message. Example: `"Cannot ban the group owner"` |
-
-</Accordion>
-
----
-
-## Unban a Banned Group Member
-
-Only Admin or Moderators of the group can unban a previously banned member from the group using the `unbanGroupMember()` method.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| UID | String | The UID of the user to be unbanned |
-| GUID | String | The GUID of the group from which user is to be unbanned |
+| Parameter | Description |
+|-----------|-------------|
+| `UID` | The UID of the user to be unbanned |
+| `GUID` | The GUID of the group from which user is to be unbanned |
 
 <Tabs>
 <Tab title="Swift">
@@ -215,54 +137,42 @@ NSString *GUID = @"cometchat-guid-1";
 </Tab>
 </Tabs>
 
-The unbanned user can now rejoin the group.
+Once unbanned, the user can rejoin the group.
 
-<Accordion title="Sample Payload - Unban Member">
+## Get List of Banned Members for a Group
 
-**Request Parameters:**
+Use `BannedGroupMembersRequestBuilder` to fetch banned members of a group. The GUID must be specified in the constructor.
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the user to unban. Example: `"cometchat-uid-2"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
+### Set Limit
 
-**Success Response:**
+Sets the number of banned members to fetch per request.
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| response | String | Success message. Example: `"cometchat-uid-2 is unbanned from the group successfully."` |
+<Tabs>
+<Tab title="Swift">
+```swift
+let bannedGroupMembersRequest = BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid: "cometchat-guid-1")
+    .set(limit: 30)
+    .build()
+```
+</Tab>
+</Tabs>
 
-**After Unban:**
+### Set Search Keyword
 
-| Effect | Description |
-| ------ | ----------- |
-| Banned List | User is removed from banned list |
-| Rejoin | User can now rejoin the group |
-| Event | Other members receive `onGroupMemberUnbanned` event |
+Filters banned members by a search string.
 
-**Error Response ([CometChatException](#common-error-codes)):**
+<Tabs>
+<Tab title="Swift">
+```swift
+let bannedGroupMembersRequest = BannedGroupMembersRequest.BannedGroupMembersRequestBuilder(guid: "cometchat-guid-1")
+    .set(limit: 30)
+    .set(searchKeyword: "abc")
+    .build()
+```
+</Tab>
+</Tabs>
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_USER_NOT_BANNED"` |
-| errorDescription | String | Human-readable error message. Example: `"User is not in the banned list"` |
-
-</Accordion>
-
----
-
-## Get List of Banned Members
-
-In order to fetch the list of banned groups members for a group, you can use the `BannedGroupMembersRequest` class.
-
-### BannedGroupMembersRequestBuilder Methods
-
-| Method | Parameter | Returns | Description |
-|--------|-----------|---------|-------------|
-| `init(guid:)` | String | BannedGroupMembersRequestBuilder | Constructor with GUID |
-| `set(limit:)` | Int | BannedGroupMembersRequestBuilder | Number to fetch (1-100) |
-| `set(searchKeyword:)` | String | BannedGroupMembersRequestBuilder | Search keyword |
-| `build()` | - | BannedGroupMembersRequest | Build request |
+Once configured, call `build()` to create the request, then `fetchNext()` to retrieve banned members.
 
 <Tabs>
 <Tab title="Swift">
@@ -301,46 +211,15 @@ BannedGroupMembersRequest *bannedGroupMemberRequest = [[[[BannedGroupMembersRequ
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - Fetch Banned Members">
+## Real-Time Kick/Ban/Unban Events
 
-**Request Parameters:**
+Implement these `CometChatGroupDelegate` methods to receive real-time notifications:
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| limit | Int | Maximum number of banned members to fetch. Example: `30` |
-
-**Success Response (Array of [GroupMember](/sdk/ios/retrieve-group-members#groupmember-object-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the banned member. Example: `"banned-user1"` |
-| name | String? | Display name of the member. Example: `"Banned User"` |
-| avatar | String? | URL to the member's avatar image. Example: `"https://example.com/avatar.png"` |
-| scope | [MemberScope](#memberscope-enum) | Member's scope before ban. Example: `.participant` |
-| joinedAt | Double | Unix timestamp when member originally joined. Example: `1699700000.0` |
-
-**Sample Banned Member Entries:**
-
-| uid | name | scope | joinedAt |
-| --- | ---- | ----- | -------- |
-| banned-user1 | Banned User | .participant | 1699700000.0 |
-| banned-user2 | Another Banned | .participant | 1699750000.0 |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_NOT_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"The user is not a member of the group"` |
-
-</Accordion>
-
----
-
-## Real-Time Group Member Kicked/Banned Events
-
-In order to receive user Events for kick/ban/unban you must add protocol conformance `CometChatGroupDelegate`:
+| Method | Triggered When |
+|--------|----------------|
+| `onGroupMemberKicked()` | A member is kicked |
+| `onGroupMemberBanned()` | A member is banned |
+| `onGroupMemberUnbanned()` | A member is unbanned |
 
 <Tabs>
 <Tab title="Swift">
@@ -395,118 +274,56 @@ class ViewController: UIViewController, CometChatGroupDelegate {
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - onGroupMemberKicked Event">
-
-**Event Trigger:** Received via `CometChatGroupDelegate.onGroupMemberKicked(action:kickedUser:kickedBy:kickedFrom:)`
-
-**ActionMessage Object:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| action | String | Action type. Example: `"kicked"` |
-| actionBy | [User](/sdk/ios/users-overview#user-properties) | User who performed the kick. Example: `{"uid": "admin-uid", "name": "Admin"}` |
-| actionOn | [User](/sdk/ios/users-overview#user-properties) | User who was kicked. Example: `{"uid": "user123", "name": "John"}` |
-| actionFor | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where action occurred. Example: `{"guid": "group123", "name": "My Group"}` |
-
-**kickedUser ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the kicked user. Example: `"user123"` |
-| name | String? | Display name of the user. Example: `"John Doe"` |
-
-**kickedBy ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the admin/moderator. Example: `"admin-uid"` |
-| name | String? | Display name of the admin/moderator. Example: `"Admin User"` |
-
-**kickedFrom ([Group](/sdk/ios/retrieve-groups#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"group123"` |
-| name | String? | Group display name. Example: `"My Group"` |
-| membersCount | Int | Updated member count (decremented). Example: `14` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - onGroupMemberBanned Event">
-
-**Event Trigger:** Received via `CometChatGroupDelegate.onGroupMemberBanned(action:bannedUser:bannedBy:bannedFrom:)`
-
-**ActionMessage Object:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| action | String | Action type. Example: `"banned"` |
-| actionBy | [User](/sdk/ios/users-overview#user-properties) | User who performed the ban |
-| actionOn | [User](/sdk/ios/users-overview#user-properties) | User who was banned |
-| actionFor | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where action occurred |
-
-**bannedUser ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the banned user. Example: `"user123"` |
-| name | String? | Display name of the user. Example: `"John Doe"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - onGroupMemberUnbanned Event">
-
-**Event Trigger:** Received via `CometChatGroupDelegate.onGroupMemberUnbanned(action:unbannedUser:unbannedBy:unbannedFrom:)`
-
-**ActionMessage Object:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| action | String | Action type. Example: `"unbanned"` |
-| actionBy | [User](/sdk/ios/users-overview#user-properties) | User who performed the unban |
-| actionOn | [User](/sdk/ios/users-overview#user-properties) | User who was unbanned |
-| actionFor | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where action occurred |
-
-**unbannedUser ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the unbanned user. Example: `"user123"` |
-| name | String? | Display name of the user. Example: `"John Doe"` |
-
-</Accordion>
+<Warning>
+Set delegate in `viewDidLoad()`: `CometChat.groupdelegate = self`. Remove delegate when view is dismissed to avoid memory leaks.
+</Warning>
 
 ## Missed Group Member Kicked/Banned Events
 
-*In other words, as a member of a group, how do I know when someone is banned/kicked when my app is not running?*
+When fetching previous messages, kick/ban/unban actions appear as `Action` messages (a subclass of `BaseMessage`).
 
-When you retrieve the list of previous messages if a member has been kicked/banned/unbanned from any group that the logged-in user is a member of, the list of messages will contain an `Action` message.
+**Kicked event:**
 
-| Event | action | actionBy | actionOn | actionFor |
-|-------|--------|----------|----------|-----------|
-| Kicked | `"kicked"` | User who kicked | User who was kicked | Group |
-| Banned | `"banned"` | User who banned | User who was banned | Group |
-| Unbanned | `"unbanned"` | User who unbanned | User who was unbanned | Group |
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"kicked"` | The action type |
+| `actionBy` | [User](/sdk/ios/users-overview#user-properties) | The user who kicked the member |
+| `actionOn` | [User](/sdk/ios/users-overview#user-properties) | The member who was kicked |
+| `actionFor` | [Group](/sdk/ios/retrieve-groups#group-properties) | The group |
+
+**Banned event:**
+
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"banned"` | The action type |
+| `actionBy` | [User](/sdk/ios/users-overview#user-properties) | The user who banned the member |
+| `actionOn` | [User](/sdk/ios/users-overview#user-properties) | The member who was banned |
+| `actionFor` | [Group](/sdk/ios/retrieve-groups#group-properties) | The group |
+
+**Unbanned event:**
+
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"unbanned"` | The action type |
+| `actionBy` | [User](/sdk/ios/users-overview#user-properties) | The user who unbanned the member |
+| `actionOn` | [User](/sdk/ios/users-overview#user-properties) | The member who was unbanned |
+| `actionFor` | [Group](/sdk/ios/retrieve-groups#group-properties) | The group |
 
 ---
 
-## MemberScope Enum
+## Next Steps
 
-| Scope | Raw Value | Description |
-|-------|-----------|-------------|
-| .admin | "admin" | Full group management privileges |
-| .moderator | "moderator" | Can kick/ban members, delete messages |
-| .participant | "participant" | Default scope, can send/receive messages |
-
-## Common Error Codes
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_GROUP_NOT_FOUND | Group with specified GUID does not exist | Verify the GUID is correct |
-| ERR_UID_NOT_FOUND | User with specified UID does not exist | Verify the user UID |
-| ERR_GROUP_NOT_JOINED | User is not a member of the group | Join the group first |
-| ERR_NOT_A_MEMBER | Target user is not a member of the group | User must be a member |
-| ERR_PERMISSION_DENIED | Logged-in user is not admin or moderator | Only admin/moderator can kick/ban |
-| ERR_CANNOT_KICK_OWNER | Cannot kick the group owner | Owner must transfer ownership first |
-| ERR_CANNOT_BAN_OWNER | Cannot ban the group owner | Owner must transfer ownership first |
-| ERR_USER_NOT_BANNED | User is not in the banned list | User must be banned to unban |
+<CardGroup cols={2}>
+  <Card title="Add Members" icon="user-plus" href="/sdk/ios/group-add-members">
+    Add new members to a group
+  </Card>
+  <Card title="Change Member Scope" icon="user-shield" href="/sdk/ios/group-change-member-scope">
+    Promote or demote group members
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/ios/retrieve-group-members">
+    Fetch the list of members in a group
+  </Card>
+  <Card title="Leave a Group" icon="right-from-bracket" href="/sdk/ios/leave-group">
+    Allow members to leave a group
+  </Card>
+</CardGroup>

@@ -1,74 +1,44 @@
 ---
 title: "Retrieve Conversations"
-description: "Guide to fetching conversation lists using the CometChat iOS SDK ConversationsRequest builder with filtering and pagination."
+sidebarTitle: "Retrieve Conversations"
+description: "Fetch, filter, tag, and search conversations using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Build request:** `ConversationRequest.ConversationRequestBuilder(limit:).build()`
-- **Fetch conversations:** `conversationsRequest.fetchNext(onSuccess:onError:)`
-- **Filters:** `.setConversationType(conversationType:)`, `.setTags(_:)`, `.withUserAndGroupTags()`
-- **Related:** [Delete Conversation](/sdk/ios/delete-conversation) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+```swift
+// Fetch conversations list
+let request = ConversationRequest.ConversationRequestBuilder(limit: 30).build()
+request.fetchNext(onSuccess: { conversations in }, onError: { error in })
 
-CometChat Allows you to fetch the list of conversations the logged-in user is a part of. This list of conversations consists of both user and group conversations.
+// Get a specific conversation
+CometChat.getConversation(conversationWith: "UID", conversationType: .user, onSuccess: { conv in }, onError: { error in })
 
----
+// Tag a conversation
+CometChat.tagConversation(conversationWith: "UID", conversationType: .user, tags: ["archived"], onSuccess: { conv in }, onError: { error in })
 
-## Object Structures
+// Convert message to conversation
+let conv = CometChat.getConversationFromMessage(message)
+```
+</Accordion>
 
-### Conversation Object
-
-The `Conversation` object represents a conversation in CometChat.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| conversationId | `String` | Unique conversation identifier |
-| conversationType | `CometChat.ConversationType` | `.user` (0) or `.group` (1) |
-| lastMessage | [BaseMessage](/sdk/ios/send-message#textmessage-object) | Last message in the conversation |
-| conversationWith | [User](/sdk/ios/send-message#user-object) or [Group](/sdk/ios/send-message#group-object) | User or Group object |
-| unreadMessageCount | `Int` | Number of unread messages |
-| unreadMentionsCount | `Int` | Number of unread mentions |
-| lastReadMessageId | `Int` | ID of the last read message |
-| updatedAt | `Double` | Unix timestamp of last update |
-| tags | `[String]?` | Array of conversation tags |
-
-For other object structures, see [Send Message - Object Structures](/sdk/ios/send-message#object-structures).
-
----
+Conversations provide the last message for every one-on-one and group conversation the logged-in user is part of. Each `Conversation` object includes the other participant (user or group), the last message, unread counts, and optional tags. Use this to build a Recent Chats list.
 
 ## Retrieve List of Conversations
 
-*In other words, as a logged-in user, how do I retrieve the latest conversations that I've been a part of?*
-
-To fetch the list of conversations, you can use the `ConversationsRequest` class. To use this class i.e. to create an object of the `ConversationsRequest` class, you need to use the `ConversationsRequestBuilder` class. The `ConversationsRequestBuilder` class allows you to set the parameters based on which the conversations are to be fetched.
+Use `ConversationsRequest` with `ConversationsRequestBuilder` to fetch conversations with various filters.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of conversations that should be fetched in a single iteration.
+Set the number of conversations to fetch per request. Maximum is 50.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
-var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 30)
-  .build()
+var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 30).build()
 ```
-</Tab>
-</Tabs>
-
-<Note>
-A Maximum of only 50 Conversations can be fetched at once. If you want to fetch more conversations, you can use the `fetchNext()` on the same `conversationsRequest` object.
-</Note>
 
 ### Set Conversation Type
 
-This method can be used to fetch user or group conversations specifically. The `conversationType` variable can hold one of the below two values:
-- `CometChat.ConversationType.user` - Only fetches user conversations.
-- `CometChat.ConversationType.group` - Only fetches group conversations.
-
-If none is set, the list of conversations will include both user and group conversations.
+Filter by conversation type: `.user` for one-on-one or `.group` for group conversations. If not set, both types are returned.
 
 <Tabs>
 <Tab title="Swift (User)">
@@ -89,24 +59,18 @@ var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 
 
 ### With User and Group Tags
 
-This method can be used to fetch the user/group tags in the `Conversation` Object. By default the value is `false`.
+Use `withUserAndGroupTags(true)` to include user/group tags in the response. Default is `false`.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .withUserAndGroupTags(true)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Set User Tags
 
-This method fetches user conversations which have the specified tags.
+Fetch user conversations where the user has specific tags.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 let limit = 30
 let userTags = ["tag1"]
@@ -114,15 +78,11 @@ let conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 
   .setUserTags(userTags)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Set Group Tags
 
-This method fetches group conversations which have the specified tags.
+Fetch group conversations where the group has specific tags.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 let limit = 30
 let groupTags = ["tag1"]
@@ -130,109 +90,73 @@ let conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 
   .setGroupTags(groupTags)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### With Tags
 
-This method makes sure that the tags associated with the conversations are returned along with the other details of the conversations. The default value for this parameter is `false`.
+Use `withTags(true)` to include conversation tags in the response. Default is `false`.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .withTags(true)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Set Tags
 
-This method helps you fetch the conversations based on the specified tags.
+Fetch conversations that have specific tags.
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 let tags = ["pinned", "archived"]
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .setTags(tags)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Include Blocked Users
 
-This method helps you fetch the conversations of users whom the logged-in user has blocked.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .includeBlockedUsers(true)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### With Blocked Info
 
-This method helps you fetch the blocked information in the `Conversation` object.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .withBlockedInfo(true)
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Search Conversations
 
-This method helps you search a conversation based on User or Group name.
+Search conversations by user or group name.
 
 <Note>
-This feature is only available with `Conversation & Advanced Search`. The `Conversation & Advanced Search` is only available in `Advanced` & `Custom` [plans](https://www.cometchat.com/pricing). If you're already on one of these plans, please enable the `Conversation & Advanced Search` from [CometChat Dashboard](https://app.cometchat.com) (Open your app, navigate to Chats -> Settings -> General Configuration)
+`Conversation & Advanced Search` is available on `Advanced` and `Custom` [plans](https://www.cometchat.com/pricing). Enable it from the [CometChat Dashboard](https://app.cometchat.com) under Chats → Settings → General Configuration.
 </Note>
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .setSearchKeyword("Hiking")
   .build()
 ```
-</Tab>
-</Tabs>
 
 ### Unread Conversations
 
-This method helps you fetch unread conversations.
-
 <Note>
-This feature is only available with `Conversation & Advanced Search`. The `Conversation & Advanced Search` is only available in `Advanced` & `Custom` [plans](https://www.cometchat.com/pricing). If you're already on one of these plans, please enable the `Conversation & Advanced Search` from [CometChat Dashboard](https://app.cometchat.com) (Open your app, navigate to Chats -> Settings -> General Configuration)
+`Conversation & Advanced Search` is available on `Advanced` and `Custom` [plans](https://www.cometchat.com/pricing). Enable it from the [CometChat Dashboard](https://app.cometchat.com) under Chats → Settings → General Configuration.
 </Note>
 
-<Tabs>
-<Tab title="Swift">
 ```swift
 var conversationRequest = ConversationRequest.ConversationRequestBuilder(limit: 50)
   .setUnread(true)
   .build()
 ```
-</Tab>
-</Tabs>
 
----
+### Fetch Conversations
 
-## Fetch Conversations
-
-Finally, once all the parameters are set to the builder class, you need to call the `build()` method to get the object of the `ConversationsRequest` class.
-
-Once you have the object of the `ConversationsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `Conversation` objects containing X number of conversations depending on the limit set.
+After configuring the builder, call `build()` to create the request, then `fetchNext()` to retrieve conversations. Call `fetchNext()` repeatedly on the same object to paginate.
 
 <Tabs>
 <Tab title="Swift (User)">
@@ -242,7 +166,7 @@ let convRequest = ConversationRequest.ConversationRequestBuilder(limit: 20)
   .build()
 
 convRequest.fetchNext(onSuccess: { (conversationList) in
-  print("success of convRequest \(conversationList)")            
+  print("success of convRequest \(conversationList)")
 }) { (exception) in
   print("here exception \(String(describing: exception?.errorDescription))")
 }
@@ -255,7 +179,7 @@ let convRequest = ConversationRequest.ConversationRequestBuilder(limit: 20)
   .build()
 
 convRequest.fetchNext(onSuccess: { (conversationList) in
-  print("success of convRequest \(conversationList)")            
+  print("success of convRequest \(conversationList)")
 }) { (exception) in
   print("here exception \(String(describing: exception?.errorDescription))")
 }
@@ -270,232 +194,21 @@ The `Conversation` object consists of the following fields:
 | conversationId | ID of the conversation |
 | conversationType | Type of conversation (user/group) |
 | lastMessage | Last message in the conversation |
-| conversationWith | User or Group object containing the details of the user or group |
+| conversationWith | User or Group object containing the details |
 | unreadMessageCount | Unread message count for the conversation |
-
-
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `conversationsRequest.fetchNext(onSuccess:onError:)`
-
-**Object Type:** `ConversationRequest`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| limit | `Int` | `20` |
-| conversationType | `CometChat.ConversationType?` | `0` (`.user`) |
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** `[Conversation]` (Array of [Conversation](#conversation-object))
-
-**Conversation[0]:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `5` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37790` |
-| updatedAt | `Double` | `1771917734.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([TextMessage](/sdk/ios/send-message#textmessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37798` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-uid-3"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917734` |
-| text | `String` | `"Hello"` |
-
-**conversationWith** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| link | `String?` | `nil` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-| statusMessage | `String?` | `nil` |
-| lastActiveAt | `Double` | `1771586880.0` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-| metadata | `[String: Any]` | `[:]` (empty dictionary) |
-| deactivatedAt | `Double` | `0.0` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"User is not logged in. Please login first."` |
-| details | `String?` | `nil` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
-<Accordion title="More Sample Payloads">
-<Tabs>
-<Tab title="Group Conversation">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"group_cometchat-guid-101"` |
-| conversationType | `CometChat.ConversationType` | `1` (`.group`) |
-| unreadMessageCount | `Int` | `12` |
-| unreadMentionsCount | `Int` | `2` |
-| lastReadMessageId | `Int` | `37650` |
-| updatedAt | `Double` | `1771915000.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([TextMessage](/sdk/ios/send-message#textmessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37662` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"group_cometchat-guid-101"` |
-| senderUid | `String` | `"cometchat-uid-4"` |
-| receiverUid | `String` | `"cometchat-guid-101"` |
-| receiverType | `CometChat.ReceiverType` | `1` (`.group`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771915000` |
-| text | `String` | `"Team meeting at 3 PM"` |
-
-**conversationWith** ([Group](/sdk/ios/send-message#group-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| guid | `String` | `"cometchat-guid-101"` |
-| name | `String` | `"Development Team"` |
-| icon | `String` | `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-101.webp"` |
-| description | `String` | `"Team for development discussions"` |
-| type | `CometChat.GroupType` | `"public"` |
-| owner | `String` | `"cometchat-uid-1"` |
-| membersCount | `Int` | `15` |
-| createdAt | `Double` | `1700000000.0` |
-| updatedAt | `Double` | `1771915000.0` |
-| hasJoined | `Bool` | `true` |
-| joinedAt | `Double` | `1705000000.0` |
-| scope | `CometChat.GroupMemberScope` | `"participant"` |
-| metadata | `[String: Any]?` | `nil` |
-| tags | `[String]?` | `nil` |
-
-</Tab>
-<Tab title="With Tags">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-5"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `0` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37500` |
-| updatedAt | `Double` | `1771900000.0` |
-
-**tags** (`[String]`):
-
-| Index | Type | Value |
-|-------|------|-------|
-| 0 | `String` | `"pinned"` |
-| 1 | `String` | `"important"` |
-
-**conversationWith** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-5"` |
-| name | `String` | `"Andrew Joseph"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-5.webp"` |
-| status | `CometChat.UserStatus` | `1` (`.offline`) |
-| lastActiveAt | `Double` | `1771800000.0` |
-
-</Tab>
-<Tab title="With Media Last Message">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-6"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `1` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37700` |
-| updatedAt | `Double` | `1771910000.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([MediaMessage](/sdk/ios/send-message#mediamessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37705` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-6"` |
-| senderUid | `String` | `"cometchat-uid-6"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `1` (`.image`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771910000` |
-| caption | `String?` | `"Check this out!"` |
-
-**lastMessage.attachment** ([Attachment](/sdk/ios/send-message#attachment-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| fileName | `String` | `"photo.jpg"` |
-| fileExtension | `String` | `"jpg"` |
-| fileSize | `Int` | `245678` |
-| fileMimeType | `String` | `"image/jpeg"` |
-| fileUrl | `String` | `"https://data-us.cometchat.io/assets/images/photo.jpg"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
----
 
 ## Tag Conversation
 
-*In other words, as a logged-in user, how do I tag a conversation?*
+Use `tagConversation()` to add tags to a conversation.
 
-To tag a specific conversation, you can use the `tagConversation()` method. The `tagConversation()` method accepts three parameters:
+| Parameter | Description |
+| --- | --- |
+| `conversationWith` | UID or GUID of the user/group |
+| `conversationType` | `.user` or `.group` |
+| `tags` | Array of tags to add |
 
-1. `conversationWith`: UID/GUID of the user/group whose conversation you want to tag.
-2. `conversationType`: The `conversationType` variable can hold one of the below two values:
-   - `user` - Only fetches user conversation.
-   - `group` - Only fetches group conversations.
-3. `tags`: The `tags` variable will be a list of tags you want to add to a conversation.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let id = "cometchat-uid-1" // id of the user/group
+let id = "cometchat-uid-1"
 let tags = ["pinned"]
 
 CometChat.tagConversation(conversationWith: id, conversationType: .user, tags: tags, onSuccess: { conversation in
@@ -504,87 +217,14 @@ CometChat.tagConversation(conversationWith: id, conversationType: .user, tags: t
   print("error", error)
 })
 ```
-</Tab>
-</Tabs>
 
 <Note>
-The tags for conversations are one-way. This means that if user A tags a conversation with user B, that tag will be applied to that conversation only for user A.
+Tags for conversations are one-way. If user A tags a conversation with user B, that tag applies only for user A.
 </Note>
-
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.tagConversation(conversationWith:conversationType:tags:onSuccess:onError:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationWith | `String` | `"cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-
-**tags** (`[String]`):
-
-| Index | Type | Value |
-|-------|------|-------|
-| 0 | `String` | `"pinned"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `5` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37790` |
-| updatedAt | `Double` | `1771917734.0` |
-
-**tags** (`[String]`):
-
-| Index | Type | Value |
-|-------|------|-------|
-| 0 | `String` | `"pinned"` |
-
-**conversationWith** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"User is not logged in. Please login first."` |
-| details | `String?` | `nil` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
----
 
 ## Retrieve Single Conversation
 
-*In other words, as a logged-in user, how do I retrieve a specific conversation?*
-
-To fetch a specific conversation, you can use the `getConversation` method. The `getConversation` method accepts two parameters:
-
-1. `conversationWith`: UID/GUID of the user/group whose conversation you want to fetch.
-2. `conversationType`: The `conversationType` variable can hold one of the below two values:
-   - `user` - Only fetches user conversation.
-   - `group` - Only fetches group conversations.
+Use `getConversation()` to fetch a specific conversation.
 
 <Tabs>
 <Tab title="Swift (User)">
@@ -607,257 +247,33 @@ CometChat.getConversation(conversationWith: "cometchat-guid-101", conversationTy
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
+## Convert Messages to Conversations
 
-**Method:** `CometChat.getConversation(conversationWith:conversationType:onSuccess:onError:)`
+Use `getConversationFromMessage()` to convert a received message into a `Conversation` object. Useful for updating your Recent Chats list when receiving real-time messages.
 
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationWith | `String` | `"cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `5` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37790` |
-| updatedAt | `Double` | `1771917734.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([TextMessage](/sdk/ios/send-message#textmessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37798` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-uid-3"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917734` |
-| text | `String` | `"Hello"` |
-
-**conversationWith** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| link | `String?` | `nil` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-| statusMessage | `String?` | `nil` |
-| lastActiveAt | `Double` | `1771586880.0` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-| metadata | `[String: Any]` | `[:]` (empty dictionary) |
-| deactivatedAt | `Double` | `0.0` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_CONVERSATION_NOT_FOUND"` |
-| errorDescription | `String` | `"Conversation not found."` |
-| details | `String?` | `nil` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
-<Accordion title="More Sample Payloads - Single Conversation">
-<Tabs>
-<Tab title="Group Conversation">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"group_cometchat-guid-101"` |
-| conversationType | `CometChat.ConversationType` | `1` (`.group`) |
-| unreadMessageCount | `Int` | `12` |
-| unreadMentionsCount | `Int` | `2` |
-| lastReadMessageId | `Int` | `37650` |
-| updatedAt | `Double` | `1771915000.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([TextMessage](/sdk/ios/send-message#textmessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37662` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"group_cometchat-guid-101"` |
-| senderUid | `String` | `"cometchat-uid-4"` |
-| receiverUid | `String` | `"cometchat-guid-101"` |
-| receiverType | `CometChat.ReceiverType` | `1` (`.group`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| sentAt | `Int` | `1771915000` |
-| text | `String` | `"Team meeting at 3 PM"` |
-
-**conversationWith** ([Group](/sdk/ios/send-message#group-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| guid | `String` | `"cometchat-guid-101"` |
-| name | `String` | `"Development Team"` |
-| icon | `String` | `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-101.webp"` |
-| description | `String` | `"Team for development discussions"` |
-| type | `CometChat.GroupType` | `"public"` |
-| owner | `String` | `"cometchat-uid-1"` |
-| membersCount | `Int` | `15` |
-| hasJoined | `Bool` | `true` |
-| scope | `CometChat.GroupMemberScope` | `"participant"` |
-
-</Tab>
-<Tab title="With Custom Message">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-7"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `1` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `37800` |
-| updatedAt | `Double` | `1771920000.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([CustomMessage](/sdk/ios/send-message#custommessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37805` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-7"` |
-| senderUid | `String` | `"cometchat-uid-7"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageCategory | `CometChat.MessageCategory` | `3` (`.custom`) |
-| customType | `String` | `"location"` |
-| sentAt | `Int` | `1771920000` |
-| conversationText | `String` | `"📍 Shared a location"` |
-
-**lastMessage.customData** (`[String: Any]`):
-
-| Key | Type | Value |
-|-----|------|-------|
-| latitude | `String` | `"37.7749"` |
-| longitude | `String` | `"-122.4194"` |
-| address | `String` | `"San Francisco, CA"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
----
-
-## Get Conversation From Message
-
-For real-time events, you will always receive Message objects and not Conversation objects. Thus, you will need a mechanism to convert the Message object to a `Conversation` object. You can use the `getConversationFromMessage()` method of the `CometChat` class.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
 let myConversation = CometChat.getConversationFromMessage(message)
 ```
-</Tab>
-</Tabs>
 
 <Note>
-While converting a `Message` object to a `Conversation` object, the `unreadMessageCount` & `tags` will not be available in the `Conversation` object. The unread message count needs to be managed in your client-side code.
+When converting a message to a conversation, `unreadMessageCount` and `tags` won't be available. Manage unread counts in your client-side code.
 </Note>
-
-<Accordion title="Sample Payloads">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.getConversationFromMessage(_:)`
-
-**Input Object Type:** [TextMessage](/sdk/ios/send-message#textmessage-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37798` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917734` |
-| text | `String` | `"Hello"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [Conversation](#conversation-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| conversationType | `CometChat.ConversationType` | `0` (`.user`) |
-| unreadMessageCount | `Int` | `0` |
-| unreadMentionsCount | `Int` | `0` |
-| lastReadMessageId | `Int` | `0` |
-| updatedAt | `Double` | `1771917734.0` |
-| tags | `[String]?` | `nil` |
-
-**lastMessage** ([TextMessage](/sdk/ios/send-message#textmessage-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37798` |
-| muid | `String` | `""` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| sentAt | `Int` | `1771917734` |
-| text | `String` | `"Hello"` |
-
-**conversationWith** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
-## Common Error Codes
+## Next Steps
 
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| `ERR_NOT_LOGGED_IN` | User is not logged in | Call `CometChat.login()` first |
-| `ERR_CONVERSATION_NOT_FOUND` | Conversation does not exist | Verify the conversationWith and conversationType parameters |
-| `ERR_INVALID_CONVERSATION_TYPE` | Invalid conversation type provided | Use `.user` or `.group` |
-| `ERR_SDK_NOT_INITIALIZED` | SDK not initialized | Call `CometChat.init()` first |
-| `ERR_NETWORK_ERROR` | Network connectivity issue | Check internet connection and retry |
-| `ERR_FEATURE_NOT_ENABLED` | Feature not enabled for your plan | Enable the feature from CometChat Dashboard or upgrade plan |
+<CardGroup cols={2}>
+  <Card title="Delete Conversation" icon="trash" href="/sdk/ios/delete-conversation">
+    Remove conversations from the logged-in user's list
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/ios/receive-message">
+    Listen for incoming messages to update conversation lists in real time
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/ios/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/ios/delivery-read-receipts">
+    Track message delivery and read status per conversation
+  </Card>
+</CardGroup>

@@ -1,38 +1,30 @@
 ---
 title: "Join A Group"
-description: "Guide to joining public, private, and password-protected groups using the CometChat iOS SDK joinGroup method."
+sidebarTitle: "Join Group"
+description: "Learn how to join public, password-protected, and private groups, and receive real-time join events using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Join group:** `CometChat.joinGroup(GUID:groupType:password:onSuccess:onError:)`
-- **Public groups:** No password required
-- **Password groups:** Password required
-- **Private groups:** Cannot join directly — must be added by admin/owner
-- **Related:** [Create Group](/sdk/ios/create-group) · [Leave Group](/sdk/ios/leave-group) · [Groups Overview](/sdk/ios/groups-overview)
-</Info>
+```swift
+// Join a public group
+CometChat.joinGroup(GUID: "GUID", groupType: .public, password: nil,
+    onSuccess: { group in }, onError: { error in })
+
+// Join a password-protected group
+CometChat.joinGroup(GUID: "GUID", groupType: .password, password: "password123",
+    onSuccess: { group in }, onError: { error in })
+
+// Listen for member joined events via CometChatGroupDelegate
+func onGroupMemberJoined(action: ActionMessage, joinedUser: User, joinedGroup: Group) { }
+```
+</Accordion>
+
+Join a group to start sending and receiving messages in it. Public groups can be joined freely, password groups require the correct password, and private groups require an admin to add you (no direct join).
 
 ## Join a Group
 
-In order to start participating in group conversations, you will have to join a group. You can do so using the `joinGroup()` method.
-
-### Join Group Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| GUID | String | Unique group identifier |
-| groupType | [GroupType](#grouptype-enum) | `.public`, `.private`, or `.password` |
-| password | String? | Required for `.password` groups |
-
-### Group Type Behavior
-
-| Type | Can Join Directly | Password Required |
-|------|-------------------|-------------------|
-| .public | Yes | No |
-| .password | Yes | Yes |
-| .private | No | N/A (must be added by admin) |
+Use `joinGroup()` to join a group.
 
 <Tabs>
 <Tab title="Swift">
@@ -61,123 +53,19 @@ NSString *password = nil; // mandatory in case of password protected group type
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - Join Public Group">
+| Parameter | Description |
+| --------- | ----------- |
+| `GUID` | The GUID of the group to join |
+| `groupType` | `.public`, `.password`, or `.private` |
+| `password` | Required for password-protected groups |
 
-**Request Parameters:**
+Once joined, you can send and receive messages in the group. CometChat tracks joined groups — you don't need to rejoin each session. Check `hasJoined` on the `Group` object to verify membership.
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| GUID | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| password | String? | Password for the group. Example: `nil` |
-
-**Success Response ([Group](/sdk/ios/retrieve-groups#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"Hiking Group"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| icon | String? | URL to the group's icon image. Example: `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"` |
-| groupDescription | String? | Description of the group. Example: `"Explore, connect, and chat with fellow outdoor enthusiasts"` |
-| owner | String? | UID of the group owner. Example: `"cometchat-uid-5"` |
-| membersCount | Int | Total number of members (incremented by 1). Example: `6` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| joinedAt | Int | Unix timestamp when user joined. Example: `1772113500` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| createdAt | Int | Unix timestamp when group was created. Example: `1753861429` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Success Response Properties After Join:**
-
-| Property | Value After Join | Description |
-| -------- | ---------------- | ----------- |
-| hasJoined | true | User is now a member |
-| joinedAt | Unix timestamp | Time of joining |
-| scope | .participant | Default scope for new members |
-| membersCount | Incremented by 1 | Updated member count |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_ALREADY_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"User is already a member of this group"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Join Password Group">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| GUID | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.password` |
-| password | String | Password for the group (required). Example: `"test123"` |
-
-**Success Response ([Group](/sdk/ios/retrieve-groups#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"Secret Group"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.password` |
-| icon | String? | URL to the group's icon image. Example: `nil` |
-| groupDescription | String? | Description of the group. Example: `nil` |
-| owner | String? | UID of the group owner. Example: `"cometchat-uid-5"` |
-| membersCount | Int | Total number of members. Example: `5` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| joinedAt | Int | Unix timestamp when user joined. Example: `1772113600` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| createdAt | Int | Unix timestamp when group was created. Example: `1753861429` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Error Response - Wrong Password:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_WRONG_GROUP_PASS"` |
-| errorDescription | String | Human-readable error message. Example: `"Incorrect password for password-protected group"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Join Private Group (Error)">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| GUID | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.private` |
-| password | String? | Password for the group. Example: `nil` |
-
-**Error Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_JOIN_NOT_ALLOWED"` |
-| errorDescription | String | Human-readable error message. Example: `"The private groups cannot be joined. Users need to be added to such groups."` |
-
-<Warning>Private groups cannot be joined directly. Users must be added by an admin or owner.</Warning>
-
-</Accordion>
-
-Once you have joined a group successfully, you can send and receive messages in that group.
-
-<Warning>
-CometChat keeps a track of the groups joined and you do not need to join the group every time you want to communicate in the group. You can identify if a group is joined using the `hasJoined` parameter in the `Group` object.
-</Warning>
-
----
+The method returns a `Group` object with `hasJoined` set to `true`.
 
 ## Real-time Group Member Joined Events
 
-*In other words, as a recipient, how do I know when someone joins a group?*
-
-To receive Real-Time Events for the same, you need to implement the `onGroupMemberJoined()` method of the `CometChatGroupDelegate`.
+Register a `CometChatGroupDelegate` to receive events when members join.
 
 <Tabs>
 <Tab title="Swift">
@@ -220,76 +108,32 @@ class ViewController: UIViewController, CometChatGroupDelegate {
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - onGroupMemberJoined Event">
-
-**Event Trigger:** Received via `CometChatGroupDelegate.onGroupMemberJoined(action:joinedUser:joinedGroup:)`
-
-**ActionMessage Object:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| action | String | Action type. Example: `"joined"` |
-| actionBy | [User](/sdk/ios/users-overview#user-properties) | User who performed the action. Example: `{"uid": "user123", "name": "John"}` |
-| actionFor | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where action occurred. Example: `{"guid": "group123", "name": "My Group"}` |
-
-**joinedUser ([User](/sdk/ios/users-overview#user-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the user who joined. Example: `"user123"` |
-| name | String? | Display name of the user. Example: `"John Doe"` |
-| avatar | String? | URL to the user's avatar image. Example: `"https://example.com/avatar.png"` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status. Example: `.online` |
-
-**joinedGroup ([Group](/sdk/ios/retrieve-groups#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"group123"` |
-| name | String? | Group display name. Example: `"My Group"` |
-| membersCount | Int | Updated member count. Example: `16` |
-
-</Accordion>
+<Warning>
+Always remove group listeners when they're no longer needed (e.g., on view dismissal). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 ## Missed Group Member Joined Events
 
-*In other words, as a member of a group, how do I know if someone joins the group when my app is not running?*
-
-When you retrieve the list of previous messages if a member has joined any group that the logged-in user is a member of, the list of messages will contain an `Action` message. An `Action` message is a sub-class of `BaseMessage` class.
-
-For the group member joined event, in the `Action` object received, the following fields can help you get the relevant information:
-
-| Field | Value | Description |
-|-------|-------|-------------|
-| action | `"joined"` | Action type |
-| actionBy | User object | User who joined the group |
-| actionFor | Group object | Group the user joined |
+When fetching message history, join events appear as `Action` messages with:
+- `action` — `"joined"`
+- `actionBy` — `User` who joined
+- `actionFor` — `Group` that was joined
 
 ---
 
-## GroupType Enum
+## Next Steps
 
-| Value | Description |
-|-------|-------------|
-| .public | Anyone can join without approval |
-| .private | Requires invitation or approval to join |
-| .password | Requires password to join |
-
-## MemberScope Enum
-
-| Value | Description |
-|-------|-------------|
-| .admin | Full control over group |
-| .moderator | Can manage members and messages |
-| .participant | Regular member with basic permissions |
-
-## Common Error Codes
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_NOT_LOGGED_IN | User is not logged in | Login first using `CometChat.login()` |
-| ERR_GUID_NOT_FOUND | Group does not exist | Verify the GUID is correct |
-| ERR_ALREADY_JOINED | Already a member of this group | No action needed |
-| ERR_WRONG_GROUP_PASS | Incorrect password | Provide correct password |
-| ERR_GROUP_JOIN_NOT_ALLOWED | Cannot join private group | Request admin to add you |
-| ERR_USER_BANNED | User is banned from group | Contact group admin |
+<CardGroup cols={2}>
+  <Card title="Leave a Group" icon="right-from-bracket" href="/sdk/ios/leave-group">
+    Allow members to leave a group
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/ios/retrieve-group-members">
+    Fetch the list of members in a group
+  </Card>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/ios/send-message">
+    Send messages to group conversations
+  </Card>
+  <Card title="Add Members" icon="user-plus" href="/sdk/ios/group-add-members">
+    Programmatically add members to a group
+  </Card>
+</CardGroup>

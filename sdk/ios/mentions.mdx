@@ -1,19 +1,28 @@
 ---
 title: "Mentions"
-description: "Guide to mentioning users in messages using the CometChat iOS SDK with mention formatting and retrieval."
+sidebarTitle: "Mentions"
+description: "Send messages with user mentions, retrieve mentioned users, and filter messages by mention metadata using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Mention format:** `<@uid:USER_UID>` in message text (e.g., `"Hello <@uid:cometchat-uid-1>"`)
-- **Get mentioned users:** `message.mentionedUsers` returns array of mentioned `User` objects
-- **Check if mentioned:** `message.mentionedMe` returns `Bool`
-- **Fetch with tag info:** `MessagesRequest.MessageRequestBuilder().mentionsWithTagInfo(true).build()`
-- **Related:** [Send Message](/sdk/ios/send-message) · [Receive Message](/sdk/ios/receive-message) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+```swift
+// Send a message with a mention (use <@uid:UID> format)
+let msg = TextMessage(receiverUid: "UID", text: "Hello <@uid:cometchat-uid-1>", receiverType: .user)
+CometChat.sendTextMessage(message: msg) { message in } onError: { error in }
 
+// Get mentioned users from a message
+let mentionedUsers = message.mentionedUsers  // Returns [User]
+
+// Check if logged-in user was mentioned
+let wasMentioned = message.mentionedMe  // Returns Bool
+
+// Fetch messages with mention tag info
+let request = MessagesRequest(builder: MessagesRequest.MessageRequestBuilder()
+    .set(uid: "UID").set(limit: 30).mentionsWithTagInfo(true))
+request.fetchPrevious { messages in } onError: { error in }
+```
+</Accordion>
 Mentions are a powerful tool for enhancing communication in messaging platforms. They streamline interaction by allowing users to easily engage and collaborate with particular individuals, especially in group conversations.
 
 ## Mention Format
@@ -59,79 +68,6 @@ CometChat.sendTextMessage(message: textMessage) { message in
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Send Mentioned Message (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTextMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `.user` |
-| text | `String` | `"Hello <@uid:cometchat-uid-2>, how are you?"` |
-| mentionFormat | `String` | `<@uid:USER_UID>` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38231` |
-| text | `String` | `"Hello <@uid:cometchat-uid-2>, how are you?"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| sentAt | `Int` | `1772028884` |
-
-**Mentioned Users:**
-
-| Index | UID | Name |
-|-------|-----|------|
-| 0 | `"cometchat-uid-2"` | `"George Alan"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-<Accordion title="Sample Payloads - Send Mentioned Message (Group)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.sendTextMessage(message:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| receiverUid | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `.group` |
-| text | `String` | `"Hey <@uid:cometchat-uid-2>, check this out!"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38232` |
-| text | `String` | `"Hey <@uid:cometchat-uid-2>, check this out!"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `1` (`.group`) |
-| sentAt | `Int` | `1772028886` |
-
-**Mentioned Users:**
-
-| Index | UID | Name |
-|-------|-----|------|
-| 0 | `"cometchat-uid-2"` | `"George Alan"` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 <Note>
 You can mention users in text messages and media message captions.
@@ -189,41 +125,6 @@ messagesRequest.fetchNext { messages in
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Fetch Mentions with Tag Info">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchPrevious()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| limit | `Int` | `50` |
-| mentionsWithTagInfo | `Bool` | `true` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Response Summary:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messagesCount | `Int` | `6` |
-| withTagInfo | `Bool` | `true` |
-| withBlockedInfo | `Bool` | `false` |
-
-**Mentioned User with Tag Info:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-1"` |
-| name | `String` | `"John Doe"` |
-| tags | `[String]` | `["vip", "premium"]` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ### Mentions With Blocked Info
 
 <Tabs>
@@ -248,47 +149,11 @@ messagesRequest.fetchPrevious { messages in
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Fetch Mentions with Blocked Info">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchPrevious()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| limit | `Int` | `50` |
-| mentionsWithBlockedInfo | `Bool` | `true` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Response Summary:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messagesCount | `Int` | `6` |
-| withTagInfo | `Bool` | `false` |
-| withBlockedInfo | `Bool` | `true` |
-
-**Mentioned User with Blocked Info:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-1"` |
-| name | `String` | `"John Doe"` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 ---
 
 ## Get Users Mentioned In a Message
 
-To retrieve the list of users mentioned in a particular message:
+To retrieve the list of users mentioned in a particular message. Returns an array of [`User`](/sdk/reference/entities#user) objects:
 
 <Tabs>
 <Tab title="Swift">
@@ -335,3 +200,22 @@ let wasMentioned = message.mentionedMe  // Returns Bool
 | tags | `[String]` | User's tags (with `mentionsWithTagInfo`) |
 | hasBlockedMe | `Bool` | Has user blocked logged-in user (with `mentionsWithBlockedInfo`) |
 | blockedByMe | `Bool` | Is user blocked by logged-in user (with `mentionsWithBlockedInfo`) |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/ios/send-message">
+    Send text, media, and custom messages
+  </Card>
+  <Card title="Receive Messages" icon="envelope-open" href="/sdk/ios/receive-message">
+    Listen for incoming messages in real time
+  </Card>
+  <Card title="Reactions" icon="face-smile" href="/sdk/ios/reactions">
+    Add emoji reactions to messages
+  </Card>
+  <Card title="Threaded Messages" icon="comments" href="/sdk/ios/threaded-messages">
+    Organize conversations with message threads
+  </Card>
+</CardGroup>

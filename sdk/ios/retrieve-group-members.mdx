@@ -1,71 +1,36 @@
 ---
 title: "Retrieve Group Members"
-description: "Guide to fetching group member lists using the CometChat iOS SDK GroupMembersRequest builder with pagination."
+sidebarTitle: "Retrieve Members"
+description: "Fetch and filter group members by scope, status, and search keyword using the CometChat iOS SDK with pagination support."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Build request:** `GroupMembersRequest.GroupMembersRequestBuilder(guid:).set(limit:).build()`
-- **Fetch members:** `groupMembersRequest.fetchNext(onSuccess:onError:)`
-- **Filters:** `.set(searchKeyword:)`, `.set(scopes:)`
-- **Member scopes:** `.admin`, `.moderator`, `.participant`
-- **Related:** [Add Members](/sdk/ios/group-add-members) · [Kick Member](/sdk/ios/group-kick-member) · [Groups Overview](/sdk/ios/groups-overview)
-</Info>
+```swift
+// Fetch group members
+let request = GroupMembersRequest.GroupMembersRequestBuilder(guid: "GUID")
+    .set(limit: 30).build()
+request.fetchNext(onSuccess: { members in }, onError: { error in })
 
-## GroupMembersRequestBuilder
+// Filter by scope
+let scopeRequest = GroupMembersRequest.GroupMembersRequestBuilder(guid: "GUID")
+    .set(limit: 30).set(scopes: ["admin", "moderator"]).build()
 
-Build a request to fetch group members with various filters.
-
-### GroupMembersRequestBuilder Methods
-
-| Method | Parameter | Returns | Description |
-|--------|-----------|---------|-------------|
-| `init(guid:)` | String | GroupMembersRequestBuilder | Constructor with GUID |
-| `set(limit:)` | Int | GroupMembersRequestBuilder | Number of members to fetch (1-100) |
-| `set(searchKeyword:)` | String | GroupMembersRequestBuilder | Search in member name |
-| `set(scopes:)` | [String] | GroupMembersRequestBuilder | Filter by scopes |
-| `build()` | - | GroupMembersRequest | Build the request |
-
-<Accordion title="Sample Payload - GroupMembersRequestBuilder">
-
-**Builder Configuration:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier (required). Example: `"cometchat-guid-1"` |
-| limit | Int | Maximum number of members to fetch per request. Range: 1-100. Example: `30` |
-| searchKeyword | String | Search string to filter members by name. Example: `"john"` |
-| scopes | [String] | Filter members by scopes. Example: `["admin", "moderator"]` |
-
-**Common Filter Combinations:**
-
-| Use Case | Builder Configuration |
-| -------- | --------------------- |
-| Fetch all members | `.set(limit: 30).build()` |
-| Fetch admins only | `.set(limit: 30).set(scopes: ["admin"]).build()` |
-| Fetch moderators only | `.set(limit: 30).set(scopes: ["moderator"]).build()` |
-| Search members by name | `.set(limit: 30).set(searchKeyword: "john").build()` |
-| Fetch admins and moderators | `.set(limit: 30).set(scopes: ["admin", "moderator"]).build()` |
-
+// Search members
+let searchRequest = GroupMembersRequest.GroupMembersRequestBuilder(guid: "GUID")
+    .set(limit: 30).set(searchKeyword: "john").build()
+```
 </Accordion>
 
-### GroupMembersRequest Methods (After build())
+Fetch the members of a group with filtering by scope and search keyword. Results are returned as `GroupMember` objects, which extend `User` with group-specific fields like scope.
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `fetchNext(onSuccess:onError:)` | [GroupMember] | Fetch next batch of members |
+## Retrieve the List of Group Members
 
----
-
-## Retrieve Group Members
-
-In order to fetch the list of groups members for a group, you can use the `GroupMembersRequest` class. To use this class i.e to create an object of the GroupMembersRequest class, you need to use the `GroupMembersRequestBuilder` class.
+Use `GroupMembersRequestBuilder` to fetch members of a group. The GUID must be specified in the constructor.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of members that should be fetched in a single iteration.
+Sets the number of members to fetch per request.
 
 <Tabs>
 <Tab title="Swift">
@@ -79,7 +44,7 @@ let groupMembersRequest = GroupMembersRequest.GroupMembersRequestBuilder(guid: "
 
 ### Set Search Keyword
 
-This method allows you to set the search string based on which the group members are to be fetched.
+Filters members by a search string.
 
 <Tabs>
 <Tab title="Swift">
@@ -94,7 +59,7 @@ let groupMembersRequest = GroupMembersRequest.GroupMembersRequestBuilder(guid: "
 
 ### Set Scopes
 
-This method allows you to fetch group members based on multiple scopes.
+Filters members by one or more scopes (`.admin`, `.moderator`, `.participant`).
 
 <Tabs>
 <Tab title="Swift">
@@ -109,7 +74,7 @@ let groupMembersRequest = GroupMembersRequest.GroupMembersRequestBuilder(guid: "
 
 ### Fetch Group Members
 
-Once you have the object of the `GroupMembersRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `GroupMember` objects.
+After configuring the builder, call `build()` to create the request, then `fetchNext()` to retrieve members. Call `fetchNext()` repeatedly on the same instance to paginate.
 
 <Tabs>
 <Tab title="Swift">
@@ -148,128 +113,17 @@ GroupMembersRequest *groupMemberRequest = [[[[GroupMembersRequestBuilder alloc]i
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - Fetch Group Members">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| limit | Int | Maximum number of members to fetch. Example: `30` |
-
-**Success Response (Array of [GroupMember](#groupmember-object-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the member. Example: `"cometchat-uid-1"` |
-| name | String? | Display name of the member. Example: `"John Doe"` |
-| avatar | String? | URL to the member's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
-| scope | [MemberScope](#memberscope-enum) | Member's scope in the group. Example: `.admin` |
-| joinedAt | Double | Unix timestamp when member joined. Example: `1771586968.0` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status. Example: `.online` |
-| lastActiveAt | Double | Unix timestamp of last activity. Example: `1772105474.0` |
-
-**Sample Member Entries:**
-
-| uid | name | scope | joinedAt | status |
-| --- | ---- | ----- | -------- | ------ |
-| cometchat-uid-2 | George Alan | .admin | 1771586968.0 | .online |
-| cometchat-uid-1 | Andrew Joseph | .participant | 1771586970.0 | .offline |
-| cometchat-uid-3 | Jane Smith | .moderator | 1771587000.0 | .offline |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_NOT_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"The user with UID cometchat-uid-2 is not a member of the group with GUID cometchat-guid-1. Please join the group to access it."` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Fetch Members by Scope (Admin)">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| limit | Int | Maximum number of members to fetch. Example: `30` |
-| scopes | [String] | Filter by scopes. Example: `["admin"]` |
-
-**Success Response (Array of [GroupMember](#groupmember-object-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the admin member. Example: `"cometchat-uid-2"` |
-| name | String? | Display name of the member. Example: `"George Alan"` |
-| avatar | String? | URL to the member's avatar image. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| scope | [MemberScope](#memberscope-enum) | Member's scope (filtered to admin). Example: `.admin` |
-| joinedAt | Double | Unix timestamp when member joined. Example: `1771586968.0` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status. Example: `.online` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_NOT_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"The user is not a member of the group"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Fetch Members by Scope (Moderator)">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| limit | Int | Maximum number of members to fetch. Example: `30` |
-| scopes | [String] | Filter by scopes. Example: `["moderator"]` |
-
-**Success Response (Array of [GroupMember](#groupmember-object-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the moderator member. Example: `"cometchat-uid-3"` |
-| name | String? | Display name of the member. Example: `"Jane Smith"` |
-| avatar | String? | URL to the member's avatar image. Example: `"https://example.com/avatar.png"` |
-| scope | [MemberScope](#memberscope-enum) | Member's scope (filtered to moderator). Example: `.moderator` |
-| joinedAt | Double | Unix timestamp when member joined. Example: `1771587000.0` |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | Current online status. Example: `.offline` |
-
-</Accordion>
+The `fetchNext()` method returns an array of `GroupMember` objects. `GroupMember` extends `User` and adds group-specific fields like `scope` and `joinedAt`.
 
 ---
 
-## GroupMember Object Properties
+## Next Steps
 
-| Property | Type | Description |
-|----------|------|-------------|
-| uid | String? | Unique identifier of the member |
-| name | String? | Display name |
-| avatar | String? | Avatar URL |
-| link | String? | Profile link URL |
-| role | String? | User role |
-| metadata | [String: Any]? | Custom metadata |
-| status | [UserStatus](/sdk/ios/retrieve-users#userstatus-enum) | `.online` or `.offline` |
-| statusMessage | String? | Custom status message |
-| lastActiveAt | Double | Last active Unix timestamp |
-| scope | [MemberScope](#memberscope-enum) | `.admin`, `.moderator`, or `.participant` |
-| joinedAt | Double | Unix timestamp when member joined |
-| hasJoined | Bool | Whether user has joined the group |
-
-## MemberScope Enum
-
-| Scope | Raw Value | Description |
-|-------|-----------|-------------|
-| .admin | "admin" | Full group management privileges |
-| .moderator | "moderator" | Can kick/ban members, delete messages |
-| .participant | "participant" | Default scope, can send/receive messages |
-
-## Common Error Codes
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_GROUP_NOT_FOUND | Group with specified GUID does not exist | Verify the GUID is correct |
-| ERR_GROUP_NOT_JOINED | Logged-in user is not a member of the group | Join the group first |
-| ERR_INVALID_GUID | Invalid or empty GUID provided | Provide a valid group GUID |
+<CardGroup cols={2}>
+  <Card title="Add Members" icon="user-plus" href="/sdk/ios/group-add-members">
+    Add users to a group programmatically
+  </Card>
+  <Card title="Kick & Ban Members" icon="user-slash" href="/sdk/ios/group-kick-member">
+    Remove or ban members from a group
+  </Card>
+</CardGroup>

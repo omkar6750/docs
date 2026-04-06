@@ -1,45 +1,28 @@
 ---
-title: "Receive A Message"
-description: "Guide to receiving real-time messages using CometChat iOS SDK message listeners for text, media, and custom messages."
+title: "Receive Messages"
+sidebarTitle: "Receive Messages"
+description: "Receive real-time messages, fetch unread messages, and retrieve message history using the CometChat iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Set delegate:** `CometChat.messagedelegate = self` (conform to `CometChatMessageDelegate`)
-- **Protocol:** Implement `CometChatMessageDelegate` in your view controller
-- **Delegate methods:** `onTextMessageReceived(_:)`, `onMediaMessageReceived(_:)`, `onCustomMessageReceived(_:)`
-- **Missed messages:** Use `MessagesRequest` with `setMessageId()` to fetch messages received while offline
-- **Related:** [Send Message](/sdk/ios/send-message) · [Typing Indicators](/sdk/ios/typing-indicators) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+| Field | Value |
+| --- | --- |
+| Key Classes | `CometChatMessageDelegate`, `MessagesRequest.MessageRequestBuilder` |
+| Key Methods | `onTextMessageReceived()`, `onMediaMessageReceived()`, `onCustomMessageReceived()`, `fetchPrevious()`, `fetchNext()` |
+| Delegate | `CometChat.messagedelegate = self` |
+| Prerequisites | SDK initialized, user logged in |
+
+</Accordion>
 
 Receiving messages with CometChat has two parts:
 
-1. Adding a listener to receive [real-time messages](/sdk/ios/receive-message#real-time-messages) when your app is running
-2. Calling a method to retrieve [missed messages](/sdk/ios/receive-message#missed-messages) when your app was not running
+1. Adding a [real-time listener](#real-time-messages) to receive messages while your app is running
+2. Fetching [unread](#unread-messages) or [historical](#message-history) messages when your app starts up or the user scrolls back
 
----
+## Real-Time Messages
 
-## Object Structures
-
-For complete object structure definitions, see [Send Message - Object Structures](/sdk/ios/send-message#object-structures):
-
-- [TextMessage Object](/sdk/ios/send-message#textmessage-object)
-- [MediaMessage Object](/sdk/ios/send-message#mediamessage-object)
-- [CustomMessage Object](/sdk/ios/send-message#custommessage-object)
-- [User Object](/sdk/ios/send-message#user-object)
-- [Group Object](/sdk/ios/send-message#group-object)
-- [Attachment Object](/sdk/ios/send-message#attachment-object)
-- [CometChatException Object](/sdk/ios/send-message#cometchatexception-object)
-
----
-
-## Real-time Messages
-
-*In other words, as a recipient, how do I receive messages when my app is running?*
-
-In order to receive incoming messages, you must add protocol conformance `CometChatMessageDelegate` as Shown Below :
+Register a `CometChatMessageDelegate` to receive incoming messages as they arrive. Each callback receives the specific message subclass — `TextMessage`, `MediaMessage`, or `CustomMessage`.
 
 <Tabs>
 <Tab title="Swift">
@@ -47,23 +30,20 @@ In order to receive incoming messages, you must add protocol conformance `CometC
 extension ViewController: CometChatMessageDelegate {
 
   func onTextMessageReceived(textMessage: TextMessage) {
-
     print("TextMessage received successfully: " + textMessage.stringValue())
   }
 
   func onMediaMessageReceived(mediaMessage: MediaMessage) {
-
     print("MediaMessage received successfully: " + mediaMessage.stringValue())
   }
 
   func onCustomMessageReceived(customMessage: CustomMessage) {
-
     print("CustomMessage received successfully: " + customMessage.stringValue())
   }
 }
 ```
 </Tab>
-<Tab title="Objective C">
+<Tab title="Objective-C">
 ```objc
 @interface ViewController ()<CometChatMessageDelegate>
 @end
@@ -72,23 +52,19 @@ extension ViewController: CometChatMessageDelegate {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-    CometChat.messagedelegate = self ;
+    CometChat.messagedelegate = self;
 }
 
 - (void)onTextMessageReceivedWithTextMessage:(TextMessage *)textMessage {
-
     NSLog(@"TextMessage received successfully: %@",[textMessage stringValue]);
 }
 
 - (void)onMediaMessageReceivedWithMediaMessage:(MediaMessage *)mediaMessage {
-
     NSLog(@"MediaMessage received successfully: %@",[mediaMessage stringValue]);
 }
 
 - (void)onCustomMessageReceivedWithCustomMessage:(CustomMessage *)customMessage {
-
-  	NSLog(@"CustomMessage received : %@",[customMessage stringValue]);
+    NSLog(@"CustomMessage received: %@",[customMessage stringValue]);
 }
 
 @end
@@ -96,650 +72,138 @@ extension ViewController: CometChatMessageDelegate {
 </Tab>
 </Tabs>
 
-Do not forget to set your view controller as a CometChat delegate probably in `viewDidLoad()` as `CometChat.messagedelegate = self`
+Don't forget to set your view controller as the delegate in `viewDidLoad()`:
 
-
-<Accordion title="Sample Payloads - onTextMessageReceived">
-<Tabs>
-<Tab title="Request">
-
-**Delegate Method:** `CometChatMessageDelegate.onTextMessageReceived(textMessage:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | N/A - This is a delegate callback, not a request |
-
-The delegate method fires when a [TextMessage](/sdk/ios/send-message#textmessage-object) is received in real-time.
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [TextMessage](/sdk/ios/send-message#textmessage-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37799` |
-| muid | `String` | `"1771917874.691467"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917874` |
-| deliveredAt | `Double` | `0.0` |
-| readAt | `Double` | `0.0` |
-| editedAt | `Double` | `0.0` |
-| deletedAt | `Double` | `0.0` |
-| updatedAt | `Double` | `1771917874.0` |
-| editedBy | `String` | `""` |
-| deletedBy | `String` | `""` |
-| parentMessageId | `Int` | `0` |
-| replyCount | `Int` | `0` |
-| unreadRepliesCount | `Int` | `0` |
-| metaData | `[String: Any]` | `[:]` (empty dictionary) |
-| mentionedUsers | `[User]` | `[]` (empty array) |
-| mentionedMe | `Bool` | `false` |
-| reactions | `[ReactionCount]` | `[]` (empty array) |
-| text | `String` | `"efefefwefefefewfef"` |
-
-**sender** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| link | `String?` | `nil` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-| statusMessage | `String?` | `nil` |
-| lastActiveAt | `Double` | `1771586880.0` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-| metadata | `[String: Any]` | `[:]` (empty dictionary) |
-| deactivatedAt | `Double` | `0.0` |
-
-**receiver** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| name | `String` | `"George Alan"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| link | `String?` | `nil` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-| statusMessage | `String?` | `nil` |
-| lastActiveAt | `Double` | `1771917720.0` |
-| hasBlockedMe | `Bool` | `false` |
-| blockedByMe | `Bool` | `false` |
-| metadata | `[String: Any]` | `[:]` (empty dictionary) |
-| deactivatedAt | `Double` | `0.0` |
-
-</Tab>
-<Tab title="Error Response">
-
-**N/A** — Delegate methods don't return errors directly.
-
-Errors occur if SDK is not initialized or user not logged in.
-
-</Tab>
-</Tabs>
-</Accordion>
-
-<Accordion title="Sample Payloads - onMediaMessageReceived">
-<Tabs>
-<Tab title="Request">
-
-**Delegate Method:** `CometChatMessageDelegate.onMediaMessageReceived(mediaMessage:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | N/A - This is a delegate callback, not a request |
-
-The delegate method fires when a [MediaMessage](/sdk/ios/send-message#mediamessage-object) is received in real-time.
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [MediaMessage](/sdk/ios/send-message#mediamessage-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37800` |
-| muid | `String` | `"1771918000.123456"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `1` (`.image`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771918000` |
-| deliveredAt | `Double` | `0.0` |
-| readAt | `Double` | `0.0` |
-| editedAt | `Double` | `0.0` |
-| deletedAt | `Double` | `0.0` |
-| updatedAt | `Double` | `1771918000.0` |
-| parentMessageId | `Int` | `0` |
-| replyCount | `Int` | `0` |
-| unreadRepliesCount | `Int` | `0` |
-| metaData | `[String: Any]` | `[:]` (empty dictionary) |
-| mentionedUsers | `[User]` | `[]` (empty array) |
-| mentionedMe | `Bool` | `false` |
-| reactions | `[ReactionCount]` | `[]` (empty array) |
-| caption | `String` | `"Check this out"` |
-
-**attachment** ([Attachment](/sdk/ios/send-message#attachment-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| fileName | `String` | `"photo.jpg"` |
-| fileExtension | `String` | `"jpg"` |
-| fileSize | `Int` | `245678` |
-| fileMimeType | `String` | `"image/jpeg"` |
-| fileUrl | `String` | `"https://data-us.cometchat.io/assets/images/photo.jpg"` |
-
-**sender** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-**receiver** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| name | `String` | `"George Alan"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-</Tab>
-<Tab title="Error Response">
-
-**N/A** — Delegate methods don't return errors directly.
-
-</Tab>
-</Tabs>
-</Accordion>
-
-
-<Accordion title="Sample Payloads - onCustomMessageReceived">
-<Tabs>
-<Tab title="Request">
-
-**Delegate Method:** `CometChatMessageDelegate.onCustomMessageReceived(customMessage:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| — | — | N/A - This is a delegate callback, not a request |
-
-The delegate method fires when a [CustomMessage](/sdk/ios/send-message#custommessage-object) is received in real-time.
-
-</Tab>
-<Tab title="Success Response">
-
-**Object Type:** [CustomMessage](/sdk/ios/send-message#custommessage-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37801` |
-| muid | `String` | `"1771918100.789012"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` |
-| messageCategory | `CometChat.MessageCategory` | `3` (`.custom`) |
-| sentAt | `Int` | `1771918100` |
-| deliveredAt | `Double` | `0.0` |
-| readAt | `Double` | `0.0` |
-| editedAt | `Double` | `0.0` |
-| deletedAt | `Double` | `0.0` |
-| updatedAt | `Double` | `1771918100.0` |
-| parentMessageId | `Int` | `0` |
-| replyCount | `Int` | `0` |
-| unreadRepliesCount | `Int` | `0` |
-| metaData | `[String: Any]` | `[:]` (empty dictionary) |
-| mentionedUsers | `[User]` | `[]` (empty array) |
-| mentionedMe | `Bool` | `false` |
-| reactions | `[ReactionCount]` | `[]` (empty array) |
-| customType | `String` | `"location"` |
-
-**customData** (`[String: Any]`):
-
-| Key | Type | Value |
-|-----|------|-------|
-| latitude | `Double` | `37.7749` |
-| longitude | `Double` | `-122.4194` |
-| address | `String` | `"San Francisco, CA"` |
-
-**sender** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-**receiver** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| name | `String` | `"George Alan"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| role | `String` | `"moderator"` |
-| status | `CometChat.UserStatus` | `0` (`.online`) |
-
-</Tab>
-<Tab title="Error Response">
-
-**N/A** — Delegate methods don't return errors directly.
-
-</Tab>
-</Tabs>
-</Accordion>
+```swift
+CometChat.messagedelegate = self
+```
 
 <Warning>
-
-As a sender, you will not receive your own message in a real-time message event. However, if a user is logged-in using multiple devices, they will receive an event for their own message in other devices.
-
+As a sender, you will not receive your own message in a real-time event. However, if a user is logged in on multiple devices, they will receive the event on the other devices.
 </Warning>
-
----
 
 ## Missed Messages
 
-*In other words, as a recipient, how do I receive messages that I missed when my app was not running?*
-
-For most cases, you will need to add functionality to load missed messages. If you're building an on-demand or live streaming app, you may choose to skip this and fetch message history instead.
-
-Using the same `MessagesRequest` class and the filters provided by the `MessagesRequestBuilder` class, you can fetch the message that we sent to the logged-in user but were not delivered to him as he was offline. For this, you will require the Id of the last message received. You can either maintain it at your end or use the `getLastDeliveredMessageId()` method provided by the CometChat class. This Id needs to be passed to the `setMessageId()` method of the builder class.
-
-Now using the `fetchNext()` method, you can fetch all the messages that were sent to the user when he/she was offline.
-
-Calling the `fetchNext()` method on the same object repeatedly allows you to fetch all the offline messages for the logged in user in a paginated manner
+Fetch messages that were sent while the app was offline using `MessagesRequest` with `setMessageId()` set to the last delivered message ID.
 
 ### Fetch Missed Messages of a particular one-on-one conversation
 
-<Tabs>
-<Tab title="Swift">
 ```swift
-let limit = 50;
+let limit = 50
 let latestId = CometChat.getLastDeliveredMessageId()
 let UID = "cometchat-uid-2"
 
-let messagesRequest = MessagesRequest.MessageRequestBuilder().set(messageID: latestId).set(uid:UID).set(limit: limit).build();
+let messagesRequest = MessagesRequest.MessageRequestBuilder()
+  .set(messageID: latestId)
+  .set(uid: UID)
+  .set(limit: limit)
+  .build()
 
 messagesRequest.fetchNext(onSuccess: { (messages) in
-
- for message in messages!{
-
+  for message in messages! {
     if let receivedMessage = (message as? TextMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-    }
-    else if let receivedMessage = (message as? MediaMessage) {
+    } else if let receivedMessage = (message as? MediaMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-  	}
+    }
   }
-
 }) { (error) in
-
   print("Message receiving failed with error: " + error!.errorDescription);
 }
 ```
-</Tab>
-</Tabs>
-
-
-<Accordion title="Sample Payloads - Fetch Missed Messages (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchNext()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageID | `Int` | `37797` (last delivered message ID) |
-| uid | `String` | `"cometchat-uid-2"` |
-| limit | `Int` | `50` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Return Type:** `[BaseMessage]` (Array of [TextMessage](/sdk/ios/send-message#textmessage-object), [MediaMessage](/sdk/ios/send-message#mediamessage-object), or [CustomMessage](/sdk/ios/send-message#custommessage-object))
-
-**Example TextMessage in array:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37798` |
-| muid | `String` | `"1771917734.123456"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917734` |
-| deliveredAt | `Double` | `0.0` |
-| readAt | `Double` | `0.0` |
-| text | `String` | `"Hey, are you there?"` |
-
-**sender** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-
-**receiver** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| name | `String` | `"George Alan"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERROR_USER_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"Please log in to CometChat before calling this method"` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ### Fetch Missed Messages of a particular group conversation
 
-<Tabs>
-<Tab title="Swift">
 ```swift
-let limit = 50;
+let limit = 50
 let latestId = CometChat.getLastDeliveredMessageId()
 let GUID = "cometchat-guid-1"
 
-let messagesRequest = MessagesRequest.MessageRequestBuilder().set(messageID: latestId).set(guid:GUID).set(limit: limit).build();
+let messagesRequest = MessagesRequest.MessageRequestBuilder()
+  .set(messageID: latestId)
+  .set(guid: GUID)
+  .set(limit: limit)
+  .build()
 
 messagesRequest.fetchNext(onSuccess: { (messages) in
-
- for message in messages!{
-
+  for message in messages! {
     if let receivedMessage = (message as? TextMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-    }
-    else if let receivedMessage = (message as? MediaMessage) {
+    } else if let receivedMessage = (message as? MediaMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-  	}
+    }
   }
-
 }) { (error) in
-
   print("Message receiving failed with error: " + error!.errorDescription);
 }
 ```
-</Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - Fetch Missed Messages (Group)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchNext()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageID | `Int` | `37795` (last delivered message ID) |
-| guid | `String` | `"cometchat-guid-1"` |
-| limit | `Int` | `50` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Return Type:** `[BaseMessage]`
-
-**Example TextMessage in array:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37796` |
-| muid | `String` | `"1771917600.654321"` |
-| conversationId | `String` | `"group_cometchat-guid-1"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-guid-1"` |
-| receiverType | `CometChat.ReceiverType` | `1` (`.group`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| messageCategory | `CometChat.MessageCategory` | `0` (`.message`) |
-| sentAt | `Int` | `1771917600` |
-| text | `String` | `"Hello team!"` |
-
-**sender** ([User](/sdk/ios/send-message#user-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-3"` |
-| name | `String` | `"Nancy Grace"` |
-| avatar | `String` | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-3.webp"` |
-
-**receiver** ([Group](/sdk/ios/send-message#group-object)):
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| guid | `String` | `"cometchat-guid-1"` |
-| name | `String` | `"Development Team"` |
-| icon | `String` | `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"` |
-| type | `CometChat.GroupType` | `"public"` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERROR_USER_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"Please log in to CometChat before calling this method"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
----
 
 ## Unread Messages
 
-*In other words, as a logged-in user, how do I fetch the messages I've not read?*
+Fetch unread messages by adding `setUnread(true)` to the builder. Use `fetchPrevious()` to retrieve them.
 
-Using the `MessagesRequest` class described above, you can fetch the unread messages for the logged-in user. In order to achieve this, you need to set the `unread` variable in the builder to `true` using the `setUnread()` method so that only the unread messages are fetched.
-
-### Fetch Unread Messages of a particular one-on-one conversation
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let limit = 50;
+let limit = 50
 let UID = "cometchat-uid-2"
-let messagesRequest = MessagesRequest.MessageRequestBuilder().set(unread: true).set(limit: limit).set(uid:UID).build();
+
+let messagesRequest = MessagesRequest.MessageRequestBuilder()
+  .set(unread: true)
+  .set(limit: limit)
+  .set(uid: UID)
+  .build()
 
 messagesRequest.fetchPrevious(onSuccess: { (messages) in
-
-  for message in messages!{
-
+  for message in messages! {
     if let receivedMessage = (message as? TextMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-    }
-    else if let receivedMessage = (message as? MediaMessage) {
+    } else if let receivedMessage = (message as? MediaMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
-  	}
+    }
   }
-
 }) { (error) in
-
   print("Message receiving failed with error: " + error!.errorDescription);
 }
 ```
-</Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - Fetch Unread Messages (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchPrevious()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| unread | `Bool` | `true` |
-| limit | `Int` | `30` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Return Type:** `[BaseMessage]` (Array of unread messages)
-
-**Example TextMessage in array:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37795` |
-| muid | `String` | `"1771917500.123456"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-3"` |
-| receiverUid | `String` | `"cometchat-uid-2"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| sentAt | `Int` | `1771917500` |
-| deliveredAt | `Double` | `0.0` |
-| readAt | `Double` | `0.0` |
-| text | `String` | `"Hey, are you there?"` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERROR_USER_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"Please log in to CometChat before calling this method"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
----
 
 ## Message History
 
-*In other words, as a logged-in user, how do I fetch the complete message history?*
+Fetch the full conversation history using `fetchPrevious()`. Call it repeatedly on the same request object to paginate.
 
-### Fetch Message History of a particular one-on-one conversation
-
-Using the `MessagesRequest` class and the filters for the `MessagesRequestBuilder` class as shown in the below code snippet, you can fetch the entire conversation between the logged in user and any particular user.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let limit = 50;
+let limit = 50
 let UID = "cometchat-uid-2"
 
-let messagesRequest = MessagesRequest.MessageRequestBuilder().set(limit: limit).set(uid:UID).build();
+let messagesRequest = MessagesRequest.MessageRequestBuilder()
+  .set(limit: limit)
+  .set(uid: UID)
+  .build()
 
 messagesRequest.fetchPrevious(onSuccess: { (messages) in
-
-  for message in messages!{
-
-    if let receivedMessage = (message as ? TextMessage) {
+  for message in messages! {
+    if let receivedMessage = (message as? TextMessage) {
+      print("Message received successfully. " + receivedMessage.stringValue())
+    } else if let receivedMessage = (message as? MediaMessage) {
       print("Message received successfully. " + receivedMessage.stringValue())
     }
-    else if let receivedMessage = (message as ? MediaMessage) {
-      print("Message received successfully. " + receivedMessage!.stringValue())
   }
-}
-
 }) { (error) in
-
   print("Message receiving failed with error: " + error!.errorDescription);
 }
 ```
-</Tab>
-</Tabs>
-
-<Accordion title="Sample Payloads - Fetch Message History (User)">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `MessagesRequest.fetchPrevious()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| uid | `String` | `"cometchat-uid-2"` |
-| limit | `Int` | `30` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Return Type:** `[BaseMessage]`
-
-**Example TextMessage in array:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `37790` |
-| muid | `String` | `"1771917000.111111"` |
-| conversationId | `String` | `"cometchat-uid-2_user_cometchat-uid-3"` |
-| senderUid | `String` | `"cometchat-uid-2"` |
-| receiverUid | `String` | `"cometchat-uid-3"` |
-| receiverType | `CometChat.ReceiverType` | `0` (`.user`) |
-| messageType | `CometChat.MessageType` | `0` (`.text`) |
-| sentAt | `Int` | `1771917000` |
-| deliveredAt | `Double` | `1771917005.0` |
-| readAt | `Double` | `1771917010.0` |
-| text | `String` | `"Hello!"` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** [CometChatException](/sdk/ios/send-message#cometchatexception-object)
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERROR_USER_NOT_LOGGED_IN"` |
-| errorDescription | `String` | `"Please log in to CometChat before calling this method"` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 <Note>
-BaseMessage
-
-The list of messages received is in the form of objects of `BaseMessage` class. A BaseMessage can either be a `TextMessage` or a `MediaMessage`. You can use the `instanceOf` operator to check the type of object.
-
+The list of messages received is in the form of `BaseMessage` objects. A `BaseMessage` can be a `TextMessage`, `MediaMessage`, or `CustomMessage`. Use type casting to check the type.
 </Note>
 
 ---
 
-## Common Error Codes
+## Next Steps
 
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| `ERROR_USER_NOT_LOGGED_IN` | User is not logged in | Call `CometChat.login()` first |
-| `ERR_SDK_NOT_INITIALIZED` | SDK not initialized | Call `CometChat.init()` first |
-| `ERR_NETWORK_ERROR` | Network connectivity issue | Check internet connection and retry |
+<CardGroup cols={2}>
+  <Card title="Delivery & Read Receipts" icon="check-double" href="/sdk/ios/delivery-read-receipts">
+    Track when messages are delivered and read by recipients
+  </Card>
+  <Card title="Typing Indicators" icon="keyboard" href="/sdk/ios/typing-indicators">
+    Show real-time typing status in conversations
+  </Card>
+</CardGroup>

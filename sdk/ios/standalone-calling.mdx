@@ -1,19 +1,31 @@
 ---
 title: "Standalone Calling"
-description: "Guide to implementing voice and video calling using only the CometChat Calls SDK without the Chat SDK."
+sidebarTitle: "Standalone Calling"
+description: "Implement video and audio calling using only the CometChat Calls SDK without the Chat SDK for iOS."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Auth token:** Obtain via CometChat REST API (no Chat SDK required)
-- **Generate call token:** `CometChatCalls.generateToken(authToken:sessionID:onSuccess:onError:)`
-- **Start session:** `CometChatCalls.startSession(callToken:callSettings:onSuccess:onError:)`
-- **Use case:** Apps needing calling without full chat infrastructure
-- **Related:** [Calling Setup](/sdk/ios/calling-setup) · [Call Session](/sdk/ios/direct-calling) · [Calling Overview](/sdk/ios/calling-overview)
-</Info>
+```swift
+let sessionId = "SESSION_ID"
+let userAuthToken = "USER_AUTH_TOKEN"  // From REST API
 
+// Generate call token (requires user auth token from REST API)
+CometChatCalls.generateToken(authToken: userAuthToken as NSString, sessionID: sessionId) { token in
+    let callSettings = CometChatCalls.CallSettingsBuilder
+        .setDefaultLayout(true)
+        .setIsAudioOnly(false)
+        .setDelegate(self)
+        .build()
+
+    // Start call session
+    CometChatCalls.startSession(callToken: token, callSetting: callSettings, view: callView) { _ in } onError: { _ in }
+} onError: { error in }
+
+// End session
+CometChatCalls.endSession()
+```
+</Accordion>
 ## Overview
 
 This section demonstrates how to implement calling functionality using only the CometChat Calls SDK, without requiring the Chat SDK. This is ideal for applications that need video/audio calling capabilities without the full chat infrastructure.
@@ -576,3 +588,16 @@ CometChatCalls.endSession()
 ```
 </Tab>
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ringing" icon="phone" href="/sdk/ios/default-calling">
+    Implement ringing call flows using the Chat SDK
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/ios/recording">
+    Add call recording to your voice and video calls
+  </Card>
+</CardGroup>

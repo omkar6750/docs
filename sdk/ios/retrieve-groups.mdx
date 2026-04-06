@@ -1,136 +1,39 @@
 ---
 title: "Retrieve Groups"
-description: "Guide to fetching group lists using the CometChat iOS SDK GroupsRequest builder with search and filtering options."
+sidebarTitle: "Retrieve Groups"
+description: "Fetch, filter, and search groups using the CometChat iOS SDK. Includes pagination, tag-based filtering, joined-only groups, and online member counts."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Build request:** `GroupsRequest.GroupsRequestBuilder().set(limit:).build()`
-- **Fetch groups:** `groupsRequest.fetchNext(onSuccess:onError:)`
-- **Get single group:** `CometChat.getGroup(GUID:onSuccess:onError:)`
-- **Online count:** `CometChat.getOnlineGroupMemberCount(_:onSuccess:onError:)`
-- **Filters:** `.set(searchKeyword:)`, `.set(joinedOnly:)`, `.set(tags:)`, `.withTags(_:)`
-- **Related:** [Create Group](/sdk/ios/create-group) · [Join Group](/sdk/ios/join-group) · [Groups Overview](/sdk/ios/groups-overview)
-</Info>
-
-## Group Data Model
-
-The `Group` class represents a CometChat group with all its properties.
-
-<Tabs>
-<Tab title="Swift">
 ```swift
-let group = Group(guid: "group123", name: "My Group", groupType: .public, password: nil)
+// Fetch groups list
+let request = GroupsRequest.GroupsRequestBuilder()
+    .set(limit: 30).build()
+request.fetchNext(onSuccess: { groups in }, onError: { error in })
+
+// Get specific group details
+CometChat.getGroup(GUID: "GUID", onSuccess: { group in }, onError: { error in })
+
+// Fetch only joined groups
+let joinedRequest = GroupsRequest.GroupsRequestBuilder()
+    .set(limit: 30).set(joinedOnly: true).build()
+
+// Get online member count
+CometChat.getOnlineGroupMemberCount(["GUID"],
+    onSuccess: { countData in }, onError: { error in })
 ```
-</Tab>
-</Tabs>
-
-### Group Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| guid | String | Unique group identifier (required) |
-| name | String? | Group display name |
-| groupType | [GroupType](#grouptype-enum) | `.public`, `.private`, or `.password` |
-| icon | String? | Group icon URL |
-| groupDescription | String? | Group description |
-| owner | String? | UID of group owner |
-| metadata | [String: Any]? | Custom metadata dictionary |
-| createdAt | Int | Creation Unix timestamp |
-| updatedAt | Int | Last update Unix timestamp |
-| hasJoined | Bool | Whether logged-in user is a member |
-| joinedAt | Int | When user joined (Unix timestamp) |
-| membersCount | Int | Total number of members |
-| scope | [MemberScope](#memberscope-enum) | User's scope in group |
-| tags | [String] | Array of group tags |
-| password | String? | Password (for password-protected groups) |
-
-<Accordion title="Sample Payload - Group Object">
-
-**Group Object Properties:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"Hiking Group"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| icon | String? | URL to the group's icon image. Example: `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"` |
-| groupDescription | String? | Description of the group. Example: `"Explore, connect, and chat with fellow outdoor enthusiasts"` |
-| owner | String? | UID of the group owner. Example: `"cometchat-uid-5"` |
-| membersCount | Int | Total number of members in the group. Example: `5` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| joinedAt | Int | Unix timestamp when user joined. Example: `1753861429` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| createdAt | Int | Unix timestamp when group was created. Example: `1753861429` |
-| updatedAt | Int | Unix timestamp of last update. Example: `0` |
-| tags | [String] | Array of tags associated with the group. Example: `["general", "public"]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `["category": "social", "isVerified": true]` |
-
-**Metadata Properties (when present):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| metadata.category | String | Category of the group. Example: `"social"` |
-| metadata.isVerified | Bool | Whether the group is verified. Example: `true` |
-
 </Accordion>
 
----
+Fetch the list of `Group` objects the logged-in user can see, get details for a specific group, or check online member counts.
 
 ## Retrieve List of Groups
 
-*In other words, as a logged-in user, how do I retrieve the list of groups I've joined and groups that are available?*
-
-In order to fetch the list of groups, you can use the `GroupsRequest` class. To use this class i.e to create an object of the GroupsRequest class, you need to use the `GroupsRequestBuilder` class. The `GroupsRequestBuilder` class allows you to set the parameters based on which the groups are to be fetched.
-
-### GroupsRequestBuilder Methods
-
-| Method | Parameter | Returns | Description |
-|--------|-----------|---------|-------------|
-| `init(limit:)` | Int | GroupsRequestBuilder | Constructor with limit |
-| `set(limit:)` | Int | GroupsRequestBuilder | Number of groups to fetch (1-100) |
-| `set(searchKeyword:)` | String | GroupsRequestBuilder | Search in group name |
-| `set(joinedOnly:)` | Bool | GroupsRequestBuilder | Only joined groups |
-| `set(tags:)` | [String] | GroupsRequestBuilder | Filter by group tags |
-| `withTags(_:)` | Bool | GroupsRequestBuilder | Include tags in response |
-| `build()` | - | GroupsRequest | Build the request object |
-
-<Accordion title="Sample Payload - GroupsRequestBuilder">
-
-**Builder Configuration:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of groups to fetch per request. Range: 1-100. Example: `30` |
-| searchKeyword | String | Search string to filter groups by name. Example: `"team"` |
-| joinedOnly | Bool | Whether to return only groups the user has joined. Example: `true` |
-| tags | [String] | Filter groups by tags. Example: `["premium", "verified"]` |
-| withTags | Bool | Include tags data in response. Example: `true` |
-
-**Common Filter Combinations:**
-
-| Use Case | Builder Configuration |
-| -------- | --------------------- |
-| Fetch all groups | `.set(limit: 30).build()` |
-| Fetch only joined groups | `.set(limit: 30).set(joinedOnly: true).build()` |
-| Search groups by name | `.set(limit: 30).set(searchKeyword: "team").build()` |
-| Fetch groups with specific tags | `.set(limit: 30).set(tags: ["premium", "verified"]).build()` |
-| Fetch groups with tags data | `.set(limit: 30).withTags(true).build()` |
-| Combined filters | `.set(limit: 30).set(joinedOnly: true).set(searchKeyword: "project").withTags(true).build()` |
-
-<Warning>
-- `fetchNext()` returns public and password groups by default
-- Private groups only returned if user is a member
-- Use `set(joinedOnly: true)` to get only groups user has joined
-</Warning>
-
-</Accordion>
+Use `GroupsRequestBuilder` to fetch groups with filtering, searching, and pagination.
 
 ### Set Limit
 
-This method sets the limit i.e. the number of groups that should be fetched in a single iteration.
+Sets the number of groups to fetch per request.
 
 <Tabs>
 <Tab title="Swift">
@@ -144,7 +47,7 @@ let groupsRequest = GroupsRequest.GroupsRequestBuilder()
 
 ### Set Search Keyword
 
-This method allows you to set the search string based on which the groups are to be fetched.
+Filters groups by a search string.
 
 <Tabs>
 <Tab title="Swift">
@@ -159,7 +62,7 @@ let groupsRequest = GroupsRequest.GroupsRequestBuilder()
 
 ### Joined Only
 
-This method when used, will ask the SDK to only return the groups that the user has joined or is a part of.
+When `true`, returns only groups the logged-in user has joined.
 
 <Tabs>
 <Tab title="Swift">
@@ -174,7 +77,7 @@ let groupsRequest = GroupsRequest.GroupsRequestBuilder()
 
 ### Set Tags
 
-This method accepts a list of tags based on which the list of groups is to be fetched. The list fetched will only contain the groups that have been tagged with the specified tags.
+Filters groups by specified tags.
 
 <Tabs>
 <Tab title="Swift">
@@ -189,7 +92,7 @@ let groupsRequest = GroupsRequest.GroupsRequestBuilder()
 
 ### With Tags
 
-This property when set to true will fetch tags data along with the list of groups.
+When `true`, includes tag data in the returned group objects.
 
 <Tabs>
 <Tab title="Swift">
@@ -202,11 +105,11 @@ let groupsRequest = GroupsRequest.GroupsRequestBuilder()
 </Tab>
 </Tabs>
 
-Finally, once all the parameters are set to the builder class, you need to call the `build()` method to get the object of the `GroupsRequest` class.
+After configuring the builder, call `build()` to get the `GroupsRequest` object, then call `fetchNext()` to retrieve groups.
 
-Once you have the object of the `GroupsRequest` class, you need to call the `fetchNext()` method. Calling this method will return a list of `Group` objects containing n number of groups where n is the limit set in the builder class.
-
-The list of groups fetched will only have the public and password type groups. The private groups will only be available if the user is a member of the group.
+<Note>
+The list only includes public and password-protected groups. Private groups appear only if the user is a member.
+</Note>
 
 <Tabs>
 <Tab title="Swift">
@@ -241,163 +144,9 @@ GroupsRequest *groupRequest = [[[GroupsRequestBuilder alloc]initWithLimit:limit]
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - Fetch Groups">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of groups to fetch. Example: `30` |
-
-**Success Response (Array of [Group](#group-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"_dbhbcdsh_b211ad"` |
-| name | String? | Group display name. Example: `"Dbhbcdsh"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| icon | String? | URL to the group's icon image. Example: `nil` |
-| groupDescription | String? | Description of the group. Example: `nil` |
-| owner | String? | UID of the group owner. Example: `"sanket"` |
-| membersCount | Int | Total number of members. Example: `9` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| joinedAt | Int | Unix timestamp when user joined. Example: `1753861429` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| createdAt | Int | Unix timestamp when group was created. Example: `1753861429` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Response Summary:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| type | String | Response type. Example: `"[Group]"` |
-| count | Int | Number of groups returned. Example: `30` |
-
-**Sample Group Entries:**
-
-| guid | name | groupType | membersCount | hasJoined | scope | owner |
-| ---- | ---- | --------- | ------------ | --------- | ----- | ----- |
-| _dbhbcdsh_b211ad | Dbhbcdsh | .public | 9 | true | .participant | sanket |
-| 09f095a4-02e4-4097-9c1c-3df2620f61ff | Bcvdsghc | .public | 4 | true | .participant | cometchat-uid-5 |
-| 18f0078c-0f10-4fd5-9331-1a7676c8bcb2 | Bros | .public | 8 | true | .participant | cometchat-uid-5 |
-| 1ba8a356-dde5-4b09-aa36-24b5457e9274 | Bc dagh c | .public | 3 | true | .participant | cometchat-uid-5 |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | String | Human-readable error message. Example: `"User is not logged in"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Fetch Joined Groups Only">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of groups to fetch. Example: `30` |
-| joinedOnly | Bool | Filter to only joined groups. Example: `true` |
-
-**Success Response (Array of [Group](#group-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"_dbhbcdsh_b211ad"` |
-| name | String? | Group display name. Example: `"Dbhbcdsh"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| icon | String? | URL to the group's icon image. Example: `nil` |
-| owner | String? | UID of the group owner. Example: `"sanket"` |
-| membersCount | Int | Total number of members. Example: `9` |
-| hasJoined | Bool | Always `true` for joined groups filter. Example: `true` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| tags | [String] | Array of tags. Example: `[]` |
-
-**Response Summary:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| type | String | Response type. Example: `"[Group]"` |
-| count | Int | Number of joined groups returned. Example: `30` |
-| filter | String | Applied filter. Example: `"joinedOnly = true"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Fetch Groups with Tags Data">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of groups to fetch. Example: `30` |
-| withTags | Bool | Include tags data in response. Example: `true` |
-
-**Success Response (Array of [Group](#group-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"_dbhbcdsh_b211ad"` |
-| name | String? | Group display name. Example: `"Dbhbcdsh"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.public` |
-| membersCount | Int | Total number of members. Example: `9` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| owner | String? | UID of the group owner. Example: `"sanket"` |
-| tags | [String] | Array of tags (populated when withTags is true). Example: `["premium", "verified"]` |
-
-**Response Summary:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| type | String | Response type. Example: `"[Group]"` |
-| count | Int | Number of groups returned. Example: `30` |
-| filter | String | Applied filter. Example: `"withTags = true"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Fetch Groups with Search">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| limit | Int | Maximum number of groups to fetch. Example: `30` |
-| searchKeyword | String | Search string to filter groups. Example: `"Cometchat-guid-1"` |
-
-**Success Response (Array of [Group](#group-properties) Objects):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"Hiking Group"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.private` |
-| icon | String? | URL to the group's icon image. Example: `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"` |
-| groupDescription | String? | Description of the group. Example: `"Explore, connect, and chat with fellow outdoor enthusiasts"` |
-| owner | String? | UID of the group owner. Example: `"cometchat-uid-5"` |
-| membersCount | Int | Total number of members. Example: `5` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| tags | [String] | Array of tags. Example: `[]` |
-
-**Response Summary:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| type | String | Response type. Example: `"[Group]"` |
-| count | Int | Number of groups matching search. Example: `1` |
-| filter | String | Applied filter. Example: `"searchKeyword = Cometchat-guid-1"` |
-
-</Accordion>
-
----
-
 ## Retrieve Particular Group Details
 
-*In other words, as a logged-in user, how do I retrieve information for a specific group?*
-
-To get the information of a group, you can use the `getGroup()` method.
+Use `getGroup()` to fetch a specific group's details by GUID.
 
 <Tabs>
 <Tab title="Swift">
@@ -424,53 +173,15 @@ NSString *guid = @"cometchat-guid-1";
 </Tab>
 </Tabs>
 
-| Parameter | Description |
-| --------- | ----------- |
-| GUID | The `GUID` of the group for whom the details are to be fetched. |
+| Parameter | Description                    |
+| --------- | ------------------------------ |
+| `GUID`    | The GUID of the group to fetch |
 
-On success, the `Group` object containing the details of the group is returned.
-
-<Accordion title="Sample Payload - Get Group">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| GUID | String | Unique identifier of the group to fetch. Example: `"cometchat-guid-1"` |
-
-**Success Response ([Group](#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"Hiking Group"` |
-| groupType | [GroupType](#grouptype-enum) | Type of group. Example: `.private` |
-| icon | String? | URL to the group's icon image. Example: `"https://assets.cometchat.io/sampleapp/v2/groups/cometchat-guid-1.webp"` |
-| groupDescription | String? | Description of the group. Example: `"Explore, connect, and chat with fellow outdoor enthusiasts, thanks to our CometChat-enabled community platform."` |
-| owner | String? | UID of the group owner. Example: `"cometchat-uid-5"` |
-| membersCount | Int | Total number of members. Example: `5` |
-| hasJoined | Bool | Whether the logged-in user is a member. Example: `true` |
-| joinedAt | Int | Unix timestamp when user joined. Example: `1753861429` |
-| scope | [MemberScope](#memberscope-enum) | User's scope in the group. Example: `.participant` |
-| createdAt | Int | Unix timestamp when group was created. Example: `1753861429` |
-| updatedAt | Int | Unix timestamp of last update. Example: `0` |
-| tags | [String] | Array of tags. Example: `[]` |
-| metadata | [String: Any]? | Custom metadata dictionary. Example: `[:]` |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GUID_NOT_FOUND"` |
-| errorDescription | String | Human-readable error message. Example: `"Group with specified GUID does not exist"` |
-
-</Accordion>
-
----
+The method returns a `Group` object.
 
 ## Get Online Group Member Count
 
-To get the total count of online users in particular groups, you can use the `getOnlineGroupMemberCount()` method.
+Use `getOnlineGroupMemberCount()` to get the number of online members in specified groups.
 
 <Tabs>
 <Tab title="Swift">
@@ -489,63 +200,17 @@ CometChat.getOnlineGroupMemberCount(guids, onSuccess: { countData in
 </Tab>
 </Tabs>
 
-This method returns a `[String: Int]` dictionary with the GUID as the key and the online member count for that group as the value.
-
-<Accordion title="Sample Payload - Get Online Group Member Count">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| GUIDs | [String] | Array of group GUIDs to check. Example: `["cometchat-guid-1"]` |
-
-**Success Response ([String: Int] Dictionary):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| {guid} | Int | Key is the GUID, value is the online member count. Example: `"cometchat-guid-1": 0` |
-
-**Response Format:**
-
-| GUID | Online Members |
-| ---- | -------------- |
-| cometchat-guid-1 | 0 |
-| cometchat-guid-2 | 5 |
-| cometchat-guid-3 | 12 |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_NOT_LOGGED_IN"` |
-| errorDescription | String | Human-readable error message. Example: `"User is not logged in"` |
-
-</Accordion>
+Returns a `[String: Int]` dictionary with GUIDs as keys and online member counts as values.
 
 ---
 
-## GroupType Enum
+## Next Steps
 
-| Value | Description |
-|-------|-------------|
-| .public | Anyone can join without approval |
-| .private | Requires invitation or approval to join |
-| .password | Requires password to join |
-
-## MemberScope Enum
-
-| Value | Description |
-|-------|-------------|
-| .admin | Full control over group |
-| .moderator | Can manage members and messages |
-| .participant | Regular member with basic permissions |
-
-## Common Error Codes
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_NOT_LOGGED_IN | User is not logged in | Login first using `CometChat.login()` |
-| ERR_GUID_NOT_FOUND | Group with specified GUID does not exist | Verify the GUID is correct |
-| ERR_INVALID_LIMIT | Invalid limit value provided | Use a limit between 1-100 |
-| ERR_ALREADY_JOINED | User is already a member of the group | Check membership before joining |
-| ERR_NOT_A_MEMBER | User is not a member of the group | Join the group first |
+<CardGroup cols={2}>
+  <Card title="Create Group" icon="plus" href="/sdk/ios/create-group">
+    Create public, private, or password-protected groups
+  </Card>
+  <Card title="Retrieve Group Members" icon="users" href="/sdk/ios/retrieve-group-members">
+    Fetch and filter members of a specific group
+  </Card>
+</CardGroup>

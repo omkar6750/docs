@@ -1,34 +1,29 @@
 ---
 title: "Transfer Group Ownership"
-description: "Guide to transferring group ownership using the CometChat iOS SDK transferGroupOwnership method (owner only)."
+sidebarTitle: "Transfer Ownership"
+description: "Transfer ownership of a CometChat group to another member using the iOS SDK."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Transfer ownership:** `CometChat.transferGroupOwnership(UID:GUID:onSuccess:onError:)`
-- **Permission:** Only current group owner can transfer ownership
-- **Note:** Owner must transfer ownership before leaving the group
-- **Related:** [Leave Group](/sdk/ios/leave-group) · [Change Member Scope](/sdk/ios/group-change-member-scope) · [Groups Overview](/sdk/ios/groups-overview)
-</Info>
+```swift
+// Transfer group ownership
+CometChat.transferGroupOwnership(UID: "NEW_OWNER_UID", GUID: "GUID", onSuccess: { success in }, onError: { error in })
+```
 
-## Transfer Group Ownership
+**Note:** Only the current group owner can transfer ownership. The owner must transfer ownership before leaving the group.
+</Accordion>
 
-*In other words, as a logged-in user, how do I transfer the ownership of any group if I am the owner of the group?*
+Transfer ownership of a group to another member. Only the current owner can do this, and since owners cannot leave their group, you must transfer ownership first if you want to leave. See [Leave Group](/sdk/ios/leave-group).
 
-In order to transfer the ownership of any group, the first condition is that you must be the owner of the group. In case you are the owner of the group, you can use the `transferGroupOwnership()` method.
+## Transfer Ownership
 
-<Warning>
-The owner is not allowed to leave the group. If you as the owner would like to leave the group, you will have to transfer your ownership first to any other member of the group and only then you will be allowed to leave the group.
-</Warning>
+Use `transferGroupOwnership()` to transfer ownership to another group member.
 
-### Method Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| UID | String | The UID of the new owner |
-| GUID | String | The GUID of the group |
+| Parameter | Description |
+|-----------|-------------|
+| `UID` | The UID of the member to become the new owner |
+| `GUID` | The GUID of the group |
 
 <Tabs>
 <Tab title="Swift">
@@ -45,84 +40,11 @@ CometChat.transferGroupOwnership(UID: uid, GUID: guid, onSuccess: { (success) in
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payload - Transfer Group Ownership">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the new owner. Example: `"cometchat-uid-2"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
-
-**Success Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| success | String | Success message. Example: `"Group ownership transferred successfully"` |
-
-**After Transfer:**
-
-| Effect | Description |
-| ------ | ----------- |
-| New Owner | Has full admin privileges and ownership |
-| Previous Owner | Becomes an admin (not owner) |
-| Leave Group | Previous owner can now leave the group |
-| Event | Other members receive `onOwnershipChanged` event |
-
-**Error Response ([CometChatException](#common-error-codes)):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_GROUP_NOT_JOINED"` |
-| errorDescription | String | Human-readable error message. Example: `"The user is not a member of the group"` |
-
-</Accordion>
-
-<Accordion title="Sample Payload - Transfer Ownership Error (Not Owner)">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier of the new owner. Example: `"cometchat-uid-2"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
-
-**Error Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_PERMISSION_DENIED"` |
-| errorDescription | String | Human-readable error message. Example: `"User is not the owner of the group"` |
-
-<Warning>Only the current owner can transfer ownership.</Warning>
-
-</Accordion>
-
-<Accordion title="Sample Payload - Transfer Ownership Error (To Self)">
-
-**Request Parameters:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| UID | String | Unique identifier (same as current owner). Example: `"cometchat-uid-1"` |
-| GUID | String | Unique identifier of the group. Example: `"cometchat-guid-1"` |
-
-**Error Response:**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| errorCode | String | Unique error code. Example: `"ERR_CANNOT_TRANSFER_TO_SELF"` |
-| errorDescription | String | Human-readable error message. Example: `"Cannot transfer ownership to yourself"` |
-
-</Accordion>
-
----
+On success, the new owner gets admin scope and the previous owner becomes a participant.
 
 ## Real-Time Ownership Changed Events
 
-*In other words, as a member of a group, how do I know when ownership is transferred?*
-
-In order to receive real-time events whenever group ownership changes, you will need to implement the `onOwnershipChanged()` method of the `CometChatGroupDelegate`.
+Implement `onOwnershipChanged()` in `CometChatGroupDelegate` to receive real-time notifications when group ownership changes.
 
 <Tabs>
 <Tab title="Swift">
@@ -143,61 +65,30 @@ class ViewController: UIViewController, CometChatGroupDelegate {
 </Tab>
 </Tabs>
 
-### onOwnershipChanged Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| group | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where ownership changed |
-| newOwner | [GroupMember](/sdk/ios/retrieve-group-members#groupmember-object-properties) | The new owner of the group |
-
-<Accordion title="Sample Payload - onOwnershipChanged Event">
-
-**Event Trigger:** Received via `CometChatGroupDelegate.onOwnershipChanged(group:newOwner:)`
-
-**group ([Group](/sdk/ios/retrieve-groups#group-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| guid | String | Unique group identifier. Example: `"cometchat-guid-1"` |
-| name | String? | Group display name. Example: `"My Group"` |
-| owner | String? | UID of the new owner. Example: `"cometchat-uid-2"` |
-| membersCount | Int | Total number of members. Example: `5` |
-
-**newOwner ([GroupMember](/sdk/ios/retrieve-group-members#groupmember-object-properties) Object):**
-
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| uid | String? | Unique identifier of the new owner. Example: `"cometchat-uid-2"` |
-| name | String? | Display name of the new owner. Example: `"George Alan"` |
-| avatar | String? | URL to the new owner's avatar. Example: `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
-| scope | [MemberScope](/sdk/ios/retrieve-group-members#memberscope-enum) | New owner's scope. Example: `.admin` |
-
-</Accordion>
+<Warning>
+Set delegate in `viewDidLoad()`: `CometChat.groupdelegate = self`. Remove delegate when view is dismissed to avoid memory leaks.
+</Warning>
 
 ## Missed Ownership Changed Events
 
-*In other words, as a member of a group, how do I know when ownership is transferred when my app is not running?*
+When fetching previous messages, ownership transfers appear as `Action` messages (a subclass of `BaseMessage`).
 
-When you retrieve the list of previous messages if ownership has been transferred for any group that the logged-in user is a member of, the list of messages will contain an `Action` message.
-
-### Action Message Properties (for missed events)
-
-| Property | Type | Description |
-|----------|------|-------------|
-| action | String | `"ownershipChanged"` |
-| actionOn | [User](/sdk/ios/users-overview#user-properties) | New owner |
-| actionBy | [User](/sdk/ios/users-overview#user-properties) | Previous owner who transferred |
-| actionFor | [Group](/sdk/ios/retrieve-groups#group-properties) | Group where change occurred |
+| Field | Value/Type | Description |
+|-------|------------|-------------|
+| `action` | `"ownershipChanged"` | The action type |
+| `actionOn` | [User](/sdk/ios/users-overview#user-properties) | The new owner |
+| `actionBy` | [User](/sdk/ios/users-overview#user-properties) | The previous owner who transferred |
+| `actionFor` | [Group](/sdk/ios/retrieve-groups#group-properties) | The group where change occurred |
 
 ---
 
-## Common Error Codes
+## Next Steps
 
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| ERR_GROUP_NOT_FOUND | Group with specified GUID does not exist | Verify the GUID is correct |
-| ERR_UID_NOT_FOUND | Target user does not exist | Verify the user UID |
-| ERR_GROUP_NOT_JOINED | User is not a member of the group | Join the group first |
-| ERR_NOT_A_MEMBER | Target user is not a member of the group | Add user to group first |
-| ERR_PERMISSION_DENIED | Logged-in user is not the group owner | Only owner can transfer ownership |
-| ERR_CANNOT_TRANSFER_TO_SELF | Cannot transfer ownership to yourself | Specify a different user |
+<CardGroup cols={2}>
+  <Card title="Leave Group" icon="right-from-bracket" href="/sdk/ios/leave-group">
+    Leave a group after transferring ownership
+  </Card>
+  <Card title="Change Member Scope" icon="user-gear" href="/sdk/ios/group-change-member-scope">
+    Promote or demote group members
+  </Card>
+</CardGroup>

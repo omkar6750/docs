@@ -1,19 +1,27 @@
 ---
 title: "Reactions"
-description: "Guide to adding, removing, and fetching message reactions using the CometChat iOS SDK with real-time reaction events."
+sidebarTitle: "Reactions"
+description: "Add, remove, and fetch message reactions in real-time using the CometChat iOS SDK. Includes listener events and helper methods for updating UI."
 ---
 
-{/* TL;DR for Agents and Quick Reference */}
-<Info>
-**Quick Reference for AI Agents & Developers**
+<Accordion title="AI Integration Quick Reference">
 
-- **Add reaction:** `CometChat.addReaction(messageId:reaction:onSuccess:onError:)`
-- **Remove reaction:** `CometChat.removeReaction(messageId:reaction:onSuccess:onError:)`
-- **Fetch reactions:** `ReactionsRequestBuilder().setMessageId(messageId:).build()` → `fetchNext(onSuccess:onError:)`
-- **Listen for reactions:** `onMessageReactionAdded(_:)`, `onMessageReactionRemoved(_:)` in message listener
-- **Related:** [Send Message](/sdk/ios/send-message) · [Messaging Overview](/sdk/ios/messaging-overview)
-</Info>
+```swift
+// Add a reaction
+CometChat.addReaction(messageId: 148, reaction: "\u{1F60A}") { msg in } onError: { err in }
 
+// Remove a reaction
+CometChat.removeReaction(messageId: 148, reaction: "\u{1F60A}") { msg in } onError: { err in }
+
+// Fetch reactions for a message
+let request = ReactionsRequestBuilder().setMessageId(messageId: 148).setLimit(limit: 10).build()
+request.fetchNext { reactions in } onError: { error in }
+
+// Listen for reaction events (CometChatMessageDelegate)
+func onMessageReactionAdded(reactionEvent: ReactionEvent) { }
+func onMessageReactionRemoved(reactionEvent: ReactionEvent) { }
+```
+</Accordion>
 Enhance user engagement in your chat application with message reactions. Users can express their emotions using reactions to messages. This feature allows users to add or remove reactions, and to fetch all reactions on a message.
 
 ---
@@ -33,87 +41,6 @@ CometChat.addReaction(messageId: 148, reaction: "😴") { message in
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Add Reaction">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.addReaction(messageId:reaction:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageId | `Int` | `38230` |
-| reaction | `String` | `"👍"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38230` |
-| reactionAdded | `String` | `"👍"` |
-
-**Reactions List (message.reactions):**
-
-| Reaction | Count | ReactedByMe |
-|----------|-------|-------------|
-| 👍 | `1` | `true` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** CometChatException
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_MESSAGE_NOT_FOUND"` |
-| errorDescription | `String` | `"Message does not exist"` |
-
-</Tab>
-</Tabs>
-</Accordion>
-
-<Accordion title="More Sample Payloads - Multiple Reactions">
-<Tabs>
-<Tab title="Add Heart Reaction">
-
-**Request:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageId | `Int` | `38230` |
-| reaction | `String` | `"❤️"` |
-
-**Updated Reactions List:**
-
-| Reaction | Count | ReactedByMe |
-|----------|-------|-------------|
-| 👍 | `1` | `true` |
-| ❤️ | `1` | `true` |
-
-</Tab>
-<Tab title="Add Laugh Reaction">
-
-**Request:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageId | `Int` | `38230` |
-| reaction | `String` | `"😂"` |
-
-**Updated Reactions List:**
-
-| Reaction | Count | ReactedByMe |
-|----------|-------|-------------|
-| 👍 | `1` | `true` |
-| ❤️ | `1` | `true` |
-| 😂 | `1` | `true` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 <Note>
 You can react on Text, Media and Custom messages.
@@ -136,48 +63,6 @@ CometChat.removeReaction(messageId: 148, reaction: "😴") { message in
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Remove Reaction">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `CometChat.removeReaction(messageId:reaction:)`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageId | `Int` | `38230` |
-| reaction | `String` | `"👍"` |
-
-</Tab>
-<Tab title="Success Response">
-
-**Message Properties:**
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| id | `Int` | `38230` |
-| reactionRemoved | `String` | `"👍"` |
-
-**Updated Reactions List:**
-
-| Reaction | Count | ReactedByMe |
-|----------|-------|-------------|
-| ❤️ | `1` | `true` |
-| 😂 | `1` | `true` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** CometChatException
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERR_REACTION_NOT_FOUND"` |
-| errorDescription | `String` | `"Reaction not found on message"` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
@@ -212,42 +97,6 @@ reactionsRequest.fetchNext { reactions in
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Fetch Reactions">
-<Tabs>
-<Tab title="Request">
-
-**Method:** `ReactionsRequest.fetchNext()`
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| messageId | `Int` | `38230` |
-| limit | `Int` | `30` |
-| reaction | `String?` | `nil` (optional - filter by emoji) |
-
-</Tab>
-<Tab title="Success Response">
-
-**Reactions Array:**
-
-| Reaction | Reacted By UID | Reacted By Name | Reacted At |
-|----------|----------------|-----------------|------------|
-| 😴 | `"cometchat-uid-1"` | `"John Doe"` | `1697025960` |
-| 👍 | `"cometchat-uid-2"` | `"Jane Smith"` | `1697025950` |
-
-</Tab>
-<Tab title="Error Response">
-
-**Object Type:** CometChatException
-
-| Parameter | Type | Value |
-|-----------|------|-------|
-| errorCode | `String` | `"ERROR_LIMIT_EXCEEDED"` |
-| errorDescription | `String` | `"Limit Exceeded Max limit of 100"` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ### Fetch Reactions for Specific Emoji
 
@@ -317,39 +166,6 @@ CometChat.removeMessageListener(listenerID)
 ```
 </Tab>
 </Tabs>
-
-<Accordion title="Sample Payloads - Reaction Events">
-<Tabs>
-<Tab title="onMessageReactionAdded">
-
-**Method:** `onMessageReactionAdded(reactionEvent: ReactionEvent)`
-
-**ReactionEvent Object:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| reaction | `Reaction` | The reaction details |
-| receiverId | `String` | ID of the receiver |
-| receiverType | `ReceiverType` | `.user` or `.group` |
-| conversationId | `String` | ID of the conversation |
-| parentMessageId | `Int` | Parent message ID (for threads) |
-
-</Tab>
-<Tab title="onMessageReactionRemoved">
-
-**Method:** `onMessageReactionRemoved(reactionEvent: ReactionEvent)`
-
-**ReactionEvent Object:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| reaction | `Reaction` | The reaction details |
-| receiverId | `String` | ID of the receiver |
-| receiverType | `ReceiverType` | `.user` or `.group` |
-
-</Tab>
-</Tabs>
-</Accordion>
 
 ---
 
@@ -523,28 +339,6 @@ class ChatViewController: UIViewController, CometChatMessageDelegate {
 </Tab>
 </Tabs>
 
-<Accordion title="Sample Payloads - Update Message With Reaction Info">
-<Tabs>
-<Tab title="Return Value">
-
-The method returns a `BaseMessage` with updated reactions array:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| reactions | `[ReactionCount]` | Updated list of reaction counts |
-
-**Each ReactionCount contains:**
-
-| Property | Type | Description |
-|----------|------|-------------|
-| reaction | `String` | The emoji reaction |
-| count | `Int` | Total count of this reaction |
-| reactedByMe | `Bool` | If logged-in user reacted |
-
-</Tab>
-</Tabs>
-</Accordion>
-
 <Note>
 **Notes:**
 - This is a synchronous method - no callbacks needed
@@ -597,3 +391,22 @@ The method returns a `BaseMessage` with updated reactions array:
 | `ERR_INVALID_REACTION` | Invalid reaction emoji | Use valid emoji |
 | `ERR_ALREADY_REACTED` | Already reacted with emoji | Remove first |
 | `ERR_REACTION_NOT_FOUND` | Reaction not on message | User hasn't reacted |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Send Messages" icon="paper-plane" href="/sdk/ios/send-message">
+    Send text, media, and custom messages to users and groups
+  </Card>
+  <Card title="Receive Messages" icon="inbox" href="/sdk/ios/receive-message">
+    Listen for incoming messages in real-time and fetch missed messages
+  </Card>
+  <Card title="Mentions" icon="at" href="/sdk/ios/mentions">
+    Mention specific users in messages
+  </Card>
+  <Card title="Threaded Messages" icon="comments" href="/sdk/ios/threaded-messages">
+    Organize conversations with message threads
+  </Card>
+</CardGroup>
