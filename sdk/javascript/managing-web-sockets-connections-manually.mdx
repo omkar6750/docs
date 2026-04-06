@@ -1,51 +1,41 @@
 ---
 title: "Managing Web Sockets Connections Manually"
+description: "Learn how to manually manage WebSocket connections for real-time messaging using the CometChat JavaScript SDK."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
-
-## Default SDK behaviour on login
-
-When the login method of the SDK is called, the SDK performs the below operations:
-
-1. Logs the user into the SDK
-2. Saves the details of the logged in user locally.
-3. Creates a web-socket connection for the logged in user.
-
-This makes sure that the logged in user starts receiving real-time messages sent to him or any groups that he is a part of as soon as he logs in.
-
-When the app is reopened, and the init() method is called, the web-socket connection to the server is established automatically.
-
-This is the default behaviour of the CometChat SDKs. However, if you wish to take control of the web-socket connection i.e if you wish to connect and disconnect to the web-socket server manually, you can refer to the Managing Web-socket Connection section.
-
-## Managing the Web-socket connections manually
-
-The CometChat SDK also allows you to modify the above default behaviour of the SDK and take the control of the web-socket connection into your own hands. In order to achieve this, you need to follow the below steps:
-
-1. While calling the init() function on the app startup, you need to inform the SDK that you will be managing the web socket connect. You can do so by using the `autoEstablishSocketConnection()` method provided by the `AppSettingsBuilder` class. This method takes a boolean value as an input. If set to `true` , the SDK will manage the web-socket connection internally based on the default behaviour mentioned above. If set to `false` , the web socket connection can will not be managed by the SDK and you will have to handle it manually. You can refer to the below code snippet for the same:
-
-<Tabs>
-<Tab title="JavaScript">
-```js
-let appID = "APP_ID";
-let region = "APP_REGION";
-let appSetting = new CometChat.AppSettingsBuilder()
-  .subscribePresenceForAllUsers()
-  .setRegion(region)
+```javascript
+// Disable auto WebSocket connection during init
+const appSettings = new CometChat.AppSettingsBuilder()
+  .setRegion("REGION")
   .autoEstablishSocketConnection(false)
   .build();
-CometChat.init(appID, appSetting).then(
-  () => {
-    console.log("Initialization completed successfully");
-  },
-  (error) => {
-    console.log("Initialization failed with error:", error);
-  }
-);
+await CometChat.init("APP_ID", appSettings);
+
+// Manually connect/disconnect
+CometChat.connect();
+CometChat.disconnect();
 ```
+</Accordion>
 
-</Tab>
+By default, the SDK automatically establishes and manages the WebSocket connection — it connects on login, reconnects on `init()` when a session exists, and handles reconnection on network drops. This page covers how to disable that and manage the connection yourself.
 
+You'd want manual control when you need to conserve resources by connecting only when the user is actively chatting, or when you need precise control over when real-time events start flowing.
+
+## Default Behavior
+
+When `autoEstablishSocketConnection` is `true` (the default):
+
+1. `CometChat.login()` logs the user in, saves their session locally, and opens a WebSocket connection
+2. On app restart, `CometChat.init()` automatically reconnects using the saved session
+3. The user immediately starts receiving real-time messages, presence updates, and call events
+
+## Manual Connection Management
+
+To take control of the WebSocket connection, set `autoEstablishSocketConnection(false)` during initialization:
+
+<Tabs>
 <Tab title="TypeScript">
 ```typescript
 let appID: string = "APP_ID";
@@ -67,13 +57,34 @@ CometChat.init(appID, appSetting).then(
 
 </Tab>
 
+<Tab title="JavaScript">
+```javascript
+let appID = "APP_ID";
+let region = "APP_REGION";
+let appSetting = new CometChat.AppSettingsBuilder()
+  .subscribePresenceForAllUsers()
+  .setRegion(region)
+  .autoEstablishSocketConnection(false)
+  .build();
+CometChat.init(appID, appSetting).then(
+  () => {
+    console.log("Initialization completed successfully");
+  },
+  (error) => {
+    console.log("Initialization failed with error:", error);
+  }
+);
+```
+
+</Tab>
+
 </Tabs>
 
-You can manage the connection to the web-socket server using the `connect()` and `disconnect()` methods provided by the SDK.
+Once initialized with manual mode, use `connect()` and `disconnect()` to control the WebSocket connection.
 
-1. Connect to the web-socket server
+### Connect
 
-You need to use the `connect()` method provided by the `CometChat` class to establish the connection to the web-socket server. Please make sure that the user is logged in to the SDK before calling this method. You can use the CometChat.getLoggedInUser() method to check this. Once the connection is established, you will start receiving all the real-time events for the logged in user.
+Establishes the WebSocket connection. The user must be logged in first (check with `CometChat.getLoggedinUser()`). Once connected, real-time events start flowing. Returns `void`.
 
 <Tabs>
 <Tab title="Connect">
@@ -85,9 +96,9 @@ CometChat.connect();
 
 </Tabs>
 
-2. Disconnect from the web-socket server
+### Disconnect
 
-You can use the `disconnect()` method provided by the `CometChat` class to break the established connection. Once the connection is broken, you will stop receiving all the real-time events for the logged in user.
+Breaks the WebSocket connection. Real-time events stop until you call `connect()` again. Returns `void`.
 
 <Tabs>
 <Tab title="Disconnect">
@@ -98,3 +109,22 @@ CometChat.disconnect();
 </Tab>
 
 </Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Connection Status" icon="signal" href="/sdk/javascript/connection-status">
+    Monitor the SDK connection state in real time
+  </Card>
+  <Card title="Login Listener" icon="right-to-bracket" href="/sdk/javascript/authentication-overview#login-listener">
+    Listen for login and logout events
+  </Card>
+  <Card title="All Real-Time Listeners" icon="tower-broadcast" href="/sdk/javascript/all-real-time-listeners">
+    Complete reference for all SDK event listeners
+  </Card>
+  <Card title="Setup SDK" icon="gear" href="/sdk/javascript/setup-sdk">
+    SDK installation and initialization guide
+  </Card>
+</CardGroup>
