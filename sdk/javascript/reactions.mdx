@@ -324,16 +324,16 @@ Always remove listeners when they're no longer needed (e.g., on component unmoun
 When you receive a real-time reaction event, you'll want to update the corresponding message object so your UI reflects the change. `updateMessageWithReactionInfo()` does this — it takes the [`BaseMessage`](/sdk/reference/messages#basemessage) instance, the [`MessageReaction`](/sdk/reference/auxiliary#messagereaction) event data, and the action type, then returns the updated message.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-message.getReactions()    
+<Tab title="TypeScript">
+```typescript
+message.getReactions()
 ```
 
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
-message.getReactions()
+<Tab title="JavaScript">
+```javascript
+message.getReactions()    
 ```
 
 </Tab>
@@ -347,22 +347,22 @@ The `getReactions()` method returns an array of [`ReactionCount`](/sdk/reference
 To check if the logged-in user has reacted on a particular message or not, You can use the `getReactedByMe()` method on any `ReactionCount` object instance. This method will return a boolean value, true if the logged-in user has reacted on that message, otherwise false.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
-let reactions = message.getReactions();
-reactions.forEach((reaction) => {
-reaction.getReactedByMe(); //Return true is logged-in user reacted on that message, otherwise false
-}) 
-```
-
-</Tab>
-
 <Tab title="TypeScript">
 ```typescript
 let reactions = message.getReactions();
 reactions.forEach((reaction) => {
 reaction.getReactedByMe(); //Return true is logged-in user reacted on that message, otherwise false
 })   
+```
+
+</Tab>
+
+<Tab title="JavaScript">
+```javascript
+let reactions = message.getReactions();
+reactions.forEach((reaction) => {
+reaction.getReactedByMe(); //Return true is logged-in user reacted on that message, otherwise false
+}) 
 ```
 
 </Tab>
@@ -380,6 +380,25 @@ The `updateMessageWithReactionInfo()` method provides a seamless way to update t
 When you receive a real-time reaction event (`MessageReaction`), call the `updateMessageWithReactionInfo()` method, passing the BaseMessage instance (`message`), event data (`MessageReaction`) and reaction event action type (`CometChat.REACTION_ACTION.REACTION_ADDED` or `CometChat.REACTION_ACTION.REACTION_REMOVED`) that corresponds to the message being reacted to.
 
 <Tabs>
+<Tab title="TypeScript">
+```typescript
+// The message to which the reaction is related (obtained from fetchPrevious/fetchNext or a listener)
+let message!: CometChat.BaseMessage;
+
+// The reaction event data received in real-time (obtained from onMessageReactionAdded/onMessageReactionRemoved)
+let messageReaction!: CometChat.MessageReaction;
+
+// The received reaction event real-time action type. Can be CometChatConstants.REACTION_ADDED or CometChatConstants.REACTION_REMOVED
+let action: CometChat.REACTION_ACTION = CometChat.REACTION_ACTION.REACTION_ADDED;
+
+let modifiedBaseMessage = CometChat.CometChatHelper.updateMessageWithReactionInfo(
+message,
+messageReaction,
+action
+);   
+```
+</Tab>
+
 <Tab title="JavaScript">
 ```javascript
 // The message to which the reaction is related
@@ -398,25 +417,6 @@ action
 );    
 ```
 
-</Tab>
-
-<Tab title="TypeScript">
-```typescript
-// The message to which the reaction is related (obtained from fetchPrevious/fetchNext or a listener)
-let message!: CometChat.BaseMessage;
-
-// The reaction event data received in real-time (obtained from onMessageReactionAdded/onMessageReactionRemoved)
-let messageReaction!: CometChat.MessageReaction;
-
-// The received reaction event real-time action type. Can be CometChatConstants.REACTION_ADDED or CometChatConstants.REACTION_REMOVED
-let action: CometChat.REACTION_ACTION = CometChat.REACTION_ACTION.REACTION_ADDED;
-
-let modifiedBaseMessage = CometChat.CometChatHelper.updateMessageWithReactionInfo(
-message,
-messageReaction,
-action
-);   
-```
 </Tab>
 
 </Tabs>
