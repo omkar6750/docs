@@ -1,0 +1,150 @@
+---
+title: "BLoC & Data"
+description: "Configure data fetching with RequestBuilders, provide custom BLoC instances, and listen to state changes."
+---
+
+Each component's BLoC manages data fetching, state transitions, and business logic. You can configure it via RequestBuilders, provide a custom BLoC instance, or extend the default one.
+
+## Configuring Data Fetching with RequestBuilders
+
+Use request builders to control what data the component fetches. Pass the builder instance — not the result of `.build()`.
+
+<Tabs>
+<Tab title="Dart">
+```dart
+CometChatMessageList(
+  user: user,
+  messagesRequestBuilder: MessagesRequestBuilder()
+    ..uid = user.uid
+    ..searchKeyword = 'hello'
+    ..limit = 30,
+)
+```
+</Tab>
+</Tabs>
+
+<Warning>
+The following parameters in `MessagesRequestBuilder` will always be altered inside the message list: UID, GUID, types, categories.
+</Warning>
+
+### Request Builder by Component
+
+| Component | Builder Property | Builder Type |
+|---|---|---|
+| `CometChatConversations` | `conversationsRequestBuilder` | `ConversationsRequestBuilder` |
+| `CometChatUsers` | `usersRequestBuilder` | `UsersRequestBuilder` |
+| `CometChatGroups` | `groupsRequestBuilder` | `GroupsRequestBuilder` |
+| `CometChatGroupMembers` | `groupMembersRequestBuilder` | `GroupMembersRequestBuilder` |
+| `CometChatMessageList` | `messagesRequestBuilder` | `MessagesRequestBuilder` |
+
+## Providing a Custom BLoC
+
+Each component accepts an optional BLoC parameter. Provide your own instance to override default behavior:
+
+<Tabs>
+<Tab title="Dart">
+```dart
+final myBloc = MessageListBloc(
+  user: user,
+  parentMessageId: null,
+  types: MessageTemplateUtils.getAllMessageTypes(),
+  categories: MessageTemplateUtils.getAllMessageCategories(),
+);
+
+CometChatMessageList(
+  user: user,
+  messageListBloc: myBloc,
+)
+```
+</Tab>
+</Tabs>
+
+### BLoC Parameters by Component
+
+| Component | BLoC Property | BLoC Type |
+|---|---|---|
+| `CometChatConversations` | `conversationsBloc` | `ConversationsBloc` |
+| `CometChatMessageList` | `messageListBloc` | `MessageListBloc` |
+| `CometChatMessageComposer` | `messageComposerBloc` | `MessageComposerBloc` |
+
+## Extending the Default BLoC
+
+Extend the default BLoC class and override hooks to add custom behavior:
+
+<Tabs>
+<Tab title="Dart">
+```dart
+class CustomMessageListBloc extends MessageListBloc {
+  CustomMessageListBloc({required User user})
+      : super(user: user);
+
+  @override
+  void onItemAdded(BaseMessage item, List<BaseMessage> updatedList) {
+    // Custom logic when a message is added
+    debugPrint('Message added: ${item.id}');
+    super.onItemAdded(item, updatedList);
+  }
+
+  @override
+  void onItemRemoved(BaseMessage item, List<BaseMessage> updatedList) {
+    // Custom logic when a message is removed
+    super.onItemRemoved(item, updatedList);
+  }
+
+  @override
+  void onItemUpdated(BaseMessage oldItem, BaseMessage newItem, List<BaseMessage> updatedList) {
+    // Custom logic when a message is updated
+    super.onItemUpdated(oldItem, newItem, updatedList);
+  }
+}
+```
+</Tab>
+</Tabs>
+
+### ListBase Hooks
+
+All list-based BLoCs use the `ListBase` mixin with these override hooks:
+
+| Hook | Called When |
+|---|---|
+| `onItemAdded(item, updatedList)` | An item is added to the list |
+| `onItemRemoved(item, updatedList)` | An item is removed from the list |
+| `onItemUpdated(oldItem, newItem, updatedList)` | An item is updated in the list |
+| `onListCleared(previousList)` | The list is cleared |
+| `onListReplaced(previousList, newList)` | The entire list is replaced |
+
+## Component-Specific BLoC Events
+
+Each component's BLoC has its own events and methods. See the individual component docs for details:
+
+- [Message List — BLoC Events & Methods](/ui-kit/flutter/v6/message-list#advanced)
+- [Conversations — BLoC Events](/ui-kit/flutter/v6/conversations#advanced)
+- [Users — BLoC Events](/ui-kit/flutter/v6/users#advanced)
+- [Groups — BLoC Events](/ui-kit/flutter/v6/groups#advanced)
+- [Group Members — BLoC Events](/ui-kit/flutter/v6/group-members#advanced)
+
+## Lifecycle Callbacks
+
+<Tabs>
+<Tab title="Dart">
+```dart
+CometChatMessageList(
+  user: user,
+  onLoad: (messages) {
+    debugPrint('Loaded ${messages.length} messages');
+  },
+  onEmpty: () {
+    debugPrint('No messages found');
+  },
+  onError: (e) {
+    debugPrint('Error: ${e.message}');
+  },
+)
+```
+</Tab>
+</Tabs>
+
+## Related
+
+- [Message List](/ui-kit/flutter/v6/message-list) — Full message list component reference.
+- [Customization Overview](/ui-kit/flutter/v6/customization-overview) — See all customization categories.
