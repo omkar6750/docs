@@ -26,7 +26,7 @@ CometChat.addMessageListener("LISTENER_ID", object : MessageListener() {
 
 ### Start Typing
 
-Use `startTyping()` with a `TypingIndicator` object to notify the receiver that you're typing.
+Use `startTyping()` with a [`TypingIndicator`](/sdk/reference/auxiliary#typingindicator) object to notify the receiver that you're typing.
 
 <Tabs>
 <Tab title="Java (User)">
@@ -155,11 +155,11 @@ override fun onTypingStarted(typingIndicator: TypingIndicator?) {
 
 </Tabs>
 
-The `TypingIndicator` class consists of the below parameters:
+The [`TypingIndicator`](/sdk/reference/auxiliary#typingindicator) class consists of the below parameters:
 
 | Parameter      | Information                                                                                                                                                                                          |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sender`       | An object of the `User` class holding all the information related to the sender of the typing indicator.                                                                                             |
+| `sender`       | An object of the [`User`](/sdk/reference/entities#user) class holding all the information related to the sender of the typing indicator.                                                                                             |
 | `receiverId`   | `UID` of the receiver. This is the ID of the group or the user the typing indicator is being sent to.                                                                                                |
 | `receiverType` | This parameter indicates if the typing indicator is to be sent to a user or a group. The possible values are: 1. `CometChatConstants.RECEIVER_TYPE_USER` 2. `CometChatConstants.RECEIVER_TYPE_GROUP` |
 | `metadata`     | A JSONObject to provider additional data                                                                                                                                                             |
@@ -225,52 +225,6 @@ The nested `User` object in `sender` contains:
 <Warning>
 Always remove message listeners when they're no longer needed (e.g., in `onDestroy()` or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
 </Warning>
-
-## Best Practices
-
-<AccordionGroup>
-  <Accordion title="Debounce Typing Events">
-    Don't send typing indicators on every keystroke. Use a debounce mechanism (e.g., 300-500ms delay) to reduce API calls and improve performance.
-  </Accordion>
-  <Accordion title="Auto-Stop Typing After Timeout">
-    Automatically call `endTyping()` after 3-5 seconds of inactivity to handle cases where users stop typing without sending a message.
-  </Accordion>
-  <Accordion title="Stop Typing on Message Send">
-    Always call `endTyping()` immediately after sending a message to clear the typing indicator for recipients.
-  </Accordion>
-  <Accordion title="Handle Multiple Typers in Groups">
-    In group chats, display "User1, User2, and 3 others are typing..." to handle multiple simultaneous typers gracefully.
-  </Accordion>
-  <Accordion title="Use Metadata for Rich Indicators">
-    Use the metadata field to send additional context like "recording audio" or "uploading photo" for richer status indicators.
-  </Accordion>
-</AccordionGroup>
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Typing Indicators Not Received">
-    **Symptom:** `onTypingStarted()` or `onTypingEnded()` not being called.
-    
-    **Cause:** Message listener not registered or removed prematurely.
-    
-    **Solution:** Ensure `addMessageListener()` is called before typing indicators are sent. Keep the listener active while the chat is open.
-  </Accordion>
-  <Accordion title="Typing Indicator Stuck">
-    **Symptom:** Typing indicator shows indefinitely without clearing.
-    
-    **Cause:** `endTyping()` not called when user stops typing or leaves the chat.
-    
-    **Solution:** Call `endTyping()` when user sends a message, clears input, or navigates away. Implement auto-timeout after 3-5 seconds.
-  </Accordion>
-  <Accordion title="Too Many Typing Events">
-    **Symptom:** Performance issues or rate limiting due to excessive typing indicator calls.
-    
-    **Cause:** Sending typing indicators on every keystroke without debouncing.
-    
-    **Solution:** Implement debouncing to send typing indicators at most once every 300-500ms.
-  </Accordion>
-</AccordionGroup>
 
 ---
 
