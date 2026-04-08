@@ -115,6 +115,54 @@ CometChat.initiateCall(call, object : CometChat.CallbackListener<Call>() {
 
 </Tab>
 
+<Tab title="Java (with Timeout)">
+```java
+String receiverID = "UID";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+String callType = CometChatConstants.CALL_TYPE_VIDEO;
+
+Call call = new Call(receiverID, receiverType, callType);
+
+// Set a custom timeout of 30 seconds (default is 45 seconds)
+CometChat.initiateCall(call, 30, new CometChat.CallbackListener<Call>() {
+    @Override
+    public void onSuccess(Call call) {
+        // Call initiated, show outgoing call UI
+        // Store call.getSessionId() for later use
+    }
+
+    @Override
+    public void onError(CometChatException e) {
+        Log.e(TAG, "Call initiation failed: " + e.getMessage());
+    }
+});
+```
+
+</Tab>
+
+<Tab title="Kotlin (with Timeout)">
+```kotlin
+val receiverID = "UID"
+val receiverType = CometChatConstants.RECEIVER_TYPE_USER
+val callType = CometChatConstants.CALL_TYPE_VIDEO
+
+val call = Call(receiverID, receiverType, callType)
+
+// Set a custom timeout of 30 seconds (default is 45 seconds)
+CometChat.initiateCall(call, 30, object : CometChat.CallbackListener<Call>() {
+    override fun onSuccess(call: Call) {
+        // Call initiated, show outgoing call UI
+        // Store call.sessionId for later use
+    }
+
+    override fun onError(e: CometChatException) {
+        Log.e(TAG, "Call initiation failed: ${e.message}")
+    }
+})
+```
+
+</Tab>
+
 </Tabs>
 
 | Parameter      | Description                                                                                                        |
@@ -122,6 +170,7 @@ CometChat.initiateCall(call, object : CometChat.CallbackListener<Call>() {
 | `receiverID`   | The UID or GUID of the recipient                                                                                   |
 | `receiverType` | The type of the receiver: `CometChatConstants.RECEIVER_TYPE_USER` or `CometChatConstants.RECEIVER_TYPE_GROUP` |
 | `callType`     | The type of the call: `CometChatConstants.CALL_TYPE_AUDIO` or `CometChatConstants.CALL_TYPE_VIDEO`            |
+| `timeout`      | Optional. The timeout duration in seconds for the call to be answered before it's automatically cancelled. Defaults to 45 seconds. |
 
 On success, a `Call` object is returned containing the call details including a unique `sessionId` required for starting the call session.
 
