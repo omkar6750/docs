@@ -103,11 +103,39 @@ CometChat.initiateCall(
 );
 ```
 
+```dart
+// User call with custom timeout
+String receiverID = "UID";
+String receiverType = CometChatConstants.RECEIVER_TYPE_USER;
+String callType = CometChatConstants.CALL_TYPE_VIDEO;
+
+Call call = Call(
+  receiverUid: receiverID,
+  receiverType: receiverType,
+  type: callType,
+);
+
+// Set a custom timeout of 30 seconds (default is 45 seconds)
+CometChat.initiateCall(
+  call,
+  timeout: 30,
+  onSuccess: (Call call) {
+    debugPrint("Call initiated: ${call.sessionId}");
+    // Show outgoing call UI
+    // Store call.sessionId for later use
+  },
+  onError: (CometChatException e) {
+    debugPrint("Call initiation failed: $e");
+  },
+);
+```
+
 | Parameter      | Description                                                                                                        |
 | -------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `receiverID`   | The UID or GUID of the recipient                                                                                   |
 | `receiverType` | The type of the receiver: `CometChatConstants.RECEIVER_TYPE_USER` or `CometChatConstants.RECEIVER_TYPE_GROUP` |
 | `callType`     | The type of the call: `CometChatConstants.CALL_TYPE_AUDIO` or `CometChatConstants.CALL_TYPE_VIDEO`            |
+| `timeout`      | Optional. The timeout duration in seconds for the call to be answered before it's automatically cancelled. Defaults to 45 seconds. |
 
 On success, a `Call` object is returned containing the call details including a unique `sessionId` required for starting the call session.
 

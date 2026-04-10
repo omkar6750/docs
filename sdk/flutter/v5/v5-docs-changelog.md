@@ -23,7 +23,7 @@ This file tracks all changes made to the v5 documentation.
   - Updated migration checklist
 
 #### Initial Setup
-- [x] Copied all v4 docs to `docs/sdk/flutter/5.0/` folder (64 files)
+- [x] Copied all v4 docs to `docs/sdk/flutter/v5/` folder (64 files)
 - [x] Created this changelog file
 
 ---
@@ -144,5 +144,5 @@ This file tracks all changes made to the v5 documentation.
 ### docs.json Updated ✅
 - Added v5 version entry to Flutter SDK dropdown
 - v5 is now the first/default version shown
-- All v5 doc paths point to `sdk/flutter/5.0/` folder
+- All v5 doc paths point to `sdk/flutter/v5/` folder
 - Includes `upgrading-from-v4-guide` in Resources section
