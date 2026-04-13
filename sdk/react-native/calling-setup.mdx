@@ -1,86 +1,86 @@
 ---
-title: "Setup"
-description: "Install and configure the CometChat Calls SDK for React Native, including dependencies, platform permissions, and initialization."
+title: "Calls SDK Setup"
+sidebarTitle: "Setup"
+description: "Install and initialize the CometChat Calls SDK for React Native to enable voice and video calling in your application."
 ---
 
-<Info>
-**Quick Reference** - Install and initialize the Calls SDK:
+<Accordion title="AI Integration Quick Reference">
+
+```bash
+npm install @cometchat/calls-sdk-react-native
+```
 
 ```javascript
-npm install @cometchat/calls-sdk-react-native
-
-// Initialize on app startup
 import { CometChatCalls } from "@cometchat/calls-sdk-react-native";
-const callAppSettings = new CometChatCalls.CallAppSettingsBuilder()
+
+const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
   .setAppId("APP_ID")
   .setRegion("REGION")
   .build();
-await CometChatCalls.init(callAppSettings);
+
+CometChatCalls.init(callAppSetting).then(() => console.log("Calls SDK ready"));
 ```
-</Info>
 
-## Get your Application Keys
+**Required:** App ID, Region from [CometChat Dashboard](https://app.cometchat.com)
+</Accordion>
 
-[Signup for CometChat](https://app.cometchat.com) and then:
+The Calls SDK handles the media layer for voice and video calls — camera, microphone, screen sharing, and the call UI. It's a separate package from the Chat SDK and requires its own initialization.
 
-1. Create a new app
-2. Head over to the **API & Auth Keys** section and note the **Auth Key**, **App ID** & **Region**
+## Prerequisites
 
-## Add the CometChatCalls Dependency
+You need your App ID and Region from the [CometChat Dashboard](https://app.cometchat.com). If you haven't created an app yet, [sign up](https://app.cometchat.com) and create one.
 
-Install the package as NPM module:
+If you're using the Chat SDK alongside (i.e., not [Standalone Calling](/sdk/react-native/standalone-calling)), make sure `CometChat.init()` completes before calling `CometChatCalls.init()`.
+
+## Installation
 
 <Tabs>
 <Tab title="npm">
 ```bash
 npm install @cometchat/calls-sdk-react-native
 ```
-
 </Tab>
 
 <Tab title="yarn">
 ```bash
 yarn add @cometchat/calls-sdk-react-native
 ```
-
 </Tab>
-
 </Tabs>
 
-The CometChat Calls SDK also requires the below dependencies to be installed.
+The CometChat Calls SDK also requires the following peer dependencies:
 
-<Tabs>
-<Tab title="package.json">
 ```json
 {
   "@cometchat/chat-sdk-react-native": "^4.0.18",
   "@react-native-async-storage/async-storage": "^1.23.1",
-  "@react-native-community/netinfo": "^11.3.1", // for react-native 0.63 & above.
-  "@react-native-community/netinfo": "6.1.0", // for react-native below 0.63
+  "@react-native-community/netinfo": "^11.3.1",
   "react-native-background-timer": "^2.4.1",
   "react-native-callstats": "^3.73.7",
   "react-native-webrtc": "^1.106.1"
 }
 ```
 
-</Tab>
+<Note>
+For React Native below 0.63, use `@react-native-community/netinfo` version `6.1.0` instead.
+</Note>
 
-</Tabs>
+Then import wherever needed:
+
+```javascript
+import { CometChatCalls } from "@cometchat/calls-sdk-react-native";
+```
 
 ## Permissions
 
 <Note>
-
-If you're using Expo, please refer to the [Expo Integration Guide](/sdk/react-native/expo-integration-guide) for setting up permissions.
-
+If you're using Expo, refer to the [Expo Integration Guide](/sdk/react-native/expo-integration-guide) for setting up permissions.
 </Note>
 
 ### Android
 
-You need to add the below in your App's `AndroidManifest.xml` file.
+Add the following to your `AndroidManifest.xml`:
 
-<Tabs>
-<Tab title="AndroidManifest.xml">
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.CAMERA" />
@@ -89,14 +89,8 @@ You need to add the below in your App's `AndroidManifest.xml` file.
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
-</Tab>
+Set `minSdkVersion` to 24 or higher in your `build.gradle`:
 
-</Tabs>
-
-Also in the same file in `buildscript` section in `ext` block make sure you have set **minSdkVersion** to **24.**
-
-<Tabs>
-<Tab title="build.gradle">
 ```gradle
 buildscript {
   ext {
@@ -108,16 +102,10 @@ buildscript {
 }
 ```
 
-</Tab>
-
-</Tabs>
-
 ### iOS
 
-You need to add the below in your App's `Info.plist` file.
+Add the following to your `Info.plist`:
 
-<Tabs>
-<Tab title="Info.plist">
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>This is for Camera permission</string>
@@ -125,63 +113,45 @@ You need to add the below in your App's `Info.plist` file.
 <string>This is for Mic permission</string>
 ```
 
-</Tab>
+Update the minimum platform version in your `Podfile` (located in `./ios`):
 
-</Tabs>
-
-Also, update the minimum target version in the Podfile. Goto `./ios` folder and open the `Podfile`. In the Podfile update the platform version to `12.0.`
-
-<Tabs>
-<Tab title="Podfile">
 ```
 platform :ios, '12.0'
 ```
 
-</Tab>
+Then run `pod install` in the `ios` directory and open the generated `.xcworkspace` file.
 
-</Tabs>
+## Initialization
 
-Open the `ios/App` folder and run `pod install` this will create an `App.xcworkspace` open this and run the app.
-
-## Initialize CometChatCalls
-
-The init() method initialises the settings required for CometChatCalls. The init() method takes a single paramater, that is the instance of CallAppSettingsBuilder class.
-
-The `CallAppSettings` class allows you to configure three settings:
-
-* **App ID**: CometChat app ID.
-* **Region**: The region where you app was created.
-* **Host(host: string)**: This method takes the client URL as input and uses this client URL instead of the default client URL. This can be used in case of dedicated deployment of CometChat.
-
-You need to call `init()` before calling any other method from CometChatCalls. We suggest you call the `init()` method on app startup, preferably in the `App.tsx` file.
+Call `CometChatCalls.init()` on app startup, after the Chat SDK has initialized (if you're using it). The method takes a `CallAppSettings` object built with `CallAppSettingsBuilder`.
 
 <Tabs>
-<Tab title="JavaScript">
-```javascript
+<Tab title="TypeScript">
+```typescript
 import { CometChatCalls } from "@cometchat/calls-sdk-react-native";
 
-let appID = "APP_ID";
-let region = "REGION";
+let appID: string = "APP_ID";
+let region: string = "REGION";
 
-const callAppSettings = new CometChatCalls.CallAppSettingsBuilder()
-  .setAppId(appID)
-  .setRegion(region)
-  .build();
+const callAppSetting: CometChatCalls.CallAppSettings =
+  new CometChatCalls.CallAppSettingsBuilder()
+    .setAppId(appID)
+    .setRegion(region)
+    .build();
 
-CometChatCalls.init(callAppSettings).then(
+CometChatCalls.init(callAppSetting).then(
   () => {
     console.log("CometChatCalls initialization completed successfully");
   },
-  (error) => {
+  (error: unknown) => {
     console.log("CometChatCalls initialization failed with error:", error);
   }
 );
 ```
-
 </Tab>
 
-<Tab title="TypeScript">
-```typescript
+<Tab title="JavaScript">
+```javascript
 import { CometChatCalls } from "@cometchat/calls-sdk-react-native";
 
 let appID = "APP_ID";
@@ -201,49 +171,79 @@ CometChatCalls.init(callAppSetting).then(
   }
 );
 ```
-
 </Tab>
-
 </Tabs>
 
+Replace `APP_ID` and `REGION` with your credentials from the [Dashboard](https://app.cometchat.com).
+
 <Warning>
-Make sure you replace the `APP_ID` with your CometChat `AppID` and `REGION` with your **App Region** in the above code.
+`CometChatCalls.init()` must be called before any other Calls SDK method. Calling `generateToken()`, `startSession()`, or registering listeners before `init()` will fail.
 </Warning>
 
-| Parameter         | Description                              |
-| ----------------- | ---------------------------------------- |
-| `callAppSettings` | An object of the `CallAppSettings` class |
+### CallAppSettings Options
 
-<AccordionGroup>
-  <Accordion title="Best Practices">
-    - Initialize `CometChatCalls` right after `CometChat.init()` on app startup
-    - Always call `CometChatCalls.init()` before using any calling methods
-    - Request camera and microphone permissions at runtime before initiating calls
-    - Use the correct `netinfo` version based on your React Native version (0.63+ vs below)
-    - Run `pod install` after adding dependencies to ensure iOS native modules are linked
-  </Accordion>
-  <Accordion title="Troubleshooting">
-    - **Initialization fails:** Verify your App ID and Region match the values in your CometChat Dashboard
-    - **Android build fails:** Ensure `minSdkVersion` is set to 24 or higher in `build.gradle`
-    - **iOS build fails:** Run `pod install` in the `ios` directory and open the `.xcworkspace` file (not `.xcodeproj`)
-    - **Permission denied errors:** Confirm camera and microphone permissions are declared in `AndroidManifest.xml` and `Info.plist`
-    - **Module not found:** Make sure all required peer dependencies are installed — check the dependency list above
-  </Accordion>
-</AccordionGroup>
+| Method | Description |
+| --- | --- |
+| `setAppId(appID)` | Your CometChat App ID. Required. |
+| `setRegion(region)` | The region where your app was created. Required. |
+| `setHost(host)` | Custom client URL for dedicated deployments. Optional. |
+
+### Initialization Order
+
+If you're using both the Chat SDK and Calls SDK, initialize them in sequence:
+
+<Tabs>
+<Tab title="TypeScript">
+```typescript
+// 1. Chat SDK first
+await CometChat.init(appID, appSettings);
+
+// 2. Then Calls SDK
+const callAppSetting: CometChatCalls.CallAppSettings = new CometChatCalls.CallAppSettingsBuilder()
+  .setAppId(appID)
+  .setRegion(region)
+  .build();
+
+await CometChatCalls.init(callAppSetting);
+
+// 3. Now both SDKs are ready
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+// 1. Chat SDK first
+await CometChat.init(appID, appSettings);
+
+// 2. Then Calls SDK
+const callAppSetting = new CometChatCalls.CallAppSettingsBuilder()
+  .setAppId(appID)
+  .setRegion(region)
+  .build();
+
+await CometChatCalls.init(callAppSetting);
+
+// 3. Now both SDKs are ready
+```
+</Tab>
+</Tabs>
+
+For [Standalone Calling](/sdk/react-native/standalone-calling), you only need `CometChatCalls.init()` — no Chat SDK required.
+
+---
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Calling Overview" icon="phone" href="/sdk/react-native/calling-overview">
-    Choose the right calling implementation for your use case.
-  </Card>
-  <Card title="Ringing Flow" icon="phone-volume" href="/sdk/react-native/default-call">
-    Implement the complete incoming/outgoing call experience.
+  <Card title="Default Calling" icon="phone-volume" href="/sdk/react-native/default-call">
+    Implement the complete ringing call flow
   </Card>
   <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
-    Manage call sessions with custom initiation logic.
+    Start and manage call sessions
   </Card>
-  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
-    Record audio and video calls for playback or compliance.
+  <Card title="Standalone Calling" icon="phone-flip" href="/sdk/react-native/standalone-calling">
+    Use Calls SDK without the Chat SDK
+  </Card>
+  <Card title="Calling Overview" icon="phone" href="/sdk/react-native/calling-overview">
+    Compare calling approaches and features
   </Card>
 </CardGroup>

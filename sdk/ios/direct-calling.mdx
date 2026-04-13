@@ -1,7 +1,32 @@
 ---
 title: "Call Session"
+sidebarTitle: "Call Session"
+description: "Generate call tokens, start and manage call sessions, configure call settings, and handle call events using the CometChat iOS Calls SDK."
 ---
 
+<Accordion title="AI Integration Quick Reference">
+
+```swift
+let sessionId = "SESSION_ID"
+let authToken = CometChat.getUserAuthToken() ?? ""
+
+// Generate call token
+CometChatCalls.generateToken(authToken: authToken as NSString, sessionID: sessionId) { token in
+    // Build call settings
+    let callSettings = CometChatCalls.callSettingsBuilder
+        .setDefaultLayout(true)
+        .setIsAudioOnly(false)
+        .setDelegate(self)
+        .build()
+
+    // Start call session
+    CometChatCalls.startSession(callToken: token, callSetting: callSettings, view: callView) { _ in } onError: { _ in }
+} onError: { error in }
+
+// End call session
+CometChatCalls.endSession()
+```
+</Accordion>
 ## Overview
 
 This section demonstrates how to start a call session in an iOS application. Previously known as **Direct Calling**.
@@ -39,14 +64,14 @@ CometChatCalls.generateToken(authToken: authToken as NSString, sessionID: sessio
 
 | Parameter | Description |
 | --------- | ----------- |
-| `sessionId` | The unique session ID. In ringing flow, this is available in the `Call` object. For standalone calls, generate a random unique string. |
+| `sessionId` | The unique session ID. In ringing flow, this is available in the [`Call`](/sdk/reference/messages#call) object. For standalone calls, generate a random unique string. |
 | `authToken` | The logged-in user's auth token from `CometChat.getUserAuthToken()`. |
 
 ## Start Call Session
 
 Use the `startSession()` method to join a call session. This method requires a call token (generated in the previous step) and a `CallSettings` object that configures the call UI and behavior.
 
-The `CallSettings` class configures the call UI and behavior. Use `CallSettingsBuilder` to create a `CallSettings` instance with the following required parameters:
+The `CallSettings` class configures the call UI and behavior. Use `callSettingsBuilder` to create a `CallSettings` instance with the following required parameters:
 
 | Parameter | Description |
 | --------- | ----------- |
@@ -58,7 +83,7 @@ The `CallSettings` class configures the call UI and behavior. Use `CallSettingsB
 ```swift
 guard let callToken = self.callToken else { return }
 
-let callSettings = CometChatCalls.CallSettingsBuilder
+let callSettings = CometChatCalls.callSettingsBuilder
     .setDefaultLayout(true)
     .setIsAudioOnly(false)
     .setDelegate(self)
@@ -73,9 +98,24 @@ CometChatCalls.startSession(callToken: callToken, callSetting: callSettings, vie
 </Tab>
 </Tabs>
 
+<Accordion title="Call Settings Options">
+
+**callSettingsBuilder Methods:**
+
+| Method | Type | Description |
+|--------|------|-------------|
+| setDefaultLayout(_:) | `Bool` | Use default UI layout |
+| setIsAudioOnly(_:) | `Bool` | Audio-only mode (no video) |
+| setDelegate(_:) | `Any` | Delegate for call events |
+| setMode(_:) | `Mode` | Call mode (.default, .single, .spotlight) |
+| setStartAudioMuted(_:) | `Bool` | Start with mic muted |
+| setStartVideoMuted(_:) | `Bool` | Start with camera off |
+
+</Accordion>
+
 ### Call Settings
 
-Configure the call experience using the following `CallSettingsBuilder` methods:
+Configure the call experience using the following `callSettingsBuilder` methods:
 
 | Method | Description |
 | ------ | ----------- |
@@ -103,7 +143,7 @@ Configure the call experience using the following `CallSettingsBuilder` methods:
 
 The `CallsEventsDelegate` protocol provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
 
-To receive call events, conform to `CallsEventsDelegate` and set the delegate in `CallSettingsBuilder` using `setDelegate(self)`.
+To receive call events, conform to `CallsEventsDelegate` and set the delegate in `callSettingsBuilder` using `setDelegate(self)`.
 
 <Tabs>
 <Tab title="Swift">
@@ -172,6 +212,15 @@ extension ViewController: CallsEventsDelegate {
 ## End Call Session
 
 Ending a call session properly is essential to release media resources (camera, microphone, network connections) and update call state across all participants.
+
+<Accordion title="Cleanup Methods">
+
+| Method | Description |
+|--------|-------------|
+| `CometChat.clearActiveCall()` | Clears the active call from CometChat |
+| `CometChatCalls.endSession()` | Ends the call session in CallsSDK |
+
+</Accordion>
 
 ### Ringing Flow
 
@@ -255,6 +304,7 @@ CometChatCalls.switchCamera()
 </Tab>
 </Tabs>
 
+
 ### Mute Audio
 
 Controls the local audio stream transmission.
@@ -279,6 +329,7 @@ CometChatCalls.audioMuted(false)
 ```
 </Tab>
 </Tabs>
+
 
 ### Pause Video
 
@@ -305,6 +356,7 @@ CometChatCalls.videoPaused(false)
 </Tab>
 </Tabs>
 
+
 ### Set Audio Mode
 
 Routes the audio output to a specific device.
@@ -312,7 +364,7 @@ Routes the audio output to a specific device.
 <Tabs>
 <Tab title="Swift">
 ```swift
-CometChatCalls.setAudioMode(AudioMode(mode: "SPEAKER"))
+CometChatCalls.setAudioMode(mode: "SPEAKER")
 ```
 </Tab>
 <Tab title="Objective-C">
@@ -321,6 +373,7 @@ CometChatCalls.setAudioMode(AudioMode(mode: "SPEAKER"))
 ```
 </Tab>
 </Tabs>
+
 
 ### Enter PIP Mode
 
@@ -339,6 +392,7 @@ CometChatCalls.enterPIPMode()
 </Tab>
 </Tabs>
 
+
 ### Exit PIP Mode
 
 Exits Picture-in-Picture mode.
@@ -355,6 +409,7 @@ CometChatCalls.exitPIPMode()
 ```
 </Tab>
 </Tabs>
+
 
 ### Switch To Video Call
 
@@ -373,6 +428,7 @@ CometChatCalls.switchToVideoCall()
 </Tab>
 </Tabs>
 
+
 ### Start Recording
 
 Starts recording the call session.
@@ -389,6 +445,7 @@ CometChatCalls.startRecording()
 ```
 </Tab>
 </Tabs>
+
 
 ### Stop Recording
 
@@ -407,6 +464,7 @@ CometChatCalls.stopRecording()
 </Tab>
 </Tabs>
 
+
 ### End Call
 
 Terminates the current call session and releases all media resources.
@@ -423,3 +481,99 @@ CometChatCalls.endSession()
 ```
 </Tab>
 </Tabs>
+
+
+---
+
+## In-Call Methods Reference
+
+| Method | Parameters | Description |
+|--------|------------|-------------|
+| `switchCamera()` | None | Toggle front/rear camera |
+| `audioMuted(_:)` | `Bool` | Mute/unmute microphone |
+| `videoPaused(_:)` | `Bool` | Pause/resume camera |
+| `setAudioMode(mode:)` | `String` | Set audio output device |
+| `enterPIPMode()` | None | Enter Picture-in-Picture |
+| `exitPIPMode()` | None | Exit Picture-in-Picture |
+| `switchToVideoCall()` | None | Upgrade audio to video |
+| `startRecording()` | None | Start call recording |
+| `stopRecording()` | None | Stop call recording |
+| `endSession()` | None | End call session |
+
+---
+
+## CallsEventsDelegate Callbacks
+
+| Callback | Payload | Description |
+|----------|---------|-------------|
+| `onCallEnded()` | None | Call session terminated |
+| `onSessionTimeout()` | None | Call auto-terminated due to inactivity |
+| `onCallEndButtonPressed()` | None | User tapped end call button |
+| `onUserJoined(rtcUser:)` | `RTCUser` | Remote participant joined |
+| `onUserLeft(rtcUser:)` | `RTCUser` | Remote participant left |
+| `onUserListChanged(rtcUsers:)` | `[RTCUser]` | Participant list changed |
+| `onAudioModeChanged(mode:)` | `[AudioMode]` | Available audio devices changed |
+| `onCallSwitchedToVideo(callSwitchedInfo:)` | `CallSwitchRequestInfo` | Audio call upgraded to video |
+| `onUserMuted(rtcMutedUser:)` | `RTCMutedUser` | Participant mute state changed |
+| `onRecordingToggled(recordingInfo:)` | `RTCRecordingInfo` | Recording started/stopped |
+
+<Accordion title="Callback Object Properties">
+<Tabs>
+<Tab title="RTCUser">
+
+| Property | Type | Description |
+|----------|------|-------------|
+| uid | `String?` | User's unique identifier |
+| name | `String?` | User's display name |
+| avatar | `String?` | User's avatar URL |
+
+</Tab>
+<Tab title="RTCMutedUser">
+
+| Property | Type | Description |
+|----------|------|-------------|
+| uid | `String?` | User's unique identifier |
+| name | `String?` | User's display name |
+| audioMuted | `Bool?` | Is audio muted |
+| videoMuted | `Bool?` | Is video muted |
+
+</Tab>
+<Tab title="RTCRecordingInfo">
+
+| Property | Type | Description |
+|----------|------|-------------|
+| isRecording | `Bool?` | Is recording active |
+| startedBy | `RTCUser?` | User who started recording |
+
+</Tab>
+<Tab title="AudioMode">
+
+| Mode | Description |
+|------|-------------|
+| `SPEAKER` | Phone speaker |
+| `EARPIECE` | Phone earpiece |
+| `BLUETOOTH` | Connected Bluetooth device |
+| `HEADPHONES` | Wired headphones |
+
+</Tab>
+</Tabs>
+</Accordion>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ringing" icon="phone" href="/sdk/ios/default-calling">
+    Implement calls with incoming/outgoing ringing UI
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/ios/recording">
+    Record call sessions for playback
+  </Card>
+  <Card title="Standalone Calling" icon="phone-flip" href="/sdk/ios/standalone-calling">
+    Use Calls SDK without the Chat SDK
+  </Card>
+  <Card title="Call Logs" icon="clock-rotate-left" href="/sdk/ios/call-logs">
+    Retrieve and display call history
+  </Card>
+</CardGroup>

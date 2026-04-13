@@ -1,11 +1,21 @@
 ---
 title: "Calling"
 sidebarTitle: "Overview"
+description: "Implement voice and video calling in your Android application with CometChat"
 ---
 
-## Overview
+<Accordion title="AI Integration Quick Reference">
 
-CometChat provides voice and video calling capabilities for your Android application. This guide helps you choose the right implementation approach based on your use case.
+Choose your calling implementation:
+- **Default Calling** → [default-calling](/sdk/android/default-calling) - Complete ringing flow with UI
+- **Direct Calling** → [direct-calling](/sdk/android/direct-calling) - Direct session management
+- **Standalone Calling** → [standalone-calling](/sdk/android/standalone-calling) - Calls SDK without Chat SDK
+- **Calling Setup** → [calling-setup](/sdk/android/calling-setup) - Install and initialize Calls SDK
+- **Call Logs** → [call-logs](/sdk/android/call-logs) - Retrieve call history
+- **Recording** → [recording](/sdk/android/recording) - Record call sessions
+</Accordion>
+
+CometChat provides three ways to add voice and video calling to your Android app. Which one you pick depends on how much of the call flow you want CometChat to handle vs. building yourself.
 
 ## Prerequisites
 
@@ -20,9 +30,7 @@ dependencies {
 
 For detailed setup instructions, see the [Calls SDK Setup](/sdk/android/calling-setup) guide.
 
-## Choose Your Implementation
-
-CometChat offers three approaches to implement calling:
+## Choose Your Approach
 
 <CardGroup cols={3}>
   <Card title="Ringing" icon="phone-volume" href="/sdk/android/default-calling">
@@ -35,40 +43,6 @@ CometChat offers three approaches to implement calling:
     Calls SDK only implementation without the Chat SDK dependency.
   </Card>
 </CardGroup>
-
-### Ringing
-
-Use this when you need a complete calling experience with:
-- Incoming and outgoing call UI
-- Call accept/reject/cancel functionality
-- Call notifications via push notifications
-- Integration with CometChat messaging
-
-**Flow:** Initiate call → Receiver gets notified → Accept/Reject → Start session
-
-[Get started with Ringing →](/sdk/android/default-calling)
-
-### Call Session
-
-Use this when you need to:
-- Start a call session after the Ringing flow completes
-- Implement custom call initiation logic with your own UI
-- Join participants to a shared session using a session ID
-
-**Flow:** Generate token → Start session → Manage call → End session
-
-[Get started with Call Session →](/sdk/android/direct-calling)
-
-### Standalone Calling
-
-Use this when you want:
-- Calling functionality without the Chat SDK
-- Your own user authentication system
-- Minimal SDK footprint
-
-**Flow:** Get auth token via REST API → Generate call token → Start session
-
-[Get started with Standalone Calling →](/sdk/android/standalone-calling)
 
 ## Features
 
@@ -87,5 +61,140 @@ Use this when you want:
   </Card>
   <Card title="Session Timeout" icon="clock" href="/sdk/android/session-timeout">
     Configure automatic call termination when participants are inactive.
+  </Card>
+</CardGroup>
+
+---
+
+## Call Payload Structure
+
+<Accordion title="Call Object">
+
+The `Call` object extends `BaseMessage` and contains all call-related information:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | long | Unique identifier of the call message |
+| `muid` | String | Developer-defined message ID |
+| `sender` | [User](#user-object-call) | User who sent the call message |
+| `receiver` | AppEntity | Call receiver ([User](#user-object-call) or [Group](#group-object-call)) |
+| `receiverUid` | String | Receiver's unique identifier |
+| `type` | String | Call type. Values: `"audio"`, `"video"` |
+| `receiverType` | String | Type of receiver. Values: `"user"`, `"group"` |
+| `category` | String | Message category. Value: `"call"` |
+| `sentAt` | long | Unix timestamp when call was sent |
+| `deliveredAt` | long | Unix timestamp when delivered |
+| `readAt` | long | Unix timestamp when read |
+| `metadata` | JSONObject | Custom call metadata |
+| `conversationId` | String | Associated conversation identifier |
+| `sessionId` | String | Unique call session identifier |
+| `callStatus` | String | Status of the call. Values: `"initiated"`, `"ongoing"`, `"ended"`, `"cancelled"`, `"busy"`, `"rejected"`, `"unanswered"` |
+| `action` | String | Action performed on call. Values: `"initiated"`, `"ongoing"`, `"ended"` |
+| `rawData` | String | Raw JSON data of the call |
+| `initiatedAt` | long | Unix timestamp when call was initiated |
+| `joinedAt` | long | Unix timestamp when call was joined |
+| `callInitiator` | [User](#user-object-call) | User who initiated the call |
+| `callReceiver` | AppEntity | User or Group receiving the call |
+
+**Sample Call Object:**
+
+```json
+{
+  "id": 12345,
+  "muid": "call_abc123",
+  "sender": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png",
+    "status": "online"
+  },
+  "receiver": {
+    "uid": "user_456",
+    "name": "Jane Smith"
+  },
+  "receiverUid": "user_456",
+  "type": "video",
+  "receiverType": "user",
+  "category": "call",
+  "sentAt": 1699900000,
+  "deliveredAt": 1699900001,
+  "readAt": 1699900002,
+  "metadata": {},
+  "conversationId": "user_123_user_456",
+  "sessionId": "v1.us.1234567890",
+  "callStatus": "ended",
+  "action": "ended",
+  "rawData": "{}",
+  "initiatedAt": 1699900000,
+  "joinedAt": 1699900005,
+  "callInitiator": {
+    "uid": "user_123",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.png"
+  },
+  "callReceiver": {
+    "uid": "user_456",
+    "name": "Jane Smith",
+    "avatar": "https://example.com/avatar2.png"
+  }
+}
+```
+
+</Accordion>
+
+<Accordion title="User Object (Call)">
+
+The nested `User` object (used in `sender`, `callInitiator`, `callReceiver`) contains:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uid` | String | Unique identifier of the user |
+| `name` | String | Display name of the user |
+| `avatar` | String | URL to user's profile picture |
+| `link` | String | URL to user's profile page |
+| `role` | String | User role for access control |
+| `metadata` | JSONObject | Custom data set by developer |
+| `status` | String | User online status. Values: `"online"`, `"offline"` |
+| `statusMessage` | String | Custom status message |
+| `lastActiveAt` | long | Unix timestamp of last activity |
+| `hasBlockedMe` | boolean | Whether this user has blocked the logged-in user |
+| `blockedByMe` | boolean | Whether the logged-in user has blocked this user |
+| `tags` | Array\<String\> | List of tags for user identification |
+| `deactivatedAt` | long | Unix timestamp when user was deactivated (0 if active) |
+
+</Accordion>
+
+<Accordion title="Group Object (Call)">
+
+When `receiverType` is `"group"`, the receiver/callReceiver contains a Group object:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `guid` | String | Unique identifier of the group |
+| `name` | String | Display name of the group |
+| `type` | String | Group type. Values: `"public"`, `"private"`, `"password"` |
+| `icon` | String | URL to group icon |
+| `description` | String | Group description |
+| `owner` | String | UID of group owner |
+| `membersCount` | int | Number of group members |
+
+</Accordion>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Calling Setup" icon="gear" href="/sdk/android/calling-setup">
+    Install and initialize the CometChat Calls SDK
+  </Card>
+  <Card title="Default Calling" icon="phone" href="/sdk/android/default-calling">
+    Implement complete calling flow with ringing UI
+  </Card>
+  <Card title="Direct Calling" icon="phone-volume" href="/sdk/android/direct-calling">
+    Start call sessions directly without ringing flow
+  </Card>
+  <Card title="Standalone Calling" icon="video" href="/sdk/android/standalone-calling">
+    Use Calls SDK without Chat SDK dependency
   </Card>
 </CardGroup>

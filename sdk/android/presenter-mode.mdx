@@ -1,44 +1,43 @@
 ---
 title: "Presenter Mode"
+sidebarTitle: "Presenter Mode"
+description: "Create webinar-style calling experiences with presenters and viewers using the Android SDK"
 ---
 
+<Accordion title="AI Integration Quick Reference">
+
+```kotlin
+// Join as presenter
+val presenterSettings = CometChatCalls.PresentationSettingsBuilder(context)
+    .setDefaultLayoutEnable(true)
+    .setIsPresenter(true)  // true = presenter, false = viewer
+    .setEventListener(eventListener)
+    .build()
+
+CometChatCalls.joinPresentation(callToken, presenterSettings, videoContainer, object : CometChatCalls.CallbackListener<String>() {
+    override fun onSuccess(s: String) { }
+    override fun onError(e: CometChatException) { }
+})
+```
+
+**Use Cases:** Webinars, online classes, keynote speeches, all-hands meetings  
+**Capacity:** Up to 5 presenters + 95 viewers (100 total)
+</Accordion>
 
 
-## Overview
 
-The Presenter Mode feature allows developers to create a calling service experience in which:
+Presenter Mode enables broadcast-style calling — up to 5 presenters share content with passive viewers (up to 100 total participants). Use it for webinars, keynotes, all-hands meetings, online classes, or talk shows.
 
-1. There are one or more users who are presenting their video, audio and/or screen (Maximum 5)
-2. Viewers who are consumers of that presentation. (They cannot send their audio, video or screen streams out).
-3. The total number of presenters and viewers can go up to 100.
-4. Features such as mute/unmute audio, show/hide camera capture, recording, etc. will be enabled only for the Presenter in this mode.
-5. Other call participants will not get these features. Hence they act like passive viewers in the call.
+| Role | Capabilities | Max Count |
+| ---- | ------------ | --------- |
+| Presenter | Video, audio, screen sharing, mute controls, recording | 5 |
+| Viewer | Watch and listen only (no outgoing streams) | Up to 100 total |
 
-Using this feature developers can create experiences such as:
+Before starting a presentation, generate a call token using `generateToken()` as described in [Call Session](/sdk/android/direct-calling#generate-call-token).
 
-1. All hands calls
-2. Keynote speeches
-3. Webinars
-4. Talk shows
-5. Online classes and many more...
+## Start Presentation Session
 
-About this guide
-
-This guide demonstrates how to start a presentation into an Android application. Before you begin, we strongly recommend you read the calling setup guide.
-
-Before starting a call session you have to generate a call token. You need to call this method for the call token.
-
-Start Presentation Session
-
-The most important class that will be used in the implementation is the `PresentationSettings` class. This class allows you to set the various parameters for the Presentation Mode. In order to set the various parameters of the `PresentationSettings` class, you need to use the `PresentationSettingsBuilder` class. Below are the various options available with the `PresentationSettings` class.
-
-`PresentationSettingsBuilder` class takes the 1 mandatory parameter as a part of the constructor:
-
-1. Context of the application.
-
-You will also need to set the User Type, There are 2 type of users in Presenter Mode, `Presenter` & `Participant` , You can set this `PresentationSettingsBuilder `by using the following method` isPresenter(true/false)`
-
-A basic example of how to start a Presentation:
+Configure the presentation using `PresentationSettingsBuilder`. Set `setIsPresenter(true)` for presenters or `setIsPresenter(false)` for viewers.
 
 <Tabs>
 <Tab title="Java">
@@ -188,11 +187,14 @@ The `CometChatCallsEventsListener` listener provides you with the below callback
 
 ## Settings
 
-The `PresentationSettings` class is the most important class when it comes to the implementation of the Calling feature. This is the class that allows you to customize the overall calling experience. The properties for the call/conference can be set using the `PresentationSettingsBuilder` class. This will eventually give you and object of the `PresentationSettings` class which you can pass to the joinPresentation() method to start the call.
+The `PresentationSettings` class is the most important class when it comes to implementing the Calling feature. This class allows you to customize the overall calling experience. The properties for the call/conference can be set using the `PresentationSettingsBuilder` class. This gives you an object of the `PresentationSettings` class which you can pass to the `joinPresentation()` method to start the call.
 
-The **mandatory** parameters that are required to be present for any call/conference to work are:
+The **mandatory** parameters required for any call/conference to work are:
 
-Context - context of the activity/application RelativeLayout - A RelativeLayout object in which the calling UI is loaded. The options available for customization of calls are:
+- Context - context of the activity/application
+- RelativeLayout - A RelativeLayout object in which the calling UI is loaded
+
+The options available for customization of calls are:
 
 | Setting                                                | Description                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -210,6 +212,32 @@ Context - context of the activity/application RelativeLayout - A RelativeLayout 
 | `showRecordingButton(boolean value)`                   | If set to `true`, it displays the Recording Button. If set to `false`, it hides the Recording Button. Default value = `false`                                                                                                                                                                                                     |
 | `setEventListener(new CometChatCallsEventsListener())` | The `CometChatCallsEventsListener` listener provides you callbacks.                                                                                                                                                                                                                                                               |
 
-In case you wish to achieve a completely customised UI for the Calling experience, you can do so by embedding default android buttons to the screen as per your requirement and then use the below methods to achieve different functionalities for the embedded buttons.
+If you want to achieve a completely customized UI for the Calling experience, you can do so by embedding default Android buttons to the screen as per your requirement and then use the methods below to achieve different functionalities for the embedded buttons.
 
-For the use case where you wish to align your own custom buttons and not use the default layout provided by CometChat you can embed the buttons in your layout and use the below methods to perform the corresponding operations:
+For the use case where you want to align your own custom buttons and not use the default layout provided by CometChat, you can embed the buttons in your layout and use the methods below to perform the corresponding operations:
+
+
+<Warning>
+Always remove call event listeners when they're no longer needed (e.g., in `onDestroy()` or when navigating away). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
+
+---
+
+
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/android/default-calling">
+    Implement standard one-on-one and group calling
+  </Card>
+  <Card title="Video View Customization" icon="palette" href="/sdk/android/video-view-customisation">
+    Customize the call UI appearance and layout
+  </Card>
+  <Card title="Recording" icon="record-vinyl" href="/sdk/android/recording">
+    Record presentation sessions for later playback
+  </Card>
+  <Card title="Session Timeout" icon="clock" href="/sdk/android/session-timeout">
+    Configure idle timeout for inactive sessions
+  </Card>
+</CardGroup>

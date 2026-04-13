@@ -1,101 +1,95 @@
 ---
 title: "Video View Customisation"
-description: "Customize the main video container in CometChat React Native calls, including aspect ratio, full-screen button, name labels, zoom, and user list button positioning."
+sidebarTitle: "Video View Customisation"
+description: "Customize the main video container in CometChat React Native calls — aspect ratio, full screen button, name label, zoom button, and user list button positioning."
 ---
 
-<Info>
-**Quick Reference** - Customize the main video container:
+<Accordion title="AI Integration Quick Reference">
 
-```javascript
+- **Class:** `CometChat.MainVideoContainerSetting`
+- **Apply via:** `CallSettingsBuilder.setMainVideoContainerSetting(videoSettings)`
+- **Customizable elements:** Aspect ratio, full screen button, name label, zoom button, user list button
+- **Position constants:** `POSITION_TOP_LEFT`, `POSITION_TOP_RIGHT`, `POSITION_BOTTOM_LEFT`, `POSITION_BOTTOM_RIGHT`
+- **Requires:** [Default Calling](/sdk/react-native/default-call) or [Call Session](/sdk/react-native/direct-call) setup
+</Accordion>
+
+Customize the main video container in your call UI — aspect ratio, button positions, and label visibility. Create a `MainVideoContainerSetting` instance, configure it, and pass it to `CallSettingsBuilder.setMainVideoContainerSetting()`.
+
+Before you begin, make sure you've set up [Ringing](/sdk/react-native/default-call) or [Call Session](/sdk/react-native/direct-call).
+
+## MainVideoContainerSetting
+
+| Method | Description | Default |
+| ------ | ----------- | ------- |
+| `setMainVideoAspectRatio(aspectRatio)` | Aspect ratio of the main video. Values: `ASPECT_RATIO_CONTAIN`, `ASPECT_RATIO_COVER` | `ASPECT_RATIO_CONTAIN` |
+| `setFullScreenButtonParams(position, visibility)` | Position and visibility of the full screen button. | Bottom-right, visible |
+| `setNameLabelParams(position, visibility, backgroundColor)` | Position, visibility, and background color of the participant name label. | Bottom-left, visible, `#333333` |
+| `setZoomButtonParams(position, visibility)` | Position and visibility of the zoom button. | Bottom-right, visible |
+| `setUserListButtonParams(position, visibility)` | Position and visibility of the user list button. | Bottom-right, visible |
+
+### Position Constants
+
+All position parameters accept one of these values from `CometChatCalls.CallSettings`:
+
+- `POSITION_TOP_LEFT`
+- `POSITION_TOP_RIGHT`
+- `POSITION_BOTTOM_LEFT`
+- `POSITION_BOTTOM_RIGHT`
+
+### Example
+
+<Tabs>
+<Tab title="TypeScript">
+```typescript
 let videoSettings = new CometChat.MainVideoContainerSetting();
+
 videoSettings.setMainVideoAspectRatio(CometChatCalls.CallSettings.ASPECT_RATIO_CONTAIN);
 videoSettings.setFullScreenButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
 videoSettings.setNameLabelParams(CometChatCalls.CallSettings.POSITION_BOTTOM_LEFT, true, "#333333");
+videoSettings.setZoomButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
+videoSettings.setUserListButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
 
 // Pass to CallSettingsBuilder
-new CometChatCalls.CallSettingsBuilder()
+const callSettings = new CometChatCalls.CallSettingsBuilder()
   .setMainVideoContainerSetting(videoSettings)
+  // ... other settings
   .build();
 ```
-</Info>
-
-## Overview
-
-This section guides you through customizing the main video container in your call UI.
-
-Once you have decided to implement [Ringing](/sdk/react-native/default-call) or [Call Session](/sdk/react-native/direct-call) calling and followed the steps to implement them, a few additional methods will help you quickly customize the main video container.
-
-Please make sure your callSettings is configured accordingly for [Ringing](/sdk/react-native/default-call) or [Call Session](/sdk/react-native/direct-call).
-
-## Main Video Container Setting
-
-The `MainVideoContainerSetting` class is required when you want to customise the main video view. You need to pass the object of the `MainVideoContainerSetting` class in the `setMainVideoContainerSetting()` method of the `CallSettingsBuilder`.
-
-| Setting                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `setMainVideoAspectRatio(aspectRatio: string)`                                       | This method is used to set the aspect ratio of main video. The default value is **contain.** <br /><br />Possible Values: <br />**1. CometChatCalls.CallSettings. ASPECT\_RATIO\_CONTAIN** <br />**2. CometChatCalls.CallSettings. ASPECT\_RATIO\_COVER**                                                                                                                                                                                                                                                                                                       |
-| `setFullScreenButtonParams(position: string, visibility: boolean)`                   | This method is used to set the position & visibility parameter of the full screen button. By default the full screen button is visible in the **bottom-right** position. <br /><br />Possible Values for **POSITION:** <br />1. **CometChatCalls.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChatCalls.CallSettings. POSITION\_TOP\_RIGHT** <br />3. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false**                           |
-| `setNameLabelParams(position: string, visibility: boolean, backgroundColor: string)` | This method is used to set the position, visibility & background color of the name label. By default the name label is visible in the **bottom-left** position with a background-color **#333333**<br /><br />Possible Values for **POSITION:** <br />1. **CometChatCalls.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChatCalls.CallSettings. POSITION\_TOP\_RIGHT** <br />3. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false** |
-| `setZoomButtonParams(position: string, visibility: boolean)`                         | This method is used to set the position, visibility of the zoom button. By default the zoom button is visible in the **bottom-right** position.<br /><br />Possible Values for **POSITION:** <br />1. **CometChatCalls.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChatCalls.CallSettings. POSITION\_TOP\_RIGHT** <br />3. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_RIGHT**<br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false**                                                    |
-| `setUserListButtonParams(position: string, visibility: boolean)`                     | This method is used to set the position, visibility of the user list button. By default the user list button is visible in the **bottom-right** position.<br /><br />Possible Values for **POSITION:** <br />1. **CometChatCalls.CallSettings. POSITION\_TOP\_LEFT** <br />2. **CometChatCalls.CallSettings. POSITION\_TOP\_RIGHT** <br />3. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_LEFT** <br />4. **CometChatCalls.CallSettings. POSITION\_BOTTOM\_RIGHT** <br /><br />Possible Values for **VISIBILITY:** <br />1. **true** <br />2. **false**                                         |
-
-Example:
-
-<Tabs>
+</Tab>
 <Tab title="JavaScript">
 ```javascript
 let videoSettings = new CometChat.MainVideoContainerSetting();
 
-videoSettings.setMainVideoAspectRatio(CometChatCalls.CallSettings.ASPECT_RATIO_CONTAIN);	videoSettings.setFullScreenButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
+videoSettings.setMainVideoAspectRatio(CometChatCalls.CallSettings.ASPECT_RATIO_CONTAIN);
+videoSettings.setFullScreenButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
 videoSettings.setNameLabelParams(CometChatCalls.CallSettings.POSITION_BOTTOM_LEFT, true, "#333333");
 videoSettings.setZoomButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
 videoSettings.setUserListButtonParams(CometChatCalls.CallSettings.POSITION_BOTTOM_RIGHT, true);
+
+// Pass to CallSettingsBuilder
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setMainVideoContainerSetting(videoSettings)
+  // ... other settings
+  .build();
 ```
-
 </Tab>
-
 </Tabs>
-
-## Best Practices
-
-<AccordionGroup>
-  <Accordion title="Keep controls accessible">
-    Avoid placing multiple buttons in the same corner position. Overlapping controls can make the UI confusing and hard to interact with. Spread controls across different corners for a clean layout.
-  </Accordion>
-  <Accordion title="Use ASPECT_RATIO_CONTAIN for most use cases">
-    The `ASPECT_RATIO_CONTAIN` mode ensures the full video frame is visible without cropping. Use `ASPECT_RATIO_COVER` only when you want the video to fill the container and are okay with some edges being clipped.
-  </Accordion>
-  <Accordion title="Test on multiple screen sizes">
-    Video container customizations can look different across devices. Test your button positions and label visibility on both small phones and larger tablets to ensure a consistent experience.
-  </Accordion>
-</AccordionGroup>
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Custom settings not applied">
-    Ensure you pass the `MainVideoContainerSetting` object to `setMainVideoContainerSetting()` on the `CallSettingsBuilder` before calling `.build()`. Settings applied after building won't take effect.
-  </Accordion>
-  <Accordion title="Buttons not visible">
-    Check that the `visibility` parameter is set to `true` for the button you want to show. Also verify that `enableDefaultLayout(true)` is set in your `CallSettingsBuilder`, as custom video settings work alongside the default layout.
-  </Accordion>
-</AccordionGroup>
 
 ---
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
-    Start and manage call sessions with full configuration options
+  <Card title="Default Calling" icon="phone" href="/sdk/react-native/default-call">
+    Implement default audio/video calling.
   </Card>
-  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
-    Record call sessions for playback and compliance
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Implement direct calling without call events.
   </Card>
   <Card title="Presenter Mode" icon="presentation-screen" href="/sdk/react-native/presenter-mode">
-    Enable screen sharing and presenter layouts in calls
+    Enable screen sharing and presenter layouts.
   </Card>
-  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
-    Implement a complete calling experience with incoming and outgoing call UI
+  <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
+    Record calls for playback.
   </Card>
 </CardGroup>

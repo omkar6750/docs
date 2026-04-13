@@ -1,10 +1,47 @@
 ---
 title: "Call Session"
+sidebarTitle: "Call Session"
+description: "Learn how to start and manage direct call sessions in your Flutter application using the CometChat Calls SDK, including token generation, call settings, and session control."
 ---
+
+<Accordion title="AI Integration Quick Reference">
+
+```dart
+// Generate call token
+String sessionId = "SESSION_ID";
+String userAuthToken = await CometChat.getUserAuthToken();
+
+CometChatCalls.generateToken(sessionId, userAuthToken,
+  onSuccess: (GenerateToken token) {
+    // Start call session
+    CallSettings callSettings = (CallSettingsBuilder()
+      ..defaultLayout = true
+      ..setAudioOnlyCall = false
+    ).build();
+    
+    CometChatCalls.startSession(token.token!, callSettings,
+      onSuccess: (Widget? callingWidget) => debugPrint("Session started"),
+      onError: (CometChatCallsException e) => debugPrint("Error: ${e.message}"),
+    );
+  },
+  onError: (CometChatCallsException e) => debugPrint("Error: ${e.message}"),
+);
+
+// End session
+CometChatCalls.endSession(
+  onSuccess: (success) => debugPrint("Session ended"),
+  onError: (e) => debugPrint("Error: $e"),
+);
+```
+</Accordion>
 
 ## Overview
 
 This section demonstrates how to start a call session in a Flutter application. Previously known as **Direct Calling**.
+
+<Note>
+**Available via:** SDK | [UI Kits](/ui-kit/flutter/overview)
+</Note>
 
 Before you begin, we strongly recommend you read the [calling setup guide](/sdk/flutter/calling-setup).
 
@@ -41,8 +78,31 @@ CometChatCalls.generateToken(
 
 | Parameter       | Description                                                                                                                                |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sessionId`     | The unique random session ID. In case you are using the ringing flow, the session ID is available in the `Call` object.                 |
+| `sessionId`     | The unique random session ID. In case you are using the ringing flow, the session ID is available in the [`Call`](/sdk/reference/messages#call) object.                 |
 | `userAuthToken` | The user auth token is the logged-in user auth token which you can get by calling `CometChat.getUserAuthToken()` |
+
+<Accordion title="Response">
+**On Success** — A `GenerateToken` object containing the call token for the session:
+
+<span id="generate-token-object" style={{scrollMarginTop: '100px'}}></span>
+
+**GenerateToken Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `token` | string | The generated call token used to start a session | `"v1.us-west-2.calls.a]..."` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to generate the call token."` |
+| `details` | string | Additional technical details | `"The session ID or auth token provided is invalid."` |
+
+</Accordion>
 
 ## Start Call Session
 
@@ -69,6 +129,29 @@ CometChatCalls.startSession(
   },
 );
 ```
+
+<Accordion title="Response">
+**On Success** — A `Widget?` representing the call UI to be displayed in your application:
+
+<span id="start-session-widget-object" style={{scrollMarginTop: '100px'}}></span>
+
+**Widget Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `callingWidget` | Widget? | A Flutter widget containing the call UI. Display this widget in your screen to show the call interface. | `Widget` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to start the call session."` |
+| `details` | string | Additional technical details | `"The call token provided is invalid or expired."` |
+
+</Accordion>
 
 ### Call Settings
 
@@ -100,6 +183,10 @@ Configure the call experience using the following `CallSettingsBuilder` properti
 ## Call Listeners
 
 The `CometChatCallsEventsListener` provides real-time callbacks for call session events, including participant changes, call state updates, and error conditions.
+
+<Warning>
+Always remove call listeners when they're no longer needed (e.g., on widget dispose or screen navigation). Failing to remove listeners can cause memory leaks and duplicate event handling.
+</Warning>
 
 Each listener requires a unique `listenerId` string. This ID is used to:
 - **Prevent duplicate registrations** — Re-registering with the same ID replaces the existing listener
@@ -456,3 +543,22 @@ CometChatCalls.endSession(
   },
 );
 ```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling (Ringing)" icon="phone" href="/sdk/flutter/default-call">
+    Implement calls with incoming/outgoing ringing UI
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Record call sessions for playback
+  </Card>
+  <Card title="Video View Customisation" icon="sliders" href="/sdk/flutter/video-view-customisation">
+    Customize the video layout and main video container
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/flutter/call-logs">
+    Retrieve and display call history
+  </Card>
+</CardGroup>

@@ -1,35 +1,29 @@
 ---
 title: "Calling"
 sidebarTitle: "Overview"
-description: "Add voice and video calling to your React Native app with CometChat. Choose between Ringing, Call Session, or Standalone implementations."
+description: "Overview of CometChat voice and video calling capabilities including ringing, direct call sessions, and standalone calling."
 ---
 
-<Info>
-**Quick Reference** - Install the Calls SDK and initialize:
+<Accordion title="AI Integration Quick Reference">
 
-```javascript
+Choose your calling approach:
+- **Ringing** → [Default Call](/sdk/react-native/default-call) — Full call flow with notifications, accept/reject
+- **Call Session** → [Direct Call](/sdk/react-native/direct-call) — Session-based calling with custom UI
+- **Standalone** → [Standalone Calling](/sdk/react-native/standalone-calling) — Calls SDK only, no Chat SDK needed
+
+```bash
+# Install Calls SDK
 npm install @cometchat/calls-sdk-react-native
-
-// Initialize CometChatCalls
-const callAppSettings = new CometChatCalls.CallAppSettingsBuilder()
-  .setAppId("APP_ID")
-  .setRegion("REGION")
-  .build();
-await CometChatCalls.init(callAppSettings);
 ```
-</Info>
 
-<Note>
-Available via: [SDK](/sdk/react-native/calling-overview) | [REST API](/rest-api/calls) | [UI Kits](/ui-kit/react-native/call-features)
-</Note>
+**Features:** Recording, Video View Customization, Presenter Mode, Call Logs, Session Timeout
+</Accordion>
 
-## Overview
-
-CometChat provides voice and video calling capabilities for your React Native application. This guide helps you choose the right implementation approach based on your use case.
+CometChat provides three ways to add voice and video calling to your React Native app. Which one you pick depends on how much of the call flow you want CometChat to handle vs. building yourself.
 
 ## Prerequisites
 
-1. CometChat SDK installed and configured. See the [Setup](/sdk/react-native/setup-sdk) guide.
+1. CometChat Chat SDK installed and configured. See the [Setup](/sdk/react-native/setup-sdk) guide.
 2. CometChat Calls SDK added to your project:
 
 ```bash
@@ -38,57 +32,52 @@ npm install @cometchat/calls-sdk-react-native
 
 For detailed setup instructions, see the [Calls SDK Setup](/sdk/react-native/calling-setup) guide.
 
-## Choose Your Implementation
+## Choose Your Approach
 
-CometChat offers three approaches to implement calling:
+### Ringing (Full Call Flow)
 
-<CardGroup cols={3}>
-  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
-    Complete calling flow with incoming/outgoing call UI, accept/reject functionality, and call notifications.
-  </Card>
-  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
-    Direct call session management. Use with Ringing flow or for custom call initiation logic.
-  </Card>
-  <Card title="Standalone Calling" icon="phone-flip" href="/sdk/react-native/standalone-calling">
-    Calls SDK only implementation without the Chat SDK dependency.
-  </Card>
-</CardGroup>
-
-### Ringing
-
-Use this when you need a complete calling experience with:
-- Incoming and outgoing call UI
-- Call accept/reject/cancel functionality
-- Call notifications via push notifications
-- Integration with CometChat messaging
+The complete calling experience — incoming/outgoing call UI, accept/reject/cancel, push notifications, and integration with CometChat messaging. Use this when you want CometChat to handle the entire call lifecycle.
 
 **Flow:** Initiate call → Receiver gets notified → Accept/Reject → Start session
 
-[Get started with Ringing →](/sdk/react-native/default-call)
+<Card title="Get started with Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
+  Implement the complete ringing call flow
+</Card>
 
-### Call Session
+### Call Session (Session Management)
 
-Use this when you need to:
-- Start a call session after the Ringing flow completes
-- Implement custom call initiation logic with your own UI
-- Join participants to a shared session using a session ID
+Manages the actual call session — generating tokens, starting/ending sessions, configuring the call UI, and handling in-call events. The Ringing flow uses this under the hood after a call is accepted. You can also use it directly if you want to build your own call initiation logic.
 
 **Flow:** Generate token → Start session → Manage call → End session
 
-[Get started with Call Session →](/sdk/react-native/direct-call)
+<Card title="Get started with Call Session" icon="video" href="/sdk/react-native/direct-call">
+  Start and manage call sessions
+</Card>
 
-### Standalone Calling
+### Standalone Calling (No Chat SDK)
 
-Use this when you want:
-- Calling functionality without the Chat SDK
-- Your own user authentication system
-- Minimal SDK footprint
+Calling without the Chat SDK. You handle user authentication via the REST API and use only the Calls SDK. Ideal when you need voice/video but not the full chat infrastructure.
 
 **Flow:** Get auth token via REST API → Generate call token → Start session
 
-[Get started with Standalone Calling →](/sdk/react-native/standalone-calling)
+<Card title="Get started with Standalone Calling" icon="phone-flip" href="/sdk/react-native/standalone-calling">
+  Implement calling without the Chat SDK
+</Card>
+
+### How They Relate
+
+```mermaid
+flowchart LR
+    A[Ringing Flow] -->|call accepted| B[Call Session]
+    C[Custom UI] -->|your logic| B
+    D[Standalone] -->|REST API auth| B
+```
+
+All three approaches converge on the Call Session layer to manage the actual media connection. The difference is how you get there — CometChat's ringing flow, your own UI, or standalone without the Chat SDK.
 
 ## Features
+
+Once you have calling working, you can add these capabilities:
 
 <CardGroup cols={2}>
   <Card title="Recording" icon="circle-dot" href="/sdk/react-native/recording">
@@ -108,36 +97,21 @@ Use this when you want:
   </Card>
 </CardGroup>
 
-<AccordionGroup>
-  <Accordion title="Best Practices">
-    - Initialize `CometChatCalls` on app startup, right after `CometChat.init()`
-    - Use the Ringing flow for user-to-user calls where you need push notification support
-    - Use Call Session when building custom call UIs or conference-style experiences
-    - Always request camera and microphone permissions before initiating a call
-    - Handle call errors gracefully and provide user-friendly feedback
-  </Accordion>
-  <Accordion title="Troubleshooting">
-    - **Calls not connecting:** Verify the Calls SDK is initialized after the Chat SDK and that both use the same App ID and Region
-    - **No audio/video:** Check that camera and microphone permissions are granted on both Android and iOS
-    - **Push notifications not arriving:** Ensure push notification setup is complete — see the [Push Notifications](/sdk/react-native/push-notification) guide
-    - **iOS build fails:** Run `pod install` in the `ios` directory after adding the Calls SDK dependency
-    - **Android minSdkVersion error:** Set `minSdkVersion` to 24 or higher in your `build.gradle`
-  </Accordion>
-</AccordionGroup>
+---
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Calls SDK Setup" icon="gear" href="/sdk/react-native/calling-setup">
-    Install dependencies, configure permissions, and initialize the Calls SDK.
+    Install and initialize the CometChat Calls SDK
   </Card>
-  <Card title="Ringing Flow" icon="phone-volume" href="/sdk/react-native/default-call">
-    Implement the complete incoming/outgoing call experience.
+  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
+    Implement the complete ringing call flow
   </Card>
   <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
-    Manage call sessions with custom initiation logic.
+    Start and manage call sessions directly
   </Card>
-  <Card title="Call Logs" icon="list" href="/sdk/react-native/call-logs">
-    Retrieve and display call history for your users.
+  <Card title="Standalone Calling" icon="phone-flip" href="/sdk/react-native/standalone-calling">
+    Use calling without the Chat SDK
   </Card>
 </CardGroup>

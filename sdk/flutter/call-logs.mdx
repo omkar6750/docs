@@ -1,12 +1,44 @@
 ---
 title: "Call Logs"
+sidebarTitle: "Call Logs"
+description: "Learn how to fetch and manage call logs in your Flutter application using CometChat's Call SDK, including filtering by call type, status, and direction."
 ---
 
+<Accordion title="AI Integration Quick Reference">
 
+```dart
+// Build call log request
+CallLogRequest callLogRequest = (CallLogRequestBuilder()
+  ..authToken = CometChat.getUserAuthToken()
+  ..limit = 30
+  ..callCategory = CometChatCallsConstants.callCategoryCall
+).build();
+
+// Fetch call logs
+callLogRequest.fetchNext(onSuccess: (List<CallLog> callLogs) {
+  debugPrint("Call logs fetched: ${callLogs.length}");
+}, onError: (CometChatCallsException e) {
+  debugPrint("Error: ${e.message}");
+});
+
+// Get specific call details
+CometChatCalls.getCallDetails(sessionID, userAuthToken, onSuccess: (List<CallLog> callLogs) {
+  debugPrint("Call details: $callLogs");
+}, onError: (CometChatCallsException e) {
+  debugPrint("Error: ${e.message}");
+});
+```
+
+**Filters:** `callType`, `callStatus`, `callCategory`, `callDirection`, `hasRecording`, `uid`, `guid`
+</Accordion>
 
 ## Overview
 
 CometChat's Flutter Call SDK provides a comprehensive way to integrate call logs into your application, enhancing your user experience by allowing users to effortlessly keep track of their communication history. Call logs provide crucial information such as call duration, participants, and more.
+
+<Note>
+**Available via:** SDK | [REST API](https://api-explorer.cometchat.com) | [Dashboard](https://app.cometchat.com)
+</Note>
 
 This feature not only allows users to review their past interactions but it also serves as an effective tool to revisit important conversation details. With the flexibility of fetching call logs, filtering them according to specific parameters, and obtaining detailed information of individual calls, application developers can use this feature to build a more robust and interactive communication framework.
 
@@ -14,7 +46,7 @@ In the following sections, we will guide you through the process of working with
 
 ## Fetching Call Logs
 
-To fetch all call logs in your Flutter application, you should use the `CallLogRequestBuilder`, This builder allows you to customize the call logs fetching process according to your needs.
+To fetch all call logs in your Flutter application, you should use the `CallLogRequestBuilder`, This builder allows you to customize the [`CallLog`](/sdk/reference/calls#calllog) fetching process according to your needs.
 
 ```dart
 CallLogRequest callAppSettings = (CallLogRequestBuilder()
@@ -56,6 +88,89 @@ callAppSettings.fetchNext(onSuccess: (List<CallLog> callLogs){
 });
 ```
 
+<Accordion title="Response">
+**On Success** — A `List<CallLog>` containing call log entries. Each `CallLog` object includes:
+
+<span id="fetch-next-calllog-object" style={{scrollMarginTop: '100px'}}></span>
+
+**CallLog Object (per item in list):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `sessionId` | string | Unique call session identifier | `"v1.us.1.xxxxxxxx"` |
+| `initiator` | object | User who initiated the call | [See below ↓](#fetch-next-initiator-object) |
+| `receiver` | object | User or group that received the call | [See below ↓](#fetch-next-receiver-object) |
+| `receiverType` | string | Type of the receiver | `"user"` |
+| `status` | string | Current status of the call | `"ended"` |
+| `type` | string | Type of the call | `"video"` |
+| `mode` | string | Mode of the call | `"call"` |
+| `startedAt` | number | Epoch timestamp when the call started | `1745554729` |
+| `endedAt` | number | Epoch timestamp when the call ended | `1745555329` |
+| `initiatedAt` | number | Epoch timestamp when the call was initiated | `1745554700` |
+| `totalAudioMinutes` | number | Total audio minutes of the call | `0` |
+| `totalVideoMinutes` | number | Total video minutes of the call | `10.0` |
+| `totalDurationInMinutes` | number | Total call duration in minutes | `10.0` |
+| `totalDuration` | string | Total call duration in timer format | `"00:10:00"` |
+| `totalParticipants` | number | Total number of participants | `2` |
+| `hasRecording` | boolean | Whether the call has a recording | `false` |
+| `participants` | array | List of call participants | [See below ↓](#fetch-next-participants-object) |
+| `recordings` | array | List of call recordings | `[]` |
+
+---
+
+<span id="fetch-next-initiator-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`initiator` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the initiator | `"cometchat-uid-1"` |
+| `name` | string | Display name of the initiator | `"Andrew Joseph"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
+
+---
+
+<span id="fetch-next-receiver-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`receiver` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the receiver | `"cometchat-uid-2"` |
+| `name` | string | Display name of the receiver | `"George Alan"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
+
+---
+
+<span id="fetch-next-participants-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`participants` Array (per item):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the participant | `"cometchat-uid-1"` |
+| `name` | string | Display name of the participant | `"Andrew Joseph"` |
+| `totalAudioMinutes` | number | Audio minutes for this participant | `0` |
+| `totalVideoMinutes` | number | Video minutes for this participant | `10.0` |
+| `totalDurationInMinutes` | number | Total duration for this participant | `10.0` |
+| `deviceId` | string | Device identifier used to join | `"device-abc-123"` |
+| `isJoined` | boolean | Whether the participant joined the call | `true` |
+| `joinedAt` | number | Epoch timestamp when the participant joined | `1745554735` |
+| `state` | string | Current state of the participant | `"ended"` |
+| `leftAt` | number | Epoch timestamp when the participant left | `1745555329` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to fetch the requested data."` |
+| `details` | string | Additional technical details | `"An unexpected error occurred while fetching call logs."` |
+
+</Accordion>
+
 ### Fetch Previous
 
 The**`fetchPrevious()`**method retrieves the previous set of call logs.
@@ -74,6 +189,89 @@ callAppSettings.fetchPrevious(onSuccess: (List<CallLog> callLogs){
 });
 ```
 
+<Accordion title="Response">
+**On Success** — A `List<CallLog>` containing previous call log entries. Each `CallLog` object includes:
+
+<span id="fetch-previous-calllog-object" style={{scrollMarginTop: '100px'}}></span>
+
+**CallLog Object (per item in list):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `sessionId` | string | Unique call session identifier | `"v1.us.1.yyyyyyyy"` |
+| `initiator` | object | User who initiated the call | [See below ↓](#fetch-previous-initiator-object) |
+| `receiver` | object | User or group that received the call | [See below ↓](#fetch-previous-receiver-object) |
+| `receiverType` | string | Type of the receiver | `"user"` |
+| `status` | string | Current status of the call | `"ended"` |
+| `type` | string | Type of the call | `"audio"` |
+| `mode` | string | Mode of the call | `"call"` |
+| `startedAt` | number | Epoch timestamp when the call started | `1745550000` |
+| `endedAt` | number | Epoch timestamp when the call ended | `1745550600` |
+| `initiatedAt` | number | Epoch timestamp when the call was initiated | `1745549980` |
+| `totalAudioMinutes` | number | Total audio minutes of the call | `10.0` |
+| `totalVideoMinutes` | number | Total video minutes of the call | `0` |
+| `totalDurationInMinutes` | number | Total call duration in minutes | `10.0` |
+| `totalDuration` | string | Total call duration in timer format | `"00:10:00"` |
+| `totalParticipants` | number | Total number of participants | `2` |
+| `hasRecording` | boolean | Whether the call has a recording | `false` |
+| `participants` | array | List of call participants | [See below ↓](#fetch-previous-participants-object) |
+| `recordings` | array | List of call recordings | `[]` |
+
+---
+
+<span id="fetch-previous-initiator-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`initiator` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the initiator | `"cometchat-uid-1"` |
+| `name` | string | Display name of the initiator | `"Andrew Joseph"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
+
+---
+
+<span id="fetch-previous-receiver-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`receiver` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the receiver | `"cometchat-uid-2"` |
+| `name` | string | Display name of the receiver | `"George Alan"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
+
+---
+
+<span id="fetch-previous-participants-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`participants` Array (per item):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the participant | `"cometchat-uid-1"` |
+| `name` | string | Display name of the participant | `"Andrew Joseph"` |
+| `totalAudioMinutes` | number | Audio minutes for this participant | `10.0` |
+| `totalVideoMinutes` | number | Video minutes for this participant | `0` |
+| `totalDurationInMinutes` | number | Total duration for this participant | `10.0` |
+| `deviceId` | string | Device identifier used to join | `"device-abc-123"` |
+| `isJoined` | boolean | Whether the participant joined the call | `true` |
+| `joinedAt` | number | Epoch timestamp when the participant joined | `1745550005` |
+| `state` | string | Current state of the participant | `"ended"` |
+| `leftAt` | number | Epoch timestamp when the participant left | `1745550600` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to fetch the requested data."` |
+| `details` | string | Additional technical details | `"An unexpected error occurred while fetching call logs."` |
+
+</Accordion>
+
 ## Get Call Details
 
 To retrieve the specific details of a call, use the**`getCallDetails()`**method. This method requires the Auth token of the logged-in user and the session ID along with a callback listener. Upon success, this function will return a list of call details, as multiple calls can be initiated for one session ID.
@@ -89,4 +287,120 @@ CometChatCalls.getCallDetails(sessionID, userAuthToken, onSuccess: (List<CallLog
 });
 ```
 
+<Accordion title="Response">
+**On Success** — A `List<CallLog>` containing detailed call log entries for the specified session. Each `CallLog` object includes:
+
+<span id="get-call-details-calllog-object" style={{scrollMarginTop: '100px'}}></span>
+
+**CallLog Object (per item in list):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `sessionId` | string | Unique call session identifier | `"v1.us.1.xxxxxxxx"` |
+| `initiator` | object | User who initiated the call | [See below ↓](#get-call-details-initiator-object) |
+| `receiver` | object | User or group that received the call | [See below ↓](#get-call-details-receiver-object) |
+| `receiverType` | string | Type of the receiver | `"user"` |
+| `status` | string | Current status of the call | `"ended"` |
+| `type` | string | Type of the call | `"video"` |
+| `mode` | string | Mode of the call | `"call"` |
+| `startedAt` | number | Epoch timestamp when the call started | `1745554729` |
+| `endedAt` | number | Epoch timestamp when the call ended | `1745555329` |
+| `initiatedAt` | number | Epoch timestamp when the call was initiated | `1745554700` |
+| `totalAudioMinutes` | number | Total audio minutes of the call | `0` |
+| `totalVideoMinutes` | number | Total video minutes of the call | `10.0` |
+| `totalDurationInMinutes` | number | Total call duration in minutes | `10.0` |
+| `totalDuration` | string | Total call duration in timer format | `"00:10:00"` |
+| `totalParticipants` | number | Total number of participants | `2` |
+| `hasRecording` | boolean | Whether the call has a recording | `false` |
+| `participants` | array | List of call participants | [See below ↓](#get-call-details-participants-object) |
+| `recordings` | array | List of call recordings | [See below ↓](#get-call-details-recordings-object) |
+
+---
+
+<span id="get-call-details-initiator-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`initiator` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the initiator | `"cometchat-uid-1"` |
+| `name` | string | Display name of the initiator | `"Andrew Joseph"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-1.webp"` |
+
+---
+
+<span id="get-call-details-receiver-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`receiver` Object:**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the receiver | `"cometchat-uid-2"` |
+| `name` | string | Display name of the receiver | `"George Alan"` |
+| `avatar` | string | Avatar URL | `"https://assets.cometchat.io/sampleapp/v2/users/cometchat-uid-2.webp"` |
+
+---
+
+<span id="get-call-details-participants-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`participants` Array (per item):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `uid` | string | Unique identifier of the participant | `"cometchat-uid-1"` |
+| `name` | string | Display name of the participant | `"Andrew Joseph"` |
+| `totalAudioMinutes` | number | Audio minutes for this participant | `0` |
+| `totalVideoMinutes` | number | Video minutes for this participant | `10.0` |
+| `totalDurationInMinutes` | number | Total duration for this participant | `10.0` |
+| `deviceId` | string | Device identifier used to join | `"device-abc-123"` |
+| `isJoined` | boolean | Whether the participant joined the call | `true` |
+| `joinedAt` | number | Epoch timestamp when the participant joined | `1745554735` |
+| `state` | string | Current state of the participant | `"ended"` |
+| `leftAt` | number | Epoch timestamp when the participant left | `1745555329` |
+
+---
+
+<span id="get-call-details-recordings-object" style={{scrollMarginTop: '100px'}}></span>
+
+**`recordings` Array (per item):**
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `rid` | string | Unique identifier of the recording | `"recording-001"` |
+| `duration` | number | Total recording duration in minutes | `10.0` |
+| `startTime` | number | Epoch timestamp when the recording started | `1745554729` |
+| `endTime` | number | Epoch timestamp when the recording ended | `1745555329` |
+| `recording_url` | string | URL of the call recording | `"https://recordings.cometchat.io/recording-001.mp4"` |
+
+</Accordion>
+
+<Accordion title="Error">
+
+| Parameter | Type | Description | Sample Value |
+|-----------|------|-------------|--------------|
+| `code` | string | Error code identifier | `"ERR_CHAT_API_FAILURE"` |
+| `message` | string | Human-readable error message | `"Failed to fetch the requested data."` |
+| `details` | string | Additional technical details | `"Unable to retrieve call details for the specified session."` |
+
+</Accordion>
+
 Note: Replace**`"SESSION_ID"`**with the ID of the session you are interested in.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Default Calling" icon="phone" href="/sdk/flutter/default-call">
+    Implement voice and video calls with ringing functionality
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/flutter/recording">
+    Learn how to record calls and access recordings
+  </Card>
+  <Card title="Direct Calling" icon="video" href="/sdk/flutter/direct-call">
+    Start calls without the ringing flow
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/flutter/calling-setup">
+    Configure the CometChat Calls SDK
+  </Card>
+</CardGroup>

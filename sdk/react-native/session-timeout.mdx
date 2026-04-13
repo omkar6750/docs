@@ -1,50 +1,117 @@
 ---
-title: "Session Timeout Flow"
-description: "Understand how CometChat Calls SDK handles idle session timeouts — automatic call termination, user prompts, and the onSessionTimeout event (v4.2.0+)."
+title: "Session Timeout"
+sidebarTitle: "Session Timeout"
+description: "Handle idle session timeouts in CometChat calls, including automatic termination, user prompts, and the onSessionTimeout event."
 ---
 
-Available since v4.2.0
+<Accordion title="AI Integration Quick Reference">
 
-## Overview
+```javascript
+// Set custom timeout (in seconds)
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setIdleTimeoutPeriod(300) // 5 minutes
+  .setCallListener(new CometChatCalls.OngoingCallListener({
+    onSessionTimeout: () => {
+      console.log("Session timed out");
+      CometChatCalls.endSession();
+    }
+  }))
+  .build();
+```
 
-CometChat Calls SDK provides a mechanism to handle session timeouts for idle participants. By default, if a participant is alone in a call session for 180 seconds (3 minutes), the following sequence is triggered:
+- Default idle timeout: 180 seconds (3 minutes) alone in a session
+- Warning dialog appears 60 seconds before auto-termination
+- Listen for `onSessionTimeout` to handle auto-termination
+- Customize with `setIdleTimeoutPeriod(seconds)` in CallSettings (v4.2.0+)
+</Accordion>
 
-1. After 120 seconds of being alone in the session, the participant will see a dialog box
+*Available since v4.2.0*
 
-2. This dialog provides options to either:
+The Calls SDK automatically terminates call sessions when a participant is alone for too long, preventing abandoned calls from consuming resources. You can customize the timeout duration and handle the termination event.
 
-   * Stay in the call
-   * Leave immediately
+## How It Works
 
-3. If no action is taken within the next 60 seconds, the call will automatically end
+When a participant is alone in a session:
 
-This feature helps manage inactive call sessions and prevents unnecessary resource usage. The idle timeout period ensures that participants don't accidentally remain in abandoned call sessions.
+1. A warning dialog appears 60 seconds before the timeout, with "Stay" or "Leave" options
+2. If no action is taken, the call auto-terminates and the `onSessionTimeout` event fires
 
-<Note>
-You can customize the idle timeout period using `setIdleTimeoutPeriod(seconds)` in the `CallSettingsBuilder`. See the [Call Session settings](/sdk/react-native/direct-call#call-settings) for details.
-</Note>
-
-### Session Timeout Flow
+The default timeout is 180 seconds (3 minutes).
 
 <Frame>
   <img src="/images/d75ea5ed-diagram-afa10cae2acad94dee0d7c69275fd544.svg" />
 </Frame>
 
-<Tip>
+## Configuration
 
-The `onSessionTimeout` event is triggered when the call automatically terminates due to session timeout, as illustrated in the diagram above.
+Set a custom timeout period using `setIdleTimeoutPeriod()` in `CallSettingsBuilder`. The warning dialog will always appear 60 seconds before the configured timeout.
 
-</Tip>
+<Tabs>
+<Tab title="TypeScript">
+```typescript
+const callSettings: any = new CometChatCalls.CallSettingsBuilder()
+  .setIdleTimeoutPeriod(300) // 5 minutes
+  .enableDefaultLayout(true)
+  .setCallListener(callListener)
+  .build();
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+const callSettings = new CometChatCalls.CallSettingsBuilder()
+  .setIdleTimeoutPeriod(300) // 5 minutes
+  .enableDefaultLayout(true)
+  .setCallListener(callListener)
+  .build();
+```
+</Tab>
+</Tabs>
+
+## Handling the Timeout Event
+
+Listen for `onSessionTimeout` in your `OngoingCallListener` to clean up when the call auto-terminates:
+
+<Tabs>
+<Tab title="TypeScript">
+```typescript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onSessionTimeout: () => {
+    console.log("Session timed out due to inactivity");
+    CometChatCalls.endSession();
+    // Close the calling screen
+  },
+  // ... other listeners
+});
+```
+</Tab>
+<Tab title="JavaScript">
+```javascript
+const callListener = new CometChatCalls.OngoingCallListener({
+  onSessionTimeout: () => {
+    console.log("Session timed out due to inactivity");
+    CometChatCalls.endSession();
+    // Close the calling screen
+  },
+  // ... other listeners
+});
+```
+</Tab>
+</Tabs>
+
+See [Call Session — Call Listeners](/sdk/react-native/direct-call#call-listeners) for the full list of events.
 
 ---
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
-    Start and manage call sessions with full configuration options
+  <Card title="Default Calling" icon="phone" href="/sdk/react-native/default-call">
+    Implement ringing call flows with accept/reject functionality
   </Card>
-  <Card title="Ringing" icon="phone-volume" href="/sdk/react-native/default-call">
-    Implement a complete calling experience with incoming and outgoing call UI
+  <Card title="Call Session" icon="video" href="/sdk/react-native/direct-call">
+    Configure call settings including idle timeout
+  </Card>
+  <Card title="Standalone Calling" icon="video" href="/sdk/react-native/standalone-calling">
+    Implement calling without the Chat SDK
   </Card>
 </CardGroup>

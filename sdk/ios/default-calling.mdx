@@ -1,7 +1,30 @@
 ---
 title: "Ringing"
+sidebarTitle: "Ringing"
+description: "Implement a complete calling workflow with ringing, incoming/outgoing call UI, accept/reject/cancel functionality using the CometChat iOS SDK."
 ---
 
+<Accordion title="AI Integration Quick Reference">
+
+```swift
+// Initiate a call
+let call = Call(receiverId: "UID", callType: .video, receiverType: .user)
+CometChat.initiateCall(call: call) { call in } onError: { error in }
+
+// Listen for call events (CometChatCallDelegate)
+func onIncomingCallReceived(incomingCall: Call?, error: CometChatException?) { /* show incoming UI */ }
+func onOutgoingCallAccepted(acceptedCall: Call?, error: CometChatException?) { /* start session */ }
+func onOutgoingCallRejected(rejectedCall: Call?, error: CometChatException?) { /* dismiss UI */ }
+func onIncomingCallCanceled(canceledCall: Call?, error: CometChatException?) { /* dismiss UI */ }
+
+// Accept / Reject / Cancel
+CometChat.acceptCall(sessionID: sessionId) { call in } onError: { error in }
+CometChat.rejectCall(sessionID: sessionId, status: .rejected) { call in } onError: { error in }
+CometChat.rejectCall(sessionID: sessionId, status: .cancelled) { call in } onError: { error in }
+```
+
+**Flow:** Initiate \u2192 Receiver notified \u2192 Accept/Reject \u2192 Start session
+</Accordion>
 ## Overview
 
 This section explains how to implement a complete calling workflow with ringing functionality, including incoming/outgoing call UI, call acceptance, rejection, and cancellation. Previously known as **Default Calling**.
@@ -22,7 +45,7 @@ After the call is accepted, you need to start the call session. See the [Call Se
 
 ## Initiate Call
 
-The `initiateCall()` method sends a call request to a user or a group. On success, the receiver gets an `onIncomingCallReceived()` callback.
+The `initiateCall()` method sends a call request to a user or a group. On success, the receiver gets an `onIncomingCallReceived()` callback. The method returns a [`Call`](/sdk/reference/messages#call) object.
 
 <Tabs>
 <Tab title="Swift">
@@ -157,11 +180,11 @@ Set your view controller as the CometChat call delegate in `viewDidLoad()`: `Com
 
 | Event | Description |
 | ----- | ----------- |
-| `onIncomingCallReceived(incomingCall: Call)` | Invoked when an incoming call is received. Display incoming call UI here. |
-| `onOutgoingCallAccepted(acceptedCall: Call)` | Invoked on the caller's device when the receiver accepts. Start the call session here. |
-| `onOutgoingCallRejected(rejectedCall: Call)` | Invoked on the caller's device when the receiver rejects. Dismiss outgoing call UI. |
-| `onIncomingCallCanceled(canceledCall: Call)` | Invoked on the receiver's device when the caller cancels. Dismiss incoming call UI. |
-| `onCallEndedMessageReceived(endedCall: Call)` | Invoked when a call ends. Update call history here. |
+| `onIncomingCallReceived(incomingCall:` [`Call`](/sdk/reference/messages#call)`)` | Invoked when an incoming call is received. Display incoming call UI here. |
+| `onOutgoingCallAccepted(acceptedCall:` [`Call`](/sdk/reference/messages#call)`)` | Invoked on the caller's device when the receiver accepts. Start the call session here. |
+| `onOutgoingCallRejected(rejectedCall:` [`Call`](/sdk/reference/messages#call)`)` | Invoked on the caller's device when the receiver rejects. Dismiss outgoing call UI. |
+| `onIncomingCallCanceled(canceledCall:` [`Call`](/sdk/reference/messages#call)`)` | Invoked on the receiver's device when the caller cancels. Dismiss incoming call UI. |
+| `onCallEndedMessageReceived(endedCall:` [`Call`](/sdk/reference/messages#call)`)` | Invoked when a call ends. Update call history here. |
 
 ## Accept Call
 
@@ -270,7 +293,7 @@ let authToken = CometChat.getUserAuthToken() ?? ""
 CometChatCalls.generateToken(authToken: authToken as NSString, sessionID: sessionId) { token in
     
     // Step 2: Configure call settings
-    let callSettings = CometChatCalls.CallSettingsBuilder
+    let callSettings = CometChatCalls.callSettingsBuilder
         .setDefaultLayout(true)
         .setIsAudioOnly(false)
         .setDelegate(self)
@@ -361,3 +384,224 @@ CometChat.rejectCall(sessionID: sessionID, status: status, onSuccess: { call in
 ```
 </Tab>
 </Tabs>
+
+---
+
+## Call Status Reference
+
+| Status | Description | Usage |
+|--------|-------------|-------|
+| `.initiated` | Call has been initiated | After initiateCall |
+| `.ongoing` | Call is in progress | During active call |
+| `.unanswered` | Call was not answered | Timeout/no answer |
+| `.rejected` | Receiver rejected the call | rejectCall(.rejected) |
+| `.busy` | Receiver is on another call | rejectCall(.busy) |
+| `.cancelled` | Caller cancelled before answer | rejectCall(.cancelled) |
+| `.ended` | Call has ended | After endCall |
+
+---
+
+## Call Type Reference
+
+| Type | Description |
+|------|-------------|
+| `.audio` | Voice call only |
+| `.video` | Video call with audio |
+
+---
+
+## Receiver Type Reference
+
+| Type | Description |
+|------|-------------|
+| `.user` | One-to-one call with a user |
+| `.group` | Group call |
+
+---
+
+## Common Error Codes
+
+| Error Code | Description | Resolution |
+|------------|-------------|------------|
+| `ERR_CALL_NOT_FOUND` | Call session not found | Verify session ID |
+| `ERR_CALL_ALREADY_INITIATED` | Call already in progress | End current call first |
+| `ERR_CALL_ALREADY_JOINED` | Already joined the call | Cannot join twice |
+| `ERR_CALL_BUSY` | User is on another call | Try again later |
+| `ERR_CALL_CANCELLED` | Call was cancelled | Initiate new call |
+| `ERR_CALL_REJECTED` | Call was rejected | User declined |
+| `ERR_CALL_ENDED` | Call has already ended | Initiate new call |
+| `ERR_INVALID_SESSION_ID` | Invalid session ID | Check session ID |
+| `ERR_USER_NOT_LOGGED_IN` | User not authenticated | Login first |
+| `ERR_CALLING_SELF` | Cannot call yourself | Use different receiver |
+| `ERROR_CALL_IN_PROGRESS` | Another call is active | End previous call first |
+
+---
+
+## Complete Calling Example
+
+A complete implementation showing the full calling flow from initiation to end.
+
+<Accordion title="Complete Calling Implementation">
+<Tabs>
+<Tab title="Swift">
+```swift
+import CometChatSDK
+import CometChatCallsSDK
+
+class CallViewController: UIViewController, CometChatCallDelegate, CallsEventsDelegate {
+    
+    var callView: UIView!
+    var currentSessionId: String?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        CometChat.calldelegate = self
+        setupCallView()
+    }
+    
+    func setupCallView() {
+        callView = UIView(frame: view.bounds)
+        view.addSubview(callView)
+    }
+    
+    // MARK: - Initiate Call
+    func initiateVideoCall(to receiverId: String) {
+        let call = Call(receiverId: receiverId, callType: .video, receiverType: .user)
+        
+        CometChat.initiateCall(call: call) { [weak self] call in
+            self?.currentSessionId = call?.sessionID
+            // Show outgoing call UI
+        } onError: { error in
+            print("Error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    // MARK: - CometChatCallDelegate
+    func onIncomingCallReceived(incomingCall: Call?, error: CometChatException?) {
+        guard let call = incomingCall else { return }
+        currentSessionId = call.sessionID
+        // Show incoming call UI with accept/reject buttons
+    }
+    
+    func onOutgoingCallAccepted(acceptedCall: Call?, error: CometChatException?) {
+        guard let sessionId = acceptedCall?.sessionID else { return }
+        startCallSession(sessionID: sessionId)
+    }
+    
+    func onOutgoingCallRejected(rejectedCall: Call?, error: CometChatException?) {
+        // Dismiss outgoing call UI
+    }
+    
+    func onIncomingCallCanceled(canceledCall: Call?, error: CometChatException?) {
+        // Dismiss incoming call UI
+    }
+    
+    func onCallEndedMessageReceived(endedCall: Call?, error: CometChatException?) {
+        CometChat.clearActiveCall()
+        CometChatCalls.endSession()
+    }
+    
+    // MARK: - Accept/Reject Call
+    func acceptCall() {
+        guard let sessionId = currentSessionId else { return }
+        
+        CometChat.acceptCall(sessionID: sessionId) { [weak self] call in
+            self?.startCallSession(sessionID: sessionId)
+        } onError: { error in
+            print("Error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    func rejectCall() {
+        guard let sessionId = currentSessionId else { return }
+        
+        CometChat.rejectCall(sessionID: sessionId, status: .rejected) { call in
+            // Dismiss incoming call UI
+        } onError: { error in
+            print("Error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    // MARK: - Start Call Session
+    func startCallSession(sessionID: String) {
+        guard let authToken = CometChat.getUserAuthToken() else { return }
+        
+        CometChatCalls.generateToken(
+            authToken: authToken as NSString,
+            sessionID: sessionID as NSString
+        ) { [weak self] token in
+            guard let self = self else { return }
+            
+            let tokenStr = (token as? [String: Any])?["token"] as? String ?? token as? String
+            guard let callToken = tokenStr else { return }
+            
+            let callSettings = CometChatCalls.callSettingsBuilder
+                .setDefaultLayout(true)
+                .setIsAudioOnly(false)
+                .setDelegate(self)
+                .build()
+            
+            DispatchQueue.main.async {
+                CometChatCalls.startSession(
+                    callToken: callToken,
+                    callSetting: callSettings,
+                    view: self.callView
+                ) { success in
+                    print("Call session started")
+                } onError: { error in
+                    print("Error: \(error?.errorDescription ?? "")")
+                }
+            }
+        } onError: { error in
+            print("Token error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    // MARK: - CallsEventsDelegate
+    func onCallEndButtonPressed() {
+        guard let sessionId = currentSessionId else { return }
+        
+        CometChat.endCall(sessionID: sessionId) { call in
+            CometChat.clearActiveCall()
+            CometChatCalls.endSession()
+        } onError: { error in
+            print("Error: \(error?.errorDescription ?? "")")
+        }
+    }
+    
+    func onCallEnded() {
+        CometChat.clearActiveCall()
+        CometChatCalls.endSession()
+    }
+    
+    func onUserJoined(rtcUser: RTCUser) {
+        print("User joined: \(rtcUser.name ?? "")")
+    }
+    
+    func onUserLeft(rtcUser: RTCUser) {
+        print("User left: \(rtcUser.name ?? "")")
+    }
+}
+```
+</Tab>
+</Tabs>
+</Accordion>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Call Session" icon="video" href="/sdk/ios/direct-calling">
+    Manage call sessions, tokens, and settings
+  </Card>
+  <Card title="Call Logs" icon="list" href="/sdk/ios/call-logs">
+    Retrieve and display call history
+  </Card>
+  <Card title="Recording" icon="circle-dot" href="/sdk/ios/recording">
+    Record audio and video calls
+  </Card>
+  <Card title="Calling Setup" icon="gear" href="/sdk/ios/calling-setup">
+    Install and initialize the Calls SDK
+  </Card>
+</CardGroup>
